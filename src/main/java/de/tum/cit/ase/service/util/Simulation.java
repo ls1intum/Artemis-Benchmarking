@@ -11,7 +11,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 
 public class Simulation {
 
@@ -59,9 +58,7 @@ public class Simulation {
             .range(0, numberOfUsers)
             .parallel(threadCount)
             .runOn(scheduler)
-            .doOnNext(i -> {
-                requestStats.addAll(action.apply(i));
-            })
+            .doOnNext(i -> requestStats.addAll(action.apply(i)))
             .sequential()
             .count()
             .blockingGet();
