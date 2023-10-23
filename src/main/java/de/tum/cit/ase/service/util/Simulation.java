@@ -17,11 +17,7 @@ public class Simulation {
 
     private final Logger log = LoggerFactory.getLogger(Simulation.class);
 
-    // TODO: Move to config
-    @Value("${artemis.local.username_template}")
     private String testUserUsernameTemplate;
-
-    @Value("${artemis.local.password_template}")
     private String testUserPasswordTemplate;
 
     private static final int maxNumberOfThreads = 20;
@@ -32,8 +28,10 @@ public class Simulation {
     private final List<RequestStat> requestStats = Collections.synchronizedList(new ArrayList<>());
     private SyntheticArtemisUser[] users;
 
-    public Simulation(int numberOfUsers) {
+    public Simulation(int numberOfUsers, String testUserPasswordTemplate, String testUserUsernameTemplate) {
         this.numberOfUsers = numberOfUsers;
+        this.testUserPasswordTemplate = testUserPasswordTemplate;
+        this.testUserUsernameTemplate = testUserUsernameTemplate;
         initializeUsers();
     }
 

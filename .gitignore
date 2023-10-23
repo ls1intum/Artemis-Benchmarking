@@ -115,6 +115,7 @@ Desktop.ini
 ######################
 /bin/
 /deploy/
+/repos/
 
 ######################
 # Logs
@@ -149,3 +150,8 @@ Desktop.ini
 ######################
 /coverage/
 /.nyc_output/
+
+######################
+# Local configurations
+######################
+/src/main/resources/config/application-local.yml
