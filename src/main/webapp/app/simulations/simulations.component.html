@@ -1,0 +1,85 @@
+<button (click)="startSimulation()">Start Simulation</button>
+<div *ngIf="simulationResult">
+  <h2>Simulation Result:</h2>
+  <div class="sub-result-wrapper">
+    <h3>Total:</h3>
+    <span>Number of requests: {{ simulationResult!.total!.numberOfRequests }}</span
+    ><br />
+    <span>Average response time: {{ formatDuration(simulationResult!.total!.avgResponseTime) }}</span
+    ><br />
+    <span>Failure rate: {{ simulationResult!.total!.failureRate }}</span
+    ><br />
+  </div>
+  <div class="sub-result-wrapper">
+    <h3>Authentication:</h3>
+    <span>Number of requests: {{ simulationResult!.authenticationStats!.numberOfRequests }}</span
+    ><br />
+    <span>Average response time: {{ formatDuration(simulationResult!.authenticationStats!.avgResponseTime) }}</span
+    ><br />
+    <span>Failure rate: {{ simulationResult!.authenticationStats!.failureRate }}</span
+    ><br />
+  </div>
+  <div class="sub-result-wrapper">
+    <h3>Get Exam:</h3>
+    <span>Number of requests: {{ simulationResult!.getExamStats!.numberOfRequests }}</span
+    ><br />
+    <span>Average response time: {{ formatDuration(simulationResult!.getExamStats!.avgResponseTime) }}</span
+    ><br />
+    <span>Failure rate: {{ simulationResult!.getExamStats!.failureRate }}</span
+    ><br />
+  </div>
+  <div class="sub-result-wrapper">
+    <h3>Start Exam:</h3>
+    <span>Number of requests: {{ simulationResult!.startExamStats!.numberOfRequests }}</span
+    ><br />
+    <span>Average response time: {{ formatDuration(simulationResult!.startExamStats!.avgResponseTime) }}</span
+    ><br />
+    <span>Failure rate: {{ simulationResult!.startExamStats!.failureRate }}</span
+    ><br />
+  </div>
+  <div class="sub-result-wrapper">
+    <h3>Submit Exercise:</h3>
+    <span>Number of requests: {{ simulationResult!.submitExerciseStats!.numberOfRequests }}</span
+    ><br />
+    <span>Average response time: {{ formatDuration(simulationResult!.submitExerciseStats!.avgResponseTime) }}</span
+    ><br />
+    <span>Failure rate: {{ simulationResult!.submitExerciseStats!.failureRate }}</span
+    ><br />
+  </div>
+  <div class="sub-result-wrapper">
+    <h3>Submit Exam:</h3>
+    <span>Number of requests: {{ simulationResult!.submitExamStats!.numberOfRequests }}</span
+    ><br />
+    <span>Average response time: {{ formatDuration(simulationResult!.submitExamStats!.avgResponseTime) }}</span
+    ><br />
+    <span>Failure rate: {{ simulationResult!.submitExamStats!.failureRate }}</span
+    ><br />
+  </div>
+  <div class="sub-result-wrapper">
+    <h3>Clone Repo:</h3>
+    <span>Number of requests: {{ simulationResult!.cloneStats!.numberOfRequests }}</span
+    ><br />
+    <span>Average response time: {{ formatDuration(simulationResult!.cloneStats!.avgResponseTime) }}</span
+    ><br />
+    <span>Failure rate: {{ simulationResult!.cloneStats!.failureRate }}</span
+    ><br />
+  </div>
+  <div class="sub-result-wrapper">
+    <h3>Push Repo:</h3>
+    <span>Number of requests: {{ simulationResult!.pushStats!.numberOfRequests }}</span
+    ><br />
+    <span>Average response time: {{ formatDuration(simulationResult!.pushStats!.avgResponseTime) }}</span
+    ><br />
+    <span>Failure rate: {{ simulationResult!.pushStats!.failureRate }}</span
+    ><br />
+  </div>
+  <div class="sub-result-wrapper">
+    <h3>Misc Requests:</h3>
+    <span>Number of requests: {{ simulationResult!.miscStats!.numberOfRequests }}</span
+    ><br />
+    <span>Average response time: {{ formatDuration(simulationResult!.miscStats!.avgResponseTime) }}</span
+    ><br />
+    <span>Failure rate: {{ simulationResult!.miscStats!.failureRate }}</span
+    ><br />
+  </div>
+</div>

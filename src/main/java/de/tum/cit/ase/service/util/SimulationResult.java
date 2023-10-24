@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 public class SimulationResult {
 
+    private SimulationStats total;
     private SimulationStats authenticationStats;
     private SimulationStats getExamStats;
     private SimulationStats startExamStats;
@@ -30,6 +31,7 @@ public class SimulationResult {
         cloneStats = new SimulationStats(requestStats.stream().filter(stat -> stat.type() == CLONE).collect(Collectors.toList()));
         pushStats = new SimulationStats(requestStats.stream().filter(stat -> stat.type() == PUSH).collect(Collectors.toList()));
         miscStats = new SimulationStats(requestStats.stream().filter(stat -> stat.type() == MISC).collect(Collectors.toList()));
+        total = new SimulationStats(requestStats.stream().toList());
     }
 
     public SimulationResult() {}
@@ -96,6 +98,14 @@ public class SimulationResult {
 
     public void setMiscStats(SimulationStats miscStats) {
         this.miscStats = miscStats;
+    }
+
+    public SimulationStats getTotal() {
+        return total;
+    }
+
+    public void setTotal(SimulationStats total) {
+        this.total = total;
     }
 
     @Override

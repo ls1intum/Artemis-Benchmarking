@@ -51,15 +51,20 @@ public class SimulationService {
         int threadCount = Integer.min(maxNumberOfThreads, numberOfUsers);
         List<RequestStat> requestStats = new ArrayList<>();
 
-        requestStats.addAll(performActionWithAll(20, numberOfUsers, i -> users[i].login()));
-        requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> users[i].performInitialCalls()));
-        requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> users[i].participateInExam(courseId, examId)));
-        logRequestStatsPerMinute(requestStats);
-        var simulationResult = new SimulationResult(requestStats);
-        log.info("Simulation finished");
-        System.out.println(simulationResult);
-        simulationWebsocketService.sendSimulationResult(simulationResult);
-        simulationRunning = false;
+        try {
+            requestStats.addAll(performActionWithAll(20, numberOfUsers, i -> users[i].login()));
+            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> users[i].performInitialCalls()));
+            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> users[i].participateInExam(courseId, examId)));
+
+            logRequestStatsPerMinute(requestStats);
+            var simulationResult = new SimulationResult(requestStats);
+            log.info("Simulation finished");
+            simulationWebsocketService.sendSimulationResult(simulationResult);
+        } catch (Exception e) {
+            log.error("Error during simulation {{}}", e.getMessage());
+        } finally {
+            simulationRunning = false;
+        }
     }
 
     private SyntheticArtemisUser[] initializeUsers(int numberOfUsers) {

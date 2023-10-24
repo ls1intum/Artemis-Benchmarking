@@ -2,6 +2,7 @@ import { SimulationStats } from './simulationStats';
 
 export class SimulationResult {
   constructor(
+    public total: SimulationStats,
     public authenticationStats: SimulationStats,
     public getExamStats: SimulationStats,
     public startExamStats: SimulationStats,

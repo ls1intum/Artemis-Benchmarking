@@ -20,6 +20,7 @@ import MainComponent from './layouts/main/main.component';
 import MainModule from './layouts/main/main.module';
 import { AppPageTitleStrategy } from './app-page-title-strategy';
 import { TrackerService } from './core/tracker/tracker.service';
+import { SimulationsComponent } from './simulations/simulations.component';
 
 @NgModule({
   imports: [
@@ -39,6 +40,7 @@ import { TrackerService } from './core/tracker/tracker.service';
     { provide: TitleStrategy, useClass: AppPageTitleStrategy },
   ],
   bootstrap: [MainComponent],
+  declarations: [SimulationsComponent],
 })
 export class AppModule {
   constructor(
