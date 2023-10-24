@@ -6,6 +6,8 @@ import { takeUntil } from 'rxjs/operators';
 import SharedModule from 'app/shared/shared.module';
 import { AccountService } from 'app/core/auth/account.service';
 import { Account } from 'app/core/auth/account.model';
+import { HttpClient } from '@angular/common/http';
+import { ApplicationConfigService } from '../core/config/application-config.service';
 
 @Component({
   standalone: true,
@@ -22,6 +24,8 @@ export default class HomeComponent implements OnInit, OnDestroy {
   constructor(
     private accountService: AccountService,
     private router: Router,
+    private httpClient: HttpClient,
+    private applicationConfigService: ApplicationConfigService,
   ) {}
 
   ngOnInit(): void {
@@ -38,5 +42,9 @@ export default class HomeComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  startSimulation() {
+    this.httpClient.post(this.applicationConfigService.getEndpointFor('/api/simulations?users=10'), undefined).subscribe(() => {});
   }
 }
