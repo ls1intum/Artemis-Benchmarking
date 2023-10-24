@@ -12,6 +12,7 @@ import de.tum.cit.ase.web.rest.vm.KeyAndPasswordVM;
 import de.tum.cit.ase.web.rest.vm.ManagedUserVM;
 import jakarta.validation.Valid;
 import java.util.*;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,13 +57,7 @@ public class AccountResource {
      */
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public void registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {
-        if (isPasswordLengthInvalid(managedUserVM.getPassword())) {
-            throw new InvalidPasswordException();
-        }
-        User user = userService.registerUser(managedUserVM, managedUserVM.getPassword());
-        mailService.sendActivationEmail(user);
-    }
+    public void registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {}
 
     /**
      * {@code GET  /activate} : activate the registered user.
