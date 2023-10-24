@@ -9,16 +9,19 @@ import { SimulationResult } from './simulationResult';
 })
 export class SimulationsComponent implements OnInit {
   simulationResult?: SimulationResult;
+  simulationRunning = false;
   constructor(private simulationsService: SimulationsService) {}
 
   ngOnInit() {
     this.simulationsService.websocketSubscription().subscribe((simulationResult: SimulationResult) => {
       this.simulationResult = simulationResult;
-      console.log(simulationResult);
+      this.simulationRunning = false;
     });
   }
   startSimulation() {
-    this.simulationsService.startSimulation();
+    this.simulationsService.startSimulation().subscribe(() => {
+      this.simulationRunning = true;
+    });
   }
 
   formatDuration(durationInNanoSeconds: number) {

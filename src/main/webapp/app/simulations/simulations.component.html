@@ -1,5 +1,5 @@
-<button (click)="startSimulation()">Start Simulation</button>
-<div *ngIf="simulationResult">
+<button (click)="startSimulation()" [disabled]="simulationRunning">Start Simulation</button>
+<div *ngIf="simulationResult && !simulationRunning">
   <h2>Simulation Result:</h2>
   <div class="sub-result-wrapper">
     <h3>Total:</h3>
@@ -82,4 +82,7 @@
     <span>Failure rate: {{ simulationResult!.miscStats!.failureRate }}</span
     ><br />
   </div>
+</div>
+<div *ngIf="simulationRunning">
+  <span>Simulation running, please wait...</span>
 </div>

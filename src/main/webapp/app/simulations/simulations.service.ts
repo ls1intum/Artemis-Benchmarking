@@ -34,7 +34,7 @@ export class SimulationsService {
   }
 
   startSimulation() {
-    this.httpClient.post(this.applicationConfigService.getEndpointFor('/api/simulations?users=10'), undefined).subscribe(() => {});
+    return this.httpClient.post(this.applicationConfigService.getEndpointFor('/api/simulations?users=10'), undefined);
   }
 
   private buildUrl(): string {
