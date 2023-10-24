@@ -1,8 +1,10 @@
 package de.tum.cit.ase.service;
 
 import de.tum.cit.ase.service.util.RequestStat;
+import de.tum.cit.ase.service.util.SimulationResult;
 import de.tum.cit.ase.service.util.SyntheticArtemisUser;
 import de.tum.cit.ase.service.util.TimeLogUtil;
+import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -31,9 +33,15 @@ public class SimulationService {
 
     private static final int maxNumberOfThreads = 20;
     private static final String courseId = "3";
-    private static final String examId = "15";
+    private static final String examId = "29";
+
+    private final SimulationWebsocketService simulationWebsocketService;
 
     private boolean simulationRunning = false;
+
+    public SimulationService(SimulationWebsocketService simulationWebsocketService) {
+        this.simulationWebsocketService = simulationWebsocketService;
+    }
 
     @Async
     public synchronized void simulateExam(int numberOfUsers) {
@@ -47,8 +55,11 @@ public class SimulationService {
         requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> users[i].performInitialCalls()));
         requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> users[i].participateInExam(courseId, examId)));
         logRequestStatsPerMinute(requestStats);
-        simulationRunning = false;
+        var simulationResult = new SimulationResult(requestStats);
         log.info("Simulation finished");
+        System.out.println(simulationResult);
+        simulationWebsocketService.sendSimulationResult(simulationResult);
+        simulationRunning = false;
     }
 
     private SyntheticArtemisUser[] initializeUsers(int numberOfUsers) {

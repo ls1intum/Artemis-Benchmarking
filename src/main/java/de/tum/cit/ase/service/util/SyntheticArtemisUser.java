@@ -1,5 +1,6 @@
 package de.tum.cit.ase.service.util;
 
+import static de.tum.cit.ase.service.util.RequestType.*;
 import static de.tum.cit.ase.service.util.TimeLogUtil.formatDurationFrom;
 import static de.tum.cit.ase.service.util.UMLClassDiagrams.CLASS_MODEL_1;
 import static de.tum.cit.ase.service.util.UMLClassDiagrams.CLASS_MODEL_2;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
@@ -67,7 +69,7 @@ public class SyntheticArtemisUser {
         long start = System.nanoTime();
         var payload = Map.of("username", username, "password", password, "rememberMe", true);
         var response = webClient.post().uri("api/public/authenticate").bodyValue(payload).retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, AUTHENTICATION, success(response)));
 
         var cookieHeader = response.getHeaders().get("Set-Cookie").get(0);
         authToken = AuthToken.fromResponseHeaderString(cookieHeader);
@@ -118,32 +120,32 @@ public class SyntheticArtemisUser {
 
     public void getInfo() {
         long start = System.nanoTime();
-        webClient.get().uri("management/info").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+        var response = webClient.get().uri("management/info").retrieve().toBodilessEntity().block();
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
     }
 
     public void getSystemNotifications() {
         long start = System.nanoTime();
-        webClient.get().uri("api/public/system-notifications/active").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+        var response = webClient.get().uri("api/public/system-notifications/active").retrieve().toBodilessEntity().block();
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
     }
 
     public void getAccount() {
         long start = System.nanoTime();
-        webClient.get().uri("api/public/account").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+        var response = webClient.get().uri("api/public/account").retrieve().toBodilessEntity().block();
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
     }
 
     public void getNotificationSettings() {
         long start = System.nanoTime();
-        webClient.get().uri("api/notification-settings").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+        var response = webClient.get().uri("api/notification-settings").retrieve().toBodilessEntity().block();
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
     }
 
     public void getCourses() {
         long start = System.nanoTime();
-        webClient.get().uri("api/courses/for-dashboard").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+        var response = webClient.get().uri("api/courses/for-dashboard").retrieve().toBodilessEntity().block();
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
     }
 
     public void navigateIntoExam() {
@@ -154,7 +156,7 @@ public class SyntheticArtemisUser {
             .retrieve()
             .bodyToMono(StudentExam.class)
             .block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, GET_STUDENT_EXAM, studentExam != null));
         studentExamId = studentExam.getId();
     }
 
@@ -181,7 +183,7 @@ public class SyntheticArtemisUser {
                 .bodyToMono(StudentExam.class)
                 .block();
         long duration = System.nanoTime() - start;
-        requestStats.add(new RequestStat(now(), duration));
+        requestStats.add(new RequestStat(now(), duration, START_STUDENT_EXAM, studentExam != null));
         // startExamRequestStats.add(new RequestStat(now(), duration));
     }
 
@@ -211,16 +213,16 @@ public class SyntheticArtemisUser {
             }
 
             long start = System.nanoTime();
-            webClient
+            var response = webClient
                 .put()
                 .uri(uriBuilder ->
                     uriBuilder.pathSegment("api", "exercises", modelingExercise.getId().toString(), "modeling-submissions").build()
                 )
                 .bodyValue(modelingSubmission)
                 .retrieve()
-                .bodyToMono(ModelingSubmission.class)
+                .toBodilessEntity()
                 .block();
-            requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+            requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE, success(response)));
         }
     }
 
@@ -231,14 +233,14 @@ public class SyntheticArtemisUser {
             textSubmission.setLanguage(Language.ENGLISH);
 
             long start = System.nanoTime();
-            webClient
+            var response = webClient
                 .put()
                 .uri(uriBuilder -> uriBuilder.pathSegment("api", "exercises", textExercise.getId().toString(), "text-submissions").build())
                 .bodyValue(textSubmission)
                 .retrieve()
-                .bodyToMono(TextSubmission.class)
+                .toBodilessEntity()
                 .block();
-            requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+            requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE, success(response)));
         }
     }
 
@@ -247,16 +249,16 @@ public class SyntheticArtemisUser {
         // TODO: change something in the quiz submission
         if (quizSubmission != null) {
             long start = System.nanoTime();
-            webClient
+            var response = webClient
                 .put()
                 .uri(uriBuilder ->
                     uriBuilder.pathSegment("api", "exercises", quizExercise.getId().toString(), "submissions", "exam").build()
                 )
                 .bodyValue(quizSubmission)
                 .retrieve()
-                .bodyToMono(QuizSubmission.class)
+                .toBodilessEntity()
                 .block();
-            requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+            requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE, success(response)));
         }
     }
 
@@ -285,7 +287,7 @@ public class SyntheticArtemisUser {
 
     public void submitStudentExam() {
         long start = System.nanoTime();
-        webClient
+        var response = webClient
             .post()
             .uri(uriBuilder ->
                 uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "submit").build()
@@ -294,13 +296,13 @@ public class SyntheticArtemisUser {
             .retrieve()
             .toBodilessEntity()
             .block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_STUDENT_EXAM, success(response)));
         // submitExamRequestStats.add(new RequestStat(now(), duration));
     }
 
     public void loadExamSummary() {
         long start = System.nanoTime();
-        webClient
+        var response = webClient
             .get()
             .uri(uriBuilder ->
                 uriBuilder
@@ -319,7 +321,7 @@ public class SyntheticArtemisUser {
             .retrieve()
             .toBodilessEntity()
             .block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
     }
 
     private static HttpClient createHttpClient() {
@@ -382,7 +384,7 @@ public class SyntheticArtemisUser {
         long start = System.nanoTime();
         git.push().setCredentialsProvider(getCredentialsProvider()).call();
         long duration = System.nanoTime() - start;
-        requestStats.add(new RequestStat(now(), duration));
+        requestStats.add(new RequestStat(now(), duration, PUSH, true));
         git.close();
     }
 
@@ -429,12 +431,16 @@ public class SyntheticArtemisUser {
             .setDirectory(localPath.toFile())
             .setCredentialsProvider(getCredentialsProvider())
             .call();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, CLONE, true));
         git.close();
         log.debug("Done " + repositoryUrl);
     }
 
     private UsernamePasswordCredentialsProvider getCredentialsProvider() {
         return new UsernamePasswordCredentialsProvider(username, password);
+    }
+
+    private static boolean success(ResponseEntity response) {
+        return response != null && response.getStatusCode().is2xxSuccessful();
     }
 }
