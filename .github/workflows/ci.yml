@@ -10,6 +10,8 @@ jobs:
   test:
     runs-on: ubuntu-22.04
     steps:
+      - uses: actions/checkout@v3
+
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
@@ -20,8 +22,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-
-      - uses: actions/checkout@v3
 
       - name: Run Server Tests
         run: ./gradlew test integrationTest jacocoTestReport
