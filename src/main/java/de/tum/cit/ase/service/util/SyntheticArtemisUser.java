@@ -9,7 +9,6 @@ import static java.time.ZonedDateTime.now;
 
 import com.thedeanda.lorem.LoremIpsum;
 import de.tum.cit.ase.artemisModel.*;
-import de.tum.cit.ase.service.UserService;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -19,6 +18,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
@@ -39,7 +39,7 @@ public class SyntheticArtemisUser {
 
     private static final String artemisUrl = "http://localhost:8080/";
 
-    private final Logger log = LoggerFactory.getLogger(UserService.class);
+    private final Logger log = LoggerFactory.getLogger(SyntheticArtemisUser.class);
 
     private AuthToken authToken;
     private final String username;
@@ -322,6 +322,116 @@ public class SyntheticArtemisUser {
             .toBodilessEntity()
             .block();
         requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
+    }
+
+    public void prepareExam(String courseIdString, String examIdString, int userNumber) {
+        this.examIdString = examIdString;
+        this.courseIdString = courseIdString;
+
+        // Get exam
+        Exam exam = webClient
+            .get()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .pathSegment("api", "courses", courseIdString, "exams", examIdString)
+                    .query("withStudents=false&withExerciseGroups=false")
+                    .build()
+            )
+            .retrieve()
+            .bodyToMono(Exam.class)
+            .block();
+        if (exam == null) {
+            log.error("Exam could not be fetched!");
+            return;
+        }
+
+        // Set start and end date to future
+        exam.setVisibleDate(ZonedDateTime.now());
+        exam.setStartDate(ZonedDateTime.now().plusDays(1L));
+        exam.setEndDate(ZonedDateTime.now().plusDays(5L));
+
+        // Update exam
+        webClient
+            .put()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", courseIdString, "exams").build())
+            .bodyValue(exam)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+
+        // Generate student exams
+        webClient
+            .post()
+            .uri(uriBuilder ->
+                uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "generate-student-exams").build()
+            )
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+
+        // Prepare exercise start
+        webClient
+            .post()
+            .uri(uriBuilder ->
+                uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "start-exercises").build()
+            )
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+
+        // Wait for exercise preparation to finish
+        ExamExerciseStartPreparationStatus status;
+        do {
+            try {
+                sleep(1000);
+            } catch (InterruptedException ignored) {}
+
+            status =
+                webClient
+                    .get()
+                    .uri(uriBuilder ->
+                        uriBuilder
+                            .pathSegment(
+                                "api",
+                                "courses",
+                                courseIdString,
+                                "exams",
+                                examIdString,
+                                "student-exams",
+                                "start-exercises",
+                                "status"
+                            )
+                            .build()
+                    )
+                    .retrieve()
+                    .bodyToMono(ExamExerciseStartPreparationStatus.class)
+                    .block();
+            if (status == null) {
+                log.warn("Preparation status undefined");
+            } else {
+                log.info(
+                    "Preparation complete for {{}}, failed for {{}}, overall {{}}",
+                    status.finished(),
+                    status.failed(),
+                    status.overall()
+                );
+            }
+        } while (status != null && status.finished() + status.failed() < status.overall());
+        if (status != null && status.failed() > 0) {
+            log.warn("Preparation failed for {{}} students", status.failed());
+        }
+
+        // Set start-date to now
+        exam.setStartDate(now());
+
+        // Update exam
+        webClient
+            .put()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", courseIdString, "exams").build())
+            .bodyValue(exam)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
     }
 
     private static HttpClient createHttpClient() {

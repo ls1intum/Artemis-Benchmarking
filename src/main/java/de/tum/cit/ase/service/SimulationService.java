@@ -1,5 +1,7 @@
 package de.tum.cit.ase.service;
 
+import static java.lang.Thread.sleep;
+
 import de.tum.cit.ase.service.util.RequestStat;
 import de.tum.cit.ase.service.util.SimulationResult;
 import de.tum.cit.ase.service.util.SyntheticArtemisUser;
@@ -33,7 +35,7 @@ public class SimulationService {
 
     private static final int maxNumberOfThreads = 20;
     private static final String courseId = "3";
-    private static final String examId = "29";
+    private static final String examId = "15";
 
     private final SimulationWebsocketService simulationWebsocketService;
 
@@ -46,6 +48,21 @@ public class SimulationService {
     @Async
     public synchronized void simulateExam(int numberOfUsers) {
         simulationRunning = true;
+        try {
+            log.info("Starting preparation...");
+            prepareExamForSimulation(numberOfUsers);
+        } catch (Exception e) {
+            log.error("Error while preparing exam, aborting simulation: {{}}", e.getMessage());
+            simulationRunning = false;
+            return;
+        }
+        log.info("Preparation finished. Waiting for 10sec...");
+        try {
+            // Wait for 10 seconds. Without this, students cannot access their repos.
+            // Not sure why this is necessary, trying to figure it out
+            sleep(10_000);
+        } catch (InterruptedException ignored) {}
+
         log.info("Starting simulation...");
         SyntheticArtemisUser[] users = initializeUsers(numberOfUsers);
         int threadCount = Integer.min(maxNumberOfThreads, numberOfUsers);
@@ -65,6 +82,12 @@ public class SimulationService {
         } finally {
             simulationRunning = false;
         }
+    }
+
+    private void prepareExamForSimulation(int numberOfUsers) {
+        SyntheticArtemisUser admin = new SyntheticArtemisUser("admin", "12345678");
+        admin.login();
+        admin.prepareExam(courseId, examId, numberOfUsers);
     }
 
     private SyntheticArtemisUser[] initializeUsers(int numberOfUsers) {
