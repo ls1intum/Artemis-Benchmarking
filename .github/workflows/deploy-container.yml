@@ -1,0 +1,31 @@
+name: Deploy Docker Container
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        default: "latest"
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Use Computed Tag
+        run: echo "The computed tag is ${{ inputs.image_tag }}"
+
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Setup Ansible
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible
+
+      - name: Run ansible
+        run: |
+          ansible-playbook ansible/setup-server.yml -i ansible/hosts -e "benchmarking_tag=${{ inputs.image_tag }}"
