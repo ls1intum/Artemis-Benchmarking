@@ -29,12 +29,21 @@ export class SimulationsService {
     });
   }
 
-  websocketSubscription(): Observable<SimulationResult> {
+  websocketSubscriptionSimulationCompleted(): Observable<SimulationResult> {
     return this.rxStomp.watch('/topic/simulation/completed').pipe(map(imessage => JSON.parse(imessage.body)));
   }
 
-  startSimulation() {
-    return this.httpClient.post(this.applicationConfigService.getEndpointFor('/api/simulations?users=10'), undefined);
+  websocketSubscriptionSimulationError(): Observable<string> {
+    return this.rxStomp.watch('/topic/simulation/error').pipe(map(imessage => imessage.body));
+  }
+
+  startSimulation(numberOfUsers: number, courseId: number, examId: number) {
+    return this.httpClient.post(
+      this.applicationConfigService.getEndpointFor(
+        '/api/simulations?users=' + numberOfUsers + '&courseId=' + courseId + '&examId=' + examId,
+      ),
+      undefined,
+    );
   }
 
   private buildUrl(): string {

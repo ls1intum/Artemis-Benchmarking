@@ -1,5 +1,21 @@
-<button (click)="startSimulation()" [disabled]="simulationRunning">Start Simulation</button>
-<div *ngIf="simulationResult && !simulationRunning">
+<div class="start-wrapper">
+  <div class="form-wrapper">
+    <div class="input-wrapper">
+      <label for="users">Number of Users</label>
+      <input id="users" type="number" [(ngModel)]="numberOfUsers" />
+    </div>
+    <div class="input-wrapper">
+      <label for="course">Course ID</label>
+      <input id="course" type="number" [(ngModel)]="courseId" />
+    </div>
+    <div class="input-wrapper">
+      <label for="exam">Exam ID</label>
+      <input id="exam" type="number" [(ngModel)]="examId" />
+    </div>
+  </div>
+  <button class="start-button" (click)="startSimulation()" [disabled]="simulationRunning">Start Simulation</button>
+</div>
+<div *ngIf="simulationResult && !simulationRunning && errorMessage == ''">
   <h2>Simulation Result:</h2>
   <div class="sub-result-wrapper">
     <h3>Total:</h3>
@@ -82,6 +98,9 @@
     <span>Failure rate: {{ simulationResult!.miscStats!.failureRate }}</span
     ><br />
   </div>
+</div>
+<div *ngIf="!simulationRunning && errorMessage != ''">
+  <span>{{ errorMessage }}</span>
 </div>
 <div *ngIf="simulationRunning">
   <span>Simulation running, please wait...</span>

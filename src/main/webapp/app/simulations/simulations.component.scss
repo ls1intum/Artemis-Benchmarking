@@ -4,3 +4,33 @@
     margin-left: 10px;
   }
 }
+
+label {
+  width: 130px;
+  text-align: end;
+}
+
+input {
+  width: 50px;
+}
+
+.input-wrapper {
+  margin: 5px auto 5px auto;
+}
+
+.form-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.start-wrapper {
+  display: flex;
+  align-content: center;
+  justify-content: center;
+}
+
+.start-button {
+  height: fit-content;
+  width: fit-content;
+  margin: auto 20px;
+}

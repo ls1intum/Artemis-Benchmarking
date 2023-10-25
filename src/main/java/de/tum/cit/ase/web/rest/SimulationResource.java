@@ -22,7 +22,11 @@ public class SimulationResource {
     }
 
     @PostMapping
-    public ResponseEntity<Void> startSimulation(@RequestParam(value = "users") int numberOfUsers) {
+    public ResponseEntity<Void> startSimulation(
+        @RequestParam(value = "users") int numberOfUsers,
+        @RequestParam(value = "courseId") int courseId,
+        @RequestParam(value = "examId") int examId
+    ) {
         if (simulationService.isSimulationRunning()) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
@@ -30,7 +34,7 @@ public class SimulationResource {
         if (numberOfUsers <= 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        simulationService.simulateExam(numberOfUsers);
+        simulationService.simulateExam(numberOfUsers, courseId, examId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

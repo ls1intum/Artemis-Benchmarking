@@ -33,9 +33,13 @@ public class SimulationService {
     @Value("${artemis.local.password_template}")
     private String testUserPasswordTemplate;
 
+    @Value("${artemis.local.admin_username}")
+    private String adminUsername;
+
+    @Value("${artemis.local.admin_password}")
+    private String adminPassword;
+
     private static final int maxNumberOfThreads = 20;
-    private static final String courseId = "3";
-    private static final String examId = "15";
 
     private final SimulationWebsocketService simulationWebsocketService;
 
@@ -46,21 +50,26 @@ public class SimulationService {
     }
 
     @Async
-    public synchronized void simulateExam(int numberOfUsers) {
+    public synchronized void simulateExam(int numberOfUsers, int courseId, int examId) {
+        String courseIdString = String.valueOf(courseId);
+        String examIdString = String.valueOf(examId);
         simulationRunning = true;
         try {
             log.info("Starting preparation...");
-            prepareExamForSimulation(numberOfUsers);
+            prepareExamForSimulation(numberOfUsers, courseIdString, examIdString);
         } catch (Exception e) {
             log.error("Error while preparing exam, aborting simulation: {{}}", e.getMessage());
             simulationRunning = false;
+            simulationWebsocketService.sendSimulationError(
+                "An error occurred while preparing the exam for simulation. Please check the IDs and try again:\n" + e.getMessage()
+            );
             return;
         }
         log.info("Preparation finished. Waiting for 10sec...");
         try {
-            // Wait for 10 seconds. Without this, students cannot access their repos.
+            // Wait for a couple of seconds. Without this, students cannot access their repos.
             // Not sure why this is necessary, trying to figure it out
-            sleep(10_000);
+            sleep(5_000);
         } catch (InterruptedException ignored) {}
 
         log.info("Starting simulation...");
@@ -71,7 +80,9 @@ public class SimulationService {
         try {
             requestStats.addAll(performActionWithAll(20, numberOfUsers, i -> users[i].login()));
             requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> users[i].performInitialCalls()));
-            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> users[i].participateInExam(courseId, examId)));
+            requestStats.addAll(
+                performActionWithAll(threadCount, numberOfUsers, i -> users[i].participateInExam(courseIdString, examIdString))
+            );
 
             logRequestStatsPerMinute(requestStats);
             var simulationResult = new SimulationResult(requestStats);
@@ -79,13 +90,14 @@ public class SimulationService {
             simulationWebsocketService.sendSimulationResult(simulationResult);
         } catch (Exception e) {
             log.error("Error during simulation {{}}", e.getMessage());
+            simulationWebsocketService.sendSimulationError("An error occurred during the simulation:\n" + e.getMessage());
         } finally {
             simulationRunning = false;
         }
     }
 
-    private void prepareExamForSimulation(int numberOfUsers) {
-        SyntheticArtemisUser admin = new SyntheticArtemisUser("admin", "12345678");
+    private void prepareExamForSimulation(int numberOfUsers, String courseId, String examId) {
+        SyntheticArtemisUser admin = new SyntheticArtemisUser(adminUsername, adminPassword);
         admin.login();
         admin.prepareExam(courseId, examId, numberOfUsers);
     }
