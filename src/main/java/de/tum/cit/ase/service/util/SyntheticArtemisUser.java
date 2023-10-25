@@ -490,6 +490,7 @@ public class SyntheticArtemisUser {
         var localPath = Path.of("repos", username);
         log.debug("Commit and push to " + localPath);
         var git = Git.open(localPath.toFile());
+        git.add().addFilepattern("src").call();
         git.commit().setMessage("local test").setAllowEmpty(true).call();
         long start = System.nanoTime();
         git.push().setCredentialsProvider(getCredentialsProvider()).call();
