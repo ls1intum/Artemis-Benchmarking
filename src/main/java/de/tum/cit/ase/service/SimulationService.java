@@ -27,16 +27,16 @@ public class SimulationService {
 
     private final Logger log = LoggerFactory.getLogger(SimulationService.class);
 
-    @Value("${artemis.local.username_template}")
+    @Value("${artemis.test.username_template}")
     private String testUserUsernameTemplate;
 
-    @Value("${artemis.local.password_template}")
+    @Value("${artemis.test.password_template}")
     private String testUserPasswordTemplate;
 
-    @Value("${artemis.local.admin_username}")
+    @Value("${artemis.test.admin_username}")
     private String adminUsername;
 
-    @Value("${artemis.local.admin_password}")
+    @Value("${artemis.test.admin_password}")
     private String adminPassword;
 
     private static final int maxNumberOfThreads = 20;
@@ -88,11 +88,9 @@ public class SimulationService {
             var simulationResult = new SimulationResult(requestStats);
             log.info("Simulation finished");
             simulationWebsocketService.sendSimulationResult(simulationResult);
+            simulationRunning = false;
         } catch (Exception e) {
             log.error("Error during simulation {{}}", e.getMessage());
-            simulationWebsocketService.sendSimulationError("An error occurred during the simulation:\n" + e.getMessage());
-        } finally {
-            simulationRunning = false;
         }
     }
 

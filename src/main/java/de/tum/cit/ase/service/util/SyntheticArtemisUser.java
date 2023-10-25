@@ -37,7 +37,7 @@ import reactor.netty.tcp.SslProvider;
 
 public class SyntheticArtemisUser {
 
-    private static final String artemisUrl = "http://localhost:8080/";
+    private static final String artemisUrl = "https://artemis-test3.artemis.cit.tum.de/";
 
     private final Logger log = LoggerFactory.getLogger(SyntheticArtemisUser.class);
 

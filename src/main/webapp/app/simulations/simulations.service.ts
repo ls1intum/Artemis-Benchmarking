@@ -23,7 +23,7 @@ export class SimulationsService {
     private authServerProvider: AuthServerProvider,
     private location: Location,
   ) {
-    this.accountService.getAuthenticationState().subscribe(account => {
+    this.accountService.getAuthenticationState().subscribe(() => {
       this.updateCredentials();
       this.rxStomp.activate();
     });
