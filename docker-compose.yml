@@ -1,7 +1,7 @@
 name: artemis-benchmarking
 services:
   app:
-    image: ls1tum/artemis-benchmarking:{{ benchmarking_tag }}
+    image: ls1tum/artemis-benchmarking:latest
     env_file:
       - config/benchmarking.env
     ports:
