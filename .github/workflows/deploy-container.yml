@@ -14,23 +14,23 @@ jobs:
         uses: appleboy/scp-action@master
         with:
           host: artemis-performance-test0.artemis.cit.tum.de
-          username: ${{ secrets.DOCS_SSH_USER }}
-          key: ${{ secrets.DOCS_SSH_KEY }}
-          proxy_host: ${{ secrets.DEPLOYMENT_GATEWAY_HOST }}
-          proxy_username: ${{ secrets.DEPLOYMENT_GATEWAY_USER }}
-          proxy_key: ${{ secrets.DEPLOYMENT_GATEWAY_SSH_KEY }}
-          proxy_port: ${{ secrets.DEPLOYMENT_GATEWAY_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          proxy_host: ${{ secrets.GATEWAY_HOST }}
+          proxy_username: ${{ secrets.GATEWAY_USER }}
+          proxy_key: ${{ secrets.GATEWAY_SSH_KEY }}
+          proxy_port: ${{ secrets.GATEWAY_PORT }}
           source: "docker-compose.yml"
           target: "/opt/artemis-benchmarking"
       - name: Start Benchmarking App
         uses: appleboy/ssh-action@master
         with:
           host: artemis-performance-test0.artemis.cit.tum.de
-          username: ${{ secrets.DOCS_SSH_USER }}
-          key: ${{ secrets.DOCS_SSH_KEY }}
-          proxy_host: ${{ secrets.DEPLOYMENT_GATEWAY_HOST }}
-          proxy_username: ${{ secrets.DEPLOYMENT_GATEWAY_USER }}
-          proxy_key: ${{ secrets.DEPLOYMENT_GATEWAY_SSH_KEY }}
-          proxy_port: ${{ secrets.DEPLOYMENT_GATEWAY_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          proxy_host: ${{ secrets.GATEWAY_HOST }}
+          proxy_username: ${{ secrets.GATEWAY_USER }}
+          proxy_key: ${{ secrets.GATEWAY_SSH_KEY }}
+          proxy_port: ${{ secrets.GATEWAY_PORT }}
           script: |
             docker-compose -f /opt/artemis-benchmarking/docker-compose.yml up -d --remove-orphans --force-recreate
