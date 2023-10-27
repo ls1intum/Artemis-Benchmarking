@@ -1,5 +1,4 @@
 version: '3.8'
-name: benchmarking
 services:
   app:
     image: ls1tum/artemis-benchmarking:latest
