@@ -2,6 +2,7 @@ package de.tum.cit.ase.web.rest;
 
 import de.tum.cit.ase.security.AuthoritiesConstants;
 import de.tum.cit.ase.service.SimulationService;
+import de.tum.cit.ase.service.util.ArtemisServer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,7 +26,8 @@ public class SimulationResource {
     public ResponseEntity<Void> startSimulation(
         @RequestParam(value = "users") int numberOfUsers,
         @RequestParam(value = "courseId") int courseId,
-        @RequestParam(value = "examId") int examId
+        @RequestParam(value = "examId") int examId,
+        @RequestParam(value = "server") ArtemisServer server
     ) {
         if (simulationService.isSimulationRunning()) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
@@ -34,7 +36,7 @@ public class SimulationResource {
         if (numberOfUsers <= 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        simulationService.simulateExam(numberOfUsers, courseId, examId);
+        simulationService.simulateExam(numberOfUsers, courseId, examId, server);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

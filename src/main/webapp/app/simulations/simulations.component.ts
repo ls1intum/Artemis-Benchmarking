@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SimulationsService } from './simulations.service';
 import { SimulationResult } from './simulationResult';
+import { ArtemisServer } from './artemisServer';
 
 @Component({
   selector: 'jhi-simulations',
@@ -15,6 +16,10 @@ export class SimulationsComponent implements OnInit {
   numberOfUsers = 0;
   courseId = 0;
   examId = 0;
+  selectedServer = ArtemisServer.TS1;
+
+  protected readonly ArtemisServer = ArtemisServer;
+
   constructor(private simulationsService: SimulationsService) {}
 
   ngOnInit() {
@@ -34,7 +39,7 @@ export class SimulationsComponent implements OnInit {
       next: () => (this.simulationRunning = true),
       error: () => (this.errorMessage = 'An error occurred. Simulation could not be started.'),
     };
-    this.simulationsService.startSimulation(this.numberOfUsers, this.courseId, this.examId).subscribe(observer);
+    this.simulationsService.startSimulation(this.numberOfUsers, this.courseId, this.examId, this.selectedServer).subscribe(observer);
   }
 
   formatDuration(durationInNanoSeconds: number) {

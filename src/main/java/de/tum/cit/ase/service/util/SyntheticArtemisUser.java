@@ -37,13 +37,11 @@ import reactor.netty.tcp.SslProvider;
 
 public class SyntheticArtemisUser {
 
-    private static final String artemisUrl = "https://artemis-test3.artemis.cit.tum.de/";
-
     private final Logger log = LoggerFactory.getLogger(SyntheticArtemisUser.class);
 
-    private AuthToken authToken;
     private final String username;
     private final String password;
+    private final String artemisUrl;
     private List<RequestStat> requestStats = new ArrayList<>();
     private WebClient webClient;
     private String courseIdString;
@@ -51,9 +49,10 @@ public class SyntheticArtemisUser {
     private Long studentExamId;
     private StudentExam studentExam;
 
-    public SyntheticArtemisUser(String username, String password) {
+    public SyntheticArtemisUser(String username, String password, String url) {
         this.username = username;
         this.password = password;
+        this.artemisUrl = url;
     }
 
     public List<RequestStat> login() {
@@ -72,7 +71,7 @@ public class SyntheticArtemisUser {
         requestStats.add(new RequestStat(now(), System.nanoTime() - start, AUTHENTICATION, success(response)));
 
         var cookieHeader = response.getHeaders().get("Set-Cookie").get(0);
-        authToken = AuthToken.fromResponseHeaderString(cookieHeader);
+        var authToken = AuthToken.fromResponseHeaderString(cookieHeader);
         String cookieHeaderToken = authToken.jwtToken();
         this.webClient =
             WebClient

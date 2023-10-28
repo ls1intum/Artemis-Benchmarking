@@ -12,6 +12,12 @@
       <label for="exam">Exam ID</label>
       <input id="exam" type="number" [(ngModel)]="examId" />
     </div>
+    <div class="input-wrapper">
+      <label for="server">Server</label>
+      <select id="server" [(ngModel)]="selectedServer">
+        <option *ngFor="let server of ArtemisServer | keyvalue">{{ server.key }}</option>
+      </select>
+    </div>
   </div>
   <button class="start-button" (click)="startSimulation()" [disabled]="simulationRunning">Start Simulation</button>
 </div>

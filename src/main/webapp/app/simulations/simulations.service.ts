@@ -9,6 +9,7 @@ import { ApplicationConfigService } from '../core/config/application-config.serv
 import { AuthServerProvider } from '../core/auth/auth-jwt.service';
 import { Location } from '@angular/common';
 import { Observable } from 'rxjs/internal/Observable';
+import { ArtemisServer } from './artemisServer';
 
 @Injectable({
   providedIn: 'root',
@@ -37,10 +38,10 @@ export class SimulationsService {
     return this.rxStomp.watch('/topic/simulation/error').pipe(map(imessage => imessage.body));
   }
 
-  startSimulation(numberOfUsers: number, courseId: number, examId: number) {
+  startSimulation(numberOfUsers: number, courseId: number, examId: number, server: ArtemisServer) {
     return this.httpClient.post(
       this.applicationConfigService.getEndpointFor(
-        '/api/simulations?users=' + numberOfUsers + '&courseId=' + courseId + '&examId=' + examId,
+        '/api/simulations?users=' + numberOfUsers + '&courseId=' + courseId + '&examId=' + examId + '&server=' + server,
       ),
       undefined,
     );

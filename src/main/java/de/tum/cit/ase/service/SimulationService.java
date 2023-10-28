@@ -2,10 +2,8 @@ package de.tum.cit.ase.service;
 
 import static java.lang.Thread.sleep;
 
-import de.tum.cit.ase.service.util.RequestStat;
-import de.tum.cit.ase.service.util.SimulationResult;
-import de.tum.cit.ase.service.util.SyntheticArtemisUser;
-import de.tum.cit.ase.service.util.TimeLogUtil;
+import de.tum.cit.ase.config.ArtemisConfiguration;
+import de.tum.cit.ase.service.util.*;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
@@ -18,7 +16,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -27,36 +24,26 @@ public class SimulationService {
 
     private final Logger log = LoggerFactory.getLogger(SimulationService.class);
 
-    @Value("${artemis.test.username_template}")
-    private String testUserUsernameTemplate;
-
-    @Value("${artemis.test.password_template}")
-    private String testUserPasswordTemplate;
-
-    @Value("${artemis.test.admin_username}")
-    private String adminUsername;
-
-    @Value("${artemis.test.admin_password}")
-    private String adminPassword;
-
     private static final int maxNumberOfThreads = 20;
 
     private final SimulationWebsocketService simulationWebsocketService;
 
     private boolean simulationRunning = false;
+    private final ArtemisConfiguration artemisConfiguration;
 
-    public SimulationService(SimulationWebsocketService simulationWebsocketService) {
+    public SimulationService(ArtemisConfiguration artemisConfiguration, SimulationWebsocketService simulationWebsocketService) {
         this.simulationWebsocketService = simulationWebsocketService;
+        this.artemisConfiguration = artemisConfiguration;
     }
 
     @Async
-    public synchronized void simulateExam(int numberOfUsers, int courseId, int examId) {
+    public synchronized void simulateExam(int numberOfUsers, int courseId, int examId, ArtemisServer server) {
         String courseIdString = String.valueOf(courseId);
         String examIdString = String.valueOf(examId);
         simulationRunning = true;
         try {
             log.info("Starting preparation...");
-            prepareExamForSimulation(numberOfUsers, courseIdString, examIdString);
+            prepareExamForSimulation(numberOfUsers, courseIdString, examIdString, server);
         } catch (Exception e) {
             log.error("Error while preparing exam, aborting simulation: {{}}", e.getMessage());
             simulationRunning = false;
@@ -73,7 +60,7 @@ public class SimulationService {
         } catch (InterruptedException ignored) {}
 
         log.info("Starting simulation...");
-        SyntheticArtemisUser[] users = initializeUsers(numberOfUsers);
+        SyntheticArtemisUser[] users = initializeUsers(numberOfUsers, server);
         int threadCount = Integer.min(maxNumberOfThreads, numberOfUsers);
         List<RequestStat> requestStats = new ArrayList<>();
 
@@ -94,18 +81,22 @@ public class SimulationService {
         }
     }
 
-    private void prepareExamForSimulation(int numberOfUsers, String courseId, String examId) {
-        SyntheticArtemisUser admin = new SyntheticArtemisUser(adminUsername, adminPassword);
+    private void prepareExamForSimulation(int numberOfUsers, String courseId, String examId, ArtemisServer server) {
+        SyntheticArtemisUser admin = new SyntheticArtemisUser(
+            artemisConfiguration.getAdminUsername(server),
+            artemisConfiguration.getAdminPassword(server),
+            artemisConfiguration.getUrl(server)
+        );
         admin.login();
         admin.prepareExam(courseId, examId, numberOfUsers);
     }
 
-    private SyntheticArtemisUser[] initializeUsers(int numberOfUsers) {
+    private SyntheticArtemisUser[] initializeUsers(int numberOfUsers, ArtemisServer server) {
         SyntheticArtemisUser[] users = new SyntheticArtemisUser[numberOfUsers];
         for (int i = 0; i < numberOfUsers; i++) {
-            var username = testUserUsernameTemplate.replace("{i}", String.valueOf(i + 1));
-            var password = testUserPasswordTemplate.replace("{i}", String.valueOf(i + 1));
-            users[i] = new SyntheticArtemisUser(username, password);
+            var username = artemisConfiguration.getUsernameTemplate(server).replace("{i}", String.valueOf(i + 1));
+            var password = artemisConfiguration.getPasswordTemplate(server).replace("{i}", String.valueOf(i + 1));
+            users[i] = new SyntheticArtemisUser(username, password, artemisConfiguration.getUrl(server));
         }
         return users;
     }
@@ -121,8 +112,7 @@ public class SimulationService {
             .runOn(scheduler)
             .doOnNext(i -> requestStats.addAll(action.apply(i)))
             .sequential()
-            .count()
-            .blockingGet();
+            .blockingSubscribe();
 
         threadPoolExecutor.shutdownNow();
         scheduler.shutdown();
