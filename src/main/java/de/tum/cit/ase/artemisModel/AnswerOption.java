@@ -43,11 +43,11 @@ public class AnswerOption extends DomainObject {
         this.explanation = explanation;
     }
 
-    public Boolean getCorrect() {
+    public Boolean isIsCorrect() {
         return isCorrect;
     }
 
-    public void setCorrect(Boolean correct) {
+    public void setIsCorrect(Boolean correct) {
         isCorrect = correct;
     }
 

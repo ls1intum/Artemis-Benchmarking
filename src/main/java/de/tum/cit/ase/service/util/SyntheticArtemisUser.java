@@ -31,6 +31,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.SslProvider;
@@ -428,6 +429,215 @@ public class SyntheticArtemisUser {
             .put()
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", courseIdString, "exams").build())
             .bodyValue(exam)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+    }
+
+    public Course createCourse() {
+        var course = new Course("Temporary Benchmarking Course", "benchmark");
+        var responseCourse = webClient
+            .post()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "admin", "courses").build())
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData("course", course))
+            .retrieve()
+            .bodyToMono(Course.class)
+            .block();
+
+        return responseCourse;
+    }
+
+    public Exam createExam(Course course) {
+        var exam = new Exam();
+        exam.setTitle("Temporary Benchmarking Exam");
+        exam.setStartDate(ZonedDateTime.now().plusDays(1L));
+        exam.setVisibleDate(ZonedDateTime.now());
+        exam.setEndDate(ZonedDateTime.now().plusDays(1L).plusHours(2L));
+        exam.setNumberOfExercisesInExam(4);
+        exam.setExamMaxPoints(5);
+        exam.setWorkingTime(2 * 60 * 60);
+        exam.setCourse(course);
+
+        var responseExam = webClient
+            .post()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", course.getId().toString(), "exams").build())
+            .bodyValue(exam)
+            .retrieve()
+            .bodyToMono(Exam.class)
+            .block();
+
+        return responseExam;
+    }
+
+    public void createExamExercises(long courseId, Exam exam) {
+        var textExerciseGroup = new ExerciseGroup();
+        textExerciseGroup.setTitle("Text Exercise Group");
+        textExerciseGroup.setMandatory(true);
+        textExerciseGroup.setExam(exam);
+
+        textExerciseGroup =
+            webClient
+                .post()
+                .uri(uriBuilder ->
+                    uriBuilder
+                        .pathSegment("api", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exerciseGroups")
+                        .build()
+                )
+                .bodyValue(textExerciseGroup)
+                .retrieve()
+                .bodyToMono(ExerciseGroup.class)
+                .block();
+
+        var textExercise = new TextExercise();
+        textExercise.setExerciseGroup(textExerciseGroup);
+        textExercise.setTitle("Text Exercise");
+        textExercise.setMaxPoints(1.0);
+
+        webClient
+            .post()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "text-exercises").build())
+            .bodyValue(textExercise)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+
+        var modelingExerciseGroup = new ExerciseGroup();
+        modelingExerciseGroup.setTitle("Modeling Exercise Group");
+        modelingExerciseGroup.setMandatory(true);
+        modelingExerciseGroup.setExam(exam);
+
+        modelingExerciseGroup =
+            webClient
+                .post()
+                .uri(uriBuilder ->
+                    uriBuilder
+                        .pathSegment("api", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exerciseGroups")
+                        .build()
+                )
+                .bodyValue(modelingExerciseGroup)
+                .retrieve()
+                .bodyToMono(ExerciseGroup.class)
+                .block();
+
+        var modelingExercise = new ModelingExercise();
+        modelingExercise.setExerciseGroup(modelingExerciseGroup);
+        modelingExercise.setTitle("Modeling Exercise");
+        modelingExercise.setMaxPoints(1.0);
+
+        webClient
+            .post()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "modeling-exercises").build())
+            .bodyValue(modelingExercise)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+
+        var programmingExerciseGroup = new ExerciseGroup();
+        programmingExerciseGroup.setTitle("Programming Exercise Group");
+        programmingExerciseGroup.setMandatory(true);
+        programmingExerciseGroup.setExam(exam);
+
+        programmingExerciseGroup =
+            webClient
+                .post()
+                .uri(uriBuilder ->
+                    uriBuilder
+                        .pathSegment("api", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exerciseGroups")
+                        .build()
+                )
+                .bodyValue(programmingExerciseGroup)
+                .retrieve()
+                .bodyToMono(ExerciseGroup.class)
+                .block();
+
+        var programmingExercise = new ProgrammingExercise();
+        programmingExercise.setExerciseGroup(programmingExerciseGroup);
+        programmingExercise.setTitle("Programming Exercise for Benchmarking");
+        programmingExercise.setMaxPoints(1.0);
+        programmingExercise.setShortName("progForBenchTemp");
+        programmingExercise.setPackageName("progforbenchtemp");
+
+        webClient
+            .post()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "programming-exercises", "setup").build())
+            .bodyValue(programmingExercise)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+
+        var quizExerciseGroup = new ExerciseGroup();
+        quizExerciseGroup.setTitle("Quiz Exercise Group");
+        quizExerciseGroup.setMandatory(true);
+        quizExerciseGroup.setExam(exam);
+
+        quizExerciseGroup =
+            webClient
+                .post()
+                .uri(uriBuilder ->
+                    uriBuilder
+                        .pathSegment("api", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exerciseGroups")
+                        .build()
+                )
+                .bodyValue(quizExerciseGroup)
+                .retrieve()
+                .bodyToMono(ExerciseGroup.class)
+                .block();
+
+        var quizExercise = new QuizExercise();
+        quizExercise.setExerciseGroup(quizExerciseGroup);
+        quizExercise.setTitle("Quiz Exercise");
+        var question1 = new MultipleChoiceQuestion();
+        question1.setTitle("Question 1");
+        question1.setText("What is the answer to life, the universe and everything?");
+        question1.setPoints(2.0);
+        var answer1 = new AnswerOption();
+        answer1.setText("42");
+        answer1.setIsCorrect(true);
+        question1.getAnswerOptions().add(answer1);
+        var answer2 = new AnswerOption();
+        answer2.setText("12");
+        answer2.setIsCorrect(false);
+        question1.getAnswerOptions().add(answer2);
+        quizExercise.getQuizQuestions().add(question1);
+
+        webClient
+            .post()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "quiz-exercises").build())
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData("exercise", quizExercise))
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+    }
+
+    public void registerStudentsForCourseAndExam(long courseId, long examId, int numberOfStudents, String usernameTemplate) {
+        for (int i = 1; i <= numberOfStudents; i++) {
+            var studentName = usernameTemplate.replace("{i}", String.valueOf(i));
+            webClient
+                .post()
+                .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", studentName).build())
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+        }
+
+        webClient
+            .post()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .pathSegment("api", "courses", String.valueOf(courseId), "exams", String.valueOf(examId), "register-course-students")
+                    .build()
+            )
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+    }
+
+    public void deleteCourse(long courseId) {
+        webClient
+            .delete()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "admin", "courses", String.valueOf(courseId)).build())
             .retrieve()
             .toBodilessEntity()
             .block();

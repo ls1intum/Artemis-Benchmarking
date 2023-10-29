@@ -23,6 +23,8 @@ public abstract class Exercise extends DomainObject {
 
     private String problemStatement;
     private ExerciseGroup exerciseGroup;
+    private String title;
+    private Double maxPoints;
 
     @JsonIgnoreProperties("exercise")
     private Set<StudentParticipation> studentParticipations = new HashSet<>();
@@ -49,5 +51,21 @@ public abstract class Exercise extends DomainObject {
 
     public void setExerciseGroup(ExerciseGroup exerciseGroup) {
         this.exerciseGroup = exerciseGroup;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public Double getMaxPoints() {
+        return maxPoints;
+    }
+
+    public void setMaxPoints(Double maxPoints) {
+        this.maxPoints = maxPoints;
     }
 }

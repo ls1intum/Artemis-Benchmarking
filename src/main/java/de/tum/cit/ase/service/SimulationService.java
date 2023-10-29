@@ -2,6 +2,7 @@ package de.tum.cit.ase.service;
 
 import static java.lang.Thread.sleep;
 
+import de.tum.cit.ase.artemisModel.Exam;
 import de.tum.cit.ase.config.ArtemisConfiguration;
 import de.tum.cit.ase.service.util.*;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
@@ -41,11 +42,12 @@ public class SimulationService {
         String courseIdString = String.valueOf(courseId);
         String examIdString = String.valueOf(examId);
         simulationRunning = true;
+        Exam exam;
         try {
             log.info("Starting preparation...");
-            prepareExamForSimulation(numberOfUsers, courseIdString, examIdString, server);
+            exam = prepareExamForSimulation(numberOfUsers, courseIdString, examIdString, server);
         } catch (Exception e) {
-            log.error("Error while preparing exam, aborting simulation: {{}}", e.getMessage());
+            log.error("Error while preparing exam, aborting simulation: {{}}, {{}}", e.getMessage(), e.toString());
             simulationRunning = false;
             simulationWebsocketService.sendSimulationError(
                 "An error occurred while preparing the exam for simulation. Please check the IDs and try again:\n" + e.getMessage()
@@ -68,27 +70,55 @@ public class SimulationService {
             requestStats.addAll(performActionWithAll(20, numberOfUsers, i -> users[i].login()));
             requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> users[i].performInitialCalls()));
             requestStats.addAll(
-                performActionWithAll(threadCount, numberOfUsers, i -> users[i].participateInExam(courseIdString, examIdString))
+                performActionWithAll(
+                    threadCount,
+                    numberOfUsers,
+                    i -> users[i].participateInExam(exam.getCourse().getId().toString(), exam.getId().toString())
+                )
             );
 
             logRequestStatsPerMinute(requestStats);
             var simulationResult = new SimulationResult(requestStats);
             log.info("Simulation finished");
             simulationWebsocketService.sendSimulationResult(simulationResult);
+            cleanup(exam.getCourse().getId(), server);
             simulationRunning = false;
         } catch (Exception e) {
             log.error("Error during simulation {{}}", e.getMessage());
         }
     }
 
-    private void prepareExamForSimulation(int numberOfUsers, String courseId, String examId, ArtemisServer server) {
+    private void cleanup(long courseId, ArtemisServer server) {
         SyntheticArtemisUser admin = new SyntheticArtemisUser(
             artemisConfiguration.getAdminUsername(server),
             artemisConfiguration.getAdminPassword(server),
             artemisConfiguration.getUrl(server)
         );
         admin.login();
-        admin.prepareExam(courseId, examId, numberOfUsers);
+        admin.deleteCourse(courseId);
+    }
+
+    private Exam prepareExamForSimulation(int numberOfUsers, String courseId, String examIdString, ArtemisServer server) {
+        SyntheticArtemisUser admin = new SyntheticArtemisUser(
+            artemisConfiguration.getAdminUsername(server),
+            artemisConfiguration.getAdminPassword(server),
+            artemisConfiguration.getUrl(server)
+        );
+        admin.login();
+        var course = admin.createCourse();
+        var exam = admin.createExam(course);
+        try {
+            sleep(1000 * 60 * 3); //Wait for 3 minutes until user groups are synchronized
+        } catch (InterruptedException ignored) {}
+        admin.createExamExercises(course.getId(), exam);
+        admin.registerStudentsForCourseAndExam(
+            course.getId(),
+            exam.getId(),
+            numberOfUsers,
+            artemisConfiguration.getUsernameTemplate(server)
+        );
+        admin.prepareExam(course.getId().toString(), exam.getId().toString(), numberOfUsers);
+        return exam;
     }
 
     private SyntheticArtemisUser[] initializeUsers(int numberOfUsers, ArtemisServer server) {
