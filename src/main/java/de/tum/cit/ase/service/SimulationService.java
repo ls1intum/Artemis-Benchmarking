@@ -29,7 +29,6 @@ public class SimulationService {
 
     private final SimulationWebsocketService simulationWebsocketService;
 
-    private boolean simulationRunning = false;
     private final ArtemisConfiguration artemisConfiguration;
 
     public SimulationService(ArtemisConfiguration artemisConfiguration, SimulationWebsocketService simulationWebsocketService) {
@@ -38,20 +37,21 @@ public class SimulationService {
     }
 
     @Async
-    public synchronized void simulateExam(int numberOfUsers, int courseId, int examId, ArtemisServer server) {
-        String courseIdString = String.valueOf(courseId);
-        String examIdString = String.valueOf(examId);
-        simulationRunning = true;
-        Exam exam;
+    public synchronized void simulateExam(int numberOfUsers, long courseId, long examId, ArtemisServer server) {
+        boolean cleanupNeeded = false;
         try {
             log.info("Starting preparation...");
-            exam = prepareExamForSimulation(numberOfUsers, courseIdString, examIdString, server);
+            if (courseId == 0L && examId == 0L) {
+                log.info("No course and exam IDs provided, creating new course and exam...");
+                var exam = createCourseAndExam(numberOfUsers, server);
+                courseId = exam.getCourse().getId();
+                examId = exam.getId();
+                cleanupNeeded = true;
+            }
+            prepareExamForSimulation(courseId, examId, server);
         } catch (Exception e) {
-            log.error("Error while preparing exam, aborting simulation: {{}}, {{}}", e.getMessage(), e.toString());
-            simulationRunning = false;
-            simulationWebsocketService.sendSimulationError(
-                "An error occurred while preparing the exam for simulation. Please check the IDs and try again:\n" + e.getMessage()
-            );
+            log.error("Error while preparing exam, aborting simulation: {{}}", e.getMessage());
+            simulationWebsocketService.sendSimulationError("An error occurred while preparing the exam for simulation.\n" + e.getMessage());
             return;
         }
         log.info("Preparation finished. Waiting for 10sec...");
@@ -69,20 +69,21 @@ public class SimulationService {
         try {
             requestStats.addAll(performActionWithAll(20, numberOfUsers, i -> users[i].login()));
             requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> users[i].performInitialCalls()));
+
+            long finalCourseId = courseId;
+            long finalExamId = examId;
             requestStats.addAll(
-                performActionWithAll(
-                    threadCount,
-                    numberOfUsers,
-                    i -> users[i].participateInExam(exam.getCourse().getId().toString(), exam.getId().toString())
-                )
+                performActionWithAll(threadCount, numberOfUsers, i -> users[i].participateInExam(finalCourseId, finalExamId))
             );
 
             logRequestStatsPerMinute(requestStats);
             var simulationResult = new SimulationResult(requestStats);
             log.info("Simulation finished");
             simulationWebsocketService.sendSimulationResult(simulationResult);
-            cleanup(exam.getCourse().getId(), server);
-            simulationRunning = false;
+
+            if (cleanupNeeded) {
+                cleanup(courseId, server);
+            }
         } catch (Exception e) {
             log.error("Error during simulation {{}}", e.getMessage());
         }
@@ -98,18 +99,24 @@ public class SimulationService {
         admin.deleteCourse(courseId);
     }
 
-    private Exam prepareExamForSimulation(int numberOfUsers, String courseId, String examIdString, ArtemisServer server) {
+    private Exam createCourseAndExam(int numberOfUsers, ArtemisServer server) {
+        // Login as admin
         SyntheticArtemisUser admin = new SyntheticArtemisUser(
             artemisConfiguration.getAdminUsername(server),
             artemisConfiguration.getAdminPassword(server),
             artemisConfiguration.getUrl(server)
         );
         admin.login();
+
+        // Create course and exam
         var course = admin.createCourse();
         var exam = admin.createExam(course);
+
         try {
             sleep(1000 * 60 * 3); //Wait for 3 minutes until user groups are synchronized
         } catch (InterruptedException ignored) {}
+
+        // Create exam exercises and register students
         admin.createExamExercises(course.getId(), exam);
         admin.registerStudentsForCourseAndExam(
             course.getId(),
@@ -117,8 +124,17 @@ public class SimulationService {
             numberOfUsers,
             artemisConfiguration.getUsernameTemplate(server)
         );
-        admin.prepareExam(course.getId().toString(), exam.getId().toString(), numberOfUsers);
         return exam;
+    }
+
+    private void prepareExamForSimulation(long courseId, long examId, ArtemisServer server) {
+        SyntheticArtemisUser admin = new SyntheticArtemisUser(
+            artemisConfiguration.getAdminUsername(server),
+            artemisConfiguration.getAdminPassword(server),
+            artemisConfiguration.getUrl(server)
+        );
+        admin.login();
+        admin.prepareExam(courseId, examId);
     }
 
     private SyntheticArtemisUser[] initializeUsers(int numberOfUsers, ArtemisServer server) {
@@ -182,9 +198,5 @@ public class SimulationService {
             return 0;
         }
         return times.stream().map(RequestStat::duration).reduce(0L, Long::sum) / times.size();
-    }
-
-    public boolean isSimulationRunning() {
-        return simulationRunning;
     }
 }

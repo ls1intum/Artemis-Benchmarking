@@ -29,11 +29,12 @@ public class SimulationResource {
         @RequestParam(value = "examId") int examId,
         @RequestParam(value = "server") ArtemisServer server
     ) {
-        if (simulationService.isSimulationRunning()) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
+        if (numberOfUsers <= 0 || courseId < 0 || examId < 0 || server == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        if (numberOfUsers <= 0) {
+        // Either both zero or both non-zero
+        if ((courseId == 0) ^ (examId == 0)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         simulationService.simulateExam(numberOfUsers, courseId, examId, server);

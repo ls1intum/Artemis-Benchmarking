@@ -101,12 +101,12 @@ public class SyntheticArtemisUser {
         return requestStats;
     }
 
-    public List<RequestStat> participateInExam(String courseIdString, String examIdString) {
+    public List<RequestStat> participateInExam(long courseId, long examId) {
         if (webClient == null) {
             throw new IllegalStateException("User " + username + " is not logged in.");
         }
-        this.courseIdString = courseIdString;
-        this.examIdString = examIdString;
+        this.courseIdString = String.valueOf(courseId);
+        this.examIdString = String.valueOf(examId);
         requestStats = new ArrayList<>();
 
         navigateIntoExam();
@@ -324,9 +324,9 @@ public class SyntheticArtemisUser {
         requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
     }
 
-    public void prepareExam(String courseIdString, String examIdString, int userNumber) {
-        this.examIdString = examIdString;
-        this.courseIdString = courseIdString;
+    public void prepareExam(long courseId, long examId) {
+        this.examIdString = String.valueOf(examId);
+        this.courseIdString = String.valueOf(courseId);
 
         // Get exam
         Exam exam = webClient
