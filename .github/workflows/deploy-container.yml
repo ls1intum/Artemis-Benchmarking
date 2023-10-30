@@ -10,7 +10,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
         with:
-          ref: ci-cd
+          ref: main
 
       - name: Copy docker-compose to server
         uses: appleboy/scp-action@master
