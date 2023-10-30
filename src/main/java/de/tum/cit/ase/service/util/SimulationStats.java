@@ -7,12 +7,10 @@ public class SimulationStats {
 
     private int numberOfRequests;
     private long avgResponseTime;
-    private double failureRate;
 
     public SimulationStats(List<RequestStat> requestStats) {
         numberOfRequests = requestStats.size();
         avgResponseTime = getAverage(requestStats);
-        failureRate = getFailureRate(requestStats);
     }
 
     public SimulationStats() {}
@@ -33,14 +31,6 @@ public class SimulationStats {
         this.avgResponseTime = avgResponseTime;
     }
 
-    public double getFailureRate() {
-        return failureRate;
-    }
-
-    public void setFailureRate(double failureRate) {
-        this.failureRate = failureRate;
-    }
-
     private static long getAverage(Collection<RequestStat> times) {
         if (times.isEmpty()) {
             return 0;
@@ -48,24 +38,10 @@ public class SimulationStats {
         return times.stream().map(RequestStat::duration).reduce(0L, Long::sum) / times.size();
     }
 
-    private static double getFailureRate(Collection<RequestStat> stats) {
-        if (stats.isEmpty()) {
-            return 0.0;
-        }
-        long failedRequests = stats.stream().map(RequestStat::success).filter(s -> !s).count();
-        return (double) failedRequests / stats.size();
-    }
-
     @Override
     public String toString() {
         return (
-            "Number of Requests: " +
-            numberOfRequests +
-            "\nAverage Response Time: " +
-            TimeLogUtil.formatDuration(avgResponseTime) +
-            "\nFailure Rate: " +
-            failureRate +
-            "\n"
+            "Number of Requests: " + numberOfRequests + "\nAverage Response Time: " + TimeLogUtil.formatDuration(avgResponseTime) + "\n"
         );
     }
 }

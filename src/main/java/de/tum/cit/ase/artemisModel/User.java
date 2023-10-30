@@ -37,6 +37,7 @@ public class User extends DomainObject {
     private boolean isInternal = true; // default value
     private String vcsAccessToken = null;
     private Set<String> groups = new HashSet<>();
+    private Set<String> authorities = new HashSet<>();
 
     public String getLogin() {
         return login;
@@ -180,5 +181,13 @@ public class User extends DomainObject {
 
     public void setGroups(Set<String> groups) {
         this.groups = groups;
+    }
+
+    public Set<String> getAuthorities() {
+        return authorities;
+    }
+
+    public void setAuthorities(Set<String> authorities) {
+        this.authorities = authorities;
     }
 }

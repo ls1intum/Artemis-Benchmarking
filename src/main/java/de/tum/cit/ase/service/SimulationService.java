@@ -2,6 +2,7 @@ package de.tum.cit.ase.service;
 
 import static java.lang.Thread.sleep;
 
+import de.tum.cit.ase.artemisModel.Course;
 import de.tum.cit.ase.artemisModel.Exam;
 import de.tum.cit.ase.config.ArtemisConfiguration;
 import de.tum.cit.ase.service.util.*;
@@ -25,8 +26,6 @@ public class SimulationService {
 
     private final Logger log = LoggerFactory.getLogger(SimulationService.class);
 
-    private static final int maxNumberOfThreads = 20;
-
     private final SimulationWebsocketService simulationWebsocketService;
 
     private final ArtemisConfiguration artemisConfiguration;
@@ -39,21 +38,55 @@ public class SimulationService {
     @Async
     public synchronized void simulateExam(int numberOfUsers, long courseId, long examId, ArtemisServer server) {
         boolean cleanupNeeded = false;
+        SyntheticArtemisUser admin;
+
+        log.info("Starting preparation...");
         try {
-            log.info("Starting preparation...");
-            if (courseId == 0L && examId == 0L) {
-                log.info("No course and exam IDs provided, creating new course and exam...");
-                var exam = createCourseAndExam(numberOfUsers, server);
-                courseId = exam.getCourse().getId();
-                examId = exam.getId();
-                cleanupNeeded = true;
-            }
-            prepareExamForSimulation(courseId, examId, server);
+            log.info("Initializing admin...");
+            admin = initializeAdmin(server);
         } catch (Exception e) {
-            log.error("Error while preparing exam, aborting simulation: {{}}", e.getMessage());
-            simulationWebsocketService.sendSimulationError("An error occurred while preparing the exam for simulation.\n" + e.getMessage());
+            log.error("Error while initializing admin: {}", e.getMessage());
+            simulationWebsocketService.sendSimulationError("Error while initializing admin: " + e.getMessage());
             return;
         }
+
+        if (courseId == 0L && examId == 0L) {
+            log.info("No course and exam IDs provided, creating new course and exam...");
+            cleanupNeeded = true;
+            Course course;
+
+            // Create course
+            try {
+                course = admin.createCourse();
+            } catch (Exception e) {
+                log.error("Error while creating course: {}", e.getMessage());
+                simulationWebsocketService.sendSimulationError("Error while creating course: " + e.getMessage());
+                return;
+            }
+            log.info("Successfully created course. Creating exam...");
+            // Create exam
+            try {
+                var exam = createAndInitializeExam(numberOfUsers, server, admin, course);
+                courseId = exam.getCourse().getId();
+                examId = exam.getId();
+            } catch (Exception e) {
+                log.error("Error while creating exam: {}", e.getMessage());
+                admin.deleteCourse(course.getId());
+                simulationWebsocketService.sendSimulationError("Error while creating course and exam: " + e.getMessage());
+                return;
+            }
+        }
+        try {
+            admin.prepareExam(courseId, examId);
+        } catch (Exception e) {
+            log.error("Error while preparing exam: {}", e.getMessage());
+            if (cleanupNeeded) {
+                admin.deleteCourse(courseId);
+            }
+            simulationWebsocketService.sendSimulationError("Error while preparing exam: " + e.getMessage());
+            return;
+        }
+
         log.info("Preparation finished. Waiting for 10sec...");
         try {
             // Wait for a couple of seconds. Without this, students cannot access their repos.
@@ -63,7 +96,8 @@ public class SimulationService {
 
         log.info("Starting simulation...");
         SyntheticArtemisUser[] users = initializeUsers(numberOfUsers, server);
-        int threadCount = Integer.min(maxNumberOfThreads, numberOfUsers);
+        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 4, numberOfUsers);
+        log.info("Using {} threads for simulation", threadCount);
         List<RequestStat> requestStats = new ArrayList<>();
 
         try {
@@ -75,43 +109,47 @@ public class SimulationService {
             requestStats.addAll(
                 performActionWithAll(threadCount, numberOfUsers, i -> users[i].participateInExam(finalCourseId, finalExamId))
             );
-
-            logRequestStatsPerMinute(requestStats);
-            var simulationResult = new SimulationResult(requestStats);
-            log.info("Simulation finished");
-            simulationWebsocketService.sendSimulationResult(simulationResult);
-
-            if (cleanupNeeded) {
-                cleanup(courseId, server);
-            }
         } catch (Exception e) {
-            log.error("Error during simulation {{}}", e.getMessage());
+            log.error("Error while performing simulation: {}", e.getMessage());
+            if (cleanupNeeded) {
+                admin.deleteCourse(courseId);
+            }
+            simulationWebsocketService.sendSimulationError("Error while performing simulation: " + e.getMessage());
+            return;
         }
+
+        logRequestStatsPerMinute(requestStats);
+        var simulationResult = new SimulationResult(requestStats);
+        log.info("Simulation finished");
+
+        if (cleanupNeeded) {
+            log.info("Starting cleanup...");
+            try {
+                admin.deleteCourse(courseId);
+            } catch (Exception e) {
+                log.error("Error during cleanup: {}", e.getMessage());
+                simulationWebsocketService.sendSimulationError("Error during cleanup: " + e.getMessage());
+                return;
+            }
+            log.info("Cleanup finished.");
+        }
+        simulationWebsocketService.sendSimulationResult(simulationResult);
     }
 
-    private void cleanup(long courseId, ArtemisServer server) {
-        SyntheticArtemisUser admin = new SyntheticArtemisUser(
+    private SyntheticArtemisUser initializeAdmin(ArtemisServer server) {
+        var admin = new SyntheticArtemisUser(
             artemisConfiguration.getAdminUsername(server),
             artemisConfiguration.getAdminPassword(server),
             artemisConfiguration.getUrl(server)
         );
         admin.login();
-        admin.deleteCourse(courseId);
+        return admin;
     }
 
-    private Exam createCourseAndExam(int numberOfUsers, ArtemisServer server) {
-        // Login as admin
-        SyntheticArtemisUser admin = new SyntheticArtemisUser(
-            artemisConfiguration.getAdminUsername(server),
-            artemisConfiguration.getAdminPassword(server),
-            artemisConfiguration.getUrl(server)
-        );
-        admin.login();
-
-        // Create course and exam
-        var course = admin.createCourse();
+    private Exam createAndInitializeExam(int numberOfUsers, ArtemisServer server, SyntheticArtemisUser admin, Course course) {
         var exam = admin.createExam(course);
 
+        log.info("Successfully created course and exam. Waiting for synchronization of user groups...");
         try {
             sleep(1000 * 60 * 3); //Wait for 3 minutes until user groups are synchronized
         } catch (InterruptedException ignored) {}
@@ -125,16 +163,6 @@ public class SimulationService {
             artemisConfiguration.getUsernameTemplate(server)
         );
         return exam;
-    }
-
-    private void prepareExamForSimulation(long courseId, long examId, ArtemisServer server) {
-        SyntheticArtemisUser admin = new SyntheticArtemisUser(
-            artemisConfiguration.getAdminUsername(server),
-            artemisConfiguration.getAdminPassword(server),
-            artemisConfiguration.getUrl(server)
-        );
-        admin.login();
-        admin.prepareExam(courseId, examId);
     }
 
     private SyntheticArtemisUser[] initializeUsers(int numberOfUsers, ArtemisServer server) {
@@ -156,7 +184,13 @@ public class SimulationService {
             .range(0, numberOfUsers)
             .parallel(threadCount)
             .runOn(scheduler)
-            .doOnNext(i -> requestStats.addAll(action.apply(i)))
+            .doOnNext(i -> {
+                try {
+                    requestStats.addAll(action.apply(i));
+                } catch (Exception e) {
+                    log.warn("Error while performing action for user {{}}: {{}}", i + 1, e.getMessage());
+                }
+            })
             .sequential()
             .blockingSubscribe();
 

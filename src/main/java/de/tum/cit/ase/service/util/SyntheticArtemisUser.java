@@ -27,9 +27,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -49,6 +47,8 @@ public class SyntheticArtemisUser {
     private String examIdString;
     private Long studentExamId;
     private StudentExam studentExam;
+    private boolean authenticated = false;
+    private boolean isAdmin = false;
 
     public SyntheticArtemisUser(String username, String password, String url) {
         this.username = username;
@@ -57,6 +57,7 @@ public class SyntheticArtemisUser {
     }
 
     public List<RequestStat> login() {
+        log.info("Logging in as {{}}", username);
         requestStats = new ArrayList<>();
         WebClient webClient = WebClient
             .builder()
@@ -69,7 +70,8 @@ public class SyntheticArtemisUser {
         long start = System.nanoTime();
         var payload = Map.of("username", username, "password", password, "rememberMe", true);
         var response = webClient.post().uri("api/public/authenticate").bodyValue(payload).retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, AUTHENTICATION, success(response)));
+
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, AUTHENTICATION));
 
         var cookieHeader = response.getHeaders().get("Set-Cookie").get(0);
         var authToken = AuthToken.fromResponseHeaderString(cookieHeader);
@@ -83,11 +85,19 @@ public class SyntheticArtemisUser {
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader("Cookie", cookieHeaderToken)
                 .build();
+        this.authenticated = true;
+        checkAdminAccess();
         return requestStats;
     }
 
+    private void checkAdminAccess() {
+        var response = webClient.get().uri("api/public/account").retrieve().bodyToMono(User.class).block();
+
+        this.isAdmin = response.getAuthorities().contains("ROLE_ADMIN");
+    }
+
     public List<RequestStat> performInitialCalls() {
-        if (webClient == null) {
+        if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in.");
         }
         requestStats = new ArrayList<>();
@@ -102,7 +112,7 @@ public class SyntheticArtemisUser {
     }
 
     public List<RequestStat> participateInExam(long courseId, long examId) {
-        if (webClient == null) {
+        if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in.");
         }
         this.courseIdString = String.valueOf(courseId);
@@ -118,37 +128,37 @@ public class SyntheticArtemisUser {
         return requestStats;
     }
 
-    public void getInfo() {
+    private void getInfo() {
         long start = System.nanoTime();
         var response = webClient.get().uri("management/info").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC));
     }
 
-    public void getSystemNotifications() {
+    private void getSystemNotifications() {
         long start = System.nanoTime();
         var response = webClient.get().uri("api/public/system-notifications/active").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC));
     }
 
-    public void getAccount() {
+    private void getAccount() {
         long start = System.nanoTime();
         var response = webClient.get().uri("api/public/account").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC));
     }
 
-    public void getNotificationSettings() {
+    private void getNotificationSettings() {
         long start = System.nanoTime();
         var response = webClient.get().uri("api/notification-settings").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC));
     }
 
-    public void getCourses() {
+    private void getCourses() {
         long start = System.nanoTime();
         var response = webClient.get().uri("api/courses/for-dashboard").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC));
     }
 
-    public void navigateIntoExam() {
+    private void navigateIntoExam() {
         long start = System.nanoTime();
         StudentExam studentExam = webClient
             .get()
@@ -156,11 +166,11 @@ public class SyntheticArtemisUser {
             .retrieve()
             .bodyToMono(StudentExam.class)
             .block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, GET_STUDENT_EXAM, studentExam != null));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, GET_STUDENT_EXAM));
         studentExamId = studentExam.getId();
     }
 
-    public void startExam() {
+    private void startExam() {
         long start = System.nanoTime();
         studentExam =
             webClient
@@ -183,11 +193,10 @@ public class SyntheticArtemisUser {
                 .bodyToMono(StudentExam.class)
                 .block();
         long duration = System.nanoTime() - start;
-        requestStats.add(new RequestStat(now(), duration, START_STUDENT_EXAM, studentExam != null));
-        // startExamRequestStats.add(new RequestStat(now(), duration));
+        requestStats.add(new RequestStat(now(), duration, START_STUDENT_EXAM));
     }
 
-    public void handleExercises() {
+    private void handleExercises() {
         for (var exercise : studentExam.getExercises()) {
             if (exercise instanceof ModelingExercise) {
                 solveAndSubmitModelingExercise((ModelingExercise) exercise);
@@ -201,7 +210,7 @@ public class SyntheticArtemisUser {
         }
     }
 
-    public void solveAndSubmitModelingExercise(ModelingExercise modelingExercise) {
+    private void solveAndSubmitModelingExercise(ModelingExercise modelingExercise) {
         var modelingSubmission = getModelingSubmission(modelingExercise);
         if (modelingSubmission != null) {
             if (new Random().nextBoolean()) {
@@ -213,7 +222,7 @@ public class SyntheticArtemisUser {
             }
 
             long start = System.nanoTime();
-            var response = webClient
+            webClient
                 .put()
                 .uri(uriBuilder ->
                     uriBuilder.pathSegment("api", "exercises", modelingExercise.getId().toString(), "modeling-submissions").build()
@@ -222,29 +231,29 @@ public class SyntheticArtemisUser {
                 .retrieve()
                 .toBodilessEntity()
                 .block();
-            requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE, success(response)));
+            requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE));
         }
     }
 
-    public void solveAndSubmitTextExercise(TextExercise textExercise) {
+    private void solveAndSubmitTextExercise(TextExercise textExercise) {
         var textSubmission = getTextSubmission(textExercise);
         if (textSubmission != null) {
             textSubmission.setText(LoremIpsum.getInstance().getParagraphs(2, 4));
             textSubmission.setLanguage(Language.ENGLISH);
 
             long start = System.nanoTime();
-            var response = webClient
+            webClient
                 .put()
                 .uri(uriBuilder -> uriBuilder.pathSegment("api", "exercises", textExercise.getId().toString(), "text-submissions").build())
                 .bodyValue(textSubmission)
                 .retrieve()
                 .toBodilessEntity()
                 .block();
-            requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE, success(response)));
+            requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE));
         }
     }
 
-    public void solveAndSubmitQuizExercise(QuizExercise quizExercise) {
+    private void solveAndSubmitQuizExercise(QuizExercise quizExercise) {
         var quizSubmission = getQuizSubmission(quizExercise);
         // TODO: change something in the quiz submission
         if (quizSubmission != null) {
@@ -258,11 +267,11 @@ public class SyntheticArtemisUser {
                 .retrieve()
                 .toBodilessEntity()
                 .block();
-            requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE, success(response)));
+            requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE));
         }
     }
 
-    public void solveAndSubmitProgrammingExercise(ProgrammingExercise programmingExercise) {
+    private void solveAndSubmitProgrammingExercise(ProgrammingExercise programmingExercise) {
         var programmingParticipation = (ProgrammingExerciseStudentParticipation) programmingExercise
             .getStudentParticipations()
             .iterator()
@@ -285,7 +294,7 @@ public class SyntheticArtemisUser {
         }
     }
 
-    public void submitStudentExam() {
+    private void submitStudentExam() {
         long start = System.nanoTime();
         var response = webClient
             .post()
@@ -296,13 +305,12 @@ public class SyntheticArtemisUser {
             .retrieve()
             .toBodilessEntity()
             .block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_STUDENT_EXAM, success(response)));
-        // submitExamRequestStats.add(new RequestStat(now(), duration));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_STUDENT_EXAM));
     }
 
-    public void loadExamSummary() {
+    private void loadExamSummary() {
         long start = System.nanoTime();
-        var response = webClient
+        webClient
             .get()
             .uri(uriBuilder ->
                 uriBuilder
@@ -321,10 +329,16 @@ public class SyntheticArtemisUser {
             .retrieve()
             .toBodilessEntity()
             .block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC));
     }
 
     public void prepareExam(long courseId, long examId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in.");
+        }
+        if (!isAdmin) {
+            throw new IllegalStateException("User " + username + " is not an admin.");
+        }
         this.examIdString = String.valueOf(examId);
         this.courseIdString = String.valueOf(courseId);
 
@@ -435,6 +449,13 @@ public class SyntheticArtemisUser {
     }
 
     public Course createCourse() {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in.");
+        }
+        if (!isAdmin) {
+            throw new IllegalStateException("User " + username + " is not an admin.");
+        }
+
         var course = new Course("Temporary Benchmarking Course", "benchmark");
         var responseCourse = webClient
             .post()
@@ -449,6 +470,13 @@ public class SyntheticArtemisUser {
     }
 
     public Exam createExam(Course course) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in.");
+        }
+        if (!isAdmin) {
+            throw new IllegalStateException("User " + username + " is not an admin.");
+        }
+
         var exam = new Exam();
         exam.setTitle("Temporary Benchmarking Exam");
         exam.setStartDate(ZonedDateTime.now().plusDays(1L));
@@ -471,6 +499,13 @@ public class SyntheticArtemisUser {
     }
 
     public void createExamExercises(long courseId, Exam exam) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in.");
+        }
+        if (!isAdmin) {
+            throw new IllegalStateException("User " + username + " is not an admin.");
+        }
+
         var textExerciseGroup = new ExerciseGroup();
         textExerciseGroup.setTitle("Text Exercise Group");
         textExerciseGroup.setMandatory(true);
@@ -612,14 +647,25 @@ public class SyntheticArtemisUser {
     }
 
     public void registerStudentsForCourseAndExam(long courseId, long examId, int numberOfStudents, String usernameTemplate) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in.");
+        }
+        if (!isAdmin) {
+            throw new IllegalStateException("User " + username + " is not an admin.");
+        }
+
         for (int i = 1; i <= numberOfStudents; i++) {
             var studentName = usernameTemplate.replace("{i}", String.valueOf(i));
-            webClient
-                .post()
-                .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", studentName).build())
-                .retrieve()
-                .toBodilessEntity()
-                .block();
+            try {
+                webClient
+                    .post()
+                    .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", studentName).build())
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+            } catch (Exception e) {
+                log.warn("Could not register student {{}} for course: {{}}", studentName, e.getMessage());
+            }
         }
 
         webClient
@@ -635,6 +681,13 @@ public class SyntheticArtemisUser {
     }
 
     public void deleteCourse(long courseId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in.");
+        }
+        if (!isAdmin) {
+            throw new IllegalStateException("User " + username + " is not an admin.");
+        }
+
         webClient
             .delete()
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "admin", "courses", String.valueOf(courseId)).build())
@@ -647,9 +700,9 @@ public class SyntheticArtemisUser {
         return HttpClient
             .create()
             .doOnConnected(conn ->
-                conn.addHandlerFirst(new ReadTimeoutHandler(30, TimeUnit.SECONDS)).addHandlerFirst(new WriteTimeoutHandler(30))
+                conn.addHandlerFirst(new ReadTimeoutHandler(180, TimeUnit.SECONDS)).addHandlerFirst(new WriteTimeoutHandler(30))
             )
-            .responseTimeout(Duration.ofSeconds(30))
+            .responseTimeout(Duration.ofSeconds(180))
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30 * 1000)
             .secure(spec ->
                 spec
@@ -704,7 +757,7 @@ public class SyntheticArtemisUser {
         long start = System.nanoTime();
         git.push().setCredentialsProvider(getCredentialsProvider()).call();
         long duration = System.nanoTime() - start;
-        requestStats.add(new RequestStat(now(), duration, PUSH, true));
+        requestStats.add(new RequestStat(now(), duration, PUSH));
         git.close();
     }
 
@@ -751,7 +804,7 @@ public class SyntheticArtemisUser {
             .setDirectory(localPath.toFile())
             .setCredentialsProvider(getCredentialsProvider())
             .call();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, CLONE, true));
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, CLONE));
         git.close();
         log.debug("Done " + repositoryUrl);
     }
