@@ -69,5 +69,5 @@ jobs:
           tags: |
             ls1tum/artemis-benchmarking:${{ steps.compute-tag.outputs.result }}
             ghcr.io/ls1intum/artemis-benchmarking:${{ steps.compute-tag.outputs.result }}
-          platforms: linux/amd64 #,linux/arm64/v8
+          platforms: linux/amd64,linux/arm64/v8
           push: true
