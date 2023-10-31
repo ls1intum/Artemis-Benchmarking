@@ -49,6 +49,7 @@ public class SyntheticArtemisUser {
     private StudentExam studentExam;
     private boolean authenticated = false;
     private boolean isAdmin = false;
+    private AuthToken authToken;
 
     public SyntheticArtemisUser(String username, String password, String url) {
         this.username = username;
@@ -74,7 +75,7 @@ public class SyntheticArtemisUser {
         requestStats.add(new RequestStat(now(), System.nanoTime() - start, AUTHENTICATION));
 
         var cookieHeader = response.getHeaders().get("Set-Cookie").get(0);
-        var authToken = AuthToken.fromResponseHeaderString(cookieHeader);
+        this.authToken = AuthToken.fromResponseHeaderString(cookieHeader);
         String cookieHeaderToken = authToken.jwtToken();
         this.webClient =
             WebClient
@@ -258,7 +259,7 @@ public class SyntheticArtemisUser {
         // TODO: change something in the quiz submission
         if (quizSubmission != null) {
             long start = System.nanoTime();
-            var response = webClient
+            webClient
                 .put()
                 .uri(uriBuilder ->
                     uriBuilder.pathSegment("api", "exercises", quizExercise.getId().toString(), "submissions", "exam").build()
@@ -296,7 +297,7 @@ public class SyntheticArtemisUser {
 
     private void submitStudentExam() {
         long start = System.nanoTime();
-        var response = webClient
+        webClient
             .post()
             .uri(uriBuilder ->
                 uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "submit").build()
@@ -696,6 +697,28 @@ public class SyntheticArtemisUser {
             .block();
     }
 
+    public void sendExamAnnouncement(long courseId, long examId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in.");
+        }
+        if (!isAdmin) {
+            throw new IllegalStateException("User " + username + " is not an admin.");
+        }
+
+        webClient
+            .post()
+            .uri(uriBuilder ->
+                uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "exams", String.valueOf(examId), "announcements").build()
+            )
+            .contentType(MediaType.TEXT_PLAIN)
+            .accept(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN, MediaType.ALL)
+            .bodyValue("This is an announcement!")
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        log.info("Sent announcement!");
+    }
+
     private static HttpClient createHttpClient() {
         return HttpClient
             .create()
@@ -815,5 +838,9 @@ public class SyntheticArtemisUser {
 
     private static boolean success(ResponseEntity response) {
         return response != null && response.getStatusCode().is2xxSuccessful();
+    }
+
+    public AuthToken getAuthToken() {
+        return authToken;
     }
 }

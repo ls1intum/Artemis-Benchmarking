@@ -10,6 +10,9 @@ public class ArtemisConfiguration {
     @Value("${artemis.local.url}")
     private String localUrl;
 
+    @Value("${artemis.local.websocket_url}")
+    private String localWebsocketUrl;
+
     @Value("${artemis.local.username_template}")
     private String localUsername;
 
@@ -24,6 +27,9 @@ public class ArtemisConfiguration {
 
     @Value("${artemis.ts1.url}")
     private String test1Url;
+
+    @Value("${artemis.ts1.websocket_url}")
+    private String test1WebsocketUrl;
 
     @Value("${artemis.ts1.username_template}")
     private String test1Username;
@@ -40,6 +46,9 @@ public class ArtemisConfiguration {
     @Value("${artemis.ts3.url}")
     private String test3Url;
 
+    @Value("${artemis.ts3.websocket_url}")
+    private String test3WebsocketUrl;
+
     @Value("${artemis.ts3.username_template}")
     private String test3Username;
 
@@ -54,6 +63,9 @@ public class ArtemisConfiguration {
 
     @Value("${artemis.staging.url}")
     private String stagingUrl;
+
+    @Value("${artemis.staging.websocket_url}")
+    private String stagingWebsocketUrl;
 
     @Value("${artemis.staging.username_template}")
     private String stagingUsername;
@@ -73,6 +85,15 @@ public class ArtemisConfiguration {
             case TS1 -> test1Url;
             case TS3 -> test3Url;
             case STAGING -> stagingUrl;
+        };
+    }
+
+    public String getWebsocketUrl(ArtemisServer server) {
+        return switch (server) {
+            case LOCAL -> localWebsocketUrl;
+            case TS1 -> test1WebsocketUrl;
+            case TS3 -> test3WebsocketUrl;
+            case STAGING -> stagingWebsocketUrl;
         };
     }
 

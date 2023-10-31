@@ -155,7 +155,9 @@ public class SimulationService {
         } catch (InterruptedException ignored) {}
 
         // Create exam exercises and register students
+        log.info("Creating exam exercises...");
         admin.createExamExercises(course.getId(), exam);
+        log.info("Registering students...");
         admin.registerStudentsForCourseAndExam(
             course.getId(),
             exam.getId(),
