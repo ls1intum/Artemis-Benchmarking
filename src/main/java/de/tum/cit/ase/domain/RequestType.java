@@ -1,4 +1,4 @@
-package de.tum.cit.ase.web.artemis;
+package de.tum.cit.ase.domain;
 
 public enum RequestType {
     AUTHENTICATION,

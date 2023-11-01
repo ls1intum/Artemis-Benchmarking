@@ -88,3 +88,33 @@ management:
   health:
     mail:
       enabled: false
+
+artemis:
+  local:
+    url:
+    websocket_url:
+    username_template:
+    password_template:
+    admin_username:
+    admin_password:
+  ts3:
+    url:
+    websocket_url:
+    username_template:
+    password_template:
+    admin_username:
+    admin_password:
+  ts1:
+    url:
+    websocket_url:
+    username_template:
+    password_template:
+    admin_username:
+    admin_password:
+  staging:
+    url:
+    websocket_url:
+    username_template:
+    password_template:
+    admin_username:
+    admin_password:

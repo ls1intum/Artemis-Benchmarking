@@ -1,4 +1,4 @@
-package de.tum.cit.ase.web.artemis;
+package de.tum.cit.ase.domain;
 
 import java.time.ZonedDateTime;
 

@@ -1,8 +1,8 @@
 package de.tum.cit.ase.web.websocket;
 
-import de.tum.cit.ase.config.ArtemisConfiguration;
-import de.tum.cit.ase.web.artemis.ArtemisServer;
-import de.tum.cit.ase.web.artemis.util.AuthToken;
+import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
+import de.tum.cit.ase.service.artemis.ArtemisServer;
+import de.tum.cit.ase.service.artemis.util.AuthToken;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;

@@ -1,15 +1,14 @@
-package de.tum.cit.ase.web.artemis.interaction;
+package de.tum.cit.ase.service.artemis.interaction;
 
-import static de.tum.cit.ase.web.artemis.RequestType.*;
-import static de.tum.cit.ase.web.artemis.util.TimeLogUtil.formatDurationFrom;
-import static de.tum.cit.ase.web.artemis.util.UMLClassDiagrams.CLASS_MODEL_1;
-import static de.tum.cit.ase.web.artemis.util.UMLClassDiagrams.CLASS_MODEL_2;
+import static de.tum.cit.ase.domain.RequestType.*;
+import static de.tum.cit.ase.util.TimeLogUtil.formatDurationFrom;
 import static java.lang.Thread.sleep;
 import static java.time.ZonedDateTime.now;
 
 import com.thedeanda.lorem.LoremIpsum;
 import de.tum.cit.ase.artemisModel.*;
-import de.tum.cit.ase.web.artemis.RequestStat;
+import de.tum.cit.ase.domain.RequestStat;
+import de.tum.cit.ase.util.UMLClassDiagrams;
 import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -158,10 +157,10 @@ public class ArtemisStudent extends ArtemisUser {
         var modelingSubmission = getModelingSubmission(modelingExercise);
         if (modelingSubmission != null) {
             if (new Random().nextBoolean()) {
-                modelingSubmission.setModel(CLASS_MODEL_1);
+                modelingSubmission.setModel(UMLClassDiagrams.CLASS_MODEL_1);
                 modelingSubmission.setExplanationText("The model describes ...");
             } else {
-                modelingSubmission.setModel(CLASS_MODEL_2);
+                modelingSubmission.setModel(UMLClassDiagrams.CLASS_MODEL_2);
                 modelingSubmission.setExplanationText("Random explanation text ...");
             }
 

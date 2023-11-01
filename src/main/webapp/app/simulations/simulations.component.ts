@@ -22,7 +22,7 @@ export class SimulationsComponent implements OnInit {
 
   constructor(private simulationsService: SimulationsService) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.simulationsService.websocketSubscriptionSimulationCompleted().subscribe((simulationResult: SimulationResult) => {
       this.simulationResult = simulationResult;
       this.simulationRunning = false;
@@ -31,10 +31,9 @@ export class SimulationsComponent implements OnInit {
     this.simulationsService.websocketSubscriptionSimulationError().subscribe((error: string) => {
       this.errorMessage = error;
       this.simulationRunning = false;
-      console.log(error);
     });
   }
-  startSimulation() {
+  startSimulation(): void {
     const observer = {
       next: () => (this.simulationRunning = true),
       error: () => (this.errorMessage = 'An error occurred. Simulation could not be started.'),
@@ -42,7 +41,7 @@ export class SimulationsComponent implements OnInit {
     this.simulationsService.startSimulation(this.numberOfUsers, this.courseId, this.examId, this.selectedServer).subscribe(observer);
   }
 
-  formatDuration(durationInNanoSeconds: number) {
+  formatDuration(durationInNanoSeconds: number): string {
     const durationInMicroSeconds = durationInNanoSeconds / 1000;
     if (durationInMicroSeconds > 1000) {
       const durationInMilliSeconds = durationInMicroSeconds / 1000;

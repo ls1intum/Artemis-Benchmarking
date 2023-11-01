@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { RxStomp } from '@stomp/rx-stomp/esm6/rx-stomp';
+import { RxStomp } from '@stomp/rx-stomp';
 import { SimulationResult } from './simulationResult';
 import { AccountService } from '../core/auth/account.service';
 import { map } from 'rxjs/internal/operators/map';
@@ -31,14 +31,14 @@ export class SimulationsService {
   }
 
   websocketSubscriptionSimulationCompleted(): Observable<SimulationResult> {
-    return this.rxStomp.watch('/topic/simulation/completed').pipe(map(imessage => JSON.parse(imessage.body)));
+    return this.rxStomp.watch('/topic/simulation/completed').pipe(map(imessage => JSON.parse(imessage.body) as SimulationResult));
   }
 
   websocketSubscriptionSimulationError(): Observable<string> {
     return this.rxStomp.watch('/topic/simulation/error').pipe(map(imessage => imessage.body));
   }
 
-  startSimulation(numberOfUsers: number, courseId: number, examId: number, server: ArtemisServer) {
+  startSimulation(numberOfUsers: number, courseId: number, examId: number, server: ArtemisServer): Observable<object> {
     return this.httpClient.post(
       this.applicationConfigService.getEndpointFor(
         '/api/simulations?users=' + numberOfUsers + '&courseId=' + courseId + '&examId=' + examId + '&server=' + server,

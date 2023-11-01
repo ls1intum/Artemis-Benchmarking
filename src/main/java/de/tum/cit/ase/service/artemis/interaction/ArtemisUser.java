@@ -1,12 +1,11 @@
-package de.tum.cit.ase.web.artemis.interaction;
+package de.tum.cit.ase.service.artemis.interaction;
 
-import static de.tum.cit.ase.web.artemis.RequestType.AUTHENTICATION;
+import static de.tum.cit.ase.domain.RequestType.AUTHENTICATION;
 import static java.time.ZonedDateTime.now;
 
-import de.tum.cit.ase.web.artemis.RequestStat;
-import de.tum.cit.ase.web.artemis.util.AuthToken;
+import de.tum.cit.ase.domain.RequestStat;
+import de.tum.cit.ase.service.artemis.util.AuthToken;
 import io.netty.channel.ChannelOption;
-import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import java.time.Duration;
@@ -14,13 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLException;
 import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
-import reactor.netty.tcp.SslProvider;
+import reactor.netty.tcp.TcpSslContextSpec;
 
 public abstract class ArtemisUser {
 
@@ -56,7 +56,14 @@ public abstract class ArtemisUser {
 
         requestStats.add(new RequestStat(now(), System.nanoTime() - start, AUTHENTICATION));
 
-        var cookieHeader = response.getHeaders().get("Set-Cookie").get(0);
+        if (response == null) {
+            throw new RuntimeException("Login failed - No response received");
+        }
+        var header = response.getHeaders().get("Set-Cookie");
+        if (header == null) {
+            throw new RuntimeException("Login failed - No cookie received");
+        }
+        var cookieHeader = header.get(0);
         this.authToken = AuthToken.fromResponseHeaderString(cookieHeader);
         String cookieHeaderToken = authToken.jwtToken();
         this.webClient =
@@ -68,7 +75,6 @@ public abstract class ArtemisUser {
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader("Cookie", cookieHeaderToken)
                 .build();
-        this.authenticated = true;
         checkAccess();
         return requestStats;
     }
@@ -87,13 +93,16 @@ public abstract class ArtemisUser {
             )
             .responseTimeout(Duration.ofSeconds(180))
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30 * 1000)
-            .secure(spec ->
-                spec
-                    .sslContext(SslContextBuilder.forClient())
-                    .defaultConfiguration(SslProvider.DefaultConfigurationType.TCP)
-                    .handshakeTimeout(Duration.ofSeconds(30))
-                    .closeNotifyFlushTimeout(Duration.ofSeconds(30))
-                    .closeNotifyReadTimeout(Duration.ofSeconds(30))
-            );
+            .secure(spec -> {
+                try {
+                    spec
+                        .sslContext(TcpSslContextSpec.forClient().sslContext())
+                        .handshakeTimeout(Duration.ofSeconds(30))
+                        .closeNotifyFlushTimeout(Duration.ofSeconds(30))
+                        .closeNotifyReadTimeout(Duration.ofSeconds(30));
+                } catch (SSLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
     }
 }

@@ -1,4 +1,4 @@
-package de.tum.cit.ase.web.artemis.interaction;
+package de.tum.cit.ase.service.artemis.interaction;
 
 import static java.lang.Thread.sleep;
 import static java.time.ZonedDateTime.now;
@@ -19,7 +19,7 @@ public class ArtemisAdmin extends ArtemisUser {
     @Override
     protected void checkAccess() {
         var response = webClient.get().uri("api/public/account").retrieve().bodyToMono(User.class).block();
-        this.authenticated = response != null && response.getAuthorities().contains("ROLE_STUDENT");
+        this.authenticated = response != null && response.getAuthorities().contains("ROLE_ADMIN");
     }
 
     public void prepareExam(long courseId, long examId) {
