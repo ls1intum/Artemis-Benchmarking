@@ -1,6 +1,6 @@
 package de.tum.cit.ase.web.websocket;
 
-import de.tum.cit.ase.service.util.SimulationResult;
+import de.tum.cit.ase.domain.SimulationResult;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 

@@ -1,5 +1,7 @@
-package de.tum.cit.ase.service.util;
+package de.tum.cit.ase.domain;
 
+import de.tum.cit.ase.web.artemis.RequestStat;
+import de.tum.cit.ase.web.artemis.util.TimeLogUtil;
 import java.util.Collection;
 import java.util.List;
 

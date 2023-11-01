@@ -2,7 +2,7 @@ package de.tum.cit.ase.web.rest;
 
 import de.tum.cit.ase.security.AuthoritiesConstants;
 import de.tum.cit.ase.service.SimulationService;
-import de.tum.cit.ase.service.util.ArtemisServer;
+import de.tum.cit.ase.web.artemis.ArtemisServer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

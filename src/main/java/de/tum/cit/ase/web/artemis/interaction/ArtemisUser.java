@@ -1,0 +1,99 @@
+package de.tum.cit.ase.web.artemis.interaction;
+
+import static de.tum.cit.ase.web.artemis.RequestType.AUTHENTICATION;
+import static java.time.ZonedDateTime.now;
+
+import de.tum.cit.ase.web.artemis.RequestStat;
+import de.tum.cit.ase.web.artemis.util.AuthToken;
+import io.netty.channel.ChannelOption;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.tcp.SslProvider;
+
+public abstract class ArtemisUser {
+
+    protected Logger log;
+
+    protected final String username;
+    protected final String password;
+    protected final String artemisUrl;
+    protected WebClient webClient;
+    protected AuthToken authToken;
+    protected boolean authenticated = false;
+
+    public ArtemisUser(String username, String password, String artemisUrl) {
+        this.username = username;
+        this.password = password;
+        this.artemisUrl = artemisUrl;
+    }
+
+    public List<RequestStat> login() {
+        log.info("Logging in as {{}}", username);
+        List<RequestStat> requestStats = new ArrayList<>();
+        WebClient webClient = WebClient
+            .builder()
+            .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
+            .baseUrl(artemisUrl)
+            .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .build();
+
+        long start = System.nanoTime();
+        var payload = Map.of("username", username, "password", password, "rememberMe", true);
+        var response = webClient.post().uri("api/public/authenticate").bodyValue(payload).retrieve().toBodilessEntity().block();
+
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, AUTHENTICATION));
+
+        var cookieHeader = response.getHeaders().get("Set-Cookie").get(0);
+        this.authToken = AuthToken.fromResponseHeaderString(cookieHeader);
+        String cookieHeaderToken = authToken.jwtToken();
+        this.webClient =
+            WebClient
+                .builder()
+                .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
+                .baseUrl(artemisUrl)
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader("Cookie", cookieHeaderToken)
+                .build();
+        this.authenticated = true;
+        checkAccess();
+        return requestStats;
+    }
+
+    protected abstract void checkAccess();
+
+    public AuthToken getAuthToken() {
+        return authToken;
+    }
+
+    private static HttpClient createHttpClient() {
+        return HttpClient
+            .create()
+            .doOnConnected(conn ->
+                conn.addHandlerFirst(new ReadTimeoutHandler(180, TimeUnit.SECONDS)).addHandlerFirst(new WriteTimeoutHandler(30))
+            )
+            .responseTimeout(Duration.ofSeconds(180))
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30 * 1000)
+            .secure(spec ->
+                spec
+                    .sslContext(SslContextBuilder.forClient())
+                    .defaultConfiguration(SslProvider.DefaultConfigurationType.TCP)
+                    .handshakeTimeout(Duration.ofSeconds(30))
+                    .closeNotifyFlushTimeout(Duration.ofSeconds(30))
+                    .closeNotifyReadTimeout(Duration.ofSeconds(30))
+            );
+    }
+}

@@ -1,7 +1,8 @@
-package de.tum.cit.ase.service.util;
+package de.tum.cit.ase.domain;
 
-import static de.tum.cit.ase.service.util.RequestType.*;
+import static de.tum.cit.ase.web.artemis.RequestType.*;
 
+import de.tum.cit.ase.web.artemis.RequestStat;
 import java.util.Collection;
 import java.util.stream.Collectors;
 

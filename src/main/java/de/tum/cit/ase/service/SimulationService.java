@@ -5,7 +5,12 @@ import static java.lang.Thread.sleep;
 import de.tum.cit.ase.artemisModel.Course;
 import de.tum.cit.ase.artemisModel.Exam;
 import de.tum.cit.ase.config.ArtemisConfiguration;
-import de.tum.cit.ase.service.util.*;
+import de.tum.cit.ase.domain.SimulationResult;
+import de.tum.cit.ase.web.artemis.ArtemisServer;
+import de.tum.cit.ase.web.artemis.RequestStat;
+import de.tum.cit.ase.web.artemis.interaction.ArtemisAdmin;
+import de.tum.cit.ase.web.artemis.interaction.ArtemisStudent;
+import de.tum.cit.ase.web.artemis.util.TimeLogUtil;
 import de.tum.cit.ase.web.websocket.AdminWebsocketSessionHandler;
 import de.tum.cit.ase.web.websocket.ArtemisWebsocketService;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
@@ -45,7 +50,7 @@ public class SimulationService {
     @Async
     public synchronized void simulateExam(int numberOfUsers, long courseId, long examId, ArtemisServer server) {
         boolean cleanupNeeded = false;
-        SyntheticArtemisUser admin;
+        ArtemisAdmin admin;
 
         log.info("Starting preparation...");
         try {
@@ -103,19 +108,19 @@ public class SimulationService {
         } catch (InterruptedException ignored) {}
 
         log.info("Starting simulation...");
-        SyntheticArtemisUser[] users = initializeUsers(numberOfUsers, server);
+        ArtemisStudent[] students = initializeStudents(numberOfUsers, server);
         int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 4, numberOfUsers);
         log.info("Using {} threads for simulation", threadCount);
         List<RequestStat> requestStats = new ArrayList<>();
 
         try {
-            requestStats.addAll(performActionWithAll(20, numberOfUsers, i -> users[i].login()));
-            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> users[i].performInitialCalls()));
+            requestStats.addAll(performActionWithAll(20, numberOfUsers, i -> students[i].login()));
+            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].performInitialCalls()));
 
             long finalCourseId = courseId;
             long finalExamId = examId;
             requestStats.addAll(
-                performActionWithAll(threadCount, numberOfUsers, i -> users[i].participateInExam(finalCourseId, finalExamId))
+                performActionWithAll(threadCount, numberOfUsers, i -> students[i].participateInExam(finalCourseId, finalExamId))
             );
         } catch (Exception e) {
             log.error("Error while performing simulation: {}", e.getMessage());
@@ -144,8 +149,8 @@ public class SimulationService {
         simulationWebsocketService.sendSimulationResult(simulationResult);
     }
 
-    private SyntheticArtemisUser initializeAdmin(ArtemisServer server) {
-        var admin = new SyntheticArtemisUser(
+    private ArtemisAdmin initializeAdmin(ArtemisServer server) {
+        var admin = new ArtemisAdmin(
             artemisConfiguration.getAdminUsername(server),
             artemisConfiguration.getAdminPassword(server),
             artemisConfiguration.getUrl(server)
@@ -154,7 +159,7 @@ public class SimulationService {
         return admin;
     }
 
-    private Exam createAndInitializeExam(int numberOfUsers, ArtemisServer server, SyntheticArtemisUser admin, Course course) {
+    private Exam createAndInitializeExam(int numberOfUsers, ArtemisServer server, ArtemisAdmin admin, Course course) {
         var exam = admin.createExam(course);
 
         log.info("Successfully created course and exam. Waiting for synchronization of user groups...");
@@ -175,12 +180,12 @@ public class SimulationService {
         return exam;
     }
 
-    private SyntheticArtemisUser[] initializeUsers(int numberOfUsers, ArtemisServer server) {
-        SyntheticArtemisUser[] users = new SyntheticArtemisUser[numberOfUsers];
+    private ArtemisStudent[] initializeStudents(int numberOfUsers, ArtemisServer server) {
+        ArtemisStudent[] users = new ArtemisStudent[numberOfUsers];
         for (int i = 0; i < numberOfUsers; i++) {
             var username = artemisConfiguration.getUsernameTemplate(server).replace("{i}", String.valueOf(i + 1));
             var password = artemisConfiguration.getPasswordTemplate(server).replace("{i}", String.valueOf(i + 1));
-            users[i] = new SyntheticArtemisUser(username, password, artemisConfiguration.getUrl(server));
+            users[i] = new ArtemisStudent(username, password, artemisConfiguration.getUrl(server));
         }
         return users;
     }

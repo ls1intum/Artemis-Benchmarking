@@ -1,4 +1,4 @@
-package de.tum.cit.ase.service.util;
+package de.tum.cit.ase.web.artemis.util;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
