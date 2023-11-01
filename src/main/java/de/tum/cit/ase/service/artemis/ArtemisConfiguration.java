@@ -1,6 +1,5 @@
 package de.tum.cit.ase.service.artemis;
 
-import de.tum.cit.ase.service.artemis.ArtemisServer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
