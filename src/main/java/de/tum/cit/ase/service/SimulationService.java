@@ -6,6 +6,8 @@ import de.tum.cit.ase.artemisModel.Course;
 import de.tum.cit.ase.artemisModel.Exam;
 import de.tum.cit.ase.config.ArtemisConfiguration;
 import de.tum.cit.ase.service.util.*;
+import de.tum.cit.ase.web.websocket.AdminWebsocketSessionHandler;
+import de.tum.cit.ase.web.websocket.ArtemisWebsocketService;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
@@ -27,12 +29,17 @@ public class SimulationService {
     private final Logger log = LoggerFactory.getLogger(SimulationService.class);
 
     private final SimulationWebsocketService simulationWebsocketService;
-
+    private final ArtemisWebsocketService artemisWebsocketService;
     private final ArtemisConfiguration artemisConfiguration;
 
-    public SimulationService(ArtemisConfiguration artemisConfiguration, SimulationWebsocketService simulationWebsocketService) {
+    public SimulationService(
+        ArtemisConfiguration artemisConfiguration,
+        SimulationWebsocketService simulationWebsocketService,
+        ArtemisWebsocketService artemisWebsocketService
+    ) {
         this.simulationWebsocketService = simulationWebsocketService;
         this.artemisConfiguration = artemisConfiguration;
+        this.artemisWebsocketService = artemisWebsocketService;
     }
 
     @Async
@@ -44,6 +51,7 @@ public class SimulationService {
         try {
             log.info("Initializing admin...");
             admin = initializeAdmin(server);
+            artemisWebsocketService.initializeConnection(server, admin.getAuthToken(), new AdminWebsocketSessionHandler(examId));
         } catch (Exception e) {
             log.error("Error while initializing admin: {}", e.getMessage());
             simulationWebsocketService.sendSimulationError("Error while initializing admin: " + e.getMessage());

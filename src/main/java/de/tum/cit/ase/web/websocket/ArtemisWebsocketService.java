@@ -29,7 +29,7 @@ public class ArtemisWebsocketService {
         this.artemisConfiguration = artemisConfiguration;
     }
 
-    public StompSession initializeConnection(ArtemisServer server, AuthToken token) {
+    public StompSession initializeConnection(ArtemisServer server, AuthToken token, StompSessionHandler sessionHandler) {
         List<Transport> transports = List.of(new WebSocketTransport(new StandardWebSocketClient()));
         SockJsClient sockJsClient = new SockJsClient(transports);
 
@@ -38,7 +38,6 @@ public class ArtemisWebsocketService {
 
         String url = artemisConfiguration.getWebsocketUrl(server);
 
-        StompSessionHandler sessionHandler = new ArtemisWebsocketSessionHandler();
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         headers.add("Cookie", token.jwtToken());
 
