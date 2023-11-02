@@ -12,19 +12,19 @@ export class SimulationsComponent implements OnInit {
   simulationRunning = false;
   constructor(private simulationsService: SimulationsService) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.simulationsService.websocketSubscription().subscribe((simulationResult: SimulationResult) => {
       this.simulationResult = simulationResult;
       this.simulationRunning = false;
     });
   }
-  startSimulation() {
+  startSimulation(): void {
     this.simulationsService.startSimulation().subscribe(() => {
       this.simulationRunning = true;
     });
   }
 
-  formatDuration(durationInNanoSeconds: number) {
+  formatDuration(durationInNanoSeconds: number): string {
     const durationInMicroSeconds = durationInNanoSeconds / 1000;
     if (durationInMicroSeconds > 1000) {
       const durationInMilliSeconds = durationInMicroSeconds / 1000;

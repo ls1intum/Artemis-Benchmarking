@@ -1,0 +1,41 @@
+name: Deploy Docker Container
+
+on:
+  workflow_call:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    environment:
+      name: artemis-performance-test0.artemis.cit.tum.de
+      url: https://artemis-performance-test0.artemis.cit.tum.de
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Copy docker-compose to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ vars.URL }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          proxy_host: ${{ secrets.GATEWAY_HOST }}
+          proxy_username: ${{ secrets.GATEWAY_USER }}
+          proxy_key: ${{ secrets.GATEWAY_SSH_KEY }}
+          proxy_port: ${{ secrets.GATEWAY_PORT }}
+          source: "docker-compose.yml"
+          target: "/opt/artemis-benchmarking"
+      - name: Start Benchmarking App
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ vars.URL }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          proxy_host: ${{ secrets.GATEWAY_HOST }}
+          proxy_username: ${{ secrets.GATEWAY_USER }}
+          proxy_key: ${{ secrets.GATEWAY_SSH_KEY }}
+          proxy_port: ${{ secrets.GATEWAY_PORT }}
+          script: |
+            docker-compose -f /opt/artemis-benchmarking/docker-compose.yml up -d --remove-orphans --force-recreate

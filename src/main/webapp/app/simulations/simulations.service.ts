@@ -33,7 +33,7 @@ export class SimulationsService {
     return this.rxStomp.watch('/topic/simulation/completed').pipe(map(imessage => JSON.parse(imessage.body)));
   }
 
-  startSimulation() {
+  startSimulation(): Observable<Object> {
     return this.httpClient.post(this.applicationConfigService.getEndpointFor('/api/simulations?users=10'), undefined);
   }
 
