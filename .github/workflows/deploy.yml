@@ -1,0 +1,14 @@
+name: Build and Deploy to Prod
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-prod-container:
+    uses: ./.github/workflows/build-image.yml
+    secrets: inherit
+  deploy-prod-container:
+    needs: build-prod-container
+    uses: ./.github/workflows/deploy-container.yml
+    secrets: inherit
