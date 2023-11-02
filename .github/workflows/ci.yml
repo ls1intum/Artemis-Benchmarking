@@ -2,32 +2,32 @@
 # This will compile, lint and test the code on every push to the main branch and for pull requests.
 # Currently, the CI will fail as there are linting errors in the code.
 #
-#name: Continuous Integration
-#
-#on:
-#  push:
-#    branches: [main]
-#  pull_request:
-#    branches: [main]
-#
-#jobs:
-#  test:
-#    runs-on: ubuntu-22.04
-#    steps:
-#      - uses: actions/checkout@v3
-#
-#      - name: Setup Java
-#        uses: actions/setup-java@v3
-#        with:
-#          distribution: 'temurin'
-#          java-version: '17'
-#          cache: 'gradle'
-#      - name: Setup Node
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: 20
-#
-#      - name: Run Server Tests
-#        run: ./gradlew test integrationTest jacocoTestReport
-#      - name: Run Client Tests
-#        run: npm test
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+   branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Run Server Tests
+        run: ./gradlew test integrationTest jacocoTestReport
+      - name: Run Client Tests
+        run: npm test
