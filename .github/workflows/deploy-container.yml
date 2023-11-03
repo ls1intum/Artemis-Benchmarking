@@ -38,4 +38,5 @@ jobs:
           proxy_key: ${{ secrets.GATEWAY_SSH_KEY }}
           proxy_port: ${{ secrets.GATEWAY_PORT }}
           script: |
+            docker-compose -f /opt/artemis-benchmarking/docker-compose.yml pull
             docker-compose -f /opt/artemis-benchmarking/docker-compose.yml up -d --remove-orphans --force-recreate
