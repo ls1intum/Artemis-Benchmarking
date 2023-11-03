@@ -210,3 +210,32 @@ jhipster:
 # ===================================================================
 
 # application:
+artemis:
+  local:
+    url: http://localhost:8080/
+    websocket_url: ws://localhost:8080/websocket
+    username_template: artemis_test_user_{i}
+    password_template:
+    admin_username: admin
+    admin_password:
+  ts3:
+    url: https://artemis-test3.artemis.cit.tum.de/
+    websocket_url: wss://artemis-test3.artemis.cit.tum.de/websocket
+    username_template: artemis_test_user_{i}
+    password_template:
+    admin_username: artemis_test_admin
+    admin_password:
+  ts1:
+    url: https://artemis-test1.artemis.cit.tum.de/
+    websocket_url: wss://artemis-test1.artemis.cit.tum.de/websocket
+    username_template: artemis_test_user_{i}
+    password_template:
+    admin_username:
+    admin_password:
+  staging:
+    url: https://artemis-staging.artemis.in.tum.de/
+    websocket_url: wss://artemis-staging.artemis.in.tum.de/websocket
+    username_template: artemis_test_user_{i}
+    password_template:
+    admin_username:
+    admin_password:

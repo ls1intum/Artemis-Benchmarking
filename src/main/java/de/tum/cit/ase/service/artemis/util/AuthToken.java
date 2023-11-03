@@ -1,4 +1,4 @@
-package de.tum.cit.ase.service.util;
+package de.tum.cit.ase.service.artemis.util;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;

@@ -1,154 +1,102 @@
-package de.tum.cit.ase.service.util;
+package de.tum.cit.ase.service.artemis.interaction;
 
-import static de.tum.cit.ase.service.util.RequestType.*;
-import static de.tum.cit.ase.service.util.TimeLogUtil.formatDurationFrom;
-import static de.tum.cit.ase.service.util.UMLClassDiagrams.CLASS_MODEL_1;
-import static de.tum.cit.ase.service.util.UMLClassDiagrams.CLASS_MODEL_2;
+import static de.tum.cit.ase.domain.RequestType.*;
+import static de.tum.cit.ase.util.TimeLogUtil.formatDurationFrom;
 import static java.lang.Thread.sleep;
 import static java.time.ZonedDateTime.now;
 
 import com.thedeanda.lorem.LoremIpsum;
 import de.tum.cit.ase.artemisModel.*;
-import de.tum.cit.ase.service.UserService;
-import io.netty.channel.ChannelOption;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
+import de.tum.cit.ase.domain.RequestStat;
+import de.tum.cit.ase.util.UMLClassDiagrams;
 import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.netty.http.client.HttpClient;
-import reactor.netty.tcp.SslProvider;
 
-public class SyntheticArtemisUser {
+public class ArtemisStudent extends ArtemisUser {
 
-    private static final String artemisUrl = "http://localhost:8080/";
-
-    private final Logger log = LoggerFactory.getLogger(UserService.class);
-
-    private AuthToken authToken;
-    private final String username;
-    private final String password;
-    private List<RequestStat> requestStats = new ArrayList<>();
-    private WebClient webClient;
     private String courseIdString;
     private String examIdString;
     private Long studentExamId;
     private StudentExam studentExam;
 
-    public SyntheticArtemisUser(String username, String password) {
-        this.username = username;
-        this.password = password;
+    public ArtemisStudent(String username, String password, String artemisUrl) {
+        super(username, password, artemisUrl);
+        log = LoggerFactory.getLogger(ArtemisStudent.class.getName() + "." + username);
     }
 
-    public List<RequestStat> login() {
-        requestStats = new ArrayList<>();
-        WebClient webClient = WebClient
-            .builder()
-            .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
-            .baseUrl(artemisUrl)
-            .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .build();
-
-        long start = System.nanoTime();
-        var payload = Map.of("username", username, "password", password, "rememberMe", true);
-        var response = webClient.post().uri("api/public/authenticate").bodyValue(payload).retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, AUTHENTICATION, success(response)));
-
-        var cookieHeader = response.getHeaders().get("Set-Cookie").get(0);
-        authToken = AuthToken.fromResponseHeaderString(cookieHeader);
-        String cookieHeaderToken = authToken.jwtToken();
-        this.webClient =
-            WebClient
-                .builder()
-                .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
-                .baseUrl(artemisUrl)
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader("Cookie", cookieHeaderToken)
-                .build();
-        return requestStats;
+    @Override
+    protected void checkAccess() {
+        var response = webClient.get().uri("api/public/account").retrieve().bodyToMono(User.class).block();
+        this.authenticated = response != null && response.getAuthorities().contains("ROLE_STUDENT");
     }
 
     public List<RequestStat> performInitialCalls() {
-        if (webClient == null) {
-            throw new IllegalStateException("User " + username + " is not logged in.");
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or not a student.");
         }
-        requestStats = new ArrayList<>();
 
-        getInfo();
-        getSystemNotifications();
-        getAccount();
-        getNotificationSettings();
-        getCourses();
+        return List.of(getInfo(), getSystemNotifications(), getAccount(), getNotificationSettings(), getCourses());
+    }
+
+    public List<RequestStat> participateInExam(long courseId, long examId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or not a student.");
+        }
+        this.courseIdString = String.valueOf(courseId);
+        this.examIdString = String.valueOf(examId);
+
+        List<RequestStat> requestStats = new ArrayList<>();
+
+        requestStats.add(navigateIntoExam());
+        requestStats.add(startExam());
+        requestStats.addAll(handleExercises());
+        requestStats.add(submitStudentExam());
+        requestStats.add(loadExamSummary());
 
         return requestStats;
     }
 
-    public List<RequestStat> participateInExam(String courseIdString, String examIdString) {
-        if (webClient == null) {
-            throw new IllegalStateException("User " + username + " is not logged in.");
-        }
-        this.courseIdString = courseIdString;
-        this.examIdString = examIdString;
-        requestStats = new ArrayList<>();
-
-        navigateIntoExam();
-        startExam();
-        handleExercises();
-        submitStudentExam();
-        loadExamSummary();
-
-        return requestStats;
-    }
-
-    public void getInfo() {
+    private RequestStat getInfo() {
         long start = System.nanoTime();
-        var response = webClient.get().uri("management/info").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
+        webClient.get().uri("management/info").retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
-    public void getSystemNotifications() {
+    private RequestStat getSystemNotifications() {
         long start = System.nanoTime();
-        var response = webClient.get().uri("api/public/system-notifications/active").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
+        webClient.get().uri("api/public/system-notifications/active").retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
-    public void getAccount() {
+    private RequestStat getAccount() {
         long start = System.nanoTime();
-        var response = webClient.get().uri("api/public/account").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
+        webClient.get().uri("api/public/account").retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
-    public void getNotificationSettings() {
+    private RequestStat getNotificationSettings() {
         long start = System.nanoTime();
-        var response = webClient.get().uri("api/notification-settings").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
+        webClient.get().uri("api/notification-settings").retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
-    public void getCourses() {
+    private RequestStat getCourses() {
         long start = System.nanoTime();
-        var response = webClient.get().uri("api/courses/for-dashboard").retrieve().toBodilessEntity().block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
+        webClient.get().uri("api/courses/for-dashboard").retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
-    public void navigateIntoExam() {
+    private RequestStat navigateIntoExam() {
         long start = System.nanoTime();
         StudentExam studentExam = webClient
             .get()
@@ -156,11 +104,15 @@ public class SyntheticArtemisUser {
             .retrieve()
             .bodyToMono(StudentExam.class)
             .block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, GET_STUDENT_EXAM, studentExam != null));
-        studentExamId = studentExam.getId();
+        var duration = System.nanoTime() - start;
+
+        if (studentExam != null) {
+            studentExamId = studentExam.getId();
+        }
+        return new RequestStat(now(), duration, GET_STUDENT_EXAM);
     }
 
-    public void startExam() {
+    private RequestStat startExam() {
         long start = System.nanoTime();
         studentExam =
             webClient
@@ -182,38 +134,38 @@ public class SyntheticArtemisUser {
                 .retrieve()
                 .bodyToMono(StudentExam.class)
                 .block();
-        long duration = System.nanoTime() - start;
-        requestStats.add(new RequestStat(now(), duration, START_STUDENT_EXAM, studentExam != null));
-        // startExamRequestStats.add(new RequestStat(now(), duration));
+        return new RequestStat(now(), System.nanoTime() - start, START_STUDENT_EXAM);
     }
 
-    public void handleExercises() {
+    private List<RequestStat> handleExercises() {
+        List<RequestStat> requestStats = new ArrayList<>();
         for (var exercise : studentExam.getExercises()) {
             if (exercise instanceof ModelingExercise) {
-                solveAndSubmitModelingExercise((ModelingExercise) exercise);
+                requestStats.add(solveAndSubmitModelingExercise((ModelingExercise) exercise));
             } else if (exercise instanceof TextExercise) {
-                solveAndSubmitTextExercise((TextExercise) exercise);
+                requestStats.add(solveAndSubmitTextExercise((TextExercise) exercise));
             } else if (exercise instanceof QuizExercise) {
-                solveAndSubmitQuizExercise((QuizExercise) exercise);
+                requestStats.add(solveAndSubmitQuizExercise((QuizExercise) exercise));
             } else if (exercise instanceof ProgrammingExercise) {
-                solveAndSubmitProgrammingExercise((ProgrammingExercise) exercise);
+                requestStats.addAll(solveAndSubmitProgrammingExercise((ProgrammingExercise) exercise));
             }
         }
+        return requestStats;
     }
 
-    public void solveAndSubmitModelingExercise(ModelingExercise modelingExercise) {
+    private RequestStat solveAndSubmitModelingExercise(ModelingExercise modelingExercise) {
         var modelingSubmission = getModelingSubmission(modelingExercise);
         if (modelingSubmission != null) {
             if (new Random().nextBoolean()) {
-                modelingSubmission.setModel(CLASS_MODEL_1);
+                modelingSubmission.setModel(UMLClassDiagrams.CLASS_MODEL_1);
                 modelingSubmission.setExplanationText("The model describes ...");
             } else {
-                modelingSubmission.setModel(CLASS_MODEL_2);
+                modelingSubmission.setModel(UMLClassDiagrams.CLASS_MODEL_2);
                 modelingSubmission.setExplanationText("Random explanation text ...");
             }
 
             long start = System.nanoTime();
-            var response = webClient
+            webClient
                 .put()
                 .uri(uriBuilder ->
                     uriBuilder.pathSegment("api", "exercises", modelingExercise.getId().toString(), "modeling-submissions").build()
@@ -222,34 +174,36 @@ public class SyntheticArtemisUser {
                 .retrieve()
                 .toBodilessEntity()
                 .block();
-            requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE, success(response)));
+            return new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE);
         }
+        return null;
     }
 
-    public void solveAndSubmitTextExercise(TextExercise textExercise) {
+    private RequestStat solveAndSubmitTextExercise(TextExercise textExercise) {
         var textSubmission = getTextSubmission(textExercise);
         if (textSubmission != null) {
             textSubmission.setText(LoremIpsum.getInstance().getParagraphs(2, 4));
             textSubmission.setLanguage(Language.ENGLISH);
 
             long start = System.nanoTime();
-            var response = webClient
+            webClient
                 .put()
                 .uri(uriBuilder -> uriBuilder.pathSegment("api", "exercises", textExercise.getId().toString(), "text-submissions").build())
                 .bodyValue(textSubmission)
                 .retrieve()
                 .toBodilessEntity()
                 .block();
-            requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE, success(response)));
+            return new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE);
         }
+        return null;
     }
 
-    public void solveAndSubmitQuizExercise(QuizExercise quizExercise) {
+    private RequestStat solveAndSubmitQuizExercise(QuizExercise quizExercise) {
         var quizSubmission = getQuizSubmission(quizExercise);
         // TODO: change something in the quiz submission
         if (quizSubmission != null) {
             long start = System.nanoTime();
-            var response = webClient
+            webClient
                 .put()
                 .uri(uriBuilder ->
                     uriBuilder.pathSegment("api", "exercises", quizExercise.getId().toString(), "submissions", "exam").build()
@@ -258,36 +212,40 @@ public class SyntheticArtemisUser {
                 .retrieve()
                 .toBodilessEntity()
                 .block();
-            requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE, success(response)));
+            return new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE);
         }
+        return null;
     }
 
-    public void solveAndSubmitProgrammingExercise(ProgrammingExercise programmingExercise) {
+    private List<RequestStat> solveAndSubmitProgrammingExercise(ProgrammingExercise programmingExercise) {
         var programmingParticipation = (ProgrammingExerciseStudentParticipation) programmingExercise
             .getStudentParticipations()
             .iterator()
             .next();
         var repositoryCloneUrl = programmingParticipation.getRepositoryUrl();
+        List<RequestStat> requestStats = new ArrayList<>();
+
         try {
             long start = System.nanoTime();
-            cloneRepo(repositoryCloneUrl);
+            requestStats.add(cloneRepo(repositoryCloneUrl));
 
             int n = new Random().nextInt(10, 15); // we do a random number of commits and pushes to make some noise
             log.info("Commit and push {}x for {}", n, username);
             for (int j = 0; j < n; j++) {
                 sleep(100);
                 changeFiles();
-                commitAndPushRepo();
+                requestStats.add(commitAndPushRepo());
             }
             log.debug("    Clone and commit+push done in " + formatDurationFrom(start));
         } catch (Exception e) {
             log.error("Error while handling programming exercise for {{}}: {{}}", username, e.getMessage());
         }
+        return requestStats;
     }
 
-    public void submitStudentExam() {
+    private RequestStat submitStudentExam() {
         long start = System.nanoTime();
-        var response = webClient
+        webClient
             .post()
             .uri(uriBuilder ->
                 uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "submit").build()
@@ -296,13 +254,12 @@ public class SyntheticArtemisUser {
             .retrieve()
             .toBodilessEntity()
             .block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_STUDENT_EXAM, success(response)));
-        // submitExamRequestStats.add(new RequestStat(now(), duration));
+        return new RequestStat(now(), System.nanoTime() - start, SUBMIT_STUDENT_EXAM);
     }
 
-    public void loadExamSummary() {
+    private RequestStat loadExamSummary() {
         long start = System.nanoTime();
-        var response = webClient
+        webClient
             .get()
             .uri(uriBuilder ->
                 uriBuilder
@@ -321,35 +278,12 @@ public class SyntheticArtemisUser {
             .retrieve()
             .toBodilessEntity()
             .block();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC, success(response)));
-    }
-
-    private static HttpClient createHttpClient() {
-        return HttpClient
-            .create()
-            .doOnConnected(conn ->
-                conn.addHandlerFirst(new ReadTimeoutHandler(30, TimeUnit.SECONDS)).addHandlerFirst(new WriteTimeoutHandler(30))
-            )
-            .responseTimeout(Duration.ofSeconds(30))
-            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30 * 1000)
-            .secure(spec ->
-                spec
-                    .sslContext(SslContextBuilder.forClient())
-                    .defaultConfiguration(SslProvider.DefaultConfigurationType.TCP)
-                    .handshakeTimeout(Duration.ofSeconds(30))
-                    .closeNotifyFlushTimeout(Duration.ofSeconds(30))
-                    .closeNotifyReadTimeout(Duration.ofSeconds(30))
-            );
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     @Nullable
     private static ModelingSubmission getModelingSubmission(ModelingExercise modelingExercise) {
         return getSubmissionOfType(modelingExercise, ModelingSubmission.class);
-    }
-
-    @Nullable
-    private static ProgrammingSubmission getProgrammingSubmission(ProgrammingExercise programmingExercise) {
-        return getSubmissionOfType(programmingExercise, ProgrammingSubmission.class);
     }
 
     @Nullable
@@ -376,16 +310,20 @@ public class SyntheticArtemisUser {
         return null;
     }
 
-    private void commitAndPushRepo() throws IOException, GitAPIException {
+    private RequestStat commitAndPushRepo() throws IOException, GitAPIException {
         var localPath = Path.of("repos", username);
         log.debug("Commit and push to " + localPath);
+
         var git = Git.open(localPath.toFile());
+        git.add().addFilepattern("src").call();
         git.commit().setMessage("local test").setAllowEmpty(true).call();
+
         long start = System.nanoTime();
         git.push().setCredentialsProvider(getCredentialsProvider()).call();
         long duration = System.nanoTime() - start;
-        requestStats.add(new RequestStat(now(), duration, PUSH, true));
+
         git.close();
+        return new RequestStat(now(), duration, PUSH);
     }
 
     private void changeFiles() throws IOException {
@@ -420,10 +358,12 @@ public class SyntheticArtemisUser {
         FileUtils.writeStringToFile(bubbleSort.toFile(), newContent, Charset.defaultCharset());
     }
 
-    private void cloneRepo(String repositoryUrl) throws IOException, GitAPIException {
+    private RequestStat cloneRepo(String repositoryUrl) throws IOException, GitAPIException {
         log.debug("Clone " + repositoryUrl);
+
         var localPath = Path.of("repos", username);
         FileUtils.deleteDirectory(localPath.toFile());
+
         long start = System.nanoTime();
         var git = Git
             .cloneRepository()
@@ -431,16 +371,14 @@ public class SyntheticArtemisUser {
             .setDirectory(localPath.toFile())
             .setCredentialsProvider(getCredentialsProvider())
             .call();
-        requestStats.add(new RequestStat(now(), System.nanoTime() - start, CLONE, true));
+        var duration = System.nanoTime() - start;
+
         git.close();
         log.debug("Done " + repositoryUrl);
+        return new RequestStat(now(), duration, CLONE);
     }
 
     private UsernamePasswordCredentialsProvider getCredentialsProvider() {
         return new UsernamePasswordCredentialsProvider(username, password);
-    }
-
-    private static boolean success(ResponseEntity response) {
-        return response != null && response.getStatusCode().is2xxSuccessful();
     }
 }

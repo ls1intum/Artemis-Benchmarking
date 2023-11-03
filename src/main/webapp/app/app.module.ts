@@ -13,6 +13,7 @@ import { ApplicationConfigService } from 'app/core/config/application-config.ser
 import './config/dayjs';
 import { httpInterceptorProviders } from 'app/core/interceptor/index';
 import { AppRoutingModule } from './app-routing.module';
+import { FormsModule } from '@angular/forms';
 // jhipster-needle-angular-add-module-import JHipster will add new module here
 import { NgbDateDayjsAdapter } from './config/datepicker-adapter';
 import { fontAwesomeIcons } from './config/font-awesome-icons';
@@ -31,6 +32,7 @@ import { SimulationsComponent } from './simulations/simulations.component';
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: false }),
     HttpClientModule,
     MainModule,
+    FormsModule,
   ],
   providers: [
     Title,

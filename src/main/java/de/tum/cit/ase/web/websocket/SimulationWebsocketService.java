@@ -1,6 +1,6 @@
 package de.tum.cit.ase.web.websocket;
 
-import de.tum.cit.ase.service.util.SimulationResult;
+import de.tum.cit.ase.domain.SimulationResult;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
@@ -15,5 +15,9 @@ public class SimulationWebsocketService {
 
     public void sendSimulationResult(SimulationResult simulationResult) {
         messagingTemplate.convertAndSend("/topic/simulation/completed", simulationResult);
+    }
+
+    public void sendSimulationError(String error) {
+        messagingTemplate.convertAndSend("/topic/simulation/error", error);
     }
 }

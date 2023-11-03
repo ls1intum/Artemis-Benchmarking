@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SimulationsService } from './simulations.service';
 import { SimulationResult } from './simulationResult';
+import { ArtemisServer } from './artemisServer';
 
 @Component({
   selector: 'jhi-simulations',
@@ -10,18 +11,34 @@ import { SimulationResult } from './simulationResult';
 export class SimulationsComponent implements OnInit {
   simulationResult?: SimulationResult;
   simulationRunning = false;
+  errorMessage = '';
+
+  numberOfUsers = 0;
+  courseId = 0;
+  examId = 0;
+  selectedServer = ArtemisServer.TS1;
+
+  protected readonly ArtemisServer = ArtemisServer;
+
   constructor(private simulationsService: SimulationsService) {}
 
   ngOnInit(): void {
-    this.simulationsService.websocketSubscription().subscribe((simulationResult: SimulationResult) => {
+    this.simulationsService.websocketSubscriptionSimulationCompleted().subscribe((simulationResult: SimulationResult) => {
       this.simulationResult = simulationResult;
+      this.simulationRunning = false;
+      this.errorMessage = '';
+    });
+    this.simulationsService.websocketSubscriptionSimulationError().subscribe((error: string) => {
+      this.errorMessage = error;
       this.simulationRunning = false;
     });
   }
   startSimulation(): void {
-    this.simulationsService.startSimulation().subscribe(() => {
-      this.simulationRunning = true;
-    });
+    const observer = {
+      next: () => (this.simulationRunning = true),
+      error: () => (this.errorMessage = 'An error occurred. Simulation could not be started.'),
+    };
+    this.simulationsService.startSimulation(this.numberOfUsers, this.courseId, this.examId, this.selectedServer).subscribe(observer);
   }
 
   formatDuration(durationInNanoSeconds: number): string {

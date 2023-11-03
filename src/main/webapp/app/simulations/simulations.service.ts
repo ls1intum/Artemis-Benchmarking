@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { RxStomp } from '@stomp/rx-stomp/esm6/rx-stomp';
+import { RxStomp } from '@stomp/rx-stomp';
 import { SimulationResult } from './simulationResult';
 import { AccountService } from '../core/auth/account.service';
 import { map } from 'rxjs/internal/operators/map';
@@ -9,6 +9,7 @@ import { ApplicationConfigService } from '../core/config/application-config.serv
 import { AuthServerProvider } from '../core/auth/auth-jwt.service';
 import { Location } from '@angular/common';
 import { Observable } from 'rxjs/internal/Observable';
+import { ArtemisServer } from './artemisServer';
 
 @Injectable({
   providedIn: 'root',
@@ -23,18 +24,27 @@ export class SimulationsService {
     private authServerProvider: AuthServerProvider,
     private location: Location,
   ) {
-    this.accountService.getAuthenticationState().subscribe(account => {
+    this.accountService.getAuthenticationState().subscribe(() => {
       this.updateCredentials();
       this.rxStomp.activate();
     });
   }
 
-  websocketSubscription(): Observable<SimulationResult> {
-    return this.rxStomp.watch('/topic/simulation/completed').pipe(map(imessage => JSON.parse(imessage.body)));
+  websocketSubscriptionSimulationCompleted(): Observable<SimulationResult> {
+    return this.rxStomp.watch('/topic/simulation/completed').pipe(map(imessage => JSON.parse(imessage.body) as SimulationResult));
   }
 
-  startSimulation(): Observable<Object> {
-    return this.httpClient.post(this.applicationConfigService.getEndpointFor('/api/simulations?users=10'), undefined);
+  websocketSubscriptionSimulationError(): Observable<string> {
+    return this.rxStomp.watch('/topic/simulation/error').pipe(map(imessage => imessage.body));
+  }
+
+  startSimulation(numberOfUsers: number, courseId: number, examId: number, server: ArtemisServer): Observable<object> {
+    return this.httpClient.post(
+      this.applicationConfigService.getEndpointFor(
+        '/api/simulations?users=' + numberOfUsers + '&courseId=' + courseId + '&examId=' + examId + '&server=' + server,
+      ),
+      undefined,
+    );
   }
 
   private buildUrl(): string {

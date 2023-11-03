@@ -1,4 +1,4 @@
-package de.tum.cit.ase.service.util;
+package de.tum.cit.ase.util;
 
 public class TimeLogUtil {
 

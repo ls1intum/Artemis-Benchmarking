@@ -1,6 +1,6 @@
-package de.tum.cit.ase.service.util;
+package de.tum.cit.ase.domain;
 
-import static de.tum.cit.ase.service.util.RequestType.*;
+import static de.tum.cit.ase.domain.RequestType.*;
 
 import java.util.Collection;
 import java.util.stream.Collectors;

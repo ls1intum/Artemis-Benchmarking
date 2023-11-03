@@ -13,4 +13,33 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 )
 // @formatter:on
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public abstract class QuizQuestion extends DomainObject {}
+public abstract class QuizQuestion extends DomainObject {
+
+    private String title;
+    private Double points;
+    private String text;
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public Double getPoints() {
+        return points;
+    }
+
+    public void setPoints(Double points) {
+        this.points = points;
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+}
