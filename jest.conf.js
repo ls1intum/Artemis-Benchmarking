@@ -1,9 +1,8 @@
-const { pathsToModuleNameMapper } = require('ts-jest');
-
 const {
   compilerOptions: { paths = {}, baseUrl = './' },
 } = require('./tsconfig.json');
 const environment = require('./webpack/environment');
+const { pathsToModuleNameMapper } = require('ts-jest');
 
 module.exports = {
   transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$|dayjs/esm)'],

@@ -21,7 +21,13 @@
   </div>
   <button class="start-button" (click)="startSimulation()" [disabled]="simulationRunning">Start Simulation</button>
 </div>
-<div *ngIf="simulationResult && !simulationRunning && errorMessage == ''">
+<div>
+  <div *ngFor="let msg of logMessages">
+    <span [style.color]="msg.isError ? 'red' : 'black'">{{ msg.message }}</span
+    ><br />
+  </div>
+</div>
+<div *ngIf="simulationResult">
   <h2>Simulation Result:</h2>
   <div class="sub-result-wrapper">
     <h3>Total:</h3>
@@ -29,6 +35,19 @@
     ><br />
     <span>Average response time: {{ formatDuration(simulationResult!.total!.avgResponseTime) }}</span
     ><br />
+    <span>Requests by minute:</span>
+    <br />
+    <div *ngFor="let minute of simulationResult!.total!.requestsByMinute | keyvalue">
+      <span> {{ minute.key | date: 'hh:mm' }}: {{ minute.value }}</span
+      ><br />
+    </div>
+    <br />
+    <span>Average response time by minute:</span>
+    <div *ngFor="let minute of simulationResult!.total!.avgResponseTimeByMinute | keyvalue">
+      <span> {{ minute.key | date: 'hh:mm' }}: {{ formatDuration(minute.value) }}</span
+      ><br />
+    </div>
+    <br />
   </div>
   <div class="sub-result-wrapper">
     <h3>Authentication:</h3>
@@ -86,10 +105,4 @@
     <span>Average response time: {{ formatDuration(simulationResult!.miscStats!.avgResponseTime) }}</span
     ><br />
   </div>
-</div>
-<div *ngIf="!simulationRunning && errorMessage != ''">
-  <span>{{ errorMessage }}</span>
-</div>
-<div *ngIf="simulationRunning">
-  <span>Simulation running, please wait...</span>
 </div>

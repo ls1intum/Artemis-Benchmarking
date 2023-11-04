@@ -1,11 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { finalize } from 'rxjs/operators';
-
 import SharedModule from 'app/shared/shared.module';
-import { FormsModule } from '@angular/forms';
 import { SortDirective, SortByDirective } from 'app/shared/sort';
 import { Log, LoggersResponse, Level } from './log.model';
 import { LogsService } from './logs.service';
+import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
+import { Component, OnInit } from '@angular/core';
 
 @Component({
   standalone: true,

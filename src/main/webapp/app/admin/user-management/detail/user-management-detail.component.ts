@@ -1,8 +1,7 @@
+import SharedModule from 'app/shared/shared.module';
+import { User } from '../user-management.model';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import SharedModule from 'app/shared/shared.module';
-
-import { User } from '../user-management.model';
 
 @Component({
   standalone: true,

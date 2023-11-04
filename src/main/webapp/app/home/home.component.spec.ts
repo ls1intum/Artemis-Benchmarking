@@ -1,14 +1,14 @@
 jest.mock('app/core/auth/account.service');
 
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { of, Subject } from 'rxjs';
 
 import { AccountService } from 'app/core/auth/account.service';
 import { Account } from 'app/core/auth/account.model';
 
 import HomeComponent from './home.component';
+import { of, Subject } from 'rxjs';
+import { Router } from '@angular/router';
 
 describe('Home Component', () => {
   let comp: HomeComponent;

@@ -1,6 +1,3 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { combineLatest } from 'rxjs';
-
 import SharedModule from 'app/shared/shared.module';
 import { MetricsService } from './metrics.service';
 import { Metrics, Thread } from './metrics.model';
@@ -13,6 +10,8 @@ import { MetricsGarbageCollectorComponent } from './blocks/metrics-garbagecollec
 import { MetricsModalThreadsComponent } from './blocks/metrics-modal-threads/metrics-modal-threads.component';
 import { MetricsRequestComponent } from './blocks/metrics-request/metrics-request.component';
 import { MetricsSystemComponent } from './blocks/metrics-system/metrics-system.component';
+import { combineLatest } from 'rxjs';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 
 @Component({
   standalone: true,

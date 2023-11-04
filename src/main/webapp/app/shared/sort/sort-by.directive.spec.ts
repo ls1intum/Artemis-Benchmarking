@@ -1,11 +1,10 @@
-import { Component, DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import SortByDirective from './sort-by.directive';
+import SortDirective from './sort.directive';
+import { Component, DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { FaIconComponent, FaIconLibrary } from '@fortawesome/angular-fontawesome';
 import { fas, faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
-
-import SortByDirective from './sort-by.directive';
-import SortDirective from './sort.directive';
 
 @Component({
   template: `

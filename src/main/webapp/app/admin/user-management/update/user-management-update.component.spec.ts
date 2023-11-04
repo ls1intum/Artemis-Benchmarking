@@ -1,14 +1,14 @@
 import { ComponentFixture, TestBed, waitForAsync, inject, fakeAsync, tick } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { FormBuilder } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
 
 import { Authority } from 'app/config/authority.constants';
 import { UserManagementService } from '../service/user-management.service';
 import { User } from '../user-management.model';
 
 import UserManagementUpdateComponent from './user-management-update.component';
+import { of } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { FormBuilder } from '@angular/forms';
 
 describe('User Management Update Component', () => {
   let comp: UserManagementUpdateComponent;

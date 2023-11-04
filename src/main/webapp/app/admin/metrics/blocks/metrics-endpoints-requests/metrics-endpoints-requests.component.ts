@@ -1,7 +1,6 @@
-import { Component, Input } from '@angular/core';
-
 import SharedModule from 'app/shared/shared.module';
 import { Services } from 'app/admin/metrics/metrics.model';
+import { Component, Input } from '@angular/core';
 
 @Component({
   standalone: true,

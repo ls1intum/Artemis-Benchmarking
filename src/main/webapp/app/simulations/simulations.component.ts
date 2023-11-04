@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { SimulationsService } from './simulations.service';
 import { SimulationResult } from './simulationResult';
 import { ArtemisServer } from './artemisServer';
+import { LogMessage } from './logMessage';
 
 @Component({
   selector: 'jhi-simulations',
@@ -11,7 +12,7 @@ import { ArtemisServer } from './artemisServer';
 export class SimulationsComponent implements OnInit {
   simulationResult?: SimulationResult;
   simulationRunning = false;
-  errorMessage = '';
+  logMessages: Array<LogMessage> = [];
 
   numberOfUsers = 0;
   courseId = 0;
@@ -26,17 +27,24 @@ export class SimulationsComponent implements OnInit {
     this.simulationsService.websocketSubscriptionSimulationCompleted().subscribe((simulationResult: SimulationResult) => {
       this.simulationResult = simulationResult;
       this.simulationRunning = false;
-      this.errorMessage = '';
     });
     this.simulationsService.websocketSubscriptionSimulationError().subscribe((error: string) => {
-      this.errorMessage = error;
+      this.logMessages.push(new LogMessage(error, true));
+    });
+    this.simulationsService.websocketSubscriptionSimulationInfo().subscribe((info: string) => {
+      this.logMessages.push(new LogMessage(info, false));
+    });
+    this.simulationsService.websocketSubscriptionSimulationFailed().subscribe(() => {
+      this.logMessages.push(new LogMessage('Simulation failed.', true));
       this.simulationRunning = false;
     });
   }
   startSimulation(): void {
+    this.simulationResult = undefined;
+    this.logMessages = [];
     const observer = {
       next: () => (this.simulationRunning = true),
-      error: () => (this.errorMessage = 'An error occurred. Simulation could not be started.'),
+      error: () => this.logMessages.push(new LogMessage('Error starting simulation.', true)),
     };
     this.simulationsService.startSimulation(this.numberOfUsers, this.courseId, this.examId, this.selectedServer).subscribe(observer);
   }

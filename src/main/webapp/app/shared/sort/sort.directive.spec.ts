@@ -1,8 +1,7 @@
-import { Component, DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-
 import SortDirective from './sort.directive';
+import { Component, DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
 
 @Component({
   template: `

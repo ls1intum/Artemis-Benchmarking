@@ -1,3 +1,7 @@
+import { AuthServerProvider } from 'app/core/auth/auth-jwt.service';
+import { AccountService } from '../auth/account.service';
+import { Account } from '../auth/account.model';
+import { TrackerActivity } from './tracker-activity.model';
 import { Injectable } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router, NavigationEnd, Event } from '@angular/router';
@@ -6,11 +10,6 @@ import { filter, map } from 'rxjs/operators';
 
 import SockJS from 'sockjs-client';
 import { RxStomp } from '@stomp/rx-stomp';
-
-import { AuthServerProvider } from 'app/core/auth/auth-jwt.service';
-import { AccountService } from '../auth/account.service';
-import { Account } from '../auth/account.model';
-import { TrackerActivity } from './tracker-activity.model';
 
 const DESTINATION_TRACKER = '/topic/tracker';
 const DESTINATION_ACTIVITY = '/topic/activity';

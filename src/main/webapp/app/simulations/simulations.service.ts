@@ -38,6 +38,14 @@ export class SimulationsService {
     return this.rxStomp.watch('/topic/simulation/error').pipe(map(imessage => imessage.body));
   }
 
+  websocketSubscriptionSimulationInfo(): Observable<string> {
+    return this.rxStomp.watch('/topic/simulation/info').pipe(map(imessage => imessage.body));
+  }
+
+  websocketSubscriptionSimulationFailed(): Observable<void> {
+    return this.rxStomp.watch('/topic/simulation/failed').pipe(map(() => {}));
+  }
+
   startSimulation(numberOfUsers: number, courseId: number, examId: number, server: ArtemisServer): Observable<object> {
     return this.httpClient.post(
       this.applicationConfigService.getEndpointFor(

@@ -1,6 +1,5 @@
-import { Route } from '@angular/router';
-
 import ActivateComponent from './activate.component';
+import { Route } from '@angular/router';
 
 const activateRoute: Route = {
   path: 'activate',
