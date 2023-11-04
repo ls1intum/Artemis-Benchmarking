@@ -1,6 +1,6 @@
 import { HttpClientModule } from '@angular/common/http';
 import { ApplicationConfigService } from 'app/core/config/application-config.service';
-import { httpInterceptorProviders } from 'app/core/interceptor/index';
+import { httpInterceptorProviders } from './core/interceptor';
 import { AppRoutingModule } from './app-routing.module';
 import { NgbDateDayjsAdapter } from './config/datepicker-adapter';
 import { fontAwesomeIcons } from './config/font-awesome-icons';

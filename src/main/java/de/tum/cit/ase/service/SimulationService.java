@@ -94,7 +94,7 @@ public class SimulationService {
                 examId = exam.getId();
             } catch (Exception e) {
                 logAndSendError("Error while creating exam: %s", e.getMessage());
-                cleanup(admin, courseId);
+                cleanup(admin, course.getId());
                 simulationWebsocketService.sendSimulationFailed();
                 return;
             }
@@ -229,10 +229,11 @@ public class SimulationService {
     private void cleanup(ArtemisAdmin admin, long courseId) {
         logAndSendInfo("Cleaning up...");
         try {
+            sleep(1000 * 10); // Give the server a few seconds to recover
             admin.deleteCourse(courseId);
             logAndSendInfo("Successfully cleaned up.");
         } catch (Exception e) {
-            logAndSendError("Error while cleaning up: {}", e.getMessage());
+            logAndSendError("Error while cleaning up: %s", e.getMessage());
         }
     }
 

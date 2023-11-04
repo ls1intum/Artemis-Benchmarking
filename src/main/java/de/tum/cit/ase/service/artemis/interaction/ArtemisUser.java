@@ -89,9 +89,9 @@ public abstract class ArtemisUser {
         return HttpClient
             .create()
             .doOnConnected(conn ->
-                conn.addHandlerFirst(new ReadTimeoutHandler(180, TimeUnit.SECONDS)).addHandlerFirst(new WriteTimeoutHandler(30))
+                conn.addHandlerFirst(new ReadTimeoutHandler(10, TimeUnit.MINUTES)).addHandlerFirst(new WriteTimeoutHandler(30))
             )
-            .responseTimeout(Duration.ofSeconds(180))
+            .responseTimeout(Duration.ofMinutes(10))
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30 * 1000)
             .secure(spec -> {
                 try {

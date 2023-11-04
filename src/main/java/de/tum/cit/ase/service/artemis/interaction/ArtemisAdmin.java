@@ -4,7 +4,12 @@ import static java.lang.Thread.sleep;
 import static java.time.ZonedDateTime.now;
 
 import de.tum.cit.ase.artemisModel.*;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.ZonedDateTime;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -326,19 +331,31 @@ public class ArtemisAdmin extends ArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
         }
 
-        for (int i = 1; i <= numberOfStudents; i++) {
-            var studentName = usernameTemplate.replace("{i}", String.valueOf(i));
-            try {
-                webClient
-                    .post()
-                    .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", studentName).build())
-                    .retrieve()
-                    .toBodilessEntity()
-                    .block();
-            } catch (Exception e) {
-                log.warn("Could not register student {{}} for course: {{}}", studentName, e.getMessage());
-            }
-        }
+        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 4, numberOfStudents);
+        ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadCount);
+        Scheduler scheduler = Schedulers.from(threadPoolExecutor);
+
+        Flowable
+            .range(1, numberOfStudents)
+            .parallel(threadCount)
+            .runOn(scheduler)
+            .doOnNext(i -> {
+                var studentName = usernameTemplate.replace("{i}", String.valueOf(i));
+                try {
+                    webClient
+                        .post()
+                        .uri(uriBuilder ->
+                            uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", studentName).build()
+                        )
+                        .retrieve()
+                        .toBodilessEntity()
+                        .block();
+                } catch (Exception e) {
+                    log.warn("Could not register student {{}} for course: {{}}", studentName, e.getMessage());
+                }
+            })
+            .sequential()
+            .blockingSubscribe();
 
         webClient
             .post()

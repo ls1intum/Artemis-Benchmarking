@@ -35,6 +35,19 @@
     ><br />
     <span>Average response time: {{ formatDuration(simulationResult!.total!.avgResponseTime) }}</span
     ><br />
+    <span>Requests by minute:</span>
+    <br />
+    <div *ngFor="let minute of simulationResult!.total!.requestsByMinute | keyvalue">
+      <span> {{ minute.key | date: 'hh:mm' }}: {{ minute.value }}</span
+      ><br />
+    </div>
+    <br />
+    <span>Average response time by minute:</span>
+    <div *ngFor="let minute of simulationResult!.total!.avgResponseTimeByMinute | keyvalue">
+      <span> {{ minute.key | date: 'hh:mm' }}: {{ formatDuration(minute.value) }}</span
+      ><br />
+    </div>
+    <br />
   </div>
   <div class="sub-result-wrapper">
     <h3>Authentication:</h3>
