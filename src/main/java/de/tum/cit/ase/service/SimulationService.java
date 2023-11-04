@@ -52,19 +52,29 @@ public class SimulationService {
         boolean cleanupNeeded = false;
         ArtemisAdmin admin;
 
-        log.info("Starting preparation...");
+        logAndSendInfo("Starting simulation with %d users on %s...", numberOfUsers, server.name());
         try {
-            log.info("Initializing admin...");
+            logAndSendInfo("Initializing admin...");
             admin = initializeAdmin(server);
-            artemisWebsocketService.initializeConnection(server, admin.getAuthToken(), new AdminWebsocketSessionHandler(examId));
+            logAndSendInfo("Setting up websocket between admin and Artemis...");
+            var session = artemisWebsocketService.initializeConnection(
+                server,
+                admin.getAuthToken(),
+                new AdminWebsocketSessionHandler(examId)
+            );
+            if (session == null) {
+                logAndSendError("Error while setting up websocket.");
+            } else {
+                logAndSendInfo("Websocket connection established.");
+            }
         } catch (Exception e) {
-            log.error("Error while initializing admin: {}", e.getMessage());
-            simulationWebsocketService.sendSimulationError("Error while initializing admin: " + e.getMessage());
+            logAndSendError("Error while initializing admin: %s", e.getMessage());
+            simulationWebsocketService.sendSimulationFailed();
             return;
         }
 
         if (courseId == 0L && examId == 0L) {
-            log.info("No course and exam IDs provided, creating new course and exam...");
+            logAndSendInfo("No course and exam specified. Creating course and exam...");
             cleanupNeeded = true;
             Course course;
 
@@ -72,79 +82,81 @@ public class SimulationService {
             try {
                 course = admin.createCourse();
             } catch (Exception e) {
-                log.error("Error while creating course: {}", e.getMessage());
-                simulationWebsocketService.sendSimulationError("Error while creating course: " + e.getMessage());
+                logAndSendError("Error while creating course: %s", e.getMessage());
+                simulationWebsocketService.sendSimulationFailed();
                 return;
             }
-            log.info("Successfully created course. Creating exam...");
+            logAndSendInfo("Successfully created course. Course ID: %d", course.getId());
             // Create exam
             try {
                 var exam = createAndInitializeExam(numberOfUsers, server, admin, course);
                 courseId = exam.getCourse().getId();
                 examId = exam.getId();
             } catch (Exception e) {
-                log.error("Error while creating exam: {}", e.getMessage());
-                admin.deleteCourse(course.getId());
-                simulationWebsocketService.sendSimulationError("Error while creating course and exam: " + e.getMessage());
+                logAndSendError("Error while creating exam: %s", e.getMessage());
+                cleanup(admin, courseId);
+                simulationWebsocketService.sendSimulationFailed();
                 return;
             }
+            logAndSendInfo("Successfully initialized exam. Exam ID: %d", examId);
+        } else {
+            logAndSendInfo("Using existing course %d and exam %d.", courseId, examId);
         }
         try {
+            logAndSendInfo("Preparing exam for simulation...");
             admin.prepareExam(courseId, examId);
         } catch (Exception e) {
-            log.error("Error while preparing exam: {}", e.getMessage());
+            logAndSendError("Error while preparing exam: %s", e.getMessage());
             if (cleanupNeeded) {
-                admin.deleteCourse(courseId);
+                cleanup(admin, courseId);
             }
-            simulationWebsocketService.sendSimulationError("Error while preparing exam: " + e.getMessage());
+            simulationWebsocketService.sendSimulationFailed();
             return;
         }
 
-        log.info("Preparation finished. Waiting for 10sec...");
+        logAndSendInfo("Preparation finished...");
         try {
             // Wait for a couple of seconds. Without this, students cannot access their repos.
             // Not sure why this is necessary, trying to figure it out
             sleep(5_000);
         } catch (InterruptedException ignored) {}
 
-        log.info("Starting simulation...");
+        logAndSendInfo("Starting simulation...");
+
         ArtemisStudent[] students = initializeStudents(numberOfUsers, server);
         int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 4, numberOfUsers);
-        log.info("Using {} threads for simulation", threadCount);
+        logAndSendInfo("Using %d threads for simulation.", threadCount);
+
         List<RequestStat> requestStats = new ArrayList<>();
 
         try {
+            logAndSendInfo("Logging in students...");
             requestStats.addAll(performActionWithAll(20, numberOfUsers, i -> students[i].login()));
+
+            logAndSendInfo("Performing initial calls...");
             requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].performInitialCalls()));
 
+            logAndSendInfo("Participating in exam...");
             long finalCourseId = courseId;
             long finalExamId = examId;
             requestStats.addAll(
                 performActionWithAll(threadCount, numberOfUsers, i -> students[i].participateInExam(finalCourseId, finalExamId))
             );
         } catch (Exception e) {
-            log.error("Error while performing simulation: {}", e.getMessage());
+            logAndSendError("Error while performing simulation: %s", e.getMessage());
             if (cleanupNeeded) {
-                admin.deleteCourse(courseId);
+                cleanup(admin, courseId);
             }
-            simulationWebsocketService.sendSimulationError("Error while performing simulation: " + e.getMessage());
+            simulationWebsocketService.sendSimulationFailed();
             return;
         }
 
         logRequestStatsPerMinute(requestStats);
         var simulationResult = new SimulationResult(requestStats);
-        log.info("Simulation finished");
+        logAndSendInfo("Simulation finished.");
 
         if (cleanupNeeded) {
-            log.info("Starting cleanup...");
-            try {
-                admin.deleteCourse(courseId);
-            } catch (Exception e) {
-                log.error("Error during cleanup: {}", e.getMessage());
-                simulationWebsocketService.sendSimulationError("Error during cleanup: " + e.getMessage());
-                return;
-            }
-            log.info("Cleanup finished.");
+            cleanup(admin, courseId);
         }
         simulationWebsocketService.sendSimulationResult(simulationResult);
     }
@@ -162,15 +174,15 @@ public class SimulationService {
     private Exam createAndInitializeExam(int numberOfUsers, ArtemisServer server, ArtemisAdmin admin, Course course) {
         var exam = admin.createExam(course);
 
-        log.info("Successfully created course and exam. Waiting for synchronization of user groups...");
+        logAndSendInfo("Successfully created course and exam. Waiting for synchronization of user groups...");
         try {
             sleep(1000 * 60 * 3); //Wait for 3 minutes until user groups are synchronized
         } catch (InterruptedException ignored) {}
 
         // Create exam exercises and register students
-        log.info("Creating exam exercises...");
+        logAndSendInfo("Creating exam exercises...");
         admin.createExamExercises(course.getId(), exam);
-        log.info("Registering students...");
+        logAndSendInfo("Registering students...");
         admin.registerStudentsForCourseAndExam(
             course.getId(),
             exam.getId(),
@@ -214,6 +226,16 @@ public class SimulationService {
         return requestStats;
     }
 
+    private void cleanup(ArtemisAdmin admin, long courseId) {
+        logAndSendInfo("Cleaning up...");
+        try {
+            admin.deleteCourse(courseId);
+            logAndSendInfo("Successfully cleaned up.");
+        } catch (Exception e) {
+            logAndSendError("Error while cleaning up: {}", e.getMessage());
+        }
+    }
+
     private void logRequestStatsPerMinute(List<RequestStat> requestStats) {
         log.info(
             "Average time for {}x {}: {}, rates: {}",
@@ -247,5 +269,17 @@ public class SimulationService {
             return 0;
         }
         return times.stream().map(RequestStat::duration).reduce(0L, Long::sum) / times.size();
+    }
+
+    private void logAndSendInfo(String format, Object... args) {
+        var message = String.format(format, args);
+        log.info(message);
+        simulationWebsocketService.sendSimulationInfo(message);
+    }
+
+    private void logAndSendError(String format, Object... args) {
+        var message = String.format(format, args);
+        log.error(message);
+        simulationWebsocketService.sendSimulationError(message);
     }
 }

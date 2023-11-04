@@ -20,4 +20,12 @@ public class SimulationWebsocketService {
     public void sendSimulationError(String error) {
         messagingTemplate.convertAndSend("/topic/simulation/error", error);
     }
+
+    public void sendSimulationInfo(String info) {
+        messagingTemplate.convertAndSend("/topic/simulation/info", info);
+    }
+
+    public void sendSimulationFailed() {
+        messagingTemplate.convertAndSend("/topic/simulation/failed", "");
+    }
 }
