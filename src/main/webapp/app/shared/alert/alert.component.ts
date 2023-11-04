@@ -1,8 +1,7 @@
+import { AlertService, Alert } from 'app/core/util/alert.service';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-
-import { AlertService, Alert } from 'app/core/util/alert.service';
 
 @Component({
   standalone: true,

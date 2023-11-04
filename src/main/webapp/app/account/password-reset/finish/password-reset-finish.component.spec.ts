@@ -1,12 +1,11 @@
-import { ElementRef } from '@angular/core';
 import { ComponentFixture, TestBed, inject, tick, fakeAsync } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import PasswordResetFinishComponent from './password-reset-finish.component';
+import { PasswordResetFinishService } from './password-reset-finish.service';
+import { ElementRef } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { of, throwError } from 'rxjs';
-
-import PasswordResetFinishComponent from './password-reset-finish.component';
-import { PasswordResetFinishService } from './password-reset-finish.service';
 
 describe('PasswordResetFinishComponent', () => {
   let fixture: ComponentFixture<PasswordResetFinishComponent>;

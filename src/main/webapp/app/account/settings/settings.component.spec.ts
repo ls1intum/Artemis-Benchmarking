@@ -2,13 +2,13 @@ jest.mock('app/core/auth/account.service');
 
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { FormBuilder } from '@angular/forms';
-import { throwError, of } from 'rxjs';
 
 import { AccountService } from 'app/core/auth/account.service';
 import { Account } from 'app/core/auth/account.model';
 
 import SettingsComponent from './settings.component';
+import { throwError, of } from 'rxjs';
+import { FormBuilder } from '@angular/forms';
 
 describe('SettingsComponent', () => {
   let comp: SettingsComponent;

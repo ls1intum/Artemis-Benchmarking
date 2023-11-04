@@ -1,14 +1,14 @@
 jest.mock('app/core/auth/account.service');
 
-import { Component, ElementRef, ViewChild } from '@angular/core';
 import { TestBed, waitForAsync } from '@angular/core/testing';
-import { By } from '@angular/platform-browser';
-import { Subject } from 'rxjs';
 
 import { AccountService } from 'app/core/auth/account.service';
 import { Account } from 'app/core/auth/account.model';
 
 import HasAnyAuthorityDirective from './has-any-authority.directive';
+import { Subject } from 'rxjs';
+import { By } from '@angular/platform-browser';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 
 @Component({
   template: ` <div *jhiHasAnyAuthority="'ROLE_ADMIN'" #content></div> `,

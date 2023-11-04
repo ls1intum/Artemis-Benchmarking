@@ -1,11 +1,11 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { of, throwError } from 'rxjs';
 
 import HealthComponent from './health.component';
 import { HealthService } from './health.service';
 import { Health } from './health.model';
+import { of, throwError } from 'rxjs';
 
 describe('HealthComponent', () => {
   let comp: HealthComponent;

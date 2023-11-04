@@ -1,12 +1,12 @@
 import { ComponentFixture, TestBed, waitForAsync, inject, tick, fakeAsync } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { FormBuilder } from '@angular/forms';
-import { of, throwError } from 'rxjs';
 
 import { EMAIL_ALREADY_USED_TYPE, LOGIN_ALREADY_USED_TYPE } from 'app/config/error.constants';
 
 import { RegisterService } from './register.service';
 import RegisterComponent from './register.component';
+import { of, throwError } from 'rxjs';
+import { FormBuilder } from '@angular/forms';
 
 describe('RegisterComponent', () => {
   let fixture: ComponentFixture<RegisterComponent>;

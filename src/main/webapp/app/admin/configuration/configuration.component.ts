@@ -1,10 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-
 import SharedModule from 'app/shared/shared.module';
-import { FormsModule } from '@angular/forms';
 import { SortDirective, SortByDirective } from 'app/shared/sort';
 import { ConfigurationService } from './configuration.service';
 import { Bean, PropertySource } from './configuration.model';
+import { FormsModule } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
 
 @Component({
   standalone: true,

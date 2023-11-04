@@ -3,13 +3,13 @@ jest.mock('app/core/auth/account.service');
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { FormBuilder } from '@angular/forms';
-import { of, throwError } from 'rxjs';
 
 import { AccountService } from 'app/core/auth/account.service';
 
 import PasswordComponent from './password.component';
 import { PasswordService } from './password.service';
+import { of, throwError } from 'rxjs';
+import { FormBuilder } from '@angular/forms';
 
 describe('PasswordComponent', () => {
   let comp: PasswordComponent;

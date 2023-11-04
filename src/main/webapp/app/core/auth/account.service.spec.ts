@@ -1,6 +1,5 @@
 jest.mock('app/core/auth/state-storage.service');
 
-import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -11,6 +10,7 @@ import { StateStorageService } from 'app/core/auth/state-storage.service';
 import { ApplicationConfigService } from 'app/core/config/application-config.service';
 
 import { AccountService } from './account.service';
+import { Router } from '@angular/router';
 
 function accountWithAuthorities(authorities: string[]): Account {
   return {

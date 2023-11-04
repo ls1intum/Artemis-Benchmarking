@@ -82,13 +82,10 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
 
     private ProblemDetailWithCause getProblemDetailWithCause(Throwable ex) {
         if (
-            ex instanceof de.tum.cit.ase.service.EmailAlreadyUsedException ||
             ex instanceof de.tum.cit.ase.service.UsernameAlreadyUsedException
-        ) {
-            // return 201 - CREATED on purpose to not reveal information to potential attackers
-            // see https://github.com/jhipster/generator-jhipster/issues/21731
-            return ProblemDetailWithCauseBuilder.instance().withStatus(201).build();
-        }
+        ) return (ProblemDetailWithCause) new LoginAlreadyUsedException().getBody();
+        if (ex instanceof de.tum.cit.ase.service.EmailAlreadyUsedException) return (ProblemDetailWithCause) new EmailAlreadyUsedException()
+            .getBody();
         if (ex instanceof de.tum.cit.ase.service.InvalidPasswordException) return (ProblemDetailWithCause) new InvalidPasswordException()
             .getBody();
 

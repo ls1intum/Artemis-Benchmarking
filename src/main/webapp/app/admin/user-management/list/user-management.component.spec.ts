@@ -3,15 +3,15 @@ jest.mock('app/core/auth/account.service');
 import { ComponentFixture, TestBed, waitForAsync, inject, fakeAsync, tick } from '@angular/core/testing';
 import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { of } from 'rxjs';
 
 import { AccountService } from 'app/core/auth/account.service';
 import { UserManagementService } from '../service/user-management.service';
 import { User } from '../user-management.model';
 
 import UserManagementComponent from './user-management.component';
+import { of } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
 describe('User Management Component', () => {
   let comp: UserManagementComponent;

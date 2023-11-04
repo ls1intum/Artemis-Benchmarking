@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import SharedModule from 'app/shared/shared.module';
 import { HealthService } from './health.service';
 import { Health, HealthDetails, HealthStatus } from './health.model';
 import HealthModalComponent from './modal/health-modal.component';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Component, OnInit } from '@angular/core';
 
 @Component({
   standalone: true,
