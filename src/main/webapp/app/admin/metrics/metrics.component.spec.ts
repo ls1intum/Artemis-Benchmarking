@@ -1,11 +1,11 @@
-import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { of } from 'rxjs';
 
 import MetricsComponent from './metrics.component';
 import { MetricsService } from './metrics.service';
 import { Metrics, Thread, ThreadDump } from './metrics.model';
+import { of } from 'rxjs';
+import { ChangeDetectorRef } from '@angular/core';
 
 describe('MetricsComponent', () => {
   let comp: MetricsComponent;

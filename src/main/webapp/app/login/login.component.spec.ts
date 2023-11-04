@@ -1,17 +1,17 @@
 jest.mock('app/core/auth/account.service');
 jest.mock('app/login/login.service');
 
-import { ElementRef } from '@angular/core';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { FormBuilder } from '@angular/forms';
-import { Router, Navigation } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { of, throwError } from 'rxjs';
 
 import { AccountService } from 'app/core/auth/account.service';
 
 import { LoginService } from './login.service';
 import LoginComponent from './login.component';
+import { of, throwError } from 'rxjs';
+import { Router, Navigation } from '@angular/router';
+import { FormBuilder } from '@angular/forms';
+import { ElementRef } from '@angular/core';
 
 describe('LoginComponent', () => {
   let comp: LoginComponent;

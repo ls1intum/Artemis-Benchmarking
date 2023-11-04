@@ -1,6 +1,6 @@
+import SharedModule from 'app/shared/shared.module';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import SharedModule from 'app/shared/shared.module';
 
 @Component({
   standalone: true,

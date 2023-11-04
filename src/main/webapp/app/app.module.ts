@@ -1,6 +1,15 @@
+import { HttpClientModule } from '@angular/common/http';
+import { ApplicationConfigService } from 'app/core/config/application-config.service';
+import { httpInterceptorProviders } from 'app/core/interceptor/index';
+import { AppRoutingModule } from './app-routing.module';
+import { NgbDateDayjsAdapter } from './config/datepicker-adapter';
+import { fontAwesomeIcons } from './config/font-awesome-icons';
+import MainComponent from './layouts/main/main.component';
+import MainModule from './layouts/main/main.module';
+import { AppPageTitleStrategy } from './app-page-title-strategy';
+import { TrackerService } from './core/tracker/tracker.service';
 import { NgModule, LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import locale from '@angular/common/locales/en';
 import { BrowserModule, Title } from '@angular/platform-browser';
 import { TitleStrategy } from '@angular/router';
@@ -8,20 +17,11 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
 import dayjs from 'dayjs/esm';
 import { NgbDateAdapter, NgbDatepickerConfig } from '@ng-bootstrap/ng-bootstrap';
-
-import { ApplicationConfigService } from 'app/core/config/application-config.service';
-import './config/dayjs';
-import { httpInterceptorProviders } from 'app/core/interceptor/index';
-import { AppRoutingModule } from './app-routing.module';
-import { FormsModule } from '@angular/forms';
-// jhipster-needle-angular-add-module-import JHipster will add new module here
-import { NgbDateDayjsAdapter } from './config/datepicker-adapter';
-import { fontAwesomeIcons } from './config/font-awesome-icons';
-import MainComponent from './layouts/main/main.component';
-import MainModule from './layouts/main/main.module';
-import { AppPageTitleStrategy } from './app-page-title-strategy';
-import { TrackerService } from './core/tracker/tracker.service';
 import { SimulationsComponent } from './simulations/simulations.component';
+import { FormsModule } from '@angular/forms';
+
+import './config/dayjs';
+// jhipster-needle-angular-add-module-import JHipster will add new module here
 
 @NgModule({
   imports: [

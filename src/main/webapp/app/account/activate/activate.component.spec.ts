@@ -1,10 +1,9 @@
 import { TestBed, waitForAsync, tick, fakeAsync, inject } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { ActivatedRoute } from '@angular/router';
-import { of, throwError } from 'rxjs';
-
 import { ActivateService } from './activate.service';
 import ActivateComponent from './activate.component';
+import { ActivatedRoute } from '@angular/router';
+import { of, throwError } from 'rxjs';
 
 describe('ActivateComponent', () => {
   let comp: ActivateComponent;

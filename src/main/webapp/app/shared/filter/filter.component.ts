@@ -1,6 +1,6 @@
-import { Component, Input } from '@angular/core';
 import SharedModule from '../shared.module';
 import { IFilterOptions } from './filter.model';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'jhi-filter',

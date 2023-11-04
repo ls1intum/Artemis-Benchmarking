@@ -1,9 +1,8 @@
+import SharedModule from 'app/shared/shared.module';
+import { ActivateService } from './activate.service';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { mergeMap } from 'rxjs/operators';
-
-import SharedModule from 'app/shared/shared.module';
-import { ActivateService } from './activate.service';
 
 @Component({
   selector: 'jhi-activate',
