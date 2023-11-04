@@ -37,7 +37,7 @@ public class ArtemisStudent extends ArtemisUser {
     @Override
     protected void checkAccess() {
         var response = webClient.get().uri("api/public/account").retrieve().bodyToMono(User.class).block();
-        this.authenticated = response != null && response.getAuthorities().contains("ROLE_STUDENT");
+        this.authenticated = response != null && response.getAuthorities().contains("ROLE_USER");
     }
 
     public List<RequestStat> performInitialCalls() {
