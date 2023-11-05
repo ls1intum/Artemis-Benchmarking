@@ -6,6 +6,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, ReplaySubject, of } from 'rxjs';
 import { shareReplay, tap, catchError } from 'rxjs/operators';
+import { WebsocketService } from '../websocket/websocket.service';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -18,6 +19,7 @@ export class AccountService {
     private stateStorageService: StateStorageService,
     private router: Router,
     private applicationConfigService: ApplicationConfigService,
+    private websocketService: WebsocketService,
   ) {}
 
   save(account: Account): Observable<{}> {
@@ -29,6 +31,13 @@ export class AccountService {
     this.authenticationState.next(this.userIdentity);
     if (!identity) {
       this.accountCache$ = null;
+      this.websocketService.disableReconnect();
+      if (this.websocketService.isConnected()) {
+        this.websocketService.disconnect();
+      }
+    } else {
+      this.websocketService.enableReconnect();
+      this.websocketService.connect();
     }
   }
 

@@ -36,11 +36,6 @@ import { RouterModule } from '@angular/router';
         loadComponent: () => import('./metrics/metrics.component'),
         title: 'Application Metrics',
       },
-      {
-        path: 'tracker',
-        loadComponent: () => import('./tracker/tracker.component'),
-        title: 'Real-time user activities',
-      },
       /* jhipster-needle-add-admin-route - JHipster will add admin routes here */
     ]),
   ],
