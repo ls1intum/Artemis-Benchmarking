@@ -37,8 +37,8 @@ export class SimulationsService {
     this.websocketService.subscribe('/topic/simulation/failed');
     this.failure$ = this.websocketService.receive('/topic/simulation/failed');
 
-    this.websocketService.subscribe('/topic/simulation/result');
-    this.simulationResult$ = this.websocketService.receive('/topic/simulation/result');
+    this.websocketService.subscribe('/topic/simulation/completed');
+    this.simulationResult$ = this.websocketService.receive('/topic/simulation/completed');
   }
 
   startSimulation(numberOfUsers: number, courseId: number, examId: number, server: ArtemisServer): Observable<object> {
