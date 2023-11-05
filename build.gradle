@@ -213,7 +213,7 @@ dependencies {
     implementation "io.dropwizard.metrics:metrics-core"
     implementation "org.springframework.security:spring-security-messaging"
     implementation("org.springframework.boot:spring-boot-starter-webflux:3.1.2")
-    implementation("commons-io:commons-io:2.13.0")
+    implementation("commons-io:commons-io:2.15.0")
     implementation("com.thedeanda:lorem:2.2")
     implementation("org.eclipse.jgit:org.eclipse.jgit:6.6.0.202305301015-r")
     implementation("io.reactivex.rxjava3:rxjava:3.1.7")
