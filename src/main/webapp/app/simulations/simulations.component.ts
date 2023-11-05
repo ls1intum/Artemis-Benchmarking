@@ -24,18 +24,18 @@ export class SimulationsComponent implements OnInit {
   constructor(private simulationsService: SimulationsService) {}
 
   ngOnInit(): void {
-    this.simulationsService.websocketSubscriptionSimulationCompleted().subscribe((simulationResult: SimulationResult) => {
-      this.simulationResult = simulationResult;
+    this.simulationsService.infoMessages$.subscribe(msg => {
+      this.logMessages.push(new LogMessage(msg, false));
+    });
+    this.simulationsService.errorMessages$.subscribe(msg => {
+      this.logMessages.push(new LogMessage(msg, true));
+    });
+    this.simulationsService.failure$.subscribe(() => {
+      this.logMessages.push(new LogMessage('Simulation failed.', true));
       this.simulationRunning = false;
     });
-    this.simulationsService.websocketSubscriptionSimulationError().subscribe((error: string) => {
-      this.logMessages.push(new LogMessage(error, true));
-    });
-    this.simulationsService.websocketSubscriptionSimulationInfo().subscribe((info: string) => {
-      this.logMessages.push(new LogMessage(info, false));
-    });
-    this.simulationsService.websocketSubscriptionSimulationFailed().subscribe(() => {
-      this.logMessages.push(new LogMessage('Simulation failed.', true));
+    this.simulationsService.simulationResult$.subscribe(result => {
+      this.simulationResult = result;
       this.simulationRunning = false;
     });
   }

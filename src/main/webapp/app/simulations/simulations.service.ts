@@ -1,49 +1,44 @@
 import { Injectable } from '@angular/core';
-import { RxStomp } from '@stomp/rx-stomp';
-import { SimulationResult } from './simulationResult';
-import { AccountService } from '../core/auth/account.service';
-import { map } from 'rxjs/internal/operators/map';
-import SockJS from 'sockjs-client';
 import { HttpClient } from '@angular/common/http';
 import { ApplicationConfigService } from '../core/config/application-config.service';
-import { AuthServerProvider } from '../core/auth/auth-jwt.service';
-import { Location } from '@angular/common';
 import { Observable } from 'rxjs/internal/Observable';
 import { ArtemisServer } from './artemisServer';
+import { Subscription } from 'rxjs';
+import { WebsocketService } from '../core/websocket/websocket.service';
+import { SimulationResult } from './simulationResult';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SimulationsService {
-  private rxStomp: RxStomp = new RxStomp();
+  public infoMessages$: Observable<string> = new Observable<string>();
+  public errorMessages$: Observable<string> = new Observable<string>();
+  public failure$: Observable<void> = new Observable<void>();
+  public simulationResult$: Observable<SimulationResult> = new Observable<SimulationResult>();
+
+  private currentWebsocketChannels?: string[];
+  private currentWebsocketReceiveSubscriptions?: Subscription[];
 
   constructor(
-    private accountService: AccountService,
     private httpClient: HttpClient,
     private applicationConfigService: ApplicationConfigService,
-    private authServerProvider: AuthServerProvider,
-    private location: Location,
+    private websocketService: WebsocketService,
   ) {
-    this.accountService.getAuthenticationState().subscribe(() => {
-      this.updateCredentials();
-      this.rxStomp.activate();
-    });
+    this.subscribeToSimulationUpdates();
   }
 
-  websocketSubscriptionSimulationCompleted(): Observable<SimulationResult> {
-    return this.rxStomp.watch('/topic/simulation/completed').pipe(map(imessage => JSON.parse(imessage.body) as SimulationResult));
-  }
+  subscribeToSimulationUpdates(): void {
+    this.websocketService.subscribe('/topic/simulation/info');
+    this.infoMessages$ = this.websocketService.receive('/topic/simulation/info');
 
-  websocketSubscriptionSimulationError(): Observable<string> {
-    return this.rxStomp.watch('/topic/simulation/error').pipe(map(imessage => imessage.body));
-  }
+    this.websocketService.subscribe('/topic/simulation/error');
+    this.errorMessages$ = this.websocketService.receive('/topic/simulation/error');
 
-  websocketSubscriptionSimulationInfo(): Observable<string> {
-    return this.rxStomp.watch('/topic/simulation/info').pipe(map(imessage => imessage.body));
-  }
+    this.websocketService.subscribe('/topic/simulation/failed');
+    this.failure$ = this.websocketService.receive('/topic/simulation/failed');
 
-  websocketSubscriptionSimulationFailed(): Observable<void> {
-    return this.rxStomp.watch('/topic/simulation/failed').pipe(map(() => {}));
+    this.websocketService.subscribe('/topic/simulation/result');
+    this.simulationResult$ = this.websocketService.receive('/topic/simulation/result');
   }
 
   startSimulation(numberOfUsers: number, courseId: number, examId: number, server: ArtemisServer): Observable<object> {
@@ -55,20 +50,11 @@ export class SimulationsService {
     );
   }
 
-  private buildUrl(): string {
-    // building absolute path so that websocket doesn't fail when deploying with a context path
-    let url = '/websocket/simulation';
-    url = this.location.prepareExternalUrl(url);
-    const authToken = this.authServerProvider.getToken();
-    if (authToken) {
-      return `${url}?access_token=${authToken}`;
-    }
-    return url;
-  }
+  private unsubscribeFromSimulationUpdates(): void {
+    this.currentWebsocketReceiveSubscriptions?.forEach(subscription => subscription.unsubscribe());
+    this.currentWebsocketReceiveSubscriptions = undefined;
 
-  private updateCredentials(): void {
-    this.rxStomp.configure({
-      webSocketFactory: () => SockJS(this.buildUrl()),
-    });
+    this.currentWebsocketChannels?.forEach(channel => this.websocketService.unsubscribe(channel));
+    this.currentWebsocketChannels = undefined;
   }
 }
