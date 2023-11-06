@@ -212,7 +212,7 @@ dependencies {
     implementation "io.micrometer:micrometer-registry-prometheus"
     implementation "io.dropwizard.metrics:metrics-core"
     implementation "org.springframework.security:spring-security-messaging"
-    implementation("org.springframework.boot:spring-boot-starter-webflux:3.1.2")
+    implementation("org.springframework.boot:spring-boot-starter-webflux:3.1.5")
     implementation("commons-io:commons-io:2.15.0")
     implementation("com.thedeanda:lorem:2.2")
     implementation("org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r")
