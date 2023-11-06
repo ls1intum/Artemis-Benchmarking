@@ -142,10 +142,12 @@ public class SimulationService {
         var simulationResult = new SimulationResult(requestStats);
         logAndSendInfo("Simulation finished.");
 
+        simulationWebsocketService.sendSimulationResult(simulationResult);
         if (cleanupNeeded) {
+            simulationWebsocketService.sendSimulationError("The result is available, but please note that the cleanup is still running!");
             cleanup(admin, courseId);
         }
-        simulationWebsocketService.sendSimulationResult(simulationResult);
+        simulationWebsocketService.sendSimulationCompleted();
     }
 
     private void simulateExamOnProduction(int numberOfUsers, long examId, long courseId) {
@@ -177,6 +179,7 @@ public class SimulationService {
         logAndSendInfo("Simulation finished.");
 
         simulationWebsocketService.sendSimulationResult(simulationResult);
+        simulationWebsocketService.sendSimulationCompleted();
     }
 
     private ArtemisAdmin initializeAdmin(ArtemisServer server) {

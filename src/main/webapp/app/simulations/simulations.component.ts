@@ -38,6 +38,8 @@ export class SimulationsComponent implements OnInit {
     });
     this.simulationsService.simulationResult$.subscribe(result => {
       this.simulationResult = result;
+    });
+    this.simulationsService.simulationCompleted$.subscribe(() => {
       this.simulationRunning = false;
     });
   }
