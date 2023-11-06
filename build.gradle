@@ -212,11 +212,11 @@ dependencies {
     implementation "io.micrometer:micrometer-registry-prometheus"
     implementation "io.dropwizard.metrics:metrics-core"
     implementation "org.springframework.security:spring-security-messaging"
-    implementation("org.springframework.boot:spring-boot-starter-webflux:3.1.2")
-    implementation("commons-io:commons-io:2.13.0")
+    implementation("org.springframework.boot:spring-boot-starter-webflux:3.1.5")
+    implementation("commons-io:commons-io:2.15.0")
     implementation("com.thedeanda:lorem:2.2")
-    implementation("org.eclipse.jgit:org.eclipse.jgit:6.6.0.202305301015-r")
-    implementation("io.reactivex.rxjava3:rxjava:3.1.7")
+    implementation("org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r")
+    implementation("io.reactivex.rxjava3:rxjava:3.1.8")
     implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.43.v20210629'
     implementation 'org.glassfish.tyrus:tyrus-client:2.1.4'
     implementation 'org.glassfish.tyrus:tyrus-container-grizzly-client:2.1.4'
