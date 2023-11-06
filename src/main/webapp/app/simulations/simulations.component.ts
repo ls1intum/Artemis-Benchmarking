@@ -14,10 +14,12 @@ export class SimulationsComponent implements OnInit {
   simulationRunning = false;
   logMessages: Array<LogMessage> = [];
 
+  useExistingExam = false;
   numberOfUsers = 0;
   courseId = 0;
   examId = 0;
   selectedServer = ArtemisServer.TS1;
+  productionConfirm = false;
 
   protected readonly ArtemisServer = ArtemisServer;
 
@@ -41,6 +43,10 @@ export class SimulationsComponent implements OnInit {
   }
   startSimulation(): void {
     this.simulationResult = undefined;
+    if (!this.useExistingExam && !(this.selectedServer == ArtemisServer.PRODUCTION)) {
+      this.courseId = 0;
+      this.examId = 0;
+    }
     this.logMessages = [];
     const observer = {
       next: () => (this.simulationRunning = true),
@@ -49,16 +55,14 @@ export class SimulationsComponent implements OnInit {
     this.simulationsService.startSimulation(this.numberOfUsers, this.courseId, this.examId, this.selectedServer).subscribe(observer);
   }
 
-  formatDuration(durationInNanoSeconds: number): string {
-    const durationInMicroSeconds = durationInNanoSeconds / 1000;
-    if (durationInMicroSeconds > 1000) {
-      const durationInMilliSeconds = durationInMicroSeconds / 1000;
-      if (durationInMilliSeconds > 1000) {
-        const durationInSeconds = durationInMilliSeconds / 1000;
-        return durationInSeconds.toFixed(2) + 's';
-      }
-      return durationInMilliSeconds.toFixed(2) + 'ms';
+  inputValid(): boolean {
+    if (this.selectedServer == ArtemisServer.PRODUCTION) {
+      return this.numberOfUsers > 0 && this.courseId > 0 && this.examId > 0 && this.productionConfirm;
     }
-    return durationInMicroSeconds.toFixed(2) + 'µs';
+    return this.numberOfUsers > 0 && (!this.useExistingExam || (this.courseId > 0 && this.examId > 0));
+  }
+
+  serverChanged(): void {
+    this.productionConfirm = false;
   }
 }

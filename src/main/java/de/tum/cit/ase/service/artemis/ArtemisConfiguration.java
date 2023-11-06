@@ -78,12 +78,25 @@ public class ArtemisConfiguration {
     @Value("${artemis.staging.admin_password}")
     private String stagingAdminPassword;
 
+    @Value("${artemis.production.url}")
+    private String productionUrl;
+
+    @Value("${artemis.production.websocket_url}")
+    private String productionWebsocketUrl;
+
+    @Value("${artemis.production.username_template}")
+    private String productionUsername;
+
+    @Value("${artemis.production.password_template}")
+    private String productionPassword;
+
     public String getUrl(ArtemisServer server) {
         return switch (server) {
             case LOCAL -> localUrl;
             case TS1 -> test1Url;
             case TS3 -> test3Url;
             case STAGING -> stagingUrl;
+            case PRODUCTION -> productionUrl;
         };
     }
 
@@ -93,6 +106,7 @@ public class ArtemisConfiguration {
             case TS1 -> test1WebsocketUrl;
             case TS3 -> test3WebsocketUrl;
             case STAGING -> stagingWebsocketUrl;
+            case PRODUCTION -> productionWebsocketUrl;
         };
     }
 
@@ -102,6 +116,7 @@ public class ArtemisConfiguration {
             case TS1 -> test1Username;
             case TS3 -> test3Username;
             case STAGING -> stagingUsername;
+            case PRODUCTION -> productionUsername;
         };
     }
 
@@ -111,6 +126,7 @@ public class ArtemisConfiguration {
             case TS1 -> test1Password;
             case TS3 -> test3Password;
             case STAGING -> stagingPassword;
+            case PRODUCTION -> productionPassword;
         };
     }
 
@@ -120,6 +136,7 @@ public class ArtemisConfiguration {
             case TS1 -> test1AdminUsername;
             case TS3 -> test3AdminUsername;
             case STAGING -> stagingAdminUsername;
+            case PRODUCTION -> throw new UnsupportedOperationException("Admin username not supported for production server");
         };
     }
 
@@ -129,6 +146,7 @@ public class ArtemisConfiguration {
             case TS1 -> test1AdminPassword;
             case TS3 -> test3AdminPassword;
             case STAGING -> stagingAdminPassword;
+            case PRODUCTION -> throw new UnsupportedOperationException("Admin password not supported for production server");
         };
     }
 }

@@ -1,17 +1,16 @@
 .sub-result-wrapper {
-  margin-bottom: 10px;
-  span {
-    margin-left: 10px;
-  }
+  margin: 5px;
+  text-wrap: none;
+  border: gray 1px solid;
+  border-radius: 10px;
+  padding: 15px;
+  background-color: lightblue;
+  min-width: 300px;
 }
 
-label {
-  width: 130px;
-  text-align: end;
-}
-
-input {
-  width: 50px;
+.result-wrapper {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .input-wrapper {
@@ -21,6 +20,17 @@ input {
 .form-wrapper {
   display: flex;
   flex-direction: column;
+
+  label {
+    width: 130px;
+    text-align: end;
+  }
+
+  input,
+  select {
+    width: 130px;
+    margin-left: 10px;
+  }
 }
 
 .start-wrapper {
@@ -32,5 +42,18 @@ input {
 .start-button {
   height: fit-content;
   width: fit-content;
+  align-self: end;
+  margin-top: 10px;
+}
+
+.simulation-hint {
+  padding: 10px;
+  max-width: 500px;
+  background-color: yellow;
+  border: gray 1px solid;
   margin: auto 20px;
+}
+
+.warning {
+  color: red;
 }

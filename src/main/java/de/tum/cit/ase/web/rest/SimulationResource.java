@@ -32,9 +32,12 @@ public class SimulationResource {
         if (numberOfUsers <= 0 || courseId < 0 || examId < 0 || server == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
         // Either both zero or both non-zero
         if ((courseId == 0) ^ (examId == 0)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        // Production only with existing exam
+        if (server == ArtemisServer.PRODUCTION && examId == 0) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         simulationService.simulateExam(numberOfUsers, courseId, examId, server);
