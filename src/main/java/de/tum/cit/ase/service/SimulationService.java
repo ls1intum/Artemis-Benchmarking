@@ -11,8 +11,6 @@ import de.tum.cit.ase.service.artemis.ArtemisServer;
 import de.tum.cit.ase.service.artemis.interaction.ArtemisAdmin;
 import de.tum.cit.ase.service.artemis.interaction.ArtemisStudent;
 import de.tum.cit.ase.util.TimeLogUtil;
-import de.tum.cit.ase.web.websocket.AdminWebsocketSessionHandler;
-import de.tum.cit.ase.web.websocket.ArtemisWebsocketService;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
@@ -34,17 +32,11 @@ public class SimulationService {
     private final Logger log = LoggerFactory.getLogger(SimulationService.class);
 
     private final SimulationWebsocketService simulationWebsocketService;
-    private final ArtemisWebsocketService artemisWebsocketService;
     private final ArtemisConfiguration artemisConfiguration;
 
-    public SimulationService(
-        ArtemisConfiguration artemisConfiguration,
-        SimulationWebsocketService simulationWebsocketService,
-        ArtemisWebsocketService artemisWebsocketService
-    ) {
+    public SimulationService(ArtemisConfiguration artemisConfiguration, SimulationWebsocketService simulationWebsocketService) {
         this.simulationWebsocketService = simulationWebsocketService;
         this.artemisConfiguration = artemisConfiguration;
-        this.artemisWebsocketService = artemisWebsocketService;
     }
 
     @Async
@@ -56,17 +48,6 @@ public class SimulationService {
         try {
             logAndSendInfo("Initializing admin...");
             admin = initializeAdmin(server);
-            logAndSendInfo("Setting up websocket between admin and Artemis...");
-            var session = artemisWebsocketService.initializeConnection(
-                server,
-                admin.getAuthToken(),
-                new AdminWebsocketSessionHandler(examId)
-            );
-            if (session == null) {
-                logAndSendError("Error while setting up websocket.");
-            } else {
-                logAndSendInfo("Websocket connection established.");
-            }
         } catch (Exception e) {
             logAndSendError("Error while initializing admin: %s", e.getMessage());
             simulationWebsocketService.sendSimulationFailed();

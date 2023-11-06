@@ -381,23 +381,4 @@ public class ArtemisAdmin extends ArtemisUser {
             .toBodilessEntity()
             .block();
     }
-
-    public void sendExamAnnouncement(long courseId, long examId) {
-        if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
-        }
-
-        webClient
-            .post()
-            .uri(uriBuilder ->
-                uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "exams", String.valueOf(examId), "announcements").build()
-            )
-            .contentType(MediaType.TEXT_PLAIN)
-            .accept(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN, MediaType.ALL)
-            .bodyValue("This is an announcement!")
-            .retrieve()
-            .toBodilessEntity()
-            .block();
-        log.info("Sent announcement!");
-    }
 }
