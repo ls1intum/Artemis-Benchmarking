@@ -45,7 +45,7 @@ export class SimulationsComponent implements OnInit {
   }
   startSimulation(): void {
     this.simulationResult = undefined;
-    if (!this.useExistingExam && !(this.selectedServer == ArtemisServer.PRODUCTION)) {
+    if (!this.useExistingExam && !(this.selectedServer === ArtemisServer.PRODUCTION)) {
       this.courseId = 0;
       this.examId = 0;
     }
@@ -58,7 +58,7 @@ export class SimulationsComponent implements OnInit {
   }
 
   inputValid(): boolean {
-    if (this.selectedServer == ArtemisServer.PRODUCTION) {
+    if (this.selectedServer === ArtemisServer.PRODUCTION) {
       return this.numberOfUsers > 0 && this.courseId > 0 && this.examId > 0 && this.productionConfirm;
     }
     return this.numberOfUsers > 0 && (!this.useExistingExam || (this.courseId > 0 && this.examId > 0));
