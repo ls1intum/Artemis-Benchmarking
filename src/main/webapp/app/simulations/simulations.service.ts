@@ -53,7 +53,7 @@ export class SimulationsService {
     server: ArtemisServer,
     account?: ArtemisAccountDTO,
   ): Observable<object> {
-    let endpoint = this.applicationConfigService.getEndpointFor(
+    const endpoint = this.applicationConfigService.getEndpointFor(
       '/api/simulations?users=' + numberOfUsers + '&courseId=' + courseId + '&examId=' + examId + '&server=' + server,
     );
     if (!endpoint.startsWith('https://')) {
