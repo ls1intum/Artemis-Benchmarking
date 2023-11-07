@@ -145,7 +145,8 @@ public class ArtemisAdmin extends ArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
         }
 
-        var course = new Course("Temporary Benchmarking Course", "benchmark");
+        var randomInt = (int) (Math.random() * 10_0000);
+        var course = new Course("Temporary Benchmarking Course " + randomInt, "benchmark" + randomInt);
 
         return webClient
             .post()

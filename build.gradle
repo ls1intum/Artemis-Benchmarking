@@ -220,7 +220,7 @@ dependencies {
     implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.53.v20231009'
     implementation 'org.glassfish.tyrus:tyrus-client:2.1.4'
     implementation 'org.glassfish.tyrus:tyrus-container-grizzly-client:2.1.4'
-
+    implementation 'io.netty:netty-resolver-dns-native-macos:4.1.100.Final:osx-aarch_64'
 }
 
 if (project.hasProperty("gae")) {

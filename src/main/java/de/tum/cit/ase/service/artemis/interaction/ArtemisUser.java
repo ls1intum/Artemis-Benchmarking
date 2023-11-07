@@ -76,6 +76,7 @@ public abstract class ArtemisUser {
                 .defaultHeader("Cookie", cookieHeaderToken)
                 .build();
         checkAccess();
+        log.debug("Logged in as {}", username);
         return requestStats;
     }
 

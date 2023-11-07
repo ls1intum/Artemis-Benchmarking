@@ -59,6 +59,7 @@ public class ArtemisStudent extends ArtemisUser {
 
         requestStats.add(navigateIntoExam());
         requestStats.add(startExam());
+        requestStats.add(fetchLiveEvents());
         requestStats.addAll(handleExercises());
         requestStats.add(submitStudentExam());
         requestStats.add(loadExamSummary());
@@ -135,6 +136,19 @@ public class ArtemisStudent extends ArtemisUser {
                 .bodyToMono(StudentExam.class)
                 .block();
         return new RequestStat(now(), System.nanoTime() - start, START_STUDENT_EXAM);
+    }
+
+    private RequestStat fetchLiveEvents() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder ->
+                uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "live-events").build()
+            )
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private List<RequestStat> handleExercises() {
