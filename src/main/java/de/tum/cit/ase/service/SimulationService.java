@@ -111,14 +111,17 @@ public class SimulationService {
         logAndSendInfo("Starting simulation...");
 
         ArtemisStudent[] students = initializeStudents(numberOfUsers, server);
-        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 4, numberOfUsers);
+
+        // We want to simulate with as many threads as possible, at least 20
+        int minNumberOfReads = Integer.max(Runtime.getRuntime().availableProcessors() * 4, 20);
+        int threadCount = Integer.min(minNumberOfReads, numberOfUsers);
         logAndSendInfo("Using %d threads for simulation.", threadCount);
 
         List<RequestStat> requestStats = new ArrayList<>();
 
         try {
             logAndSendInfo("Logging in students...");
-            requestStats.addAll(performActionWithAll(20, numberOfUsers, i -> students[i].login()));
+            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].login()));
 
             logAndSendInfo("Performing initial calls...");
             requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].performInitialCalls()));
@@ -154,14 +157,17 @@ public class SimulationService {
         logAndSendInfo("Starting simulation...");
 
         ArtemisStudent[] students = initializeStudents(numberOfUsers, ArtemisServer.PRODUCTION);
-        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 4, numberOfUsers);
+
+        // We want to simulate with as many threads as possible, at least 20
+        int minNumberOfReads = Integer.max(Runtime.getRuntime().availableProcessors() * 4, 20);
+        int threadCount = Integer.min(minNumberOfReads, numberOfUsers);
         logAndSendInfo("Using %d threads for simulation.", threadCount);
 
         List<RequestStat> requestStats = new ArrayList<>();
 
         try {
             logAndSendInfo("Logging in students...");
-            requestStats.addAll(performActionWithAll(20, numberOfUsers, i -> students[i].login()));
+            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].login()));
 
             logAndSendInfo("Performing initial calls...");
             requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].performInitialCalls()));
@@ -195,9 +201,9 @@ public class SimulationService {
     private Exam createAndInitializeExam(int numberOfUsers, ArtemisServer server, ArtemisAdmin admin, Course course) {
         var exam = admin.createExam(course);
 
-        logAndSendInfo("Successfully created course and exam. Waiting for synchronization of user groups (3 min)...");
+        logAndSendInfo("Successfully created course and exam. Waiting for synchronization of user groups (1 min)...");
         try {
-            sleep(1000 * 60 * 3); //Wait for 3 minutes until user groups are synchronized
+            sleep(1000 * 60); //Wait for 1 minutes until user groups are synchronized
         } catch (InterruptedException ignored) {}
 
         // Create exam exercises and register students
