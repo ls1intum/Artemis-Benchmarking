@@ -20,6 +20,7 @@ import { SimulationsComponent } from './simulations/simulations.component';
 import { FormsModule } from '@angular/forms';
 
 import './config/dayjs';
+import { ResultPartComponent } from './simulations/result-part/result-part/result-part.component';
 // jhipster-needle-angular-add-module-import JHipster will add new module here
 
 @NgModule({
@@ -41,7 +42,7 @@ import './config/dayjs';
     { provide: TitleStrategy, useClass: AppPageTitleStrategy },
   ],
   bootstrap: [MainComponent],
-  declarations: [SimulationsComponent],
+  declarations: [SimulationsComponent, ResultPartComponent],
 })
 export class AppModule {
   constructor(applicationConfigService: ApplicationConfigService, iconLibrary: FaIconLibrary, dpConfig: NgbDatepickerConfig) {

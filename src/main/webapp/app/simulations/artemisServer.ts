@@ -3,4 +3,5 @@ export enum ArtemisServer {
   TS1 = 'TS1',
   TS3 = 'TS3',
   STAGING = 'STAGING',
+  PRODUCTION = 'PRODUCTION',
 }

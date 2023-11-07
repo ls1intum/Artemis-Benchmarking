@@ -11,8 +11,6 @@ import de.tum.cit.ase.service.artemis.ArtemisServer;
 import de.tum.cit.ase.service.artemis.interaction.ArtemisAdmin;
 import de.tum.cit.ase.service.artemis.interaction.ArtemisStudent;
 import de.tum.cit.ase.util.TimeLogUtil;
-import de.tum.cit.ase.web.websocket.AdminWebsocketSessionHandler;
-import de.tum.cit.ase.web.websocket.ArtemisWebsocketService;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
@@ -34,17 +32,11 @@ public class SimulationService {
     private final Logger log = LoggerFactory.getLogger(SimulationService.class);
 
     private final SimulationWebsocketService simulationWebsocketService;
-    private final ArtemisWebsocketService artemisWebsocketService;
     private final ArtemisConfiguration artemisConfiguration;
 
-    public SimulationService(
-        ArtemisConfiguration artemisConfiguration,
-        SimulationWebsocketService simulationWebsocketService,
-        ArtemisWebsocketService artemisWebsocketService
-    ) {
+    public SimulationService(ArtemisConfiguration artemisConfiguration, SimulationWebsocketService simulationWebsocketService) {
         this.simulationWebsocketService = simulationWebsocketService;
         this.artemisConfiguration = artemisConfiguration;
-        this.artemisWebsocketService = artemisWebsocketService;
     }
 
     @Async
@@ -53,20 +45,15 @@ public class SimulationService {
         ArtemisAdmin admin;
 
         logAndSendInfo("Starting simulation with %d users on %s...", numberOfUsers, server.name());
+
+        if (server == ArtemisServer.PRODUCTION) {
+            simulateExamOnProduction(numberOfUsers, examId, courseId);
+            return;
+        }
+
         try {
             logAndSendInfo("Initializing admin...");
             admin = initializeAdmin(server);
-            logAndSendInfo("Setting up websocket between admin and Artemis...");
-            var session = artemisWebsocketService.initializeConnection(
-                server,
-                admin.getAuthToken(),
-                new AdminWebsocketSessionHandler(examId)
-            );
-            if (session == null) {
-                logAndSendError("Error while setting up websocket.");
-            } else {
-                logAndSendInfo("Websocket connection established.");
-            }
         } catch (Exception e) {
             logAndSendError("Error while initializing admin: %s", e.getMessage());
             simulationWebsocketService.sendSimulationFailed();
@@ -155,10 +142,44 @@ public class SimulationService {
         var simulationResult = new SimulationResult(requestStats);
         logAndSendInfo("Simulation finished.");
 
+        simulationWebsocketService.sendSimulationResult(simulationResult);
         if (cleanupNeeded) {
+            simulationWebsocketService.sendSimulationError("The result is available, but please note that the cleanup is still running!");
             cleanup(admin, courseId);
         }
+        simulationWebsocketService.sendSimulationCompleted();
+    }
+
+    private void simulateExamOnProduction(int numberOfUsers, long examId, long courseId) {
+        logAndSendInfo("Starting simulation...");
+
+        ArtemisStudent[] students = initializeStudents(numberOfUsers, ArtemisServer.PRODUCTION);
+        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 4, numberOfUsers);
+        logAndSendInfo("Using %d threads for simulation.", threadCount);
+
+        List<RequestStat> requestStats = new ArrayList<>();
+
+        try {
+            logAndSendInfo("Logging in students...");
+            requestStats.addAll(performActionWithAll(20, numberOfUsers, i -> students[i].login()));
+
+            logAndSendInfo("Performing initial calls...");
+            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].performInitialCalls()));
+
+            logAndSendInfo("Participating in exam...");
+            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].participateInExam(courseId, examId)));
+        } catch (Exception e) {
+            logAndSendError("Error while performing simulation: %s", e.getMessage());
+            simulationWebsocketService.sendSimulationFailed();
+            return;
+        }
+
+        logRequestStatsPerMinute(requestStats);
+        var simulationResult = new SimulationResult(requestStats);
+        logAndSendInfo("Simulation finished.");
+
         simulationWebsocketService.sendSimulationResult(simulationResult);
+        simulationWebsocketService.sendSimulationCompleted();
     }
 
     private ArtemisAdmin initializeAdmin(ArtemisServer server) {
@@ -174,7 +195,7 @@ public class SimulationService {
     private Exam createAndInitializeExam(int numberOfUsers, ArtemisServer server, ArtemisAdmin admin, Course course) {
         var exam = admin.createExam(course);
 
-        logAndSendInfo("Successfully created course and exam. Waiting for synchronization of user groups...");
+        logAndSendInfo("Successfully created course and exam. Waiting for synchronization of user groups (3 min)...");
         try {
             sleep(1000 * 60 * 3); //Wait for 3 minutes until user groups are synchronized
         } catch (InterruptedException ignored) {}
@@ -227,13 +248,16 @@ public class SimulationService {
     }
 
     private void cleanup(ArtemisAdmin admin, long courseId) {
-        logAndSendInfo("Cleaning up...");
+        logAndSendInfo("Cleaning up... Depending on the number of users, this may take a few minutes.");
         try {
             sleep(1000 * 10); // Give the server a few seconds to recover
             admin.deleteCourse(courseId);
             logAndSendInfo("Successfully cleaned up.");
         } catch (Exception e) {
             logAndSendError("Error while cleaning up: %s", e.getMessage());
+            logAndSendError(
+                "The deletion of the course failed, potentially due to overloading of the Artemis Server. Please wait a few minutes and then delete the course 'Temporary Benchmarking Exam' manually. If the course is already deleted, make sure that the project 'benchmark Programming Exercise for Benchmarking' is deleted from the VCS as well."
+            );
         }
     }
 

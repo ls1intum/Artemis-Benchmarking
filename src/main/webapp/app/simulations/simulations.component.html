@@ -2,107 +2,125 @@
   <div class="form-wrapper">
     <div class="input-wrapper">
       <label for="users">Number of Users</label>
-      <input id="users" type="number" [(ngModel)]="numberOfUsers" />
-    </div>
-    <div class="input-wrapper">
-      <label for="course">Course ID</label>
-      <input id="course" type="number" [(ngModel)]="courseId" />
-    </div>
-    <div class="input-wrapper">
-      <label for="exam">Exam ID</label>
-      <input id="exam" type="number" [(ngModel)]="examId" />
+      <input id="users" type="number" min="0" [(ngModel)]="numberOfUsers" />
     </div>
     <div class="input-wrapper">
       <label for="server">Server</label>
-      <select id="server" [(ngModel)]="selectedServer">
+      <select id="server" [(ngModel)]="selectedServer" (change)="serverChanged()">
         <option *ngFor="let server of ArtemisServer | keyvalue">{{ server.key }}</option>
       </select>
     </div>
+    <div class="input-wrapper" *ngIf="!(selectedServer == ArtemisServer.PRODUCTION)">
+      <label for="useExisitingExam">Use existing exam</label>
+      <input id="useExisitingExam" type="checkbox" [(ngModel)]="useExistingExam" />
+    </div>
+    <div class="input-wrapper" *ngIf="useExistingExam || selectedServer == ArtemisServer.PRODUCTION">
+      <label for="course">Course ID</label>
+      <input id="course" type="number" min="0" [(ngModel)]="courseId" />
+    </div>
+    <div class="input-wrapper" *ngIf="useExistingExam || selectedServer == ArtemisServer.PRODUCTION">
+      <label for="exam">Exam ID</label>
+      <input id="exam" type="number" min="0" [(ngModel)]="examId" />
+    </div>
+    <button class="start-button" (click)="startSimulation()" [disabled]="simulationRunning || !inputValid()">Start Simulation</button>
   </div>
-  <button class="start-button" (click)="startSimulation()" [disabled]="simulationRunning">Start Simulation</button>
+  <ng-container *ngIf="!(selectedServer == ArtemisServer.PRODUCTION)">
+    <div class="simulation-hint" *ngIf="!useExistingExam">
+      <p>
+        The Benchmarking Tool will generate a course and exam for the simulation. The necessary number of test users will be registered.
+        After the simulation, the course and exam will be deleted.<br />
+        Note: The creation and deletion of the course and exam can take a few minutes.
+      </p>
+    </div>
+    <div class="simulation-hint" *ngIf="useExistingExam">
+      <p>
+        The Benchmarking Tool will use an existing exam for the simulation. Please specify the IDs of course and exam and make sure that the
+        necessary number of test-users (1 - {{ numberOfUsers }}) are registered for the exam.
+        <span class="warning">Please be aware that:</span>
+      </p>
+      <ul>
+        <li>The start- and end-date of the exam will be changed. The change will NOT be undone after the simulation!</li>
+        <li>
+          The student exams will be (re-)generated and prepared. This affects the exams of ALL registered students, not just the test-users!
+          <span class="warning">Existing student exams will be lost!</span>
+        </li>
+        <li>
+          ALL registered students will be able to see and participate in the exam!
+          <span class="warning">Make sure that no real students are registered!</span>
+        </li>
+      </ul>
+    </div>
+  </ng-container>
+  <div class="simulation-hint" *ngIf="selectedServer == ArtemisServer.PRODUCTION">
+    <p>
+      The Benchmarking Tool will simulate on the <span class="warning">Artemis Production Instance</span>! (<a
+        target="_blank"
+        href="https://artemis.cit.tum.de"
+        >https://artemis.cit.tum.de</a
+      >)<br />
+      Since the tool does not have admin access on Production, you need to make sure that:
+    </p>
+    <ul>
+      <li>The necessary number of test-users (1 - {{ numberOfUsers }}) are registered for the exam.</li>
+      <li>The student exams for the test users are generated and prepared.</li>
+      <li>The conduction period of the exam is active and the working time is long enough to perform the simulation.</li>
+    </ul>
+    <p>
+      Please note that performing a simulation with a large number of users can have a negative impact on the performance of the Production
+      Instance. <span class="warning">Please be considerate of Artemis users!</span> Ideally, Production simulations should be performed
+      during off-peak hours and <span class="warning">never while a real exam is running!</span><br />
+      Please take a look at the
+      <a target="_blank" href="https://confluence.ase.in.tum.de/display/ArTEMiS/Artemis+Exam+Calendar+W23-24">exam calendar</a>.
+    </p>
+    <label for="production-confirm"
+      ><i>I hereby confirm that I have read and understood this note and still want to start a simulation on production.</i></label
+    >
+    <input id="production-confirm" type="checkbox" [(ngModel)]="productionConfirm" />
+  </div>
 </div>
-<div>
+<details>
+  <summary>Log Messages</summary>
   <div *ngFor="let msg of logMessages">
     <span [style.color]="msg.isError ? 'red' : 'black'">{{ msg.message }}</span
     ><br />
   </div>
-</div>
-<div *ngIf="simulationResult">
-  <h2>Simulation Result:</h2>
+</details>
+<h2 *ngIf="simulationResult">Simulation Result:</h2>
+<div class="result-wrapper" *ngIf="simulationResult">
   <div class="sub-result-wrapper">
     <h3>Total:</h3>
-    <span>Number of requests: {{ simulationResult!.total!.numberOfRequests }}</span
-    ><br />
-    <span>Average response time: {{ formatDuration(simulationResult!.total!.avgResponseTime) }}</span
-    ><br />
-    <span>Requests by minute:</span>
-    <br />
-    <div *ngFor="let minute of simulationResult!.total!.requestsByMinute | keyvalue">
-      <span> {{ minute.key | date: 'hh:mm' }}: {{ minute.value }}</span
-      ><br />
-    </div>
-    <br />
-    <span>Average response time by minute:</span>
-    <div *ngFor="let minute of simulationResult!.total!.avgResponseTimeByMinute | keyvalue">
-      <span> {{ minute.key | date: 'hh:mm' }}: {{ formatDuration(minute.value) }}</span
-      ><br />
-    </div>
-    <br />
+    <jhi-result-part [simulationStats]="simulationResult!.total"></jhi-result-part>
   </div>
   <div class="sub-result-wrapper">
     <h3>Authentication:</h3>
-    <span>Number of requests: {{ simulationResult!.authenticationStats!.numberOfRequests }}</span
-    ><br />
-    <span>Average response time: {{ formatDuration(simulationResult!.authenticationStats!.avgResponseTime) }}</span
-    ><br />
+    <jhi-result-part [simulationStats]="simulationResult!.authenticationStats"></jhi-result-part>
   </div>
   <div class="sub-result-wrapper">
     <h3>Get Exam:</h3>
-    <span>Number of requests: {{ simulationResult!.getExamStats!.numberOfRequests }}</span
-    ><br />
-    <span>Average response time: {{ formatDuration(simulationResult!.getExamStats!.avgResponseTime) }}</span
-    ><br />
+    <jhi-result-part [simulationStats]="simulationResult!.getExamStats"></jhi-result-part>
   </div>
   <div class="sub-result-wrapper">
     <h3>Start Exam:</h3>
-    <span>Number of requests: {{ simulationResult!.startExamStats!.numberOfRequests }}</span
-    ><br />
-    <span>Average response time: {{ formatDuration(simulationResult!.startExamStats!.avgResponseTime) }}</span
-    ><br />
+    <jhi-result-part [simulationStats]="simulationResult!.startExamStats"></jhi-result-part>
   </div>
   <div class="sub-result-wrapper">
     <h3>Submit Exercise:</h3>
-    <span>Number of requests: {{ simulationResult!.submitExerciseStats!.numberOfRequests }}</span
-    ><br />
-    <span>Average response time: {{ formatDuration(simulationResult!.submitExerciseStats!.avgResponseTime) }}</span
-    ><br />
+    <jhi-result-part [simulationStats]="simulationResult!.submitExerciseStats"></jhi-result-part>
   </div>
   <div class="sub-result-wrapper">
     <h3>Submit Exam:</h3>
-    <span>Number of requests: {{ simulationResult!.submitExamStats!.numberOfRequests }}</span
-    ><br />
-    <span>Average response time: {{ formatDuration(simulationResult!.submitExamStats!.avgResponseTime) }}</span
-    ><br />
+    <jhi-result-part [simulationStats]="simulationResult!.submitExamStats"></jhi-result-part>
   </div>
   <div class="sub-result-wrapper">
     <h3>Clone Repo:</h3>
-    <span>Number of requests: {{ simulationResult!.cloneStats!.numberOfRequests }}</span
-    ><br />
-    <span>Average response time: {{ formatDuration(simulationResult!.cloneStats!.avgResponseTime) }}</span
-    ><br />
+    <jhi-result-part [simulationStats]="simulationResult!.cloneStats"></jhi-result-part>
   </div>
   <div class="sub-result-wrapper">
     <h3>Push Repo:</h3>
-    <span>Number of requests: {{ simulationResult!.pushStats!.numberOfRequests }}</span
-    ><br />
-    <span>Average response time: {{ formatDuration(simulationResult!.pushStats!.avgResponseTime) }}</span
-    ><br />
+    <jhi-result-part [simulationStats]="simulationResult!.pushStats"></jhi-result-part>
   </div>
   <div class="sub-result-wrapper">
     <h3>Misc Requests:</h3>
-    <span>Number of requests: {{ simulationResult!.miscStats!.numberOfRequests }}</span
-    ><br />
-    <span>Average response time: {{ formatDuration(simulationResult!.miscStats!.avgResponseTime) }}</span
-    ><br />
+    <jhi-result-part [simulationStats]="simulationResult!.miscStats"></jhi-result-part>
   </div>
 </div>

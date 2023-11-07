@@ -118,3 +118,8 @@ artemis:
     password_template:
     admin_username:
     admin_password:
+  production:
+    url:
+    websocket_url:
+    username_template:
+    password_template:

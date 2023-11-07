@@ -14,7 +14,11 @@ public class SimulationWebsocketService {
     }
 
     public void sendSimulationResult(SimulationResult simulationResult) {
-        messagingTemplate.convertAndSend("/topic/simulation/completed", simulationResult);
+        messagingTemplate.convertAndSend("/topic/simulation/result", simulationResult);
+    }
+
+    public void sendSimulationCompleted() {
+        messagingTemplate.convertAndSend("/topic/simulation/completed", "");
     }
 
     public void sendSimulationError(String error) {
