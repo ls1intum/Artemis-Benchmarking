@@ -6,6 +6,7 @@ import { ArtemisServer } from './artemisServer';
 import { Subscription } from 'rxjs';
 import { WebsocketService } from '../core/websocket/websocket.service';
 import { SimulationResult } from './simulationResult';
+import { ArtemisAccountDTO } from './artemisAccountDTO';
 
 @Injectable({
   providedIn: 'root',
@@ -45,13 +46,21 @@ export class SimulationsService {
     this.simulationCompleted$ = this.websocketService.receive('/topic/simulation/completed');
   }
 
-  startSimulation(numberOfUsers: number, courseId: number, examId: number, server: ArtemisServer): Observable<object> {
-    return this.httpClient.post(
-      this.applicationConfigService.getEndpointFor(
-        '/api/simulations?users=' + numberOfUsers + '&courseId=' + courseId + '&examId=' + examId + '&server=' + server,
-      ),
-      undefined,
+  startSimulation(
+    numberOfUsers: number,
+    courseId: number,
+    examId: number,
+    server: ArtemisServer,
+    account?: ArtemisAccountDTO,
+  ): Observable<object> {
+    const endpoint = this.applicationConfigService.getEndpointFor(
+      '/api/simulations?users=' + numberOfUsers + '&courseId=' + courseId + '&examId=' + examId + '&server=' + server,
     );
+    if (!endpoint.startsWith('https://')) {
+      // Only send credentials over HTTPS
+      account = undefined;
+    }
+    return this.httpClient.post(endpoint, account);
   }
 
   private unsubscribeFromSimulationUpdates(): void {

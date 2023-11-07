@@ -11,6 +11,7 @@ import de.tum.cit.ase.service.artemis.ArtemisServer;
 import de.tum.cit.ase.service.artemis.interaction.ArtemisAdmin;
 import de.tum.cit.ase.service.artemis.interaction.ArtemisStudent;
 import de.tum.cit.ase.util.TimeLogUtil;
+import de.tum.cit.ase.web.dto.ArtemisAccountDTO;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
@@ -40,20 +41,21 @@ public class SimulationService {
     }
 
     @Async
-    public synchronized void simulateExam(int numberOfUsers, long courseId, long examId, ArtemisServer server) {
+    public synchronized void simulateExam(
+        int numberOfUsers,
+        long courseId,
+        long examId,
+        ArtemisServer server,
+        ArtemisAccountDTO artemisAccountDTO
+    ) {
         boolean cleanupNeeded = false;
         ArtemisAdmin admin;
 
         logAndSendInfo("Starting simulation with %d users on %s...", numberOfUsers, server.name());
 
-        if (server == ArtemisServer.PRODUCTION) {
-            simulateExamOnProduction(numberOfUsers, examId, courseId);
-            return;
-        }
-
         try {
             logAndSendInfo("Initializing admin...");
-            admin = initializeAdmin(server);
+            admin = server == ArtemisServer.PRODUCTION ? initializeAdminWithAccount(server, artemisAccountDTO) : initializeAdmin(server);
         } catch (Exception e) {
             logAndSendError("Error while initializing admin: %s", e.getMessage());
             simulationWebsocketService.sendSimulationFailed();
@@ -153,47 +155,18 @@ public class SimulationService {
         simulationWebsocketService.sendSimulationCompleted();
     }
 
-    private void simulateExamOnProduction(int numberOfUsers, long examId, long courseId) {
-        logAndSendInfo("Starting simulation...");
-
-        ArtemisStudent[] students = initializeStudents(numberOfUsers, ArtemisServer.PRODUCTION);
-
-        // We want to simulate with as many threads as possible, at least 20
-        int minNumberOfReads = Integer.max(Runtime.getRuntime().availableProcessors() * 4, 20);
-        int threadCount = Integer.min(minNumberOfReads, numberOfUsers);
-        logAndSendInfo("Using %d threads for simulation.", threadCount);
-
-        List<RequestStat> requestStats = new ArrayList<>();
-
-        try {
-            logAndSendInfo("Logging in students...");
-            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].login()));
-
-            logAndSendInfo("Performing initial calls...");
-            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].performInitialCalls()));
-
-            logAndSendInfo("Participating in exam...");
-            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].participateInExam(courseId, examId)));
-        } catch (Exception e) {
-            logAndSendError("Error while performing simulation: %s", e.getMessage());
-            simulationWebsocketService.sendSimulationFailed();
-            return;
-        }
-
-        logRequestStatsPerMinute(requestStats);
-        var simulationResult = new SimulationResult(requestStats);
-        logAndSendInfo("Simulation finished.");
-
-        simulationWebsocketService.sendSimulationResult(simulationResult);
-        simulationWebsocketService.sendSimulationCompleted();
-    }
-
     private ArtemisAdmin initializeAdmin(ArtemisServer server) {
         var admin = new ArtemisAdmin(
             artemisConfiguration.getAdminUsername(server),
             artemisConfiguration.getAdminPassword(server),
             artemisConfiguration.getUrl(server)
         );
+        admin.login();
+        return admin;
+    }
+
+    private ArtemisAdmin initializeAdminWithAccount(ArtemisServer server, ArtemisAccountDTO artemisAccountDTO) {
+        var admin = new ArtemisAdmin(artemisAccountDTO.getUsername(), artemisAccountDTO.getPassword(), artemisConfiguration.getUrl(server));
         admin.login();
         return admin;
     }
