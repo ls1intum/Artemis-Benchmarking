@@ -50,7 +50,7 @@ export class SimulationsComponent implements OnInit {
     this.adminPassword = '';
     this.adminUsername = '';
 
-    if (!this.useExistingExam && !(this.selectedServer === ArtemisServer.PRODUCTION)) {
+    if (!this.useExistingExam) {
       this.courseId = 0;
       this.examId = 0;
     }
