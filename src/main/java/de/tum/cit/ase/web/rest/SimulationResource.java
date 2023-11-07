@@ -3,13 +3,11 @@ package de.tum.cit.ase.web.rest;
 import de.tum.cit.ase.security.AuthoritiesConstants;
 import de.tum.cit.ase.service.SimulationService;
 import de.tum.cit.ase.service.artemis.ArtemisServer;
+import de.tum.cit.ase.web.dto.ArtemisAccountDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/simulations")
@@ -27,7 +25,8 @@ public class SimulationResource {
         @RequestParam(value = "users") int numberOfUsers,
         @RequestParam(value = "courseId") int courseId,
         @RequestParam(value = "examId") int examId,
-        @RequestParam(value = "server") ArtemisServer server
+        @RequestParam(value = "server") ArtemisServer server,
+        @RequestBody(required = false) ArtemisAccountDTO artemisAccountDTO
     ) {
         if (numberOfUsers <= 0 || courseId < 0 || examId < 0 || server == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -36,11 +35,11 @@ public class SimulationResource {
         if ((courseId == 0) ^ (examId == 0)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        // Production only with existing exam
-        if (server == ArtemisServer.PRODUCTION && examId == 0) {
+        // Production only with admin account
+        if (server == ArtemisServer.PRODUCTION && artemisAccountDTO == null) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        simulationService.simulateExam(numberOfUsers, courseId, examId, server);
+        simulationService.simulateExam(numberOfUsers, courseId, examId, server, artemisAccountDTO);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

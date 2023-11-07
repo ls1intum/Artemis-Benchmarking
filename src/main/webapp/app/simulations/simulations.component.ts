@@ -3,6 +3,7 @@ import { SimulationsService } from './simulations.service';
 import { SimulationResult } from './simulationResult';
 import { ArtemisServer } from './artemisServer';
 import { LogMessage } from './logMessage';
+import { ArtemisAccountDTO } from './artemisAccountDTO';
 
 @Component({
   selector: 'jhi-simulations',
@@ -19,7 +20,8 @@ export class SimulationsComponent implements OnInit {
   courseId = 0;
   examId = 0;
   selectedServer = ArtemisServer.TS1;
-  productionConfirm = false;
+  adminPassword = '';
+  adminUsername = '';
 
   protected readonly ArtemisServer = ArtemisServer;
 
@@ -45,6 +47,9 @@ export class SimulationsComponent implements OnInit {
   }
   startSimulation(): void {
     this.simulationResult = undefined;
+    this.adminPassword = '';
+    this.adminUsername = '';
+
     if (!this.useExistingExam && !(this.selectedServer === ArtemisServer.PRODUCTION)) {
       this.courseId = 0;
       this.examId = 0;
@@ -54,17 +59,25 @@ export class SimulationsComponent implements OnInit {
       next: () => (this.simulationRunning = true),
       error: () => this.logMessages.push(new LogMessage('Error starting simulation.', true)),
     };
-    this.simulationsService.startSimulation(this.numberOfUsers, this.courseId, this.examId, this.selectedServer).subscribe(observer);
+
+    let account;
+    if (this.selectedServer === ArtemisServer.PRODUCTION) {
+      account = new ArtemisAccountDTO(this.adminUsername, this.adminPassword);
+    }
+    this.simulationsService
+      .startSimulation(this.numberOfUsers, this.courseId, this.examId, this.selectedServer, account)
+      .subscribe(observer);
   }
 
   inputValid(): boolean {
     if (this.selectedServer === ArtemisServer.PRODUCTION) {
-      return this.numberOfUsers > 0 && this.courseId > 0 && this.examId > 0 && this.productionConfirm;
+      return (
+        this.numberOfUsers > 0 &&
+        (!this.useExistingExam || (this.courseId > 0 && this.examId > 0)) &&
+        this.adminPassword.length > 0 &&
+        this.adminUsername.length > 0
+      );
     }
     return this.numberOfUsers > 0 && (!this.useExistingExam || (this.courseId > 0 && this.examId > 0));
-  }
-
-  serverChanged(): void {
-    this.productionConfirm = false;
   }
 }
