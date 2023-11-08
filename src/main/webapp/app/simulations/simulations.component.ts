@@ -47,8 +47,6 @@ export class SimulationsComponent implements OnInit {
   }
   startSimulation(): void {
     this.simulationResult = undefined;
-    this.adminPassword = '';
-    this.adminUsername = '';
 
     if (!this.useExistingExam) {
       this.courseId = 0;
@@ -56,7 +54,11 @@ export class SimulationsComponent implements OnInit {
     }
     this.logMessages = [];
     const observer = {
-      next: () => (this.simulationRunning = true),
+      next: () => {
+        this.simulationRunning = true;
+        this.adminPassword = '';
+        this.adminUsername = '';
+      },
       error: () => this.logMessages.push(new LogMessage('Error starting simulation.', true)),
     };
 
