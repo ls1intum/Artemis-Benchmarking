@@ -57,10 +57,36 @@ public class ArtemisStudent extends ArtemisUser {
 
         List<RequestStat> requestStats = new ArrayList<>();
 
-        requestStats.add(navigateIntoExam());
-        requestStats.add(startExam());
         requestStats.add(fetchLiveEvents());
         requestStats.addAll(handleExercises());
+
+        return requestStats;
+    }
+
+    public List<RequestStat> startExamParticipation(long courseId, long examId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or not a student.");
+        }
+        this.courseIdString = String.valueOf(courseId);
+        this.examIdString = String.valueOf(examId);
+
+        List<RequestStat> requestStats = new ArrayList<>();
+
+        requestStats.add(navigateIntoExam());
+        requestStats.add(startExam());
+
+        return requestStats;
+    }
+
+    public List<RequestStat> submitAndEndExam(long courseId, long examId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or not a student.");
+        }
+        this.courseIdString = String.valueOf(courseId);
+        this.examIdString = String.valueOf(examId);
+
+        List<RequestStat> requestStats = new ArrayList<>();
+
         requestStats.add(submitStudentExam());
         requestStats.add(loadExamSummary());
 
@@ -330,7 +356,7 @@ public class ArtemisStudent extends ArtemisUser {
 
         var git = Git.open(localPath.toFile());
         git.add().addFilepattern("src").call();
-        git.commit().setMessage("local test").setAllowEmpty(true).call();
+        git.commit().setMessage("local test").setAllowEmpty(true).setSign(false).call();
 
         long start = System.nanoTime();
         git.push().setCredentialsProvider(getCredentialsProvider()).call();

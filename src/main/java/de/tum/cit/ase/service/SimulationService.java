@@ -132,7 +132,13 @@ public class SimulationService {
             long finalCourseId = courseId;
             long finalExamId = examId;
             requestStats.addAll(
+                performActionWithAll(threadCount, numberOfUsers, i -> students[i].startExamParticipation(finalCourseId, finalExamId))
+            );
+            requestStats.addAll(
                 performActionWithAll(threadCount, numberOfUsers, i -> students[i].participateInExam(finalCourseId, finalExamId))
+            );
+            requestStats.addAll(
+                performActionWithAll(threadCount, numberOfUsers, i -> students[i].submitAndEndExam(finalCourseId, finalExamId))
             );
         } catch (Exception e) {
             logAndSendError("Error while performing simulation: %s", e.getMessage());
