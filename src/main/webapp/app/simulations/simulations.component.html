@@ -7,7 +7,9 @@
     <div class="input-wrapper">
       <label for="server">Server</label>
       <select id="server" [(ngModel)]="selectedServer">
-        <option *ngFor="let server of ArtemisServer | keyvalue">{{ server.key }}</option>
+        <option *ngFor="let server of availableServers">
+          {{ server }}
+        </option>
       </select>
     </div>
     <div class="input-wrapper">

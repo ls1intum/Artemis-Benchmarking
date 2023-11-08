@@ -4,6 +4,7 @@ import { SimulationResult } from './simulationResult';
 import { ArtemisServer } from './artemisServer';
 import { LogMessage } from './logMessage';
 import { ArtemisAccountDTO } from './artemisAccountDTO';
+import { ProfileService } from '../layouts/profiles/profile.service';
 
 @Component({
   selector: 'jhi-simulations',
@@ -24,8 +25,12 @@ export class SimulationsComponent implements OnInit {
   adminUsername = '';
 
   protected readonly ArtemisServer = ArtemisServer;
+  availableServers = [ArtemisServer.TS1, ArtemisServer.TS3, ArtemisServer.PRODUCTION, ArtemisServer.STAGING];
 
-  constructor(private simulationsService: SimulationsService) {}
+  constructor(
+    private simulationsService: SimulationsService,
+    private profileService: ProfileService,
+  ) {}
 
   ngOnInit(): void {
     this.simulationsService.infoMessages$.subscribe(msg => {
@@ -43,6 +48,14 @@ export class SimulationsComponent implements OnInit {
     });
     this.simulationsService.simulationCompleted$.subscribe(() => {
       this.simulationRunning = false;
+    });
+    this.profileService.getProfileInfo().subscribe(profileInfo => {
+      if (profileInfo.inProduction && this.availableServers.includes(ArtemisServer.LOCAL)) {
+        const index = this.availableServers.indexOf(ArtemisServer.LOCAL);
+        this.availableServers.splice(index, 1);
+      } else if (!profileInfo.inProduction && !this.availableServers.includes(ArtemisServer.LOCAL)) {
+        this.availableServers.push(ArtemisServer.LOCAL);
+      }
     });
   }
   startSimulation(): void {

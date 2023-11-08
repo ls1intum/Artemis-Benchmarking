@@ -357,6 +357,8 @@ public class ArtemisAdmin extends ArtemisUser {
             })
             .sequential()
             .blockingSubscribe();
+        threadPoolExecutor.shutdownNow();
+        scheduler.shutdown();
 
         webClient
             .post()
