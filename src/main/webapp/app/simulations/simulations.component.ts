@@ -23,9 +23,9 @@ export class SimulationsComponent implements OnInit {
   selectedServer = ArtemisServer.TS1;
   adminPassword = '';
   adminUsername = '';
+  availableServers = [ArtemisServer.TS1, ArtemisServer.TS3, ArtemisServer.PRODUCTION, ArtemisServer.STAGING];
 
   protected readonly ArtemisServer = ArtemisServer;
-  availableServers = [ArtemisServer.TS1, ArtemisServer.TS3, ArtemisServer.PRODUCTION, ArtemisServer.STAGING];
 
   constructor(
     private simulationsService: SimulationsService,
