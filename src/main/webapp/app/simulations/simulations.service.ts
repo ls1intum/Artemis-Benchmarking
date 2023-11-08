@@ -56,7 +56,7 @@ export class SimulationsService {
     const endpoint = this.applicationConfigService.getEndpointFor(
       '/api/simulations?users=' + numberOfUsers + '&courseId=' + courseId + '&examId=' + examId + '&server=' + server,
     );
-    if (!SERVER_API_URL.startsWith('https://')) {
+    if (!window.location.protocol.startsWith('https:')) {
       // Only send credentials over HTTPS
       account = undefined;
     }
