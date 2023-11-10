@@ -5,7 +5,7 @@ import static de.tum.cit.ase.domain.RequestType.*;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-public class SimulationResult {
+public class SimulationResult {/*
 
     private SimulationStats total;
     private SimulationStats authenticationStats;
@@ -128,5 +128,4 @@ public class SimulationResult {
             "\tMisc:\n" +
             miscStats
         );
-    }
-}
+    }*/}

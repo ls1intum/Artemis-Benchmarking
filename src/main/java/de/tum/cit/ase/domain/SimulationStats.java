@@ -1,28 +1,47 @@
 package de.tum.cit.ase.domain;
 
 import de.tum.cit.ase.util.TimeLogUtil;
+import jakarta.persistence.*;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+@Entity
 public class SimulationStats {
 
-    private int numberOfRequests;
-    private long avgResponseTime;
-    private Map<ZonedDateTime, Long> requestsByMinute;
-    private Map<ZonedDateTime, Double> avgResponseTimeByMinute;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    public SimulationStats(List<RequestStat> requestStats) {
-        numberOfRequests = requestStats.size();
-        avgResponseTime = getAverage(requestStats);
-        requestsByMinute = calculateRequestsByMinute(requestStats);
-        avgResponseTimeByMinute = calculateAvgResponseTimeByMinute(requestStats);
+    @Column(name = "number_of_requests", nullable = false)
+    private int numberOfRequests;
+
+    @Column(name = "avg_response_time", nullable = false)
+    private long avgResponseTime;
+
+    @OneToMany(orphanRemoval = true)
+    @JoinColumn(name = "simulation_stats_id")
+    private Set<StatsByMinute> statsByMinute;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "request_type", nullable = false)
+    private RequestType requestType;
+
+    @ManyToOne
+    @JoinColumn(name = "simulation_run_id", nullable = false)
+    private SimulationRun simulationRun;
+
+    public Long getId() {
+        return id;
     }
 
-    public SimulationStats() {}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public int getNumberOfRequests() {
         return numberOfRequests;
@@ -40,20 +59,28 @@ public class SimulationStats {
         this.avgResponseTime = avgResponseTime;
     }
 
-    public Map<ZonedDateTime, Long> getRequestsByMinute() {
-        return requestsByMinute;
+    public Set<StatsByMinute> getStatsByMinute() {
+        return statsByMinute;
     }
 
-    public void setRequestsByMinute(Map<ZonedDateTime, Long> requestsByMinute) {
-        this.requestsByMinute = requestsByMinute;
+    public void setStatsByMinute(Set<StatsByMinute> statsByMinute) {
+        this.statsByMinute = statsByMinute;
     }
 
-    public Map<ZonedDateTime, Double> getAvgResponseTimeByMinute() {
-        return avgResponseTimeByMinute;
+    public RequestType getRequestType() {
+        return requestType;
     }
 
-    public void setAvgResponseTimeByMinute(Map<ZonedDateTime, Double> avgResponseTimeByMinute) {
-        this.avgResponseTimeByMinute = avgResponseTimeByMinute;
+    public void setRequestType(RequestType requestType) {
+        this.requestType = requestType;
+    }
+
+    public SimulationRun getSimulationRun() {
+        return simulationRun;
+    }
+
+    public void setSimulationRun(SimulationRun simulationRun) {
+        this.simulationRun = simulationRun;
     }
 
     private static long getAverage(Collection<RequestStat> times) {

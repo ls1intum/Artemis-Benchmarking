@@ -4,8 +4,10 @@ import static java.lang.Thread.sleep;
 
 import de.tum.cit.ase.artemisModel.Course;
 import de.tum.cit.ase.artemisModel.Exam;
-import de.tum.cit.ase.domain.RequestStat;
-import de.tum.cit.ase.domain.SimulationResult;
+import de.tum.cit.ase.domain.*;
+import de.tum.cit.ase.repository.LogMessageRepository;
+import de.tum.cit.ase.repository.SimulationRepository;
+import de.tum.cit.ase.repository.SimulationRunRepository;
 import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
 import de.tum.cit.ase.service.artemis.ArtemisServer;
 import de.tum.cit.ase.service.artemis.interaction.ArtemisAdmin;
@@ -16,6 +18,7 @@ import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -35,9 +38,23 @@ public class SimulationService {
     private final SimulationWebsocketService simulationWebsocketService;
     private final ArtemisConfiguration artemisConfiguration;
 
-    public SimulationService(ArtemisConfiguration artemisConfiguration, SimulationWebsocketService simulationWebsocketService) {
+    public SimulationService(
+        ArtemisConfiguration artemisConfiguration,
+        SimulationWebsocketService simulationWebsocketService,
+        SimulationRepository simulationRepository,
+        SimulationRunRepository simulationRunRepository,
+        LogMessageRepository logMessageRepository
+    ) {
         this.simulationWebsocketService = simulationWebsocketService;
         this.artemisConfiguration = artemisConfiguration;
+
+        Simulation simulation = new Simulation();
+        simulation.setName("Test");
+        simulation.setCourseId(3);
+        simulation.setExamId(3);
+        simulation.setNumberOfUsers(3);
+        simulation.setServer(ArtemisServer.LOCAL);
+        simulationRepository.save(simulation);
     }
 
     @Async
@@ -47,7 +64,7 @@ public class SimulationService {
         long examId,
         ArtemisServer server,
         ArtemisAccountDTO artemisAccountDTO
-    ) {
+    ) {/*
         boolean cleanupNeeded = false;
         ArtemisAdmin admin;
 
@@ -158,8 +175,7 @@ public class SimulationService {
             simulationWebsocketService.sendSimulationError("The result is available, but please note that the cleanup is still running!");
             cleanup(admin, courseId);
         }
-        simulationWebsocketService.sendSimulationCompleted();
-    }
+        simulationWebsocketService.sendSimulationCompleted();*/}
 
     private ArtemisAdmin initializeAdmin(ArtemisServer server) {
         var admin = new ArtemisAdmin(

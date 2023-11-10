@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+
+    <changeSet id="00000000000003" author="valentin-boehm">
+        <createTable tableName="simulation">
+            <column name="id" type="bigint" autoIncrement="true" startWith="0">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="number_of_users" type="int"/>
+            <column name="exam_id" type="bigint"/>
+            <column name="course_id" type="bigint"/>
+            <column name="server" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="simulation_run">
+            <column name="id" type="bigint" autoIncrement="true" startWith="0">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="start_date_time" type="timestamp"/>
+            <column name="status" type="varchar(255)"/>
+            <column name="course_id" type="bigint"/>
+            <column name="simulation_id" type="bigint"/>
+        </createTable>
+
+        <createTable tableName="simulation_stats">
+            <column name="id" type="bigint" autoIncrement="true" startWith="0">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="number_of_requests" type="int"/>
+            <column name="avg_response_time" type="bigint"/>
+            <column name="simulation_run_id" type="bigint"/>
+            <column name="request_type" type="varchar(255)"/>
+        </createTable>
+
+        <createTable tableName="stats_by_minute">
+            <column name="id" type="bigint" autoIncrement="true" startWith="0">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="number_of_requests" type="int"/>
+            <column name="avg_response_time" type="bigint"/>
+            <column name="simulation_stats_id" type="bigint"/>
+            <column name="date_time" type="timestamp"/>
+        </createTable>
+
+        <createTable tableName="log_message">
+            <column name="id" type="bigint" autoIncrement="true" startWith="0">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="message" type="varchar(255)"/>
+            <column name="is_error" type="boolean"/>
+            <column name="timestamp" type="timestamp"/>
+            <column name="simulation_run_id" type="bigint"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
