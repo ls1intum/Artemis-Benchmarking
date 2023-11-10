@@ -15,7 +15,7 @@ import { TitleStrategy } from '@angular/router';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
 import dayjs from 'dayjs/esm';
-import { NgbDateAdapter, NgbDatepickerConfig } from '@ng-bootstrap/ng-bootstrap';
+import { NgbDateAdapter, NgbDatepickerConfig, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { SimulationsComponent } from './simulations/simulations.component';
 import { FormsModule } from '@angular/forms';
 
@@ -33,6 +33,7 @@ import { ResultPartComponent } from './simulations/result-part/result-part/resul
     HttpClientModule,
     MainModule,
     FormsModule,
+    NgbModule,
   ],
   providers: [
     Title,

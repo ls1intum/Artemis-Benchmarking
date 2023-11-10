@@ -23,6 +23,7 @@
             "customWebpackConfig": {
               "path": "./webpack/webpack.custom.js"
             },
+            "allowedCommonJsDependencies": ["sockjs-client", "webstomp-client"],
             "outputPath": "build/resources/main/static/",
             "index": "src/main/webapp/index.html",
             "main": "src/main/webapp/main.ts",

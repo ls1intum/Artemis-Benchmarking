@@ -32,7 +32,9 @@
       <label for="adminPassword">Admin Password</label>
       <input id="adminPassword" type="password" [(ngModel)]="adminPassword" />
     </div>
-    <button class="start-button" (click)="startSimulation()" [disabled]="simulationRunning || !inputValid()">Start Simulation</button>
+    <button type="button" class="btn btn-primary" (click)="startSimulation()" [disabled]="simulationRunning || !inputValid()">
+      Start Simulation
+    </button>
   </div>
   <div class="simulation-hint" *ngIf="!useExistingExam">
     <p>
