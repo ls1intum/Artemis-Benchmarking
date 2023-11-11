@@ -58,6 +58,7 @@ public class SimulationDataService {
         simulationRun.setLogMessages(new HashSet<>());
         simulationRun.setStatus(SimulationRun.Status.QUEUED);
         simulationRun.setStartDateTime(now());
+        simulationRun.setAdminAccount(accountDTO);
 
         SimulationRun savedSimulationRun = simulationRunRepository.save(simulationRun);
         simulationRunQueueService.queueSimulationRun(savedSimulationRun);

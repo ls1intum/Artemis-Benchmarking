@@ -57,9 +57,6 @@ export class SimulationsComponent implements OnInit {
         this.availableServers.push(ArtemisServer.LOCAL);
       }
     });
-    this.simulationsService.getSimulations().subscribe(simulations => {
-      console.log(simulations);
-    });
   }
   startSimulation(): void {
     this.simulationResult = undefined;
