@@ -23,9 +23,8 @@ public class SimulationDataService {
         this.simulationRepository = simulationRepository;
         this.simulationRunRepository = simulationRunRepository;
         this.simulationRunQueueService = simulationRunQueueService;
-
         // TODO: REMOVE THIS
-        createAndQueueSimulationRun(5);
+        //createAndQueueSimulationRun(5);
     }
 
     public Simulation createSimulation(Simulation simulation) {

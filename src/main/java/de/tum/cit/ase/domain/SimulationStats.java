@@ -2,13 +2,7 @@ package de.tum.cit.ase.domain;
 
 import de.tum.cit.ase.util.TimeLogUtil;
 import jakarta.persistence.*;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 public class SimulationStats {

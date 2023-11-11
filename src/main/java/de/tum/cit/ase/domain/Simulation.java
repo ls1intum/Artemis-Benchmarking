@@ -1,6 +1,6 @@
 package de.tum.cit.ase.domain;
 
-import de.tum.cit.ase.service.artemis.ArtemisServer;
+import de.tum.cit.ase.util.ArtemisServer;
 import jakarta.persistence.*;
 import java.util.Set;
 

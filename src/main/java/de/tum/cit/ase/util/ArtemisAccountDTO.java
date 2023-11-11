@@ -1,4 +1,4 @@
-package de.tum.cit.ase.web.dto;
+package de.tum.cit.ase.util;
 
 public class ArtemisAccountDTO {
 

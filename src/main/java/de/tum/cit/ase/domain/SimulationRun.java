@@ -1,6 +1,6 @@
 package de.tum.cit.ase.domain;
 
-import de.tum.cit.ase.web.dto.ArtemisAccountDTO;
+import de.tum.cit.ase.util.ArtemisAccountDTO;
 import jakarta.persistence.*;
 import java.time.ZonedDateTime;
 import java.util.Set;
