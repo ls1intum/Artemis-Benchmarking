@@ -24,6 +24,7 @@ export class SimulationsComponent implements OnInit {
   adminPassword = '';
   adminUsername = '';
   availableServers = [ArtemisServer.TS1, ArtemisServer.TS3, ArtemisServer.PRODUCTION, ArtemisServer.STAGING];
+  noPreparation = false;
 
   protected readonly ArtemisServer = ArtemisServer;
 
@@ -64,6 +65,7 @@ export class SimulationsComponent implements OnInit {
     if (!this.useExistingExam) {
       this.courseId = 0;
       this.examId = 0;
+      this.noPreparation = false;
     }
     this.logMessages = [];
     const observer = {
@@ -76,11 +78,11 @@ export class SimulationsComponent implements OnInit {
     };
 
     let account;
-    if (this.selectedServer === ArtemisServer.PRODUCTION) {
+    if (this.selectedServer === ArtemisServer.PRODUCTION && !this.noPreparation) {
       account = new ArtemisAccountDTO(this.adminUsername, this.adminPassword);
     }
     this.simulationsService
-      .startSimulation(this.numberOfUsers, this.courseId, this.examId, this.selectedServer, account)
+      .startSimulation(this.numberOfUsers, this.courseId, this.examId, this.selectedServer, this.noPreparation, account)
       .subscribe(observer);
   }
 
@@ -89,10 +91,17 @@ export class SimulationsComponent implements OnInit {
       return (
         this.numberOfUsers > 0 &&
         (!this.useExistingExam || (this.courseId > 0 && this.examId > 0)) &&
-        this.adminPassword.length > 0 &&
-        this.adminUsername.length > 0
+        ((this.adminPassword.length > 0 && this.adminUsername.length > 0) || this.noPreparation)
       );
     }
     return this.numberOfUsers > 0 && (!this.useExistingExam || (this.courseId > 0 && this.examId > 0));
+  }
+
+  useExistingExamChanged(): void {
+    if (!this.useExistingExam) {
+      this.courseId = 0;
+      this.examId = 0;
+      this.noPreparation = false;
+    }
   }
 }
