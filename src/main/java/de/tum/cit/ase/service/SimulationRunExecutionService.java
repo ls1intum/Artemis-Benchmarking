@@ -5,8 +5,6 @@ import static java.lang.Thread.sleep;
 import de.tum.cit.ase.artemisModel.Course;
 import de.tum.cit.ase.artemisModel.Exam;
 import de.tum.cit.ase.domain.*;
-import de.tum.cit.ase.repository.LogMessageRepository;
-import de.tum.cit.ase.repository.SimulationRepository;
 import de.tum.cit.ase.repository.SimulationRunRepository;
 import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
 import de.tum.cit.ase.service.artemis.ArtemisServer;
@@ -18,7 +16,6 @@ import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -27,52 +24,48 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SimulationService {
+public class SimulationRunExecutionService {
 
-    private final Logger log = LoggerFactory.getLogger(SimulationService.class);
+    private final Logger log = LoggerFactory.getLogger(SimulationRunExecutionService.class);
 
     private final SimulationWebsocketService simulationWebsocketService;
     private final ArtemisConfiguration artemisConfiguration;
+    private final SimulationRunRepository simulationRunRepository;
+    private final SimulationResultService simulationResultService;
 
-    public SimulationService(
+    public SimulationRunExecutionService(
         ArtemisConfiguration artemisConfiguration,
         SimulationWebsocketService simulationWebsocketService,
-        SimulationRepository simulationRepository,
         SimulationRunRepository simulationRunRepository,
-        LogMessageRepository logMessageRepository
+        SimulationResultService simulationResultService
     ) {
         this.simulationWebsocketService = simulationWebsocketService;
         this.artemisConfiguration = artemisConfiguration;
-
-        Simulation simulation = new Simulation();
-        simulation.setName("Test");
-        simulation.setCourseId(3);
-        simulation.setExamId(3);
-        simulation.setNumberOfUsers(3);
-        simulation.setServer(ArtemisServer.LOCAL);
-        simulationRepository.save(simulation);
+        this.simulationRunRepository = simulationRunRepository;
+        this.simulationResultService = simulationResultService;
     }
 
-    @Async
-    public synchronized void simulateExam(
-        int numberOfUsers,
-        long courseId,
-        long examId,
-        ArtemisServer server,
-        ArtemisAccountDTO artemisAccountDTO
-    ) {/*
+    public synchronized void simulateExam(SimulationRun simulationRun) {
+        simulationRun.setStatus(SimulationRun.Status.RUNNING);
+        simulationRunRepository.save(simulationRun);
+
+        var simulation = simulationRun.getSimulation();
+        var courseId = simulation.getCourseId();
+        var examId = simulation.getExamId();
         boolean cleanupNeeded = false;
         ArtemisAdmin admin;
 
-        logAndSendInfo("Starting simulation with %d users on %s...", numberOfUsers, server.name());
+        logAndSendInfo("Starting simulation with %d users on %s...", simulation.getNumberOfUsers(), simulation.getServer().name());
 
         try {
             logAndSendInfo("Initializing admin...");
-            admin = server == ArtemisServer.PRODUCTION ? initializeAdminWithAccount(server, artemisAccountDTO) : initializeAdmin(server);
+            admin =
+                simulation.getServer() == ArtemisServer.PRODUCTION
+                    ? initializeAdminWithAccount(simulation.getServer(), simulationRun.getAdminAccount())
+                    : initializeAdmin(simulation.getServer());
         } catch (Exception e) {
             logAndSendError("Error while initializing admin: %s", e.getMessage());
             simulationWebsocketService.sendSimulationFailed();
@@ -95,7 +88,7 @@ public class SimulationService {
             logAndSendInfo("Successfully created course. Course ID: %d", course.getId());
             // Create exam
             try {
-                var exam = createAndInitializeExam(numberOfUsers, server, admin, course);
+                var exam = createAndInitializeExam(simulation.getNumberOfUsers(), simulation.getServer(), admin, course);
                 courseId = exam.getCourse().getId();
                 examId = exam.getId();
             } catch (Exception e) {
@@ -129,33 +122,45 @@ public class SimulationService {
 
         logAndSendInfo("Starting simulation...");
 
-        ArtemisStudent[] students = initializeStudents(numberOfUsers, server);
+        ArtemisStudent[] students = initializeStudents(simulation.getNumberOfUsers(), simulation.getServer());
 
         // We want to simulate with as many threads as possible, at least 20
         int minNumberOfReads = Integer.max(Runtime.getRuntime().availableProcessors() * 4, 20);
-        int threadCount = Integer.min(minNumberOfReads, numberOfUsers);
+        int threadCount = Integer.min(minNumberOfReads, simulation.getNumberOfUsers());
         logAndSendInfo("Using %d threads for simulation.", threadCount);
 
         List<RequestStat> requestStats = new ArrayList<>();
 
         try {
             logAndSendInfo("Logging in students...");
-            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].login()));
+            requestStats.addAll(performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].login()));
 
             logAndSendInfo("Performing initial calls...");
-            requestStats.addAll(performActionWithAll(threadCount, numberOfUsers, i -> students[i].performInitialCalls()));
+            requestStats.addAll(performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].performInitialCalls()));
 
             logAndSendInfo("Participating in exam...");
             long finalCourseId = courseId;
             long finalExamId = examId;
             requestStats.addAll(
-                performActionWithAll(threadCount, numberOfUsers, i -> students[i].startExamParticipation(finalCourseId, finalExamId))
+                performActionWithAll(
+                    threadCount,
+                    simulation.getNumberOfUsers(),
+                    i -> students[i].startExamParticipation(finalCourseId, finalExamId)
+                )
             );
             requestStats.addAll(
-                performActionWithAll(threadCount, numberOfUsers, i -> students[i].participateInExam(finalCourseId, finalExamId))
+                performActionWithAll(
+                    threadCount,
+                    simulation.getNumberOfUsers(),
+                    i -> students[i].participateInExam(finalCourseId, finalExamId)
+                )
             );
             requestStats.addAll(
-                performActionWithAll(threadCount, numberOfUsers, i -> students[i].submitAndEndExam(finalCourseId, finalExamId))
+                performActionWithAll(
+                    threadCount,
+                    simulation.getNumberOfUsers(),
+                    i -> students[i].submitAndEndExam(finalCourseId, finalExamId)
+                )
             );
         } catch (Exception e) {
             logAndSendError("Error while performing simulation: %s", e.getMessage());
@@ -167,15 +172,14 @@ public class SimulationService {
         }
 
         logRequestStatsPerMinute(requestStats);
-        var simulationResult = new SimulationResult(requestStats);
         logAndSendInfo("Simulation finished.");
-
-        simulationWebsocketService.sendSimulationResult(simulationResult);
+        SimulationRun runWithResult = simulationResultService.calculateAndSaveResult(simulationRun, requestStats);
         if (cleanupNeeded) {
             simulationWebsocketService.sendSimulationError("The result is available, but please note that the cleanup is still running!");
             cleanup(admin, courseId);
         }
-        simulationWebsocketService.sendSimulationCompleted();*/}
+        simulationWebsocketService.sendSimulationCompleted();
+    }
 
     private ArtemisAdmin initializeAdmin(ArtemisServer server) {
         var admin = new ArtemisAdmin(

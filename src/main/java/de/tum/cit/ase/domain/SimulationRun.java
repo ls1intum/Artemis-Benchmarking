@@ -1,10 +1,9 @@
 package de.tum.cit.ase.domain;
 
+import de.tum.cit.ase.web.dto.ArtemisAccountDTO;
 import jakarta.persistence.*;
 import java.time.ZonedDateTime;
 import java.util.Set;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.id.enhanced.SequenceStyleGenerator;
 
 @Entity
 @Table(name = "simulation_run")
@@ -30,6 +29,9 @@ public class SimulationRun {
 
     @OneToMany(orphanRemoval = true, mappedBy = "simulationRun")
     private Set<LogMessage> logMessages;
+
+    @Transient
+    private ArtemisAccountDTO adminAccount;
 
     public Long getId() {
         return id;
@@ -77,6 +79,14 @@ public class SimulationRun {
 
     public void setLogMessages(Set<LogMessage> logMessages) {
         this.logMessages = logMessages;
+    }
+
+    public ArtemisAccountDTO getAdminAccount() {
+        return adminAccount;
+    }
+
+    public void setAdminAccount(ArtemisAccountDTO adminAccount) {
+        this.adminAccount = adminAccount;
     }
 
     public enum Status {

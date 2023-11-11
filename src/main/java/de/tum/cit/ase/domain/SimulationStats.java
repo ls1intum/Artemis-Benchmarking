@@ -18,7 +18,7 @@ public class SimulationStats {
     private Long id;
 
     @Column(name = "number_of_requests", nullable = false)
-    private int numberOfRequests;
+    private long numberOfRequests;
 
     @Column(name = "avg_response_time", nullable = false)
     private long avgResponseTime;
@@ -43,11 +43,11 @@ public class SimulationStats {
         this.id = id;
     }
 
-    public int getNumberOfRequests() {
+    public long getNumberOfRequests() {
         return numberOfRequests;
     }
 
-    public void setNumberOfRequests(int numberOfRequests) {
+    public void setNumberOfRequests(long numberOfRequests) {
         this.numberOfRequests = numberOfRequests;
     }
 
@@ -81,30 +81,6 @@ public class SimulationStats {
 
     public void setSimulationRun(SimulationRun simulationRun) {
         this.simulationRun = simulationRun;
-    }
-
-    private static long getAverage(Collection<RequestStat> times) {
-        if (times.isEmpty()) {
-            return 0;
-        }
-        return times.stream().map(RequestStat::duration).reduce(0L, Long::sum) / times.size();
-    }
-
-    private static Map<ZonedDateTime, Long> calculateRequestsByMinute(Collection<RequestStat> requestStats) {
-        return requestStats
-            .stream()
-            .collect(Collectors.groupingBy(stat -> stat.dateTime().truncatedTo(ChronoUnit.MINUTES), Collectors.counting()));
-    }
-
-    private static Map<ZonedDateTime, Double> calculateAvgResponseTimeByMinute(Collection<RequestStat> requestStats) {
-        return requestStats
-            .stream()
-            .collect(
-                Collectors.groupingBy(
-                    stat -> stat.dateTime().truncatedTo(ChronoUnit.MINUTES),
-                    Collectors.averagingLong(RequestStat::duration)
-                )
-            );
     }
 
     @Override

@@ -14,13 +14,14 @@ public class StatsByMinute {
     private ZonedDateTime dateTime;
 
     @Column(name = "number_of_requests", nullable = false)
-    private int numberOfRequests;
+    private long numberOfRequests;
 
     @Column(name = "avg_response_time", nullable = false)
     private long avgResponseTime;
 
-    @Column(name = "simulation_stats_id", nullable = false)
-    private Long simulationStatsId;
+    @ManyToOne
+    @JoinColumn(name = "simulation_stats_id", nullable = false)
+    private SimulationStats simulationStats;
 
     public Long getId() {
         return id;
@@ -38,11 +39,11 @@ public class StatsByMinute {
         this.dateTime = dateTime;
     }
 
-    public int getNumberOfRequests() {
+    public long getNumberOfRequests() {
         return numberOfRequests;
     }
 
-    public void setNumberOfRequests(int numberOfRequests) {
+    public void setNumberOfRequests(long numberOfRequests) {
         this.numberOfRequests = numberOfRequests;
     }
 
@@ -54,11 +55,11 @@ public class StatsByMinute {
         this.avgResponseTime = avgResponseTime;
     }
 
-    public Long getSimulationStatsId() {
-        return simulationStatsId;
+    public SimulationStats getSimulationStats() {
+        return simulationStats;
     }
 
-    public void setSimulationStatsId(Long simulationStatsId) {
-        this.simulationStatsId = simulationStatsId;
+    public void setSimulationStats(SimulationStats simulationStats) {
+        this.simulationStats = simulationStats;
     }
 }

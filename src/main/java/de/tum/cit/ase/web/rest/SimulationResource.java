@@ -1,9 +1,10 @@
 package de.tum.cit.ase.web.rest;
 
+import de.tum.cit.ase.domain.Simulation;
+import de.tum.cit.ase.domain.SimulationRun;
 import de.tum.cit.ase.security.AuthoritiesConstants;
-import de.tum.cit.ase.service.SimulationService;
-import de.tum.cit.ase.service.artemis.ArtemisServer;
-import de.tum.cit.ase.web.dto.ArtemisAccountDTO;
+import de.tum.cit.ase.service.SimulationDataService;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,32 +15,78 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
 public class SimulationResource {
 
-    private final SimulationService simulationService;
+    private final SimulationDataService simulationDataService;
 
-    public SimulationResource(SimulationService simulationService) {
-        this.simulationService = simulationService;
+    public SimulationResource(SimulationDataService simulationService) {
+        this.simulationDataService = simulationService;
     }
 
+    /**
+     * POST /api/simulations : Create a new simulation (without starting it).
+     *
+     * @param simulation the simulation to create
+     * @return the ResponseEntity with status 200 (OK) and with body the new simulation, or with status 400 (Bad Request) if the simulation is invalid
+     */
     @PostMapping
-    public ResponseEntity<Void> startSimulation(
-        @RequestParam(value = "users") int numberOfUsers,
-        @RequestParam(value = "courseId") int courseId,
-        @RequestParam(value = "examId") int examId,
-        @RequestParam(value = "server") ArtemisServer server,
-        @RequestBody(required = false) ArtemisAccountDTO artemisAccountDTO
-    ) {
-        if (numberOfUsers <= 0 || courseId < 0 || examId < 0 || server == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Simulation> createSimulation(@RequestBody Simulation simulation) {
+        validateNewSimulation(simulation);
+        return new ResponseEntity<>(simulationDataService.createSimulation(simulation), HttpStatus.OK);
+    }
+
+    /**
+     * GET /api/simulations : Get all simulations.
+     *
+     * @return the ResponseEntity with status 200 (OK) and with body the list of simulations
+     */
+    @GetMapping
+    public ResponseEntity<List<Simulation>> getAllSimulations() {
+        return new ResponseEntity<>(simulationDataService.getAllSimulations(), HttpStatus.OK);
+    }
+
+    /**
+     * GET /api/simulations/{simulationId} : Get a simulation.
+     *
+     * @param simulationId the ID of the simulation to get
+     * @return the ResponseEntity with status 200 (OK) and with body the simulation, or with status 404 (Not Found) if the simulation does not exist
+     */
+    @GetMapping("/{simulationId}")
+    public ResponseEntity<Simulation> getSimulation(@PathVariable long simulationId) {
+        return new ResponseEntity<>(simulationDataService.getSimulation(simulationId), HttpStatus.OK);
+    }
+
+    /**
+     * POST /api/simulations/{simulationId}/run : Create and queue a new run for the given simulation.
+     *
+     * @param simulationId the ID of the simulation to run
+     * @return the ResponseEntity with status 200 (OK) and with body the queued simulation run, or with status 404 (Not Found) if the simulation does not exist
+     */
+    @PostMapping("/{simulationId}/run")
+    public ResponseEntity<SimulationRun> runSimulation(@PathVariable long simulationId) {
+        var run = simulationDataService.createAndQueueSimulationRun(simulationId);
+        return new ResponseEntity<>(run, HttpStatus.OK);
+    }
+
+    private void validateNewSimulation(Simulation simulation) {
+        if (simulation == null) {
+            throw new IllegalArgumentException("Simulation must not be null");
+        }
+        if (simulation.getId() != null) {
+            throw new IllegalArgumentException("Simulation ID must be null");
+        }
+        if (
+            simulation.getNumberOfUsers() <= 0 ||
+            simulation.getCourseId() < 0 ||
+            simulation.getExamId() < 0 ||
+            simulation.getServer() == null
+        ) {
+            throw new IllegalArgumentException("Invalid simulation");
         }
         // Either both zero or both non-zero
-        if ((courseId == 0) ^ (examId == 0)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        if ((simulation.getCourseId() == 0) ^ (simulation.getExamId() == 0)) {
+            throw new IllegalArgumentException("Invalid simulation");
         }
-        // Production only with admin account
-        if (server == ArtemisServer.PRODUCTION && artemisAccountDTO == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        if (simulation.getRuns() != null && !simulation.getRuns().isEmpty()) {
+            throw new IllegalArgumentException("Simulation must not have any runs");
         }
-        simulationService.simulateExam(numberOfUsers, courseId, examId, server, artemisAccountDTO);
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

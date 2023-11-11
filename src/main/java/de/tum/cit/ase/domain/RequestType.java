@@ -1,6 +1,7 @@
 package de.tum.cit.ase.domain;
 
 public enum RequestType {
+    TOTAL,
     AUTHENTICATION,
     GET_STUDENT_EXAM,
     START_STUDENT_EXAM,
