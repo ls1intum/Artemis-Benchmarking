@@ -27,6 +27,10 @@ public class Simulation {
     @Column(nullable = false)
     private ArtemisServer server;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Mode mode;
+
     @OneToMany(mappedBy = "simulation", fetch = FetchType.EAGER)
     private Set<SimulationRun> runs;
 
@@ -84,5 +88,39 @@ public class Simulation {
 
     public void setRuns(Set<SimulationRun> runs) {
         this.runs = runs;
+    }
+
+    public Mode getMode() {
+        return mode;
+    }
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
+    }
+
+    public enum Mode {
+        /**
+         * We create a temporary course and exam, prepare the exam and delete everything afterwards.
+         * Required rights: ADMIN
+         */
+        CREATE_COURSE_AND_EXAM,
+
+        /**
+         * We use an existing course and exam and prepare the exam (= generate student-exams, prepare exercise start, change start time).
+         * Required rights: INSTRUCTOR
+         */
+        EXISTING_COURSE_UNPREPARED_EXAM,
+
+        /**
+         * We use an existing course and exam that is already fully prepared.
+         * Required rights: NONE
+         */
+        EXISTING_COURSE_PREPARED_EXAM,
+
+        /**
+         * We use an existing course and create a temporary exam, prepare the exam and delete the exam afterwards.
+         * Required rights: INSTRUCTOR
+         */
+        EXISTING_COURSE_CREATE_EXAM,
     }
 }

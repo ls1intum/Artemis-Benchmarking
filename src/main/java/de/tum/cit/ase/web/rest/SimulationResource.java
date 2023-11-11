@@ -4,6 +4,7 @@ import de.tum.cit.ase.domain.Simulation;
 import de.tum.cit.ase.domain.SimulationRun;
 import de.tum.cit.ase.security.AuthoritiesConstants;
 import de.tum.cit.ase.service.SimulationDataService;
+import de.tum.cit.ase.util.ArtemisAccountDTO;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,18 @@ public class SimulationResource {
      */
     @PostMapping
     public ResponseEntity<Simulation> createSimulation(@RequestBody Simulation simulation) {
-        validateNewSimulation(simulation);
+        if (simulation == null) {
+            throw new IllegalArgumentException("Simulation must not be null");
+        }
+        if (simulation.getId() != null) {
+            throw new IllegalArgumentException("Simulation ID must be null");
+        }
+        if (simulation.getRuns() != null && !simulation.getRuns().isEmpty()) {
+            throw new IllegalArgumentException("Simulation must not have any runs");
+        }
+        if (!simulationDataService.validateSimulation(simulation)) {
+            throw new IllegalArgumentException("Invalid simulation");
+        }
         return new ResponseEntity<>(simulationDataService.createSimulation(simulation), HttpStatus.OK);
     }
 
@@ -61,32 +73,11 @@ public class SimulationResource {
      * @return the ResponseEntity with status 200 (OK) and with body the queued simulation run, or with status 404 (Not Found) if the simulation does not exist
      */
     @PostMapping("/{simulationId}/run")
-    public ResponseEntity<SimulationRun> runSimulation(@PathVariable long simulationId) {
-        var run = simulationDataService.createAndQueueSimulationRun(simulationId);
+    public ResponseEntity<SimulationRun> runSimulation(
+        @PathVariable long simulationId,
+        @RequestBody(required = false) ArtemisAccountDTO accountDTO
+    ) {
+        var run = simulationDataService.createAndQueueSimulationRun(simulationId, accountDTO);
         return new ResponseEntity<>(run, HttpStatus.OK);
-    }
-
-    private void validateNewSimulation(Simulation simulation) {
-        if (simulation == null) {
-            throw new IllegalArgumentException("Simulation must not be null");
-        }
-        if (simulation.getId() != null) {
-            throw new IllegalArgumentException("Simulation ID must be null");
-        }
-        if (
-            simulation.getNumberOfUsers() <= 0 ||
-            simulation.getCourseId() < 0 ||
-            simulation.getExamId() < 0 ||
-            simulation.getServer() == null
-        ) {
-            throw new IllegalArgumentException("Invalid simulation");
-        }
-        // Either both zero or both non-zero
-        if ((simulation.getCourseId() == 0) ^ (simulation.getExamId() == 0)) {
-            throw new IllegalArgumentException("Invalid simulation");
-        }
-        if (simulation.getRuns() != null && !simulation.getRuns().isEmpty()) {
-            throw new IllegalArgumentException("Simulation must not have any runs");
-        }
     }
 }
