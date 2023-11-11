@@ -14,7 +14,11 @@
     </div>
     <div class="input-wrapper">
       <label for="useExisitingExam">Use existing exam</label>
-      <input id="useExisitingExam" type="checkbox" [(ngModel)]="useExistingExam" />
+      <input id="useExisitingExam" type="checkbox" [(ngModel)]="useExistingExam" (change)="useExistingExamChanged()" />
+    </div>
+    <div class="input-wrapper" *ngIf="useExistingExam">
+      <label for="noPreparation">No preparation</label>
+      <input id="noPreparation" type="checkbox" [(ngModel)]="noPreparation" />
     </div>
     <div class="input-wrapper" *ngIf="useExistingExam">
       <label for="course">Course ID</label>
@@ -24,11 +28,11 @@
       <label for="exam">Exam ID</label>
       <input id="exam" type="number" min="0" [(ngModel)]="examId" />
     </div>
-    <div class="input-wrapper" *ngIf="selectedServer == ArtemisServer.PRODUCTION">
+    <div class="input-wrapper" *ngIf="selectedServer == ArtemisServer.PRODUCTION && !noPreparation">
       <label for="adminUsername">Admin Username</label>
       <input id="adminUsername" type="text" [(ngModel)]="adminUsername" />
     </div>
-    <div class="input-wrapper" *ngIf="selectedServer == ArtemisServer.PRODUCTION">
+    <div class="input-wrapper" *ngIf="selectedServer == ArtemisServer.PRODUCTION && !noPreparation">
       <label for="adminPassword">Admin Password</label>
       <input id="adminPassword" type="password" [(ngModel)]="adminPassword" />
     </div>
@@ -63,9 +67,9 @@
     <p>
       The Benchmarking Tool will use an existing exam for the simulation. Please specify the IDs of course and exam and make sure that the
       necessary number of test-users (1 - {{ numberOfUsers }}) are registered for the exam.
-      <span class="warning">Please be aware that:</span>
+      <span class="warning" *ngIf="!noPreparation">Please be aware that:</span>
     </p>
-    <ul>
+    <ul *ngIf="!noPreparation">
       <li>The start- and end-date of the exam will be changed. The change will NOT be undone after the simulation!</li>
       <li>
         The student exams will be (re-)generated and prepared. This affects the exams of ALL registered students, not just the test-users!
@@ -76,6 +80,9 @@
         <span class="warning">Make sure that no real students are registered!</span>
       </li>
     </ul>
+    <p *ngIf="noPreparation">
+      The Benchmarking Tool will not make any changes in the course and exam. Please make sure that the exam is fully prepared.
+    </p>
     <ng-container *ngIf="selectedServer == ArtemisServer.PRODUCTION">
       <p>
         The Benchmarking Tool will simulate on the <span class="warning">Artemis Production Instance</span>! (<a
@@ -83,8 +90,10 @@
           href="https://artemis.cit.tum.de"
           >https://artemis.cit.tum.de</a
         >)<br />
-        Since the tool does not have admin access on Production, you need to provide admin credentials. They will only be used for this one
-        simulation and not be stored.
+        <span *ngIf="!noPreparation"
+          >Since the tool does not have admin access on Production, you need to provide admin credentials. They will only be used for this
+          one simulation and not be stored.</span
+        >
       </p>
       <p>
         Please note that performing a simulation with a large number of users can have a negative impact on the performance of the

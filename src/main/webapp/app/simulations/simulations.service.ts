@@ -51,10 +51,20 @@ export class SimulationsService {
     courseId: number,
     examId: number,
     server: ArtemisServer,
+    noPreparation: boolean,
     account?: ArtemisAccountDTO,
   ): Observable<object> {
     const endpoint = this.applicationConfigService.getEndpointFor(
-      '/api/simulations?users=' + numberOfUsers + '&courseId=' + courseId + '&examId=' + examId + '&server=' + server,
+      '/api/simulations?users=' +
+        numberOfUsers +
+        '&courseId=' +
+        courseId +
+        '&examId=' +
+        examId +
+        '&server=' +
+        server +
+        '&noPreparation=' +
+        noPreparation,
     );
     if (!window.location.protocol.startsWith('https:')) {
       // Only send credentials over HTTPS

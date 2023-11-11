@@ -26,6 +26,7 @@ public class SimulationResource {
         @RequestParam(value = "courseId") int courseId,
         @RequestParam(value = "examId") int examId,
         @RequestParam(value = "server") ArtemisServer server,
+        @RequestParam(value = "noPreparation") boolean noPreparation,
         @RequestBody(required = false) ArtemisAccountDTO artemisAccountDTO
     ) {
         if (numberOfUsers <= 0 || courseId < 0 || examId < 0 || server == null) {
@@ -35,11 +36,14 @@ public class SimulationResource {
         if ((courseId == 0) ^ (examId == 0)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        // Production only with admin account
-        if (server == ArtemisServer.PRODUCTION && artemisAccountDTO == null) {
+        // Production with preparation only with admin account
+        if (server == ArtemisServer.PRODUCTION && artemisAccountDTO == null && !noPreparation) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        simulationService.simulateExam(numberOfUsers, courseId, examId, server, artemisAccountDTO);
+        if (courseId == 0 && noPreparation) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        simulationService.simulateExam(numberOfUsers, courseId, examId, server, noPreparation, artemisAccountDTO);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

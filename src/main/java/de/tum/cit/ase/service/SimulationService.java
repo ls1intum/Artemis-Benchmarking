@@ -46,69 +46,76 @@ public class SimulationService {
         long courseId,
         long examId,
         ArtemisServer server,
+        boolean noPreparation,
         ArtemisAccountDTO artemisAccountDTO
     ) {
         boolean cleanupNeeded = false;
-        ArtemisAdmin admin;
+        ArtemisAdmin admin = null;
 
         logAndSendInfo("Starting simulation with %d users on %s...", numberOfUsers, server.name());
 
-        try {
-            logAndSendInfo("Initializing admin...");
-            admin = server == ArtemisServer.PRODUCTION ? initializeAdminWithAccount(server, artemisAccountDTO) : initializeAdmin(server);
-        } catch (Exception e) {
-            logAndSendError("Error while initializing admin: %s", e.getMessage());
-            simulationWebsocketService.sendSimulationFailed();
-            return;
-        }
-
-        if (courseId == 0L && examId == 0L) {
-            logAndSendInfo("No course and exam specified. Creating course and exam...");
-            cleanupNeeded = true;
-            Course course;
-
-            // Create course
+        if (!noPreparation) {
             try {
-                course = admin.createCourse();
+                logAndSendInfo("Initializing admin...");
+                admin =
+                    server == ArtemisServer.PRODUCTION ? initializeAdminWithAccount(server, artemisAccountDTO) : initializeAdmin(server);
             } catch (Exception e) {
-                logAndSendError("Error while creating course: %s", e.getMessage());
+                logAndSendError("Error while initializing admin: %s", e.getMessage());
                 simulationWebsocketService.sendSimulationFailed();
                 return;
             }
-            logAndSendInfo("Successfully created course. Course ID: %d", course.getId());
-            // Create exam
+
+            if (courseId == 0L && examId == 0L) {
+                logAndSendInfo("No course and exam specified. Creating course and exam...");
+                cleanupNeeded = true;
+                Course course;
+
+                // Create course
+                try {
+                    course = admin.createCourse();
+                } catch (Exception e) {
+                    logAndSendError("Error while creating course: %s", e.getMessage());
+                    simulationWebsocketService.sendSimulationFailed();
+                    return;
+                }
+                logAndSendInfo("Successfully created course. Course ID: %d", course.getId());
+                // Create exam
+                try {
+                    var exam = createAndInitializeExam(numberOfUsers, server, admin, course);
+                    courseId = exam.getCourse().getId();
+                    examId = exam.getId();
+                } catch (Exception e) {
+                    logAndSendError("Error while creating exam: %s", e.getMessage());
+                    ArtemisAdmin finalAdmin = admin;
+                    new Thread(() -> cleanup(finalAdmin, course.getId())).start();
+                    simulationWebsocketService.sendSimulationFailed();
+                    return;
+                }
+                logAndSendInfo("Successfully initialized exam. Exam ID: %d", examId);
+            } else {
+                logAndSendInfo("Using existing course %d and exam %d.", courseId, examId);
+            }
             try {
-                var exam = createAndInitializeExam(numberOfUsers, server, admin, course);
-                courseId = exam.getCourse().getId();
-                examId = exam.getId();
+                logAndSendInfo("Preparing exam for simulation...");
+                admin.prepareExam(courseId, examId);
             } catch (Exception e) {
-                logAndSendError("Error while creating exam: %s", e.getMessage());
-                cleanup(admin, course.getId());
+                logAndSendError("Error while preparing exam: %s", e.getMessage());
+                if (cleanupNeeded) {
+                    ArtemisAdmin finalAdmin1 = admin;
+                    long finalCourseId1 = courseId;
+                    new Thread(() -> cleanup(finalAdmin1, finalCourseId1)).start();
+                }
                 simulationWebsocketService.sendSimulationFailed();
                 return;
             }
-            logAndSendInfo("Successfully initialized exam. Exam ID: %d", examId);
-        } else {
-            logAndSendInfo("Using existing course %d and exam %d.", courseId, examId);
-        }
-        try {
-            logAndSendInfo("Preparing exam for simulation...");
-            admin.prepareExam(courseId, examId);
-        } catch (Exception e) {
-            logAndSendError("Error while preparing exam: %s", e.getMessage());
-            if (cleanupNeeded) {
-                cleanup(admin, courseId);
-            }
-            simulationWebsocketService.sendSimulationFailed();
-            return;
-        }
 
-        logAndSendInfo("Preparation finished...");
-        try {
-            // Wait for a couple of seconds. Without this, students cannot access their repos.
-            // Not sure why this is necessary, trying to figure it out
-            sleep(5_000);
-        } catch (InterruptedException ignored) {}
+            logAndSendInfo("Preparation finished...");
+            try {
+                // Wait for a couple of seconds. Without this, students cannot access their repos.
+                // Not sure why this is necessary, trying to figure it out
+                sleep(5_000);
+            } catch (InterruptedException ignored) {}
+        }
 
         logAndSendInfo("Starting simulation...");
 
@@ -143,7 +150,9 @@ public class SimulationService {
         } catch (Exception e) {
             logAndSendError("Error while performing simulation: %s", e.getMessage());
             if (cleanupNeeded) {
-                cleanup(admin, courseId);
+                ArtemisAdmin finalAdmin2 = admin;
+                long finalCourseId2 = courseId;
+                new Thread(() -> cleanup(finalAdmin2, finalCourseId2)).start();
             }
             simulationWebsocketService.sendSimulationFailed();
             return;
@@ -156,7 +165,9 @@ public class SimulationService {
         simulationWebsocketService.sendSimulationResult(simulationResult);
         if (cleanupNeeded) {
             simulationWebsocketService.sendSimulationError("The result is available, but please note that the cleanup is still running!");
-            cleanup(admin, courseId);
+            ArtemisAdmin finalAdmin3 = admin;
+            long finalCourseId3 = courseId;
+            new Thread(() -> cleanup(finalAdmin3, finalCourseId3)).start();
         }
         simulationWebsocketService.sendSimulationCompleted();
     }
@@ -182,7 +193,7 @@ public class SimulationService {
 
         logAndSendInfo("Successfully created course and exam. Waiting for synchronization of user groups (1 min)...");
         try {
-            sleep(1000 * 60); //Wait for 1 minutes until user groups are synchronized
+            sleep(1000 * 60); //Wait for 1 minute until user groups are synchronized
         } catch (InterruptedException ignored) {}
 
         // Create exam exercises and register students
@@ -233,16 +244,13 @@ public class SimulationService {
     }
 
     private void cleanup(ArtemisAdmin admin, long courseId) {
-        logAndSendInfo("Cleaning up... Depending on the number of users, this may take a few minutes.");
+        logAndSendInfo("Cleaning up... Note that the cleanup will happen in 15min.");
         try {
-            sleep(1000 * 10); // Give the server a few seconds to recover
+            sleep(1000 * 60 * 15); // Wait 15min for builds to finish before deleting the course
             admin.deleteCourse(courseId);
-            logAndSendInfo("Successfully cleaned up.");
+            logAndSendInfo("Successfully cleaned up course %d.", courseId);
         } catch (Exception e) {
-            logAndSendError("Error while cleaning up: %s", e.getMessage());
-            logAndSendError(
-                "The deletion of the course failed, potentially due to overloading of the Artemis Server. Please wait a few minutes and then delete the course 'Temporary Benchmarking Exam' manually. If the course is already deleted, make sure that the project 'benchmark Programming Exercise for Benchmarking' is deleted from the VCS as well."
-            );
+            logAndSendError("Error while cleaning up course %d: %s", courseId, e.getMessage());
         }
     }
 
