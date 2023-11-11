@@ -1,5 +1,6 @@
 package de.tum.cit.ase.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
 import jakarta.persistence.*;
 import java.time.ZonedDateTime;
@@ -20,14 +21,15 @@ public class SimulationRun {
     @Column(nullable = false)
     private Status status;
 
-    @OneToMany(orphanRemoval = true, mappedBy = "simulationRun")
+    @OneToMany(orphanRemoval = true, mappedBy = "simulationRun", fetch = FetchType.EAGER)
     private Set<SimulationStats> stats;
 
     @ManyToOne
     @JoinColumn(name = "simulation_id", nullable = false)
+    @JsonIgnore
     private Simulation simulation;
 
-    @OneToMany(orphanRemoval = true, mappedBy = "simulationRun")
+    @OneToMany(orphanRemoval = true, mappedBy = "simulationRun", fetch = FetchType.EAGER)
     private Set<LogMessage> logMessages;
 
     @Transient

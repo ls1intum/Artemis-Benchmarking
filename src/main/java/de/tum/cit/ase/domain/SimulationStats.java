@@ -1,5 +1,6 @@
 package de.tum.cit.ase.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.tum.cit.ase.util.TimeLogUtil;
 import jakarta.persistence.*;
 import java.util.Set;
@@ -17,7 +18,7 @@ public class SimulationStats {
     @Column(name = "avg_response_time", nullable = false)
     private long avgResponseTime;
 
-    @OneToMany(orphanRemoval = true)
+    @OneToMany(orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "simulation_stats_id")
     private Set<StatsByMinute> statsByMinute;
 
@@ -27,6 +28,7 @@ public class SimulationStats {
 
     @ManyToOne
     @JoinColumn(name = "simulation_run_id", nullable = false)
+    @JsonIgnore
     private SimulationRun simulationRun;
 
     public Long getId() {

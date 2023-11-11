@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { SimulationsService } from './simulations.service';
-import { SimulationResult } from './simulationResult';
-import { ArtemisServer } from './artemisServer';
-import { LogMessage } from './logMessage';
-import { ArtemisAccountDTO } from './artemisAccountDTO';
+import { SimulationResult } from '../models/simulationResult';
+import { ArtemisServer } from '../models/artemisServer';
+import { LogMessage } from '../models/logMessage';
+import { ArtemisAccountDTO } from '../models/artemisAccountDTO';
 import { ProfileService } from '../layouts/profiles/profile.service';
 
 @Component({
@@ -56,6 +56,9 @@ export class SimulationsComponent implements OnInit {
       } else if (!profileInfo.inProduction && !this.availableServers.includes(ArtemisServer.LOCAL)) {
         this.availableServers.push(ArtemisServer.LOCAL);
       }
+    });
+    this.simulationsService.getSimulations().subscribe(simulations => {
+      console.log(simulations);
     });
   }
   startSimulation(): void {

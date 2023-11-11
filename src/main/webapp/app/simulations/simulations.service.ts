@@ -2,11 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ApplicationConfigService } from '../core/config/application-config.service';
 import { Observable } from 'rxjs/internal/Observable';
-import { ArtemisServer } from './artemisServer';
-import { Subscription } from 'rxjs';
+import { ArtemisServer } from '../models/artemisServer';
+import { Subscription, map } from 'rxjs';
 import { WebsocketService } from '../core/websocket/websocket.service';
-import { SimulationResult } from './simulationResult';
-import { ArtemisAccountDTO } from './artemisAccountDTO';
+import { SimulationResult } from '../models/simulationResult';
+import { ArtemisAccountDTO } from '../models/artemisAccountDTO';
+import { Simulation } from '../models/simulation';
+import { SimulationRun } from '../models/simulationRun';
 
 @Injectable({
   providedIn: 'root',
@@ -61,6 +63,26 @@ export class SimulationsService {
       account = undefined;
     }
     return this.httpClient.post(endpoint, account);
+  }
+
+  createSimulation(simulation: Simulation): Observable<Simulation> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations');
+    return this.httpClient.post(endpoint, simulation).pipe(map((res: any) => res.body as Simulation));
+  }
+
+  getSimulations(): Observable<Simulation[]> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations');
+    return this.httpClient.get(endpoint).pipe(map((res: any) => res.body as Simulation[]));
+  }
+
+  getSimulation(simulationId: number): Observable<Simulation> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId);
+    return this.httpClient.get(endpoint).pipe(map((res: any) => res.body as Simulation));
+  }
+
+  runSimulation(simulationId: number): Observable<SimulationRun> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId + '/run');
+    return this.httpClient.post(endpoint, {}).pipe(map((res: any) => res.body as SimulationRun));
   }
 
   private unsubscribeFromSimulationUpdates(): void {

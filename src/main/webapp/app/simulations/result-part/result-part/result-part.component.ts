@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { SimulationStats } from '../../simulationStats';
+import { SimulationStats } from '../../../models/simulationStats';
 
 @Component({
   selector: 'jhi-result-part',

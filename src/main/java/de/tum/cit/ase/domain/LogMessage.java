@@ -1,5 +1,6 @@
 package de.tum.cit.ase.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.io.Serial;
 import java.time.ZonedDateTime;
@@ -18,6 +19,7 @@ public class LogMessage {
 
     @ManyToOne
     @JoinColumn(name = "simulation_run_id", nullable = false)
+    @JsonIgnore
     private SimulationRun simulationRun;
 
     public Long getId() {

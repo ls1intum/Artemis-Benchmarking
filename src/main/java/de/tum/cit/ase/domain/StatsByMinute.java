@@ -1,5 +1,6 @@
 package de.tum.cit.ase.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.ZonedDateTime;
 
@@ -21,6 +22,7 @@ public class StatsByMinute {
 
     @ManyToOne
     @JoinColumn(name = "simulation_stats_id", nullable = false)
+    @JsonIgnore
     private SimulationStats simulationStats;
 
     public Long getId() {
