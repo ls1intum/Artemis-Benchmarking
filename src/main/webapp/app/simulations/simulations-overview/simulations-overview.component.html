@@ -1,1 +1,27 @@
-<p>simulations-overview works!</p>
+<div class="flex-wrapper">
+  <div class="w-25 me-3 overflow-scroll">
+    <jhi-simulation-card *ngFor="let simulation of simulations" [simulation]="simulation"></jhi-simulation-card>
+  </div>
+  <div class="w-75">
+    <div class="space-between-wrapper">
+      <h3>Run #{{ selectedRun?.id }} - {{ selectedRun?.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</h3>
+      <h3 class="pe-3">
+        <jhi-status-icon [status]="selectedRun?.status"></jhi-status-icon>
+      </h3>
+    </div>
+    <div ngbAccordion>
+      <div ngbAccordionItem [collapsed]="false">
+        <h2 ngbAccordionHeader>
+          <button ngbAccordionButton>Log Messages</button>
+        </h2>
+        <div ngbAccordionCollapse>
+          <div ngbAccordionBody class="p-0">
+            <ng-template>
+              <jhi-log-box [logMessages]="selectedRun?.logMessages"></jhi-log-box>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

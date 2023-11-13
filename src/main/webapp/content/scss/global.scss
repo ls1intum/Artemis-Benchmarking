@@ -217,6 +217,19 @@ ui bootstrap tweaks
 }
 
 /* ==========================================================================
+Custom layouts
+========================================================================== */
+.space-between-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.flex-wrapper {
+  display: flex;
+  flex-direction: row;
+}
+
+/* ==========================================================================
 angular-cli removes postcss-rtl processed inline css, processed rules must be added here instead
 ========================================================================== */
 /* page-ribbon.component.scss */

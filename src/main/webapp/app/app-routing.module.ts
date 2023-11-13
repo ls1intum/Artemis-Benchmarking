@@ -10,6 +10,7 @@ import { SimulationsComponent } from './simulations/simulations.component';
 
 import { RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
+import { SimulationsOverviewComponent } from './simulations/simulations-overview/simulations-overview.component';
 
 @NgModule({
   imports: [
@@ -51,7 +52,7 @@ import { NgModule } from '@angular/core';
           data: {
             authorities: [Authority.ADMIN],
           },
-          component: SimulationsComponent,
+          component: SimulationsOverviewComponent,
           title: 'Simulations',
           canActivate: [UserRouteAccessService],
         },

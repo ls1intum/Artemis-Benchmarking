@@ -13,15 +13,17 @@ import locale from '@angular/common/locales/en';
 import { BrowserModule, Title } from '@angular/platform-browser';
 import { TitleStrategy } from '@angular/router';
 import { ServiceWorkerModule } from '@angular/service-worker';
-import { FaIconLibrary } from '@fortawesome/angular-fontawesome';
+import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import dayjs from 'dayjs/esm';
-import { NgbDateAdapter, NgbDatepickerConfig, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbAccordionModule, NgbDateAdapter, NgbDatepickerConfig, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { SimulationsComponent } from './simulations/simulations.component';
 import { FormsModule } from '@angular/forms';
 
 import './config/dayjs';
-import { ResultPartComponent } from './simulations/result-part/result-part/result-part.component';
 import { SimulationsOverviewComponent } from './simulations/simulations-overview/simulations-overview.component';
+import { SimulationCardComponent } from './layouts/simulation-card/simulation-card.component';
+import { StatusIconComponent } from './layouts/status-icon/status-icon.component';
+import { LogBoxComponent } from './layouts/log-box/log-box.component';
 // jhipster-needle-angular-add-module-import JHipster will add new module here
 
 @NgModule({
@@ -35,6 +37,8 @@ import { SimulationsOverviewComponent } from './simulations/simulations-overview
     MainModule,
     FormsModule,
     NgbModule,
+    FontAwesomeModule,
+    NgbAccordionModule,
   ],
   providers: [
     Title,
@@ -44,7 +48,7 @@ import { SimulationsOverviewComponent } from './simulations/simulations-overview
     { provide: TitleStrategy, useClass: AppPageTitleStrategy },
   ],
   bootstrap: [MainComponent],
-  declarations: [SimulationsComponent, ResultPartComponent, SimulationsOverviewComponent],
+  declarations: [SimulationsComponent, SimulationsOverviewComponent, SimulationCardComponent, StatusIconComponent, LogBoxComponent],
 })
 export class AppModule {
   constructor(applicationConfigService: ApplicationConfigService, iconLibrary: FaIconLibrary, dpConfig: NgbDatepickerConfig) {

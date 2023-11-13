@@ -67,22 +67,22 @@ export class SimulationsService {
 
   createSimulation(simulation: Simulation): Observable<Simulation> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations');
-    return this.httpClient.post(endpoint, simulation).pipe(map((res: any) => res.body as Simulation));
+    return this.httpClient.post(endpoint, simulation).pipe(map((res: any) => res as Simulation));
   }
 
   getSimulations(): Observable<Simulation[]> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations');
-    return this.httpClient.get(endpoint).pipe(map((res: any) => res.body as Simulation[]));
+    return this.httpClient.get(endpoint).pipe(map((res: any) => res as Simulation[]));
   }
 
   getSimulation(simulationId: number): Observable<Simulation> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId);
-    return this.httpClient.get(endpoint).pipe(map((res: any) => res.body as Simulation));
+    return this.httpClient.get(endpoint).pipe(map((res: any) => res as Simulation));
   }
 
   runSimulation(simulationId: number): Observable<SimulationRun> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId + '/run');
-    return this.httpClient.post(endpoint, {}).pipe(map((res: any) => res.body as SimulationRun));
+    return this.httpClient.post(endpoint, {}).pipe(map((res: any) => res as SimulationRun));
   }
 
   private unsubscribeFromSimulationUpdates(): void {
