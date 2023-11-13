@@ -24,12 +24,13 @@ public class ArtemisAdmin extends ArtemisUser {
     @Override
     protected void checkAccess() {
         var response = webClient.get().uri("api/public/account").retrieve().bodyToMono(User.class).block();
-        this.authenticated = response != null && response.getAuthorities().contains("ROLE_ADMIN");
+        this.authenticated =
+            response != null && (response.getAuthorities().contains("ROLE_ADMIN") || response.getAuthorities().contains("ROLE_INSTRUCTOR"));
     }
 
     public void prepareExam(long courseId, long examId) {
         if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
         var examIdString = String.valueOf(examId);
         var courseIdString = String.valueOf(courseId);
@@ -142,7 +143,7 @@ public class ArtemisAdmin extends ArtemisUser {
 
     public Course createCourse() {
         if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
         var randomInt = (int) (Math.random() * 10_0000);
@@ -160,7 +161,7 @@ public class ArtemisAdmin extends ArtemisUser {
 
     public Exam createExam(Course course) {
         if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
         var exam = new Exam();
@@ -184,7 +185,7 @@ public class ArtemisAdmin extends ArtemisUser {
 
     public void createExamExercises(long courseId, Exam exam) {
         if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
         var textExerciseGroup = new ExerciseGroup();
@@ -327,9 +328,9 @@ public class ArtemisAdmin extends ArtemisUser {
             .block();
     }
 
-    public void registerStudentsForCourseAndExam(long courseId, long examId, int numberOfStudents, String usernameTemplate) {
+    public void registerStudentsForCourse(long courseId, int numberOfStudents, String usernameTemplate) {
         if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
         int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 4, numberOfStudents);
@@ -359,6 +360,12 @@ public class ArtemisAdmin extends ArtemisUser {
             .blockingSubscribe();
         threadPoolExecutor.shutdownNow();
         scheduler.shutdown();
+    }
+
+    public void registerStudentsForExam(long courseId, long examId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
+        }
 
         webClient
             .post()
@@ -372,9 +379,21 @@ public class ArtemisAdmin extends ArtemisUser {
             .block();
     }
 
+    public Course getCourse(long courseId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
+        }
+        return webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", String.valueOf(courseId)).build())
+            .retrieve()
+            .bodyToMono(Course.class)
+            .block();
+    }
+
     public void deleteCourse(long courseId) {
         if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
         webClient

@@ -55,77 +55,123 @@ public class SimulationRunExecutionService {
         var simulation = simulationRun.getSimulation();
         var courseId = simulation.getCourseId();
         var examId = simulation.getExamId();
-        boolean cleanupNeeded = false;
-        ArtemisAdmin admin;
+        ArtemisAdmin admin = null;
 
         logAndSendInfo("Starting simulation with %d users on %s...", simulation.getNumberOfUsers(), simulation.getServer().name());
 
-        try {
-            logAndSendInfo("Initializing admin...");
-            admin =
-                simulation.getServer() == ArtemisServer.PRODUCTION
-                    ? initializeAdminWithAccount(simulation.getServer(), simulationRun.getAdminAccount())
-                    : initializeAdmin(simulation.getServer());
-        } catch (Exception e) {
-            logAndSendError("Error while initializing admin: %s", e.getMessage());
-            simulationWebsocketService.sendSimulationFailed();
-            return;
-        }
+        // Initialize admin if necessary
+        if (simulation.getMode() != Simulation.Mode.EXISTING_COURSE_PREPARED_EXAM) {
+            try {
+                logAndSendInfo("Initializing admin...");
+                admin =
+                    simulation.getServer() == ArtemisServer.PRODUCTION
+                        ? initializeAdminWithAccount(simulation.getServer(), simulationRun.getAdminAccount())
+                        : initializeAdmin(simulation.getServer());
+            } catch (Exception e) {
+                logAndSendError("Error while initializing admin: %s", e.getMessage());
+                simulationWebsocketService.sendSimulationFailed();
+                return;
+            }
 
-        if (courseId == 0L && examId == 0L) {
-            logAndSendInfo("No course and exam specified. Creating course and exam...");
-            cleanupNeeded = true;
             Course course;
+            // Create course if necessary
+            if (simulation.getMode() == Simulation.Mode.CREATE_COURSE_AND_EXAM) {
+                logAndSendInfo("Creating course...");
+                try {
+                    course = admin.createCourse();
+                    courseId = course.getId();
+                } catch (Exception e) {
+                    logAndSendError("Error while creating course: %s", e.getMessage());
+                    simulationWebsocketService.sendSimulationFailed();
+                    return;
+                }
+                logAndSendInfo("Successfully created course. Course ID: %d", courseId);
 
-            // Create course
-            try {
-                course = admin.createCourse();
-            } catch (Exception e) {
-                logAndSendError("Error while creating course: %s", e.getMessage());
-                simulationWebsocketService.sendSimulationFailed();
-                return;
+                // Register students for course
+                logAndSendInfo("Registering students for course...");
+                try {
+                    admin.registerStudentsForCourse(
+                        courseId,
+                        simulation.getNumberOfUsers(),
+                        artemisConfiguration.getUsernameTemplate(simulation.getServer())
+                    );
+                } catch (Exception e) {
+                    logAndSendError("Error while registering students for course: %s", e.getMessage());
+                    cleanup(admin, courseId);
+                    simulationWebsocketService.sendSimulationFailed();
+                    return;
+                }
+            } else {
+                logAndSendInfo("Using existing course.");
+                course = admin.getCourse(courseId);
             }
-            logAndSendInfo("Successfully created course. Course ID: %d", course.getId());
-            // Create exam
-            try {
-                var exam = createAndInitializeExam(simulation.getNumberOfUsers(), simulation.getServer(), admin, course);
-                courseId = exam.getCourse().getId();
-                examId = exam.getId();
-            } catch (Exception e) {
-                logAndSendError("Error while creating exam: %s", e.getMessage());
-                cleanup(admin, course.getId());
-                simulationWebsocketService.sendSimulationFailed();
-                return;
+
+            // Create exam if necessary
+            if (simulation.getMode() != Simulation.Mode.EXISTING_COURSE_UNPREPARED_EXAM) {
+                logAndSendInfo("Creating exam...");
+                Exam exam;
+                try {
+                    exam = admin.createExam(course);
+                    examId = exam.getId();
+                } catch (Exception e) {
+                    logAndSendError("Error while creating exam: %s", e.getMessage());
+                    cleanup(admin, courseId);
+                    simulationWebsocketService.sendSimulationFailed();
+                    return;
+                }
+                logAndSendInfo("Successfully created exam. Exam ID: %d", examId);
+
+                // Create exam exercises
+                logAndSendInfo("Creating exam exercises...");
+                try {
+                    admin.createExamExercises(courseId, exam);
+                } catch (Exception e) {
+                    logAndSendError("Error while creating exam exercises: %s", e.getMessage());
+                    cleanup(admin, courseId);
+                    simulationWebsocketService.sendSimulationFailed();
+                    return;
+                }
+
+                // Register students for exam
+                logAndSendInfo("Registering students for exam...");
+                try {
+                    admin.registerStudentsForExam(courseId, examId);
+                } catch (Exception e) {
+                    logAndSendError("Error while registering students for exam: %s", e.getMessage());
+                    cleanup(admin, courseId);
+                    simulationWebsocketService.sendSimulationFailed();
+                    return;
+                }
+            } else {
+                logAndSendInfo("Using existing exam.");
             }
-            logAndSendInfo("Successfully initialized exam. Exam ID: %d", examId);
-        } else {
-            logAndSendInfo("Using existing course %d and exam %d.", courseId, examId);
-        }
-        try {
-            logAndSendInfo("Preparing exam for simulation...");
-            admin.prepareExam(courseId, examId);
-        } catch (Exception e) {
-            logAndSendError("Error while preparing exam: %s", e.getMessage());
-            if (cleanupNeeded) {
+
+            // Prepare exam for conduction
+            logAndSendInfo("Preparing exam for conduction...");
+            try {
+                admin.prepareExam(courseId, examId);
+            } catch (Exception e) {
+                logAndSendError("Error while preparing exam: %s", e.getMessage());
                 cleanup(admin, courseId);
+                simulationWebsocketService.sendSimulationFailed();
+                return;
             }
-            simulationWebsocketService.sendSimulationFailed();
-            return;
+            try {
+                // Wait for a couple of seconds. Without this, students cannot access their repos.
+                // Not sure why this is necessary, trying to figure it out
+                sleep(5_000);
+            } catch (InterruptedException ignored) {}
+            logAndSendInfo("Preparation finished...");
+        } else {
+            logAndSendInfo("Using existing course and exam. No admin required.");
         }
-
-        logAndSendInfo("Preparation finished...");
-        try {
-            // Wait for a couple of seconds. Without this, students cannot access their repos.
-            // Not sure why this is necessary, trying to figure it out
-            sleep(5_000);
-        } catch (InterruptedException ignored) {}
 
         logAndSendInfo("Starting simulation...");
 
         ArtemisStudent[] students = initializeStudents(simulation.getNumberOfUsers(), simulation.getServer());
 
-        // We want to simulate with as many threads as possible, at least 20
-        int minNumberOfReads = Integer.max(Runtime.getRuntime().availableProcessors() * 4, 20);
+        // We want to simulate with as many threads as possible, at least 80
+        int minNumberOfReads = Integer.max(Runtime.getRuntime().availableProcessors() * 4, 80);
         int threadCount = Integer.min(minNumberOfReads, simulation.getNumberOfUsers());
         logAndSendInfo("Using %d threads for simulation.", threadCount);
 
@@ -164,20 +210,12 @@ public class SimulationRunExecutionService {
             );
         } catch (Exception e) {
             logAndSendError("Error while performing simulation: %s", e.getMessage());
-            if (cleanupNeeded) {
-                cleanup(admin, courseId);
-            }
             simulationWebsocketService.sendSimulationFailed();
             return;
         }
 
-        logRequestStatsPerMinute(requestStats);
         logAndSendInfo("Simulation finished.");
         SimulationRun runWithResult = simulationResultService.calculateAndSaveResult(simulationRun, requestStats);
-        if (cleanupNeeded) {
-            simulationWebsocketService.sendSimulationError("The result is available, but please note that the cleanup is still running!");
-            cleanup(admin, courseId);
-        }
         simulationWebsocketService.sendSimulationCompleted();
     }
 
@@ -195,27 +233,6 @@ public class SimulationRunExecutionService {
         var admin = new ArtemisAdmin(artemisAccountDTO.getUsername(), artemisAccountDTO.getPassword(), artemisConfiguration.getUrl(server));
         admin.login();
         return admin;
-    }
-
-    private Exam createAndInitializeExam(int numberOfUsers, ArtemisServer server, ArtemisAdmin admin, Course course) {
-        var exam = admin.createExam(course);
-
-        logAndSendInfo("Successfully created course and exam. Waiting for synchronization of user groups (1 min)...");
-        try {
-            sleep(1000 * 60); //Wait for 1 minutes until user groups are synchronized
-        } catch (InterruptedException ignored) {}
-
-        // Create exam exercises and register students
-        logAndSendInfo("Creating exam exercises...");
-        admin.createExamExercises(course.getId(), exam);
-        logAndSendInfo("Registering students...");
-        admin.registerStudentsForCourseAndExam(
-            course.getId(),
-            exam.getId(),
-            numberOfUsers,
-            artemisConfiguration.getUsernameTemplate(server)
-        );
-        return exam;
     }
 
     private ArtemisStudent[] initializeStudents(int numberOfUsers, ArtemisServer server) {
@@ -253,52 +270,7 @@ public class SimulationRunExecutionService {
     }
 
     private void cleanup(ArtemisAdmin admin, long courseId) {
-        logAndSendInfo("Cleaning up... Depending on the number of users, this may take a few minutes.");
-        try {
-            sleep(1000 * 10); // Give the server a few seconds to recover
-            admin.deleteCourse(courseId);
-            logAndSendInfo("Successfully cleaned up.");
-        } catch (Exception e) {
-            logAndSendError("Error while cleaning up: %s", e.getMessage());
-            logAndSendError(
-                "The deletion of the course failed, potentially due to overloading of the Artemis Server. Please wait a few minutes and then delete the course 'Temporary Benchmarking Exam' manually. If the course is already deleted, make sure that the project 'benchmark Programming Exercise for Benchmarking' is deleted from the VCS as well."
-            );
-        }
-    }
-
-    private void logRequestStatsPerMinute(List<RequestStat> requestStats) {
-        log.info(
-            "Average time for {}x {}: {}, rates: {}",
-            requestStats.size(),
-            "request",
-            TimeLogUtil.formatDuration(getAverage(requestStats)),
-            getRatesPerMinute(requestStats)
-        );
-    }
-
-    private String getRatesPerMinute(List<RequestStat> requestStats) {
-        var formatter = DateTimeFormatter.ofPattern("HH:mm");
-        return requestStats
-            .stream()
-            .map(RequestStat::dateTime)
-            .collect(Collectors.groupingBy(date -> date.format(formatter), TreeMap::new, Collectors.counting()))
-            .toString();
-    }
-
-    private String getRatesPerSecond(List<RequestStat> requestStats) {
-        var formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-        return requestStats
-            .stream()
-            .map(RequestStat::dateTime)
-            .collect(Collectors.groupingBy(date -> date.format(formatter), TreeMap::new, Collectors.counting()))
-            .toString();
-    }
-
-    private long getAverage(Collection<RequestStat> times) {
-        if (times.isEmpty()) {
-            return 0;
-        }
-        return times.stream().map(RequestStat::duration).reduce(0L, Long::sum) / times.size();
+        logAndSendInfo("Cleanup is currently disabled.");
     }
 
     private void logAndSendInfo(String format, Object... args) {
