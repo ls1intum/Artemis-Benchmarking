@@ -1,9 +1,9 @@
-<div class="flex-container">
+<div class="flex-container vh-90">
   <div class="w-25 me-3 overflow-scroll">
     <jhi-simulation-card *ngFor="let simulation of simulations" [simulation]="simulation"></jhi-simulation-card>
   </div>
   <div class="vr"></div>
-  <div class="w-75 ms-3">
+  <div class="w-75 ms-3 overflow-scroll">
     <div class="space-between-wrapper">
       <h3>Run #{{ selectedRun?.id }} - {{ selectedRun?.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</h3>
       <h3 class="pe-3">
