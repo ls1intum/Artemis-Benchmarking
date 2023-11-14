@@ -1,0 +1,3 @@
+<div class="bg-black p-3">
+  <samp *ngFor="let msg of logMessages" [ngClass]="msg.isError ? 'text-danger' : 'text-white'">{{ msg.message }}<br /></samp>
+</div>

@@ -1,0 +1,26 @@
+<div class="card mb-3">
+  <div class="card-header">
+    {{ simulation.name }}
+  </div>
+  <div class="card-body">
+    <div class="space-between-wrapper">
+      <div>
+        <p>{{ simulation.mode }}</p>
+        <p>User: {{ simulation.numberOfUsers }}</p>
+        <p *ngIf="simulation.mode != Mode.CREATE_COURSE_AND_EXAM">Course-ID: {{ simulation.courseId }}</p>
+        <p *ngIf="simulation.mode == Mode.EXISTING_COURSE_PREPARED_EXAM || simulation.mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM">
+          Exam-ID: {{ simulation.examId }}
+        </p>
+      </div>
+      <div>
+        <p>{{ simulation.server }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer" *ngFor="let run of simulation.runs">
+    <div class="space-between-wrapper">
+      <p class="mb-0">{{ run!.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</p>
+      <jhi-status-icon [status]="run!.status"></jhi-status-icon>
+    </div>
+  </div>
+</div>

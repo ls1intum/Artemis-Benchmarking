@@ -1,0 +1,4 @@
+<fa-icon *ngIf="status == Status.FINISHED" [icon]="faCircleCheck" class="text-success"></fa-icon>
+<fa-icon *ngIf="status == Status.FAILED" [icon]="faCircleXmark" class="text-danger"></fa-icon>
+<fa-icon *ngIf="status == Status.QUEUED" [icon]="faCircle" class="text-warning"></fa-icon>
+<fa-icon *ngIf="status == Status.RUNNING" [icon]="faCircleNotch" class="text-info fa-spin" style="display: inline-block"></fa-icon>
