@@ -26,6 +26,7 @@ import { StatusIconComponent } from './layouts/status-icon/status-icon.component
 import { LogBoxComponent } from './layouts/log-box/log-box.component';
 import { ResultBoxComponent } from './layouts/result-box/result-box.component';
 import { CreateSimulationBoxComponent } from './layouts/create-simulation-box/create-simulation-box.component';
+import { ServerBadgeComponent } from './layouts/server-badge/server-badge.component';
 // jhipster-needle-angular-add-module-import JHipster will add new module here
 
 @NgModule({
@@ -58,6 +59,7 @@ import { CreateSimulationBoxComponent } from './layouts/create-simulation-box/cr
     LogBoxComponent,
     ResultBoxComponent,
     CreateSimulationBoxComponent,
+    ServerBadgeComponent,
   ],
 })
 export class AppModule {
