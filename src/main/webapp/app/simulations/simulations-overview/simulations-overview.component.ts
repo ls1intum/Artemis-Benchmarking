@@ -17,7 +17,7 @@ export class SimulationsOverviewComponent implements OnInit {
   ngOnInit(): void {
     this.simulationsService.getSimulations().subscribe(simulations => {
       this.simulations = simulations;
-      this.selectedRun = simulations[2].runs[0];
+      this.selectedRun = simulations[4].runs[0];
     });
   }
 

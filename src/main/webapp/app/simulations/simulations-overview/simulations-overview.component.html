@@ -1,15 +1,16 @@
-<div class="flex-wrapper">
+<div class="flex-container">
   <div class="w-25 me-3 overflow-scroll">
     <jhi-simulation-card *ngFor="let simulation of simulations" [simulation]="simulation"></jhi-simulation-card>
   </div>
-  <div class="w-75">
+  <div class="vr"></div>
+  <div class="w-75 ms-3">
     <div class="space-between-wrapper">
       <h3>Run #{{ selectedRun?.id }} - {{ selectedRun?.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</h3>
       <h3 class="pe-3">
         <jhi-status-icon [status]="selectedRun?.status"></jhi-status-icon>
       </h3>
     </div>
-    <div ngbAccordion>
+    <div ngbAccordion class="mb-3">
       <div ngbAccordionItem [collapsed]="false">
         <h2 ngbAccordionHeader>
           <button ngbAccordionButton>Log Messages</button>
@@ -21,6 +22,11 @@
             </ng-template>
           </div>
         </div>
+      </div>
+    </div>
+    <div class="flex-wrapper">
+      <div class="w-50" *ngFor="let simulationStats of selectedRun?.stats">
+        <jhi-result-box [simulationStats]="simulationStats"></jhi-result-box>
       </div>
     </div>
   </div>

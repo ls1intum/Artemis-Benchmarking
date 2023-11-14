@@ -24,6 +24,7 @@ import { SimulationsOverviewComponent } from './simulations/simulations-overview
 import { SimulationCardComponent } from './layouts/simulation-card/simulation-card.component';
 import { StatusIconComponent } from './layouts/status-icon/status-icon.component';
 import { LogBoxComponent } from './layouts/log-box/log-box.component';
+import { ResultBoxComponent } from './layouts/result-box/result-box.component';
 // jhipster-needle-angular-add-module-import JHipster will add new module here
 
 @NgModule({
@@ -48,7 +49,14 @@ import { LogBoxComponent } from './layouts/log-box/log-box.component';
     { provide: TitleStrategy, useClass: AppPageTitleStrategy },
   ],
   bootstrap: [MainComponent],
-  declarations: [SimulationsComponent, SimulationsOverviewComponent, SimulationCardComponent, StatusIconComponent, LogBoxComponent],
+  declarations: [
+    SimulationsComponent,
+    SimulationsOverviewComponent,
+    SimulationCardComponent,
+    StatusIconComponent,
+    LogBoxComponent,
+    ResultBoxComponent,
+  ],
 })
 export class AppModule {
   constructor(applicationConfigService: ApplicationConfigService, iconLibrary: FaIconLibrary, dpConfig: NgbDatepickerConfig) {

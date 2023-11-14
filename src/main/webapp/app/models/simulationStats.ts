@@ -9,6 +9,6 @@ export class SimulationStats {
     public avgResponseTime: number,
     public simulationRun: SimulationRun,
     public requestType: RequestType,
-    public statsByMinute: StatsByMinute,
+    public statsByMinute: StatsByMinute[],
   ) {}
 }

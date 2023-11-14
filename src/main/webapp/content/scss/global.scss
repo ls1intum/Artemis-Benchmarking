@@ -222,11 +222,16 @@ Custom layouts
 .space-between-wrapper {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 .flex-wrapper {
   display: flex;
-  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.flex-container {
+  display: flex;
 }
 
 /* ==========================================================================
