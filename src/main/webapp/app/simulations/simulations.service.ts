@@ -80,9 +80,9 @@ export class SimulationsService {
     return this.httpClient.get(endpoint).pipe(map((res: any) => res as Simulation));
   }
 
-  runSimulation(simulationId: number): Observable<SimulationRun> {
+  runSimulation(simulationId: number, account?: ArtemisAccountDTO): Observable<SimulationRun> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId + '/run');
-    return this.httpClient.post(endpoint, {}).pipe(map((res: any) => res as SimulationRun));
+    return this.httpClient.post(endpoint, account).pipe(map((res: any) => res as SimulationRun));
   }
 
   private unsubscribeFromSimulationUpdates(): void {

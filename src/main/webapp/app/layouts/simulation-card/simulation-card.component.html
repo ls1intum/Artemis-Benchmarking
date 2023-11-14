@@ -13,7 +13,7 @@
         </p>
       </div>
       <jhi-server-badge style="position: absolute; top: 10px; right: 10px" class="mb-5" [server]="simulation.server"></jhi-server-badge>
-      <button style="position: absolute; bottom: 10px; right: 10px" type="button" class="btn btn-primary" (click)="startRun()">
+      <button style="position: absolute; bottom: 10px; right: 10px" type="button" class="btn btn-primary" (click)="startRun(accountModal)">
         Start run
       </button>
     </div>
@@ -38,3 +38,54 @@
     </button>
   </div>
 </div>
+
+<!-- Admin account modal-->
+<ng-template #accountModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="account-modal-title">
+      {{ simulation.mode == Mode.CREATE_COURSE_AND_EXAM ? 'Admin Account' : 'Instructor Account' }}
+    </h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p *ngIf="simulation.mode == Mode.CREATE_COURSE_AND_EXAM">
+      To perform a run of this simulation, you need to specify an Artemis Admin Account.
+    </p>
+    <p *ngIf="simulation.mode != Mode.CREATE_COURSE_AND_EXAM">
+      To perform a run of this simulation, you need to specify an Artemis Account that has at least Instructor rights for the course with
+      the ID
+      {{ simulation.courseId }}.
+    </p>
+    <form>
+      <div class="mb-3">
+        <label for="adminUsername" class="form-label">Username</label>
+        <input type="text" class="form-control" id="adminUsername" [(ngModel)]="adminUsername" [ngModelOptions]="{ standalone: true }" />
+      </div>
+      <div class="mb-3">
+        <label for="adminPassword" class="form-label">Password</label>
+        <input
+          type="password"
+          class="form-control"
+          id="adminPassword"
+          aria-describedby="password-hint"
+          [(ngModel)]="adminPassword"
+          [ngModelOptions]="{ standalone: true }"
+        />
+        <div class="form-text" id="password-hint">
+          These credentials will only be used for this one run. They will not be saved. They will be transmitted via a secure HTTPS
+          connection.
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button
+      type="submit"
+      class="btn btn-primary"
+      [disabled]="adminPassword.length == 0 || adminUsername.length == 0"
+      (click)="modal.close()"
+    >
+      Submit
+    </button>
+  </div>
+</ng-template>
