@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Mode, Simulation } from '../../models/simulation';
 import { SimulationRun, Status } from '../../models/simulationRun';
 import { SimulationsService } from '../../simulations/simulations.service';
@@ -14,11 +14,15 @@ import { ArtemisAccountDTO } from '../../models/artemisAccountDTO';
 export class SimulationCardComponent implements OnInit {
   @Input()
   simulation!: Simulation;
+  @Input()
+  selectedRun?: SimulationRun;
   displayedRuns: SimulationRun[] = [];
   numberOfDisplayedRuns = 3;
 
   adminPassword = '';
   adminUsername = '';
+
+  @Output() clickedRunEvent = new EventEmitter<SimulationRun>();
 
   constructor(
     private simulationService: SimulationsService,
@@ -75,5 +79,9 @@ export class SimulationCardComponent implements OnInit {
     this.numberOfDisplayedRuns -= 3;
     if (this.numberOfDisplayedRuns < 3) this.numberOfDisplayedRuns = 3;
     this.updateDisplayRuns();
+  }
+
+  clickedRun(run: SimulationRun): void {
+    this.clickedRunEvent.emit(run);
   }
 }

@@ -23,7 +23,12 @@
 </div>
 <div class="flex-container vh-90 mt-3">
   <div class="w-25 pe-3 overflow-scroll">
-    <jhi-simulation-card *ngFor="let simulation of simulations" [simulation]="simulation"></jhi-simulation-card>
+    <jhi-simulation-card
+      *ngFor="let simulation of simulations"
+      [simulation]="simulation"
+      [selectedRun]="selectedRun"
+      (clickedRunEvent)="selectRun($event)"
+    ></jhi-simulation-card>
   </div>
   <div class="vr"></div>
   <div class="w-75 ms-3 pe-3 overflow-scroll">

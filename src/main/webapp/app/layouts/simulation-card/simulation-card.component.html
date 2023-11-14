@@ -18,7 +18,13 @@
       </button>
     </div>
   </div>
-  <div class="card-footer" *ngFor="let run of displayedRuns">
+  <div
+    class="card-footer"
+    role="button"
+    *ngFor="let run of displayedRuns"
+    (click)="clickedRun(run)"
+    [ngClass]="{ 'bg-primary-subtle': run.id == selectedRun?.id }"
+  >
     <div class="space-between-wrapper">
       <p class="mb-0">{{ run!.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</p>
       <jhi-status-icon [status]="run!.status"></jhi-status-icon>

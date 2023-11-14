@@ -20,7 +20,6 @@ export class SimulationsOverviewComponent implements OnInit {
   ngOnInit(): void {
     this.simulationsService.getSimulations().subscribe(simulations => {
       this.simulations = simulations;
-      this.selectedRun = simulations[4].runs[0];
     });
   }
 
@@ -29,5 +28,9 @@ export class SimulationsOverviewComponent implements OnInit {
       this.simulations.push(simulation);
     });
     this.isCollapsed = true;
+  }
+
+  selectRun(run: SimulationRun): void {
+    this.selectedRun = run;
   }
 }
