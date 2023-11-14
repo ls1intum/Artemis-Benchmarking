@@ -1,5 +1,5 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { Mode, Simulation } from '../../models/simulation';
+import { getTextRepresentation, Mode, Simulation } from '../../models/simulation';
 import { ArtemisServer } from '../../models/artemisServer';
 import { ProfileService } from '../profiles/profile.service';
 
@@ -66,4 +66,6 @@ export class CreateSimulationBoxComponent implements OnInit {
     }
     return this.name.length > 0 && this.numberOfUsers > 0 && this.courseId > 0 && this.examId > 0;
   }
+
+  protected readonly getTextRepresentation = getTextRepresentation;
 }

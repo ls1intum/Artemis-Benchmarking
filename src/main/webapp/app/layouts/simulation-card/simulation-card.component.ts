@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { Mode, Simulation } from '../../models/simulation';
+import { getTextRepresentation, Mode, Simulation } from '../../models/simulation';
 import { SimulationRun, Status } from '../../models/simulationRun';
 import { SimulationsService } from '../../simulations/simulations.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -39,16 +39,18 @@ export class SimulationCardComponent implements OnInit {
   }
 
   startRun(content: any): void {
-    if (this.simulation.server == ArtemisServer.PRODUCTION && this.simulation.mode != Mode.EXISTING_COURSE_PREPARED_EXAM) {
+    if (this.simulation.server == ArtemisServer.PRODUCTION) {
       this.modalService.open(content, { ariaLabelledBy: 'account-modal-title' }).result.then(
         () => {
-          this.simulationService
-            .runSimulation(this.simulation.id!, new ArtemisAccountDTO(this.adminUsername, this.adminPassword))
-            .subscribe(newRun => {
-              this.simulation.runs.push(newRun);
-              this.sortRuns();
-              this.updateDisplayRuns();
-            });
+          let account = undefined;
+          if (this.simulation.mode != Mode.EXISTING_COURSE_PREPARED_EXAM) {
+            account = new ArtemisAccountDTO(this.adminUsername, this.adminPassword);
+          }
+          this.simulationService.runSimulation(this.simulation.id!, account).subscribe(newRun => {
+            this.simulation.runs.push(newRun);
+            this.sortRuns();
+            this.updateDisplayRuns();
+          });
         },
         () => {},
       );
@@ -84,4 +86,6 @@ export class SimulationCardComponent implements OnInit {
   clickedRun(run: SimulationRun): void {
     this.clickedRunEvent.emit(run);
   }
+
+  protected readonly getTextRepresentation = getTextRepresentation;
 }

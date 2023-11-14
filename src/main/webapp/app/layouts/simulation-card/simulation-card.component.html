@@ -5,8 +5,10 @@
   <div class="card-body pb-0" style="position: relative">
     <div class="space-between-wrapper">
       <div class="me-3 w-60">
-        <p>{{ simulation.mode }}</p>
-        <p>User: {{ simulation.numberOfUsers }}</p>
+        <p>
+          <strong>{{ getTextRepresentation(simulation.mode) }}</strong>
+        </p>
+        <p>Users: {{ simulation.numberOfUsers }}</p>
         <p *ngIf="simulation.mode != Mode.CREATE_COURSE_AND_EXAM">Course-ID: {{ simulation.courseId }}</p>
         <p *ngIf="simulation.mode == Mode.EXISTING_COURSE_PREPARED_EXAM || simulation.mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM">
           Exam-ID: {{ simulation.examId }}
@@ -48,21 +50,19 @@
 <!-- Admin account modal-->
 <ng-template #accountModal let-modal>
   <div class="modal-header">
-    <h4 class="modal-title" id="account-modal-title">
-      {{ simulation.mode == Mode.CREATE_COURSE_AND_EXAM ? 'Admin Account' : 'Instructor Account' }}
-    </h4>
+    <h4 class="modal-title" id="account-modal-title">Production Simulation</h4>
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
   </div>
   <div class="modal-body">
     <p *ngIf="simulation.mode == Mode.CREATE_COURSE_AND_EXAM">
       To perform a run of this simulation, you need to specify an Artemis Admin Account.
     </p>
-    <p *ngIf="simulation.mode != Mode.CREATE_COURSE_AND_EXAM">
+    <p *ngIf="simulation.mode == Mode.EXISTING_COURSE_CREATE_EXAM || simulation.mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM">
       To perform a run of this simulation, you need to specify an Artemis Account that has at least Instructor rights for the course with
       the ID
       {{ simulation.courseId }}.
     </p>
-    <form>
+    <form *ngIf="simulation.mode != Mode.EXISTING_COURSE_PREPARED_EXAM">
       <div class="mb-3">
         <label for="adminUsername" class="form-label">Username</label>
         <input type="text" class="form-control" id="adminUsername" [(ngModel)]="adminUsername" [ngModelOptions]="{ standalone: true }" />
@@ -83,15 +83,21 @@
         </div>
       </div>
     </form>
+    <p>
+      <span class="text-warning">Attention:</span> You are about to start a simulation on Production. Please be aware that simulations with
+      large numbers of students can cause significant load on the system. Ideally, simulations on Production should be performed during
+      off-peak hours.<br />
+      <span class="text-warning">Please be considerate of Artemis users!</span>
+    </p>
   </div>
   <div class="modal-footer">
     <button
       type="submit"
       class="btn btn-primary"
-      [disabled]="adminPassword.length == 0 || adminUsername.length == 0"
+      [disabled]="(adminPassword.length == 0 || adminUsername.length == 0) && simulation.mode != Mode.EXISTING_COURSE_PREPARED_EXAM"
       (click)="modal.close()"
     >
-      Submit
+      Start run
     </button>
   </div>
 </ng-template>

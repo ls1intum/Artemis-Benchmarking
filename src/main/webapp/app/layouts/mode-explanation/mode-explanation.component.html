@@ -1,0 +1,38 @@
+<ng-container *ngIf="mode == Mode.CREATE_COURSE_AND_EXAM">
+  <h5>Create Course and Exam</h5>
+  <p>
+    Creates a new course and a new exam with a few exercises.<br />
+    Registers the necessary amount of test-users, generates student-exams and simulates the exam.<br />
+    After the simulation, the course will be deleted (if enabled).<br />
+    <span class="text-info">On the Production instance, this mode requires ADMIN rights.</span>
+  </p>
+</ng-container>
+<ng-container *ngIf="mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM">
+  <h5>Existing Course and Unprepared Exam</h5>
+  <p>
+    Uses an existing course and exam. Please make sure that the necessary number of test-users is registered.<br />
+    Student-exams will be (re-)generated. <span class="text-warning">All existing student-exams will be deleted.</span><br />
+    The start- and end-time of the exam will be changed. This change will NOT be undone!<br />
+    <span class="text-warning">Note that all registered students will be able to see and participate in the exam!</span><br />
+    <span class="text-info">On the Production instance, this mode requires INSTRUCTOR rights in the corresponding course.</span>
+  </p>
+</ng-container>
+<ng-container *ngIf="mode == Mode.EXISTING_COURSE_PREPARED_EXAM">
+  <h5>Existing Course and Prepared Exam</h5>
+  <p>
+    Uses an existing course and exam. Please make sure that the necessary number of test-users is registered.<br />
+    Please make sure that the exam is <span class="text-warning">fully prepared for conduction</span>,<br />
+    meaning that student-exams are generated and the conduction phase is active.<br />
+    The exam will not be changed.
+  </p>
+</ng-container>
+<ng-container *ngIf="mode == Mode.EXISTING_COURSE_CREATE_EXAM">
+  <h5>Existing Course, Create Exam</h5>
+  <p>
+    Uses an existing course and creates a new exam. Please make sure that the necessary number of test-users is registered for the
+    course.<br />
+    Registers the necessary amount of test-users to the exam, generates student-exams and simulates the exam.<br />
+    After the simulation, the exam will be deleted (if enabled). The course will not be changed.<br />
+    <span class="text-info">On the Production instance, this mode requires INSTRUCTOR rights in the corresponding course.</span>
+  </p>
+</ng-container>

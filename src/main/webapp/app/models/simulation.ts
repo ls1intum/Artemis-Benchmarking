@@ -20,3 +20,16 @@ export enum Mode {
   EXISTING_COURSE_PREPARED_EXAM = 'EXISTING_COURSE_PREPARED_EXAM',
   EXISTING_COURSE_CREATE_EXAM = 'EXISTING_COURSE_CREATE_EXAM',
 }
+
+export function getTextRepresentation(mode: Mode): string {
+  switch (mode) {
+    case Mode.CREATE_COURSE_AND_EXAM:
+      return 'Create course and exam';
+    case Mode.EXISTING_COURSE_UNPREPARED_EXAM:
+      return 'Existing course, unprepared exam';
+    case Mode.EXISTING_COURSE_PREPARED_EXAM:
+      return 'Existing course, prepared exam';
+    case Mode.EXISTING_COURSE_CREATE_EXAM:
+      return 'Existing course, create exam';
+  }
+}
