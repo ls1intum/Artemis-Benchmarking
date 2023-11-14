@@ -3,7 +3,7 @@ import { SimulationRun } from './simulationRun';
 
 export class Simulation {
   constructor(
-    public id: number,
+    public id: number | undefined,
     public name: string,
     public courseId: number,
     public examId: number,

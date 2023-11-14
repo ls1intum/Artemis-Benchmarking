@@ -50,7 +50,7 @@ public class SimulationRunExecutionService {
 
     public synchronized void simulateExam(SimulationRun simulationRun) {
         simulationRun.setStatus(SimulationRun.Status.RUNNING);
-        simulationRunRepository.save(simulationRun);
+        simulationRun = simulationRunRepository.save(simulationRun);
 
         var simulation = simulationRun.getSimulation();
         var courseId = simulation.getCourseId();

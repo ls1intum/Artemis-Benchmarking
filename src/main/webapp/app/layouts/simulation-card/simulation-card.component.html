@@ -14,13 +14,27 @@
       </div>
       <div>
         <p>{{ simulation.server }}</p>
+        <button type="button" class="btn btn-primary" (click)="startRun()">Start run</button>
       </div>
     </div>
   </div>
-  <div class="card-footer" *ngFor="let run of simulation.runs">
+  <div class="card-footer" *ngFor="let run of displayedRuns">
     <div class="space-between-wrapper">
       <p class="mb-0">{{ run!.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</p>
       <jhi-status-icon [status]="run!.status"></jhi-status-icon>
     </div>
+  </div>
+  <div class="card-footer" *ngIf="simulation.runs.length > 3">
+    <button
+      *ngIf="numberOfDisplayedRuns < simulation.runs.length"
+      type="button"
+      class="btn btn-secondary btn-sm"
+      (click)="increaseNumberOfDisplayedRuns()"
+    >
+      Show more
+    </button>
+    <button *ngIf="numberOfDisplayedRuns > 3" type="button" class="btn btn-secondary btn-sm" (click)="decreaseNumberOfDisplayedRuns()">
+      Show less
+    </button>
   </div>
 </div>

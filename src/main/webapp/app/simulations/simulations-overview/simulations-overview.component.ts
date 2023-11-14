@@ -11,6 +11,9 @@ import { SimulationRun, Status } from '../../models/simulationRun';
 export class SimulationsOverviewComponent implements OnInit {
   simulations: Simulation[] = [];
   selectedRun?: SimulationRun;
+  isCollapsed = true;
+
+  protected readonly Status = Status;
 
   constructor(private simulationsService: SimulationsService) {}
 
@@ -21,5 +24,10 @@ export class SimulationsOverviewComponent implements OnInit {
     });
   }
 
-  protected readonly Status = Status;
+  createSimulation(simulation: Simulation): void {
+    this.simulationsService.createSimulation(simulation).subscribe(simulation => {
+      this.simulations.push(simulation);
+    });
+    this.isCollapsed = true;
+  }
 }

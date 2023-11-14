@@ -1,4 +1,27 @@
-<div class="flex-container vh-90">
+<button
+  *ngIf="isCollapsed"
+  type="button"
+  class="btn btn-primary"
+  (click)="collapse.toggle()"
+  [attr.aria-expanded]="!isCollapsed"
+  aria-controls="collapseExample"
+>
+  Create simulation
+</button>
+<button
+  *ngIf="!isCollapsed"
+  type="button"
+  class="btn btn-danger"
+  (click)="collapse.toggle()"
+  [attr.aria-expanded]="!isCollapsed"
+  aria-controls="collapseExample"
+>
+  Cancel
+</button>
+<div #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
+  <jhi-create-simulation-box (simulationToCreate)="createSimulation($event)"></jhi-create-simulation-box>
+</div>
+<div class="flex-container vh-90 mt-3">
   <div class="w-25 me-3 overflow-scroll">
     <jhi-simulation-card *ngFor="let simulation of simulations" [simulation]="simulation"></jhi-simulation-card>
   </div>
