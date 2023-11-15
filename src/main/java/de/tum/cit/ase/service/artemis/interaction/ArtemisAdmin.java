@@ -179,7 +179,8 @@ public class ArtemisAdmin extends ArtemisUser {
         }
 
         var exam = new Exam();
-        exam.setTitle("Temporary Benchmarking Exam");
+        var randomInt = (int) (Math.random() * 10_0000);
+        exam.setTitle("Temporary Benchmarking Exam" + randomInt);
         exam.setStartDate(ZonedDateTime.now().plusDays(1L));
         exam.setVisibleDate(ZonedDateTime.now());
         exam.setEndDate(ZonedDateTime.now().plusDays(1L).plusHours(2L));
@@ -289,9 +290,9 @@ public class ArtemisAdmin extends ArtemisUser {
 
         var programmingExercise = new ProgrammingExercise();
         programmingExercise.setExerciseGroup(programmingExerciseGroup);
-        programmingExercise.setTitle("Programming Exercise for Benchmarking");
+        programmingExercise.setTitle("Programming Exercise for " + exam.getTitle());
         programmingExercise.setMaxPoints(1.0);
-        programmingExercise.setShortName("progForBenchTemp");
+        programmingExercise.setShortName("progForBenchTemp" + exam.getId());
         programmingExercise.setPackageName("progforbenchtemp");
 
         webClient

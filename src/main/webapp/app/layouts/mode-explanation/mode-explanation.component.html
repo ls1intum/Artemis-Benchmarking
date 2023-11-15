@@ -3,7 +3,8 @@
   <p>
     Creates a new course and a new exam with a few exercises.<br />
     Registers the necessary amount of test-users, generates student-exams and simulates the exam.<br />
-    After the simulation, the course will be deleted (if enabled).<br />
+    Note: The cleanup (= deletion of temporary courses and exams) is currently <span class="text-warning">disabled for all modes!</span
+    ><br />
     <span class="text-info">On the Production instance, this mode requires ADMIN rights.</span>
   </p>
 </ng-container>
@@ -32,7 +33,9 @@
     Uses an existing course and creates a new exam. Please make sure that the necessary number of test-users is registered for the
     course.<br />
     Registers the necessary amount of test-users to the exam, generates student-exams and simulates the exam.<br />
-    After the simulation, the exam will be deleted (if enabled). The course will not be changed.<br />
+    The course will not be changed.<br />
+    Note: The cleanup (= deletion of temporary courses and exams) is currently <span class="text-warning">disabled for all modes!</span
+    ><br />
     <span class="text-info">On the Production instance, this mode requires INSTRUCTOR rights in the corresponding course.</span>
   </p>
 </ng-container>

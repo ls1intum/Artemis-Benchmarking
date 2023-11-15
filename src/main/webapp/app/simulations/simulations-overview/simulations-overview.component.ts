@@ -102,7 +102,7 @@ export class SimulationsOverviewComponent implements OnInit {
       run.logMessages.push(logMessage);
     });
     this.simulationsService.receiveSimulationResult(run).subscribe(stats => {
-      run.stats = stats;
+      run.stats = stats.sort((a, b) => getOrder(a) - getOrder(b));
     });
   }
 }

@@ -127,7 +127,13 @@ public class SimulationRunExecutionService {
                 } catch (InterruptedException ignored) {}
             } else {
                 logAndSend(false, simulationRun, "Using existing course.");
-                course = admin.getCourse(courseId);
+                try {
+                    course = admin.getCourse(courseId);
+                } catch (Exception e) {
+                    logAndSend(true, simulationRun, "Error while fetching course: %s", e.getMessage());
+                    failSimulationRun(simulationRun);
+                    return;
+                }
             }
 
             // Create exam if necessary
@@ -332,7 +338,11 @@ public class SimulationRunExecutionService {
 
     private void logAndSend(boolean error, SimulationRun simulationRun, String format, Object... args) {
         var message = String.format(format, args);
-        log.info(message);
+        if (error) {
+            log.error(message);
+        } else {
+            log.info(message);
+        }
         LogMessage logMessage = new LogMessage();
         logMessage.setSimulationRun(simulationRun);
         logMessage.setMessage(message);
