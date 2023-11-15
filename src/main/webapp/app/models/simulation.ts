@@ -11,6 +11,7 @@ export class Simulation {
     public server: ArtemisServer,
     public mode: Mode,
     public runs: SimulationRun[],
+    public creationDate: Date,
   ) {}
 }
 

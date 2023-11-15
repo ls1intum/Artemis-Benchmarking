@@ -2,6 +2,7 @@ package de.tum.cit.ase.domain;
 
 import de.tum.cit.ase.util.ArtemisServer;
 import jakarta.persistence.*;
+import java.time.ZonedDateTime;
 import java.util.Set;
 
 @Entity
@@ -33,6 +34,9 @@ public class Simulation {
 
     @OneToMany(mappedBy = "simulation", fetch = FetchType.EAGER)
     private Set<SimulationRun> runs;
+
+    @Column(name = "creation_date", nullable = false)
+    private ZonedDateTime creationDate;
 
     public Long getId() {
         return id;
@@ -96,6 +100,14 @@ public class Simulation {
 
     public void setMode(Mode mode) {
         this.mode = mode;
+    }
+
+    public ZonedDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(ZonedDateTime creationDate) {
+        this.creationDate = creationDate;
     }
 
     public enum Mode {

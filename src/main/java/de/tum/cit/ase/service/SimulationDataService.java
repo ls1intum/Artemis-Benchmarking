@@ -30,6 +30,7 @@ public class SimulationDataService {
     }
 
     public Simulation createSimulation(Simulation simulation) {
+        simulation.setCreationDate(now());
         return simulationRepository.save(simulation);
     }
 

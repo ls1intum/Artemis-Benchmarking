@@ -52,6 +52,7 @@ export class CreateSimulationBoxComponent implements OnInit {
         this.server,
         this.mode,
         [],
+        new Date(),
       );
       this.simulationToCreate.emit(simulation);
     }

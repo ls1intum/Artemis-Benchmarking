@@ -19,13 +19,14 @@ export class SimulationsOverviewComponent implements OnInit {
 
   ngOnInit(): void {
     this.simulationsService.getSimulations().subscribe(simulations => {
-      this.simulations = simulations;
+      this.simulations = simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
     });
   }
 
   createSimulation(simulation: Simulation): void {
     this.simulationsService.createSimulation(simulation).subscribe(simulation => {
       this.simulations.push(simulation);
+      this.simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
     });
     this.isCollapsed = true;
   }
