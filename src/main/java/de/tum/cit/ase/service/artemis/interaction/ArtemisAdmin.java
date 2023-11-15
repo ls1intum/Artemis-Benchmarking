@@ -358,7 +358,7 @@ public class ArtemisAdmin extends ArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
-        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 4, numberOfStudents);
+        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 10, numberOfStudents);
         ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadCount);
         Scheduler scheduler = Schedulers.from(threadPoolExecutor);
 

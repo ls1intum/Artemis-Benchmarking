@@ -194,9 +194,7 @@ public class SimulationRunExecutionService {
 
         ArtemisStudent[] students = initializeStudents(simulation.getNumberOfUsers(), simulation.getServer());
 
-        // We want to simulate with as many threads as possible, at least 80
-        int minNumberOfReads = Integer.max(Runtime.getRuntime().availableProcessors() * 4, 80);
-        int threadCount = Integer.min(minNumberOfReads, simulation.getNumberOfUsers());
+        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 10, simulation.getNumberOfUsers());
         logAndSend(false, simulationRun, "Using %d threads for simulation.", threadCount);
 
         List<RequestStat> requestStats = new ArrayList<>();

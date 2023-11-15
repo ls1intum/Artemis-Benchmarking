@@ -28,6 +28,7 @@ export class CreateSimulationBoxComponent implements OnInit {
 
   protected readonly Mode = Mode;
   protected readonly ArtemisServer = ArtemisServer;
+  protected readonly getTextRepresentation = getTextRepresentation;
 
   constructor(private profileService: ProfileService) {}
   ngOnInit(): void {
@@ -67,6 +68,4 @@ export class CreateSimulationBoxComponent implements OnInit {
     }
     return this.name.length > 0 && this.numberOfUsers > 0 && this.courseId > 0 && this.examId > 0;
   }
-
-  protected readonly getTextRepresentation = getTextRepresentation;
 }

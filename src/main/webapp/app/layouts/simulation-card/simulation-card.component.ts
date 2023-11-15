@@ -28,15 +28,15 @@ export class SimulationCardComponent implements OnInit {
   @Output() clickedRunEvent = new EventEmitter<SimulationRun>();
   @Output() delete = new EventEmitter<void>();
 
-  constructor(
-    private simulationService: SimulationsService,
-    private modalService: NgbModal,
-  ) {}
-
   protected readonly Simulation = Simulation;
   protected readonly Mode = Mode;
   protected readonly Status = Status;
   protected readonly getTextRepresentation = getTextRepresentation;
+
+  constructor(
+    private simulationService: SimulationsService,
+    private modalService: NgbModal,
+  ) {}
 
   ngOnInit(): void {
     this.sortRuns();
@@ -44,11 +44,11 @@ export class SimulationCardComponent implements OnInit {
   }
 
   startRun(content: any): void {
-    if (this.simulation.server == ArtemisServer.PRODUCTION) {
+    if (this.simulation.server === ArtemisServer.PRODUCTION) {
       this.modalService.open(content, { ariaLabelledBy: 'account-modal-title' }).result.then(
         () => {
           let account = undefined;
-          if (this.simulation.mode != Mode.EXISTING_COURSE_PREPARED_EXAM) {
+          if (this.simulation.mode !== Mode.EXISTING_COURSE_PREPARED_EXAM) {
             account = new ArtemisAccountDTO(this.adminUsername, this.adminPassword);
           }
           this.simulationService.runSimulation(this.simulation.id!, account).subscribe(newRun => {
@@ -94,7 +94,9 @@ export class SimulationCardComponent implements OnInit {
 
   decreaseNumberOfDisplayedRuns(): void {
     this.numberOfDisplayedRuns -= 3;
-    if (this.numberOfDisplayedRuns < 3) this.numberOfDisplayedRuns = 3;
+    if (this.numberOfDisplayedRuns < 3) {
+      this.numberOfDisplayedRuns = 3;
+    }
     this.updateDisplayRuns();
   }
 

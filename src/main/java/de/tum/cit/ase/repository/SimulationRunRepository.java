@@ -11,4 +11,7 @@ import org.springframework.stereotype.Repository;
 public interface SimulationRunRepository extends JpaRepository<SimulationRun, Long> {
     @Query(value = "select run from SimulationRun run where run.status = :#{#status}")
     List<SimulationRun> findAllByStatus(@Param("status") SimulationRun.Status status);
+
+    @Query(value = "select run from SimulationRun run where run.simulation.id = :#{#simulationId}")
+    List<SimulationRun> findAllBySimulationId(@Param("simulationId") long simulationId);
 }

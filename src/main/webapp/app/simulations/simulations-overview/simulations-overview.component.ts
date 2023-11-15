@@ -35,8 +35,8 @@ export class SimulationsOverviewComponent implements OnInit {
   }
 
   createSimulation(simulation: Simulation): void {
-    this.simulationsService.createSimulation(simulation).subscribe(simulation => {
-      this.simulations.push(simulation);
+    this.simulationsService.createSimulation(simulation).subscribe(newSimulation => {
+      this.simulations.push(newSimulation);
       this.simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
     });
     this.isCollapsed = true;
