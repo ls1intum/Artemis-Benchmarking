@@ -32,7 +32,7 @@ public class Simulation {
     @Column(nullable = false)
     private Mode mode;
 
-    @OneToMany(mappedBy = "simulation", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "simulation", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private Set<SimulationRun> runs;
 
     @Column(name = "creation_date", nullable = false)

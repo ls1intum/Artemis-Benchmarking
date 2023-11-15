@@ -25,8 +25,6 @@ public class SimulationDataService {
         this.simulationRepository = simulationRepository;
         this.simulationRunRepository = simulationRunRepository;
         this.simulationRunQueueService = simulationRunQueueService;
-        // TODO: REMOVE THIS
-        //createAndQueueSimulationRun(5);
     }
 
     public Simulation createSimulation(Simulation simulation) {
@@ -40,6 +38,14 @@ public class SimulationDataService {
 
     public List<Simulation> getAllSimulations() {
         return simulationRepository.findAll();
+    }
+
+    public void deleteSimulation(long id) {
+        simulationRepository.deleteById(id);
+    }
+
+    public void deleteSimulationRun(long runId) {
+        simulationRunRepository.deleteById(runId);
     }
 
     public SimulationRun createAndQueueSimulationRun(long simulationId, ArtemisAccountDTO accountDTO) {

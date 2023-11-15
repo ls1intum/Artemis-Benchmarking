@@ -101,6 +101,12 @@ public class SimulationRunExecutionService {
                     simulationWebsocketService.sendSimulationFailed();
                     return;
                 }
+
+                // Wait for synchronization of user groups
+                try {
+                    logAndSendInfo("Waiting for synchronization of user groups (1 min)...");
+                    sleep(1_000 * 60);
+                } catch (InterruptedException ignored) {}
             } else {
                 logAndSendInfo("Using existing course.");
                 course = admin.getCourse(courseId);

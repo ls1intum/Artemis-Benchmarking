@@ -5,6 +5,7 @@ import { SimulationsService } from '../../simulations/simulations.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ArtemisServer } from '../../models/artemisServer';
 import { ArtemisAccountDTO } from '../../models/artemisAccountDTO';
+import { faTrashCan } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'jhi-simulation-card',
@@ -12,6 +13,8 @@ import { ArtemisAccountDTO } from '../../models/artemisAccountDTO';
   styleUrls: ['./simulation-card.component.scss'],
 })
 export class SimulationCardComponent implements OnInit {
+  faTrashCan = faTrashCan;
+
   @Input()
   simulation!: Simulation;
   @Input()
@@ -23,6 +26,7 @@ export class SimulationCardComponent implements OnInit {
   adminUsername = '';
 
   @Output() clickedRunEvent = new EventEmitter<SimulationRun>();
+  @Output() delete = new EventEmitter<void>();
 
   constructor(
     private simulationService: SimulationsService,
@@ -32,6 +36,7 @@ export class SimulationCardComponent implements OnInit {
   protected readonly Simulation = Simulation;
   protected readonly Mode = Mode;
   protected readonly Status = Status;
+  protected readonly getTextRepresentation = getTextRepresentation;
 
   ngOnInit(): void {
     this.sortRuns();
@@ -87,5 +92,7 @@ export class SimulationCardComponent implements OnInit {
     this.clickedRunEvent.emit(run);
   }
 
-  protected readonly getTextRepresentation = getTextRepresentation;
+  deleteSimulation(): void {
+    this.delete.emit();
+  }
 }

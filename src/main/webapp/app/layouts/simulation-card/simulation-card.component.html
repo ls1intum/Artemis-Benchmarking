@@ -1,8 +1,11 @@
 <div class="card mb-3">
-  <div class="card-header">
+  <div class="card-header space-between-wrapper">
     {{ simulation.name }}
+    <button type="button" class="btn btn-link btn-sm p-0" (click)="deleteSimulation()">
+      <fa-icon [icon]="faTrashCan" class="text-danger"></fa-icon>
+    </button>
   </div>
-  <div class="card-body pb-0" style="position: relative">
+  <div class="card-body" style="position: relative">
     <div class="space-between-wrapper">
       <div class="me-3 w-60">
         <p>

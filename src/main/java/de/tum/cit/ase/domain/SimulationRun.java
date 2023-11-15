@@ -21,7 +21,7 @@ public class SimulationRun {
     @Column(nullable = false)
     private Status status;
 
-    @OneToMany(orphanRemoval = true, mappedBy = "simulationRun", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "simulationRun", fetch = FetchType.EAGER)
     private Set<SimulationStats> stats;
 
     @ManyToOne
@@ -29,7 +29,7 @@ public class SimulationRun {
     @JsonIgnore
     private Simulation simulation;
 
-    @OneToMany(orphanRemoval = true, mappedBy = "simulationRun", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "simulationRun", fetch = FetchType.EAGER)
     private Set<LogMessage> logMessages;
 
     @Transient

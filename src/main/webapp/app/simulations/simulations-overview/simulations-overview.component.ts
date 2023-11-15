@@ -34,4 +34,24 @@ export class SimulationsOverviewComponent implements OnInit {
   selectRun(run: SimulationRun): void {
     this.selectedRun = run;
   }
+
+  deleteSelectedRun(): void {
+    if (this.selectedRun) {
+      this.simulationsService.deleteSimulationRun(this.selectedRun.id).subscribe(() => {
+        this.selectedRun = undefined;
+        this.simulationsService.getSimulations().subscribe(simulations => {
+          this.simulations = simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+        });
+      });
+    }
+  }
+
+  deleteSimulation(simulation: Simulation): void {
+    this.simulationsService.deleteSimulation(simulation.id!).subscribe(() => {
+      if (this.selectedRun && simulation.runs.includes(this.selectedRun)) {
+        this.selectedRun = undefined;
+      }
+      this.simulations = this.simulations.filter(s => s.id !== simulation.id);
+    });
+  }
 }

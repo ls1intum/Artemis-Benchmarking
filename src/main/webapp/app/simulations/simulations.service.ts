@@ -85,6 +85,16 @@ export class SimulationsService {
     return this.httpClient.post(endpoint, account).pipe(map((res: any) => res as SimulationRun));
   }
 
+  deleteSimulation(simulationId: number): Observable<void> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId);
+    return this.httpClient.delete(endpoint).pipe(map(() => {}));
+  }
+
+  deleteSimulationRun(runId: number): Observable<void> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/runs/' + runId);
+    return this.httpClient.delete(endpoint).pipe(map(() => {}));
+  }
+
   private unsubscribeFromSimulationUpdates(): void {
     this.currentWebsocketReceiveSubscriptions?.forEach(subscription => subscription.unsubscribe());
     this.currentWebsocketReceiveSubscriptions = undefined;

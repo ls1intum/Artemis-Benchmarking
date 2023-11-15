@@ -18,7 +18,7 @@ public class SimulationStats {
     @Column(name = "avg_response_time", nullable = false)
     private long avgResponseTime;
 
-    @OneToMany(orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     @JoinColumn(name = "simulation_stats_id")
     private Set<StatsByMinute> statsByMinute;
 

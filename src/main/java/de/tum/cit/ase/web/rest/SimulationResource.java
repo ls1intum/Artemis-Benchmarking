@@ -80,4 +80,32 @@ public class SimulationResource {
         var run = simulationDataService.createAndQueueSimulationRun(simulationId, accountDTO);
         return new ResponseEntity<>(run, HttpStatus.OK);
     }
+
+    /**
+     * DELETE /api/simulations/{simulationId} : Delete a simulation.
+     * All runs of the simulation and their associated results and logs will be deleted as well.
+     * If the given simulation does not exist, nothing will happen.
+     *
+     * @param simulationId the ID of the simulation to delete
+     * @return the ResponseEntity with status 200 (OK)
+     */
+    @DeleteMapping("/{simulationId}")
+    public ResponseEntity<Void> deleteSimulation(@PathVariable long simulationId) {
+        simulationDataService.deleteSimulation(simulationId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * DELETE /api/simulations/runs/{runId} : Delete a simulation run.
+     * All results and logs of the run will be deleted as well.
+     * If the given run does not exist, nothing will happen.
+     *
+     * @param runId the ID of the run to delete
+     * @return the ResponseEntity with status 200 (OK)
+     */
+    @DeleteMapping("/runs/{runId}")
+    public ResponseEntity<Void> deleteSimulationRun(@PathVariable long runId) {
+        simulationDataService.deleteSimulationRun(runId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }
