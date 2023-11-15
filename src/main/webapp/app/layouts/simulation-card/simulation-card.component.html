@@ -1,7 +1,7 @@
 <div class="card mb-3">
   <div class="card-header space-between-wrapper">
     {{ simulation.name }}
-    <button type="button" class="btn btn-link btn-sm p-0" (click)="deleteSimulation()">
+    <button type="button" class="btn btn-link btn-sm p-0" (click)="deleteSimulation(deleteModal)">
       <fa-icon [icon]="faTrashCan" class="text-danger"></fa-icon>
     </button>
   </div>
@@ -102,5 +102,24 @@
     >
       Start run
     </button>
+  </div>
+</ng-template>
+
+<!-- Delete confirm modal-->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="delete-modal-title">Delete Simulation</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>
+      Are you sure that you want to delete the simulation <strong class="text-info">{{ simulation.name }}</strong
+      >?<br />
+      <span class="text-warning">All associated runs and results will be deleted as well.</span>
+    </p>
+  </div>
+  <div class="modal-footer space-between-wrapper">
+    <button type="reset" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+    <button type="submit" class="btn btn-danger" (click)="modal.close()">Delete</button>
   </div>
 </ng-template>

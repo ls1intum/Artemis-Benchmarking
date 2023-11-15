@@ -3,6 +3,7 @@ import { Simulation } from '../../models/simulation';
 import { SimulationsService } from '../simulations.service';
 import { SimulationRun, Status } from '../../models/simulationRun';
 import { getOrder } from '../../models/simulationStats';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'jhi-simulations-overview',
@@ -16,7 +17,10 @@ export class SimulationsOverviewComponent implements OnInit {
 
   protected readonly Status = Status;
 
-  constructor(private simulationsService: SimulationsService) {}
+  constructor(
+    private simulationsService: SimulationsService,
+    private modalService: NgbModal,
+  ) {}
 
   ngOnInit(): void {
     this.simulationsService.getSimulations().subscribe(simulations => {
@@ -53,19 +57,25 @@ export class SimulationsOverviewComponent implements OnInit {
     });
   }
 
-  deleteSelectedRun(): void {
-    if (this.selectedRun) {
-      this.simulationsService.deleteSimulationRun(this.selectedRun.id).subscribe(() => {
-        if (this.selectedRun) {
-          this.simulationsService.unsubscribeFromSimulationRun(this.selectedRun);
+  deleteSelectedRun(content: any): void {
+    this.modalService.open(content, { ariaLabelledBy: 'delete-modal-title' }).result.then(
+      () => {
+        if (!this.selectedRun) {
+          return;
         }
+        this.simulationsService.deleteSimulationRun(this.selectedRun.id).subscribe(() => {
+          if (this.selectedRun) {
+            this.simulationsService.unsubscribeFromSimulationRun(this.selectedRun);
+          }
 
-        this.selectedRun = undefined;
-        this.simulationsService.getSimulations().subscribe(simulations => {
-          this.simulations = simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+          this.selectedRun = undefined;
+          this.simulationsService.getSimulations().subscribe(simulations => {
+            this.simulations = simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+          });
         });
-      });
-    }
+      },
+      () => {},
+    );
   }
 
   deleteSimulation(simulation: Simulation): void {

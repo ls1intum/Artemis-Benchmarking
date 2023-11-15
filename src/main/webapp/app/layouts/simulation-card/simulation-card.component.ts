@@ -102,7 +102,12 @@ export class SimulationCardComponent implements OnInit {
     this.clickedRunEvent.emit(run);
   }
 
-  deleteSimulation(): void {
-    this.delete.emit();
+  deleteSimulation(content: any): void {
+    this.modalService.open(content, { ariaLabelledBy: 'delete-modal-title' }).result.then(
+      () => {
+        this.delete.emit();
+      },
+      () => {},
+    );
   }
 }
