@@ -7,6 +7,7 @@ import de.tum.cit.ase.repository.SimulationRepository;
 import de.tum.cit.ase.repository.SimulationRunRepository;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
 import de.tum.cit.ase.util.ArtemisServer;
+import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import java.util.*;
 import org.springframework.stereotype.Service;
 
@@ -16,15 +17,18 @@ public class SimulationDataService {
     private final SimulationRepository simulationRepository;
     private final SimulationRunRepository simulationRunRepository;
     private final SimulationRunQueueService simulationRunQueueService;
+    private final SimulationWebsocketService simulationWebsocketService;
 
     public SimulationDataService(
         SimulationRepository simulationRepository,
         SimulationRunRepository simulationRunRepository,
-        SimulationRunQueueService simulationRunQueueService
+        SimulationRunQueueService simulationRunQueueService,
+        SimulationWebsocketService simulationWebsocketService
     ) {
         this.simulationRepository = simulationRepository;
         this.simulationRunRepository = simulationRunRepository;
         this.simulationRunQueueService = simulationRunQueueService;
+        this.simulationWebsocketService = simulationWebsocketService;
     }
 
     public Simulation createSimulation(Simulation simulation) {
@@ -38,6 +42,10 @@ public class SimulationDataService {
 
     public List<Simulation> getAllSimulations() {
         return simulationRepository.findAll();
+    }
+
+    public SimulationRun getSimulationRun(long id) {
+        return simulationRunRepository.findById(id).orElseThrow();
     }
 
     public void deleteSimulation(long id) {
@@ -65,10 +73,11 @@ public class SimulationDataService {
         simulationRun.setLogMessages(new HashSet<>());
         simulationRun.setStatus(SimulationRun.Status.QUEUED);
         simulationRun.setStartDateTime(now());
-        simulationRun.setAdminAccount(accountDTO);
 
         SimulationRun savedSimulationRun = simulationRunRepository.save(simulationRun);
+        savedSimulationRun.setAdminAccount(accountDTO);
         simulationRunQueueService.queueSimulationRun(savedSimulationRun);
+        simulationWebsocketService.sendRunStatusUpdate(savedSimulationRun);
         return savedSimulationRun;
     }
 

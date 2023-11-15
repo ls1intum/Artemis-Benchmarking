@@ -1,3 +1,7 @@
 <div class="bg-black p-3">
-  <samp *ngFor="let msg of logMessages" [ngClass]="msg.isError ? 'text-danger' : 'text-white'">{{ msg.message }}<br /></samp>
+  <samp *ngFor="let msg of logMessages"
+    >{{ msg.timestamp | date: 'yyyy-MM-ddTHH:mm:ss.SSS' }}:
+    <span [ngClass]="msg.error ? 'text-danger' : 'text-white'">{{ msg.message }}</span
+    ><br
+  /></samp>
 </div>

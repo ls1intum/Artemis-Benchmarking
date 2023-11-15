@@ -58,7 +58,7 @@
             </column>
             <column name="message" type="varchar(255)"/>
             <column name="is_error" type="boolean"/>
-            <column name="timestamp" type="timestamp"/>
+            <column name="timestamp" type="timestamp(3)"/>
             <column name="simulation_run_id" type="bigint"/>
         </createTable>
     </changeSet>

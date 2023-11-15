@@ -2,7 +2,6 @@ package de.tum.cit.ase.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import java.io.Serial;
 import java.time.ZonedDateTime;
 
 @Entity
@@ -14,7 +13,6 @@ public class LogMessage {
 
     private String message;
     private boolean isError;
-
     private ZonedDateTime timestamp;
 
     @ManyToOne

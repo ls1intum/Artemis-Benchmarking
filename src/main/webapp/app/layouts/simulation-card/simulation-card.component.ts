@@ -53,6 +53,11 @@ export class SimulationCardComponent implements OnInit {
           }
           this.simulationService.runSimulation(this.simulation.id!, account).subscribe(newRun => {
             this.simulation.runs.push(newRun);
+
+            this.simulationService.receiveSimulationStatus(newRun).subscribe(status => {
+              newRun.status = status;
+            });
+
             this.sortRuns();
             this.updateDisplayRuns();
           });
@@ -62,6 +67,11 @@ export class SimulationCardComponent implements OnInit {
     } else {
       this.simulationService.runSimulation(this.simulation.id!).subscribe(newRun => {
         this.simulation.runs.push(newRun);
+
+        this.simulationService.receiveSimulationStatus(newRun).subscribe(status => {
+          newRun.status = status;
+        });
+
         this.sortRuns();
         this.updateDisplayRuns();
       });

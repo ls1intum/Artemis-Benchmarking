@@ -67,6 +67,17 @@ public class SimulationResource {
     }
 
     /**
+     * GET /api/simulations/runs/{runId} : Get a simulation run.
+     *
+     * @param runId the ID of the run to get
+     * @return the ResponseEntity with status 200 (OK) and with body the simulation run, or with status 404 (Not Found) if the run does not exist
+     */
+    @GetMapping("/runs/{runId}")
+    public ResponseEntity<SimulationRun> getSimulationRun(@PathVariable long runId) {
+        return new ResponseEntity<>(simulationDataService.getSimulationRun(runId), HttpStatus.OK);
+    }
+
+    /**
      * POST /api/simulations/{simulationId}/run : Create and queue a new run for the given simulation.
      *
      * @param simulationId the ID of the simulation to run

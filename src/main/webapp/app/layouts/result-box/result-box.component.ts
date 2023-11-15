@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { SimulationStats } from '../../models/simulationStats';
+import { RequestType } from '../../models/requestType';
 
 @Component({
   selector: 'jhi-result-box',
@@ -20,5 +21,9 @@ export class ResultBoxComponent {
       return durationInMilliSeconds.toFixed(2) + ' ms';
     }
     return durationInMicroSeconds.toFixed(2) + ' µs';
+  }
+
+  formatRequestType(requestType: RequestType): string {
+    return requestType.replace(/_/g, ' ');
   }
 }

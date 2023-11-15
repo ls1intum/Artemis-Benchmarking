@@ -37,7 +37,15 @@
       <h3>Run #{{ selectedRun?.id }} - {{ selectedRun?.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</h3>
       <h3 class="pe-3">
         <jhi-status-icon class="me-3" [status]="selectedRun?.status"></jhi-status-icon>
-        <button *ngIf="selectedRun" type="button" class="btn btn-danger mb-1" (click)="deleteSelectedRun()">Delete</button>
+        <button
+          *ngIf="selectedRun"
+          type="button"
+          class="btn btn-danger mb-1"
+          (click)="deleteSelectedRun()"
+          [disabled]="selectedRun.status === Status.RUNNING"
+        >
+          Delete
+        </button>
       </h3>
     </div>
     <div ngbAccordion class="mb-3">

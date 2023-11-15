@@ -1,6 +1,6 @@
 <div class="card mb-3 ms-1 me-1" *ngIf="simulationStats">
   <div class="card-header">
-    {{ simulationStats.requestType }}
+    {{ formatRequestType(simulationStats.requestType) }}
   </div>
   <div class="card-body">
     <div class="flex-wrapper">

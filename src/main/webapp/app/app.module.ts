@@ -16,7 +16,6 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import dayjs from 'dayjs/esm';
 import { NgbAccordionModule, NgbDateAdapter, NgbDatepickerConfig, NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { SimulationsComponent } from './simulations/simulations.component';
 import { FormsModule } from '@angular/forms';
 
 import './config/dayjs';
@@ -53,7 +52,6 @@ import { ModeExplanationComponent } from './layouts/mode-explanation/mode-explan
   ],
   bootstrap: [MainComponent],
   declarations: [
-    SimulationsComponent,
     SimulationsOverviewComponent,
     SimulationCardComponent,
     StatusIconComponent,
