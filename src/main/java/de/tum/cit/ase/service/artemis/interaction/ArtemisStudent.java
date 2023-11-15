@@ -40,6 +40,10 @@ public class ArtemisStudent extends ArtemisUser {
         this.authenticated = response != null && response.getAuthorities().contains("ROLE_USER");
     }
 
+    /**
+     * Perform miscellaneous calls to Artemis, e.g. to get the user info, system notifications, account, notification settings, and courses.
+     * @return the list of request stats
+     */
     public List<RequestStat> performInitialCalls() {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
@@ -48,6 +52,12 @@ public class ArtemisStudent extends ArtemisUser {
         return List.of(getInfo(), getSystemNotifications(), getAccount(), getNotificationSettings(), getCourses());
     }
 
+    /**
+     * Participate in an exam, i.e. solve and submit the exercises and fetch live events.
+     * @param courseId the ID of the course
+     * @param examId the ID of the exam
+     * @return the list of request stats
+     */
     public List<RequestStat> participateInExam(long courseId, long examId) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
@@ -63,6 +73,12 @@ public class ArtemisStudent extends ArtemisUser {
         return requestStats;
     }
 
+    /**
+     * Start participating in an exam, i.e. navigate into the exam and start the exam.
+     * @param courseId the ID of the course
+     * @param examId the ID of the exam
+     * @return the list of request stats
+     */
     public List<RequestStat> startExamParticipation(long courseId, long examId) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
@@ -78,6 +94,12 @@ public class ArtemisStudent extends ArtemisUser {
         return requestStats;
     }
 
+    /**
+     * Submit and end an exam, i.e. submit the student exam and load the exam summary.
+     * @param courseId the ID of the course
+     * @param examId the ID of the exam
+     * @return the list of request stats
+     */
     public List<RequestStat> submitAndEndExam(long courseId, long examId) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");

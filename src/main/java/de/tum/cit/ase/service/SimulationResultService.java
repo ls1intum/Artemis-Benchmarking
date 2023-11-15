@@ -23,6 +23,12 @@ public class SimulationResultService {
         this.statsByMinuteRepository = statsByMinuteRepository;
     }
 
+    /**
+     * Calculate the simulation result and save it to the database.
+     * @param simulationRun the simulation run to calculate the result for
+     * @param requestStats the list of request stats from the simulation run
+     * @return the simulation run with the result
+     */
     public SimulationRun calculateAndSaveResult(SimulationRun simulationRun, List<RequestStat> requestStats) {
         SimulationStats totalStats = new SimulationStats();
         totalStats.setSimulationRun(simulationRun);

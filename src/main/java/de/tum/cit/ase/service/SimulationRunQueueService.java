@@ -25,6 +25,13 @@ public class SimulationRunQueueService {
         new Thread(this::executeSimulationRun).start();
     }
 
+    /**
+     * Add a simulation run to the end of the queue.
+     * <p>
+     * Note: The status of the simulation run will not be updated here.
+     * Make sure to update the status before adding the simulation run to the queue.
+     * @param simulationRun the simulation run to add to the queue
+     */
     public void queueSimulationRun(SimulationRun simulationRun) {
         simulationRunQueue.add(simulationRun);
     }
@@ -45,6 +52,9 @@ public class SimulationRunQueueService {
         }
     }
 
+    /**
+     * Add all queued simulation runs from the database to the queue in the correct order.
+     */
     private void initializeSimulationRunQueue() {
         simulationRunRepository
             .findAllByStatus(SimulationRun.Status.QUEUED)

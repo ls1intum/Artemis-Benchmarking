@@ -20,14 +20,27 @@ public class SimulationWebsocketService {
         this.messagingTemplate = messagingTemplate;
     }
 
+    /**
+     * Send the simulation result (= the list of stats) to all clients subscribed to the corresponding topic.
+     * @param run the simulation run that was completed
+     */
     public void sendSimulationResult(SimulationRun run) {
         messagingTemplate.convertAndSend(String.format(TOPIC_SIMULATION_RESULT, run.getId()), run.getStats());
     }
 
+    /**
+     * Send the simulation status to all clients subscribed to the corresponding topic.
+     * @param run the simulation run whose status was updated
+     */
     public void sendRunStatusUpdate(SimulationRun run) {
         messagingTemplate.convertAndSend(String.format(TOPIC_RUN_STATUS_UPDATE, run.getId()), run.getStatus());
     }
 
+    /**
+     * Send a log message to all clients subscribed to the corresponding topic.
+     * @param run the simulation run to which the message belongs
+     * @param logMessage the log message to send
+     */
     public void sendRunLogMessage(SimulationRun run, LogMessage logMessage) {
         messagingTemplate.convertAndSend(String.format(TOPIC_RUN_LOG_MESSAGE, run.getId()), logMessage);
     }

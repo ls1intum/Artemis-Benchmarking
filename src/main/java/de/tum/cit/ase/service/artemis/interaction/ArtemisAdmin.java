@@ -28,6 +28,11 @@ public class ArtemisAdmin extends ArtemisUser {
             response != null && (response.getAuthorities().contains("ROLE_ADMIN") || response.getAuthorities().contains("ROLE_INSTRUCTOR"));
     }
 
+    /**
+     * Prepare an exam for benchmarking, i.e. generate student exams, prepare exercise start, wait for preparation to finish and set start-date to now.
+     * @param courseId the ID of the course
+     * @param examId the ID of the exam
+     */
     public void prepareExam(long courseId, long examId) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
@@ -141,6 +146,10 @@ public class ArtemisAdmin extends ArtemisUser {
             .block();
     }
 
+    /**
+     * Create a course for benchmarking.
+     * @return the created course
+     */
     public Course createCourse() {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
@@ -159,6 +168,11 @@ public class ArtemisAdmin extends ArtemisUser {
             .block();
     }
 
+    /**
+     * Create an exam for benchmarking.
+     * @param course the course for which to create the exam
+     * @return the created exam
+     */
     public Exam createExam(Course course) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
@@ -183,6 +197,11 @@ public class ArtemisAdmin extends ArtemisUser {
             .block();
     }
 
+    /**
+     * Create exam exercises for benchmarking, i.e. one text, one modeling, one programming and one quiz exercise.
+     * @param courseId the ID of the course to which the exam belongs
+     * @param exam the exam for which to create the exercises
+     */
     public void createExamExercises(long courseId, Exam exam) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
@@ -328,6 +347,12 @@ public class ArtemisAdmin extends ArtemisUser {
             .block();
     }
 
+    /**
+     * Register the given number of test-users (1 to numberOfStudents) to the given course. The registration is parallelized to speed up the process.
+     * @param courseId the ID of the course
+     * @param numberOfStudents the number of students to register
+     * @param usernameTemplate the template for the usernames of the students to register, e.g. "test-user{i}"
+     */
     public void registerStudentsForCourse(long courseId, int numberOfStudents, String usernameTemplate) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
@@ -362,6 +387,11 @@ public class ArtemisAdmin extends ArtemisUser {
         scheduler.shutdown();
     }
 
+    /**
+     * Register all students of the given course for the given exam.
+     * @param courseId the ID of the course
+     * @param examId the ID of the exam
+     */
     public void registerStudentsForExam(long courseId, long examId) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");

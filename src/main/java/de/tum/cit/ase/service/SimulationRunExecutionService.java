@@ -50,6 +50,13 @@ public class SimulationRunExecutionService {
         this.logMessageRepository = logMessageRepository;
     }
 
+    /**
+     * Executes the given simulation run. This method is synchronized to prevent multiple simulations from running at the same time.
+     * <p>
+     * The steps of the simulation depend on the simulation mode, see {@link Simulation.Mode}.
+     * This method sends status updates, log messages and results to the client via websockets.
+     * @param simulationRun the simulation run to execute
+     */
     public synchronized void simulateExam(SimulationRun simulationRun) {
         ArtemisAccountDTO accountDTO = simulationRun.getAdminAccount();
 
@@ -237,6 +244,12 @@ public class SimulationRunExecutionService {
         sendRunResult(runWithResult);
     }
 
+    /**
+     * Initializes the admin for the given server and logs in.
+     *
+     * @param server the Artemis Server to initialize the admin for
+     * @return the initialized and logged in admin
+     */
     private ArtemisAdmin initializeAdmin(ArtemisServer server) {
         var admin = new ArtemisAdmin(
             artemisConfiguration.getAdminUsername(server),
@@ -247,12 +260,28 @@ public class SimulationRunExecutionService {
         return admin;
     }
 
+    /**
+     * Initializes the admin for the given server with the given account and logs in.
+     *
+     * @param server the Artemis Server to initialize the admin for
+     * @param artemisAccountDTO the account to use for logging in
+     * @return the initialized and logged in admin
+     */
     private ArtemisAdmin initializeAdminWithAccount(ArtemisServer server, ArtemisAccountDTO artemisAccountDTO) {
         var admin = new ArtemisAdmin(artemisAccountDTO.getUsername(), artemisAccountDTO.getPassword(), artemisConfiguration.getUrl(server));
         admin.login();
         return admin;
     }
 
+    /**
+     * Initializes the given number of students with the given server.
+     * <p>
+     * Note: This method does not log in the students.
+     *
+     * @param numberOfUsers the number of students to initialize
+     * @param server the Artemis Server to initialize the students for
+     * @return an array of initialized students
+     */
     private ArtemisStudent[] initializeStudents(int numberOfUsers, ArtemisServer server) {
         ArtemisStudent[] users = new ArtemisStudent[numberOfUsers];
         for (int i = 0; i < numberOfUsers; i++) {
@@ -263,6 +292,18 @@ public class SimulationRunExecutionService {
         return users;
     }
 
+    /**
+     * Performs the given action for all users in parallel with the given number of threads.
+     * Collects all request stats and returns them as a list.
+     * <p>
+     * If an exception occurs while performing the action for a user, the exception is logged and the user is skipped.
+     * Exceptions occurring for one user do not affect the execution of the action for other users and are not rethrown.
+     *
+     * @param threadCount the number of threads to use
+     * @param numberOfUsers the number of users to perform the action for
+     * @param action the action to perform
+     * @return a list of request stats for all performed actions
+     */
     private List<RequestStat> performActionWithAll(int threadCount, int numberOfUsers, Function<Integer, List<RequestStat>> action) {
         ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadCount);
         Scheduler scheduler = Schedulers.from(threadPoolExecutor);
