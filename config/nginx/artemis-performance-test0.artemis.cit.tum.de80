@@ -1,0 +1,10 @@
+server {
+    listen 80 default_server;
+    listen       [::]:80 default_server;
+
+    server_name artemis-performance-test0.artemis.cit.tum.de;
+
+    index index.html index.htm;
+
+    return 301 https://$host$request_uri;
+}

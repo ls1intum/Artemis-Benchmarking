@@ -1,11 +1,13 @@
 version: '3.8'
 services:
-  app:
+  benchmarking:
     image: ls1tum/artemis-benchmarking:latest
     env_file:
       - config/benchmarking.env
     ports:
-      - 127.0.0.1:8080:8080
+      - '127.0.0.1:8080:8080'
+    expose:
+      - '8080'
     healthcheck:
       test: wget -nv -t1 --spider http://localhost:8080/actuator/health || exit 1
       start_period: 600s
@@ -13,6 +15,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    restart: always
+
   mysql:
     image: mysql:8.1.0
     volumes:
@@ -20,7 +24,7 @@ services:
     env_file:
       - config/mysql.env
     expose:
-      - 3306
+      - '3306'
     command: mysqld --lower_case_table_names=1 --skip-ssl --character_set_server=utf8mb4  --collation-server=utf8mb4_unicode_ci --explicit_defaults_for_timestamp
     healthcheck:
       test: mysqladmin ping -h 127.0.0.1 -u root --silent
@@ -28,6 +32,7 @@ services:
       timeout: 3s
       retries: 30
       start_period: 300s
+    restart: always
 
 volumes:
   artemis-mysql-data:
