@@ -59,6 +59,7 @@
       </div>
     </div>
     <button type="submit" class="btn btn-primary" [disabled]="!inputValid()" (click)="createSimulation()">Create Simulation</button>
+    <div class="form-text">The simulation will not be executed immediately.</div>
   </form>
   <div class="mt-5 ms-3">
     <jhi-mode-explanation [mode]="mode"></jhi-mode-explanation>

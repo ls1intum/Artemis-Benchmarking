@@ -112,4 +112,8 @@ export class SimulationCardComponent implements OnInit {
       () => {},
     );
   }
+
+  hasActiveRun(): boolean {
+    return this.simulation.runs.some(run => run.status === Status.RUNNING);
+  }
 }
