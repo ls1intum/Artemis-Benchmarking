@@ -24,12 +24,18 @@ public class ArtemisAdmin extends ArtemisUser {
     @Override
     protected void checkAccess() {
         var response = webClient.get().uri("api/public/account").retrieve().bodyToMono(User.class).block();
-        this.authenticated = response != null && response.getAuthorities().contains("ROLE_ADMIN");
+        this.authenticated =
+            response != null && (response.getAuthorities().contains("ROLE_ADMIN") || response.getAuthorities().contains("ROLE_INSTRUCTOR"));
     }
 
+    /**
+     * Prepare an exam for benchmarking, i.e. generate student exams, prepare exercise start, wait for preparation to finish and set start-date to now.
+     * @param courseId the ID of the course
+     * @param examId the ID of the exam
+     */
     public void prepareExam(long courseId, long examId) {
         if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
         var examIdString = String.valueOf(examId);
         var courseIdString = String.valueOf(courseId);
@@ -140,9 +146,13 @@ public class ArtemisAdmin extends ArtemisUser {
             .block();
     }
 
+    /**
+     * Create a course for benchmarking.
+     * @return the created course
+     */
     public Course createCourse() {
         if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
         var randomInt = (int) (Math.random() * 10_0000);
@@ -158,13 +168,19 @@ public class ArtemisAdmin extends ArtemisUser {
             .block();
     }
 
+    /**
+     * Create an exam for benchmarking.
+     * @param course the course for which to create the exam
+     * @return the created exam
+     */
     public Exam createExam(Course course) {
         if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
         var exam = new Exam();
-        exam.setTitle("Temporary Benchmarking Exam");
+        var randomInt = (int) (Math.random() * 10_0000);
+        exam.setTitle("Temporary Benchmarking Exam" + randomInt);
         exam.setStartDate(ZonedDateTime.now().plusDays(1L));
         exam.setVisibleDate(ZonedDateTime.now());
         exam.setEndDate(ZonedDateTime.now().plusDays(1L).plusHours(2L));
@@ -182,9 +198,14 @@ public class ArtemisAdmin extends ArtemisUser {
             .block();
     }
 
+    /**
+     * Create exam exercises for benchmarking, i.e. one text, one modeling, one programming and one quiz exercise.
+     * @param courseId the ID of the course to which the exam belongs
+     * @param exam the exam for which to create the exercises
+     */
     public void createExamExercises(long courseId, Exam exam) {
         if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
         var textExerciseGroup = new ExerciseGroup();
@@ -269,9 +290,9 @@ public class ArtemisAdmin extends ArtemisUser {
 
         var programmingExercise = new ProgrammingExercise();
         programmingExercise.setExerciseGroup(programmingExerciseGroup);
-        programmingExercise.setTitle("Programming Exercise for Benchmarking");
+        programmingExercise.setTitle("Programming Exercise for " + exam.getTitle());
         programmingExercise.setMaxPoints(1.0);
-        programmingExercise.setShortName("progForBenchTemp");
+        programmingExercise.setShortName("progForBenchTemp" + exam.getId());
         programmingExercise.setPackageName("progforbenchtemp");
 
         webClient
@@ -327,12 +348,18 @@ public class ArtemisAdmin extends ArtemisUser {
             .block();
     }
 
-    public void registerStudentsForCourseAndExam(long courseId, long examId, int numberOfStudents, String usernameTemplate) {
+    /**
+     * Register the given number of test-users (1 to numberOfStudents) to the given course. The registration is parallelized to speed up the process.
+     * @param courseId the ID of the course
+     * @param numberOfStudents the number of students to register
+     * @param usernameTemplate the template for the usernames of the students to register, e.g. "test-user{i}"
+     */
+    public void registerStudentsForCourse(long courseId, int numberOfStudents, String usernameTemplate) {
         if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
-        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 4, numberOfStudents);
+        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 10, numberOfStudents);
         ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadCount);
         Scheduler scheduler = Schedulers.from(threadPoolExecutor);
 
@@ -359,6 +386,17 @@ public class ArtemisAdmin extends ArtemisUser {
             .blockingSubscribe();
         threadPoolExecutor.shutdownNow();
         scheduler.shutdown();
+    }
+
+    /**
+     * Register all students of the given course for the given exam.
+     * @param courseId the ID of the course
+     * @param examId the ID of the exam
+     */
+    public void registerStudentsForExam(long courseId, long examId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
+        }
 
         webClient
             .post()
@@ -372,9 +410,21 @@ public class ArtemisAdmin extends ArtemisUser {
             .block();
     }
 
+    public Course getCourse(long courseId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
+        }
+        return webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", String.valueOf(courseId)).build())
+            .retrieve()
+            .bodyToMono(Course.class)
+            .block();
+    }
+
     public void deleteCourse(long courseId) {
         if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or not an admin.");
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
         webClient

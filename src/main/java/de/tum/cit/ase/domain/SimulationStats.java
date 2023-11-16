@@ -1,34 +1,49 @@
 package de.tum.cit.ase.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.tum.cit.ase.util.TimeLogUtil;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import jakarta.persistence.*;
+import java.util.Set;
 
+@Entity
 public class SimulationStats {
 
-    private int numberOfRequests;
-    private long avgResponseTime;
-    private Map<ZonedDateTime, Long> requestsByMinute;
-    private Map<ZonedDateTime, Double> avgResponseTimeByMinute;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    public SimulationStats(List<RequestStat> requestStats) {
-        numberOfRequests = requestStats.size();
-        avgResponseTime = getAverage(requestStats);
-        requestsByMinute = calculateRequestsByMinute(requestStats);
-        avgResponseTimeByMinute = calculateAvgResponseTimeByMinute(requestStats);
+    @Column(name = "number_of_requests", nullable = false)
+    private long numberOfRequests;
+
+    @Column(name = "avg_response_time", nullable = false)
+    private long avgResponseTime;
+
+    @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    @JoinColumn(name = "simulation_stats_id")
+    private Set<StatsByMinute> statsByMinute;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "request_type", nullable = false)
+    private RequestType requestType;
+
+    @ManyToOne
+    @JoinColumn(name = "simulation_run_id", nullable = false)
+    @JsonIgnore
+    private SimulationRun simulationRun;
+
+    public Long getId() {
+        return id;
     }
 
-    public SimulationStats() {}
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public int getNumberOfRequests() {
+    public long getNumberOfRequests() {
         return numberOfRequests;
     }
 
-    public void setNumberOfRequests(int numberOfRequests) {
+    public void setNumberOfRequests(long numberOfRequests) {
         this.numberOfRequests = numberOfRequests;
     }
 
@@ -40,44 +55,28 @@ public class SimulationStats {
         this.avgResponseTime = avgResponseTime;
     }
 
-    public Map<ZonedDateTime, Long> getRequestsByMinute() {
-        return requestsByMinute;
+    public Set<StatsByMinute> getStatsByMinute() {
+        return statsByMinute;
     }
 
-    public void setRequestsByMinute(Map<ZonedDateTime, Long> requestsByMinute) {
-        this.requestsByMinute = requestsByMinute;
+    public void setStatsByMinute(Set<StatsByMinute> statsByMinute) {
+        this.statsByMinute = statsByMinute;
     }
 
-    public Map<ZonedDateTime, Double> getAvgResponseTimeByMinute() {
-        return avgResponseTimeByMinute;
+    public RequestType getRequestType() {
+        return requestType;
     }
 
-    public void setAvgResponseTimeByMinute(Map<ZonedDateTime, Double> avgResponseTimeByMinute) {
-        this.avgResponseTimeByMinute = avgResponseTimeByMinute;
+    public void setRequestType(RequestType requestType) {
+        this.requestType = requestType;
     }
 
-    private static long getAverage(Collection<RequestStat> times) {
-        if (times.isEmpty()) {
-            return 0;
-        }
-        return times.stream().map(RequestStat::duration).reduce(0L, Long::sum) / times.size();
+    public SimulationRun getSimulationRun() {
+        return simulationRun;
     }
 
-    private static Map<ZonedDateTime, Long> calculateRequestsByMinute(Collection<RequestStat> requestStats) {
-        return requestStats
-            .stream()
-            .collect(Collectors.groupingBy(stat -> stat.dateTime().truncatedTo(ChronoUnit.MINUTES), Collectors.counting()));
-    }
-
-    private static Map<ZonedDateTime, Double> calculateAvgResponseTimeByMinute(Collection<RequestStat> requestStats) {
-        return requestStats
-            .stream()
-            .collect(
-                Collectors.groupingBy(
-                    stat -> stat.dateTime().truncatedTo(ChronoUnit.MINUTES),
-                    Collectors.averagingLong(RequestStat::duration)
-                )
-            );
+    public void setSimulationRun(SimulationRun simulationRun) {
+        this.simulationRun = simulationRun;
     }
 
     @Override

@@ -11,6 +11,9 @@
     <property name="datetimeType" value="datetime(6)" dbms="mysql"/>
 
     <include file="config/liquibase/changelog/00000000000000_initial_schema.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/00000000000002_simulation_persistency.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/00000000000004_add_simulation_mode.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/00000000000005_add_simulation_creation_date.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->

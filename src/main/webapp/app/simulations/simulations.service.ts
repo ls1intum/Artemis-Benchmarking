@@ -2,82 +2,81 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ApplicationConfigService } from '../core/config/application-config.service';
 import { Observable } from 'rxjs/internal/Observable';
-import { ArtemisServer } from './artemisServer';
-import { Subscription } from 'rxjs';
+import { map } from 'rxjs';
 import { WebsocketService } from '../core/websocket/websocket.service';
-import { SimulationResult } from './simulationResult';
-import { ArtemisAccountDTO } from './artemisAccountDTO';
+import { ArtemisAccountDTO } from '../models/artemisAccountDTO';
+import { Simulation } from '../models/simulation';
+import { SimulationRun, Status } from '../models/simulationRun';
+import { SimulationStats } from '../models/simulationStats';
+import { LogMessage } from '../models/logMessage';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SimulationsService {
-  public infoMessages$: Observable<string> = new Observable<string>();
-  public errorMessages$: Observable<string> = new Observable<string>();
-  public failure$: Observable<void> = new Observable<void>();
-  public simulationResult$: Observable<SimulationResult> = new Observable<SimulationResult>();
-  public simulationCompleted$: Observable<void> = new Observable<void>();
-
-  private currentWebsocketChannels?: string[];
-  private currentWebsocketReceiveSubscriptions?: Subscription[];
-
   constructor(
     private httpClient: HttpClient,
     private applicationConfigService: ApplicationConfigService,
     private websocketService: WebsocketService,
-  ) {
-    this.subscribeToSimulationUpdates();
+  ) {}
+
+  receiveSimulationResult(run: SimulationRun): Observable<SimulationStats[]> {
+    this.websocketService.subscribe('/topic/simulation/runs/' + run.id + '/result');
+    return this.websocketService.receive('/topic/simulation/runs/' + run.id + '/result').pipe(map((res: any) => res as SimulationStats[]));
   }
 
-  subscribeToSimulationUpdates(): void {
-    this.websocketService.subscribe('/topic/simulation/info');
-    this.infoMessages$ = this.websocketService.receive('/topic/simulation/info');
-
-    this.websocketService.subscribe('/topic/simulation/error');
-    this.errorMessages$ = this.websocketService.receive('/topic/simulation/error');
-
-    this.websocketService.subscribe('/topic/simulation/failed');
-    this.failure$ = this.websocketService.receive('/topic/simulation/failed');
-
-    this.websocketService.subscribe('/topic/simulation/result');
-    this.simulationResult$ = this.websocketService.receive('/topic/simulation/result');
-
-    this.websocketService.subscribe('/topic/simulation/completed');
-    this.simulationCompleted$ = this.websocketService.receive('/topic/simulation/completed');
+  receiveSimulationLog(run: SimulationRun): Observable<LogMessage> {
+    this.websocketService.subscribe('/topic/simulation/runs/' + run.id + '/log');
+    return this.websocketService.receive('/topic/simulation/runs/' + run.id + '/log').pipe(map((res: any) => res as LogMessage));
   }
 
-  startSimulation(
-    numberOfUsers: number,
-    courseId: number,
-    examId: number,
-    server: ArtemisServer,
-    noPreparation: boolean,
-    account?: ArtemisAccountDTO,
-  ): Observable<object> {
-    const endpoint = this.applicationConfigService.getEndpointFor(
-      '/api/simulations?users=' +
-        numberOfUsers +
-        '&courseId=' +
-        courseId +
-        '&examId=' +
-        examId +
-        '&server=' +
-        server +
-        '&noPreparation=' +
-        noPreparation,
-    );
-    if (!window.location.protocol.startsWith('https:')) {
-      // Only send credentials over HTTPS
-      account = undefined;
-    }
-    return this.httpClient.post(endpoint, account);
+  receiveSimulationStatus(run: SimulationRun): Observable<Status> {
+    this.websocketService.subscribe('/topic/simulation/runs/' + run.id + '/status');
+    return this.websocketService.receive('/topic/simulation/runs/' + run.id + '/status').pipe(map((res: any) => res as Status));
   }
 
-  private unsubscribeFromSimulationUpdates(): void {
-    this.currentWebsocketReceiveSubscriptions?.forEach(subscription => subscription.unsubscribe());
-    this.currentWebsocketReceiveSubscriptions = undefined;
+  createSimulation(simulation: Simulation): Observable<Simulation> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations');
+    return this.httpClient.post(endpoint, simulation).pipe(map((res: any) => res as Simulation));
+  }
 
-    this.currentWebsocketChannels?.forEach(channel => this.websocketService.unsubscribe(channel));
-    this.currentWebsocketChannels = undefined;
+  getSimulations(): Observable<Simulation[]> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations');
+    return this.httpClient.get(endpoint).pipe(map((res: any) => res as Simulation[]));
+  }
+
+  getSimulation(simulationId: number): Observable<Simulation> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId);
+    return this.httpClient.get(endpoint).pipe(map((res: any) => res as Simulation));
+  }
+
+  getSimulationRun(simulationRunId: number): Observable<SimulationRun> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/runs/' + simulationRunId);
+    return this.httpClient.get(endpoint).pipe(map((res: any) => res as SimulationRun));
+  }
+
+  runSimulation(simulationId: number, account?: ArtemisAccountDTO): Observable<SimulationRun> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId + '/run');
+    return this.httpClient.post(endpoint, account).pipe(map((res: any) => res as SimulationRun));
+  }
+
+  deleteSimulation(simulationId: number): Observable<void> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId);
+    return this.httpClient.delete(endpoint).pipe(map(() => {}));
+  }
+
+  deleteSimulationRun(runId: number): Observable<void> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/runs/' + runId);
+    return this.httpClient.delete(endpoint).pipe(map(() => {}));
+  }
+
+  public unsubscribeFromSelectedSimulationRun(run: SimulationRun): void {
+    this.websocketService.unsubscribe('/topic/simulation/runs/' + run.id + '/result');
+    this.websocketService.unsubscribe('/topic/simulation/runs/' + run.id + '/log');
+  }
+
+  public unsubscribeFromSimulationRun(run: SimulationRun): void {
+    this.unsubscribeFromSelectedSimulationRun(run);
+    this.websocketService.unsubscribe('/topic/simulation/runs/' + run.id + '/status');
   }
 }

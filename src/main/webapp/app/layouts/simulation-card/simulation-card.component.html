@@ -1,0 +1,131 @@
+<div class="card mb-3">
+  <div class="card-header space-between-wrapper">
+    {{ simulation.name }}
+    <button
+      type="button"
+      class="btn btn-link btn-sm p-0"
+      (click)="deleteSimulation(deleteModal)"
+      [disabled]="hasActiveRun()"
+      ngbTooltip="Delete"
+    >
+      <fa-icon [icon]="faTrashCan" class="text-danger"></fa-icon>
+    </button>
+  </div>
+  <div class="card-body" style="position: relative">
+    <div class="space-between-wrapper">
+      <div class="me-3 w-60">
+        <p>
+          <strong>{{ getTextRepresentation(simulation.mode) }}</strong>
+        </p>
+        <p>Users: {{ simulation.numberOfUsers }}</p>
+        <p *ngIf="simulation.mode != Mode.CREATE_COURSE_AND_EXAM">Course-ID: {{ simulation.courseId }}</p>
+        <p *ngIf="simulation.mode == Mode.EXISTING_COURSE_PREPARED_EXAM || simulation.mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM">
+          Exam-ID: {{ simulation.examId }}
+        </p>
+      </div>
+      <jhi-server-badge style="position: absolute; top: 10px; right: 10px" class="mb-5" [server]="simulation.server"></jhi-server-badge>
+      <button style="position: absolute; bottom: 10px; right: 10px" type="button" class="btn btn-primary" (click)="startRun(accountModal)">
+        Start run
+      </button>
+    </div>
+  </div>
+  <div
+    class="card-footer"
+    role="button"
+    *ngFor="let run of displayedRuns"
+    (click)="clickedRun(run)"
+    [ngClass]="{ 'bg-primary-subtle': run.id == selectedRun?.id }"
+  >
+    <div class="space-between-wrapper">
+      <p class="mb-0">{{ run!.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</p>
+      <jhi-status-icon [status]="run!.status"></jhi-status-icon>
+    </div>
+  </div>
+  <div class="card-footer" *ngIf="simulation.runs.length > 3">
+    <button
+      *ngIf="numberOfDisplayedRuns < simulation.runs.length"
+      type="button"
+      class="btn btn-secondary btn-sm"
+      (click)="increaseNumberOfDisplayedRuns()"
+    >
+      Show more
+    </button>
+    <button *ngIf="numberOfDisplayedRuns > 3" type="button" class="btn btn-secondary btn-sm" (click)="decreaseNumberOfDisplayedRuns()">
+      Show less
+    </button>
+  </div>
+</div>
+
+<!-- Admin account modal-->
+<ng-template #accountModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="account-modal-title">Production Simulation</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p *ngIf="simulation.mode == Mode.CREATE_COURSE_AND_EXAM">
+      To perform a run of this simulation, you need to specify an Artemis Admin Account.
+    </p>
+    <p *ngIf="simulation.mode == Mode.EXISTING_COURSE_CREATE_EXAM || simulation.mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM">
+      To perform a run of this simulation, you need to specify an Artemis Account that has at least Instructor rights for the course with
+      the ID
+      {{ simulation.courseId }}.
+    </p>
+    <form *ngIf="simulation.mode != Mode.EXISTING_COURSE_PREPARED_EXAM">
+      <div class="mb-3">
+        <label for="adminUsername" class="form-label">Username</label>
+        <input type="text" class="form-control" id="adminUsername" [(ngModel)]="adminUsername" [ngModelOptions]="{ standalone: true }" />
+      </div>
+      <div class="mb-3">
+        <label for="adminPassword" class="form-label">Password</label>
+        <input
+          type="password"
+          class="form-control"
+          id="adminPassword"
+          aria-describedby="password-hint"
+          [(ngModel)]="adminPassword"
+          [ngModelOptions]="{ standalone: true }"
+        />
+        <div class="form-text" id="password-hint">
+          These credentials will only be used for this one run. They will not be saved. They will be transmitted via a secure HTTPS
+          connection.
+        </div>
+      </div>
+    </form>
+    <p>
+      <span class="text-warning">Attention:</span> You are about to start a simulation on Production. Please be aware that simulations with
+      large numbers of students can cause significant load on the system. Ideally, simulations on Production should be performed during
+      off-peak hours.<br />
+      <span class="text-warning">Please be considerate of Artemis users!</span>
+    </p>
+  </div>
+  <div class="modal-footer">
+    <button
+      type="submit"
+      class="btn btn-primary"
+      [disabled]="(adminPassword.length == 0 || adminUsername.length == 0) && simulation.mode != Mode.EXISTING_COURSE_PREPARED_EXAM"
+      (click)="modal.close()"
+    >
+      Start run
+    </button>
+  </div>
+</ng-template>
+
+<!-- Delete confirm modal-->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="delete-modal-title">Delete Simulation</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>
+      Are you sure that you want to delete the simulation <strong class="text-info">{{ simulation.name }}</strong
+      >?<br />
+      <span class="text-warning">All associated runs and results will be deleted as well.</span>
+    </p>
+  </div>
+  <div class="modal-footer space-between-wrapper">
+    <button type="reset" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+    <button type="submit" class="btn btn-danger" (click)="modal.close()">Delete</button>
+  </div>
+</ng-template>

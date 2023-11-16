@@ -1,12 +1,13 @@
 import { Component, Input } from '@angular/core';
-import { SimulationStats } from '../../simulationStats';
+import { SimulationStats } from '../../models/simulationStats';
+import { RequestType } from '../../models/requestType';
 
 @Component({
-  selector: 'jhi-result-part',
-  templateUrl: './result-part.component.html',
-  styleUrls: ['./result-part.component.scss'],
+  selector: 'jhi-result-box',
+  templateUrl: './result-box.component.html',
+  styleUrls: ['./result-box.component.scss'],
 })
-export class ResultPartComponent {
+export class ResultBoxComponent {
   @Input() simulationStats?: SimulationStats;
 
   formatDuration(durationInNanoSeconds: number): string {
@@ -20,5 +21,9 @@ export class ResultPartComponent {
       return durationInMilliSeconds.toFixed(2) + ' ms';
     }
     return durationInMicroSeconds.toFixed(2) + ' µs';
+  }
+
+  formatRequestType(requestType: RequestType): string {
+    return requestType.replace(/_/g, ' ');
   }
 }

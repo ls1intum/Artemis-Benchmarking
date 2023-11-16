@@ -1,0 +1,91 @@
+<button
+  *ngIf="isCollapsed"
+  type="button"
+  class="btn btn-primary"
+  (click)="collapse.toggle()"
+  [attr.aria-expanded]="!isCollapsed"
+  aria-controls="collapseExample"
+>
+  Create simulation
+</button>
+<button
+  *ngIf="!isCollapsed"
+  type="button"
+  class="btn btn-danger"
+  (click)="collapse.toggle()"
+  [attr.aria-expanded]="!isCollapsed"
+  aria-controls="collapseExample"
+>
+  Cancel
+</button>
+<div #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
+  <jhi-create-simulation-box (simulationToCreate)="createSimulation($event)"></jhi-create-simulation-box>
+</div>
+<div class="flex-container vh-90 mt-3">
+  <div class="w-25 pe-3 overflow-scroll">
+    <jhi-simulation-card
+      *ngFor="let simulation of simulations"
+      [simulation]="simulation"
+      [selectedRun]="selectedRun"
+      (clickedRunEvent)="selectRun($event)"
+      (delete)="deleteSimulation(simulation)"
+    ></jhi-simulation-card>
+  </div>
+  <div class="vr"></div>
+  <div class="w-75 ms-3 pe-3 overflow-scroll" *ngIf="selectedRun">
+    <div class="space-between-wrapper">
+      <h3>Run #{{ selectedRun.id }} - {{ selectedRun.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</h3>
+      <h3 class="pe-3">
+        <jhi-status-icon class="me-3" [status]="selectedRun.status"></jhi-status-icon>
+        <button
+          type="button"
+          class="btn btn-danger mb-1"
+          (click)="deleteSelectedRun(deleteModal)"
+          [disabled]="selectedRun.status === Status.RUNNING"
+        >
+          Delete
+        </button>
+      </h3>
+    </div>
+    <div ngbAccordion class="mb-3">
+      <div ngbAccordionItem [collapsed]="false">
+        <h2 ngbAccordionHeader>
+          <button ngbAccordionButton>Log Messages</button>
+        </h2>
+        <div ngbAccordionCollapse>
+          <div ngbAccordionBody class="p-0">
+            <ng-template>
+              <jhi-log-box [logMessages]="selectedRun.logMessages"></jhi-log-box>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="flex-wrapper">
+      <div class="w-50" *ngFor="let simulationStats of selectedRun.stats">
+        <jhi-result-box [simulationStats]="simulationStats"></jhi-result-box>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="!selectedRun" class="w-75 ms-3 pe-3">
+    <p class="text-center">Select a run to see details</p>
+  </div>
+</div>
+
+<!-- Delete confirm modal-->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="delete-modal-title">Delete Simulation Run</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>
+      Are you sure that you want to delete this run?<br />
+      <span class="text-warning">All associated results will be deleted as well.</span>
+    </p>
+  </div>
+  <div class="modal-footer space-between-wrapper">
+    <button type="reset" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+    <button type="submit" class="btn btn-danger" (click)="modal.close()">Delete</button>
+  </div>
+</ng-template>

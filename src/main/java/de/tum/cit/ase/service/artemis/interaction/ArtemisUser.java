@@ -39,6 +39,10 @@ public abstract class ArtemisUser {
         this.artemisUrl = artemisUrl;
     }
 
+    /**
+     * Login to Artemis and return the request stats for the login request.
+     * @return the request stats for the login request
+     */
     public List<RequestStat> login() {
         log.info("Logging in as {{}}", username);
         List<RequestStat> requestStats = new ArrayList<>();

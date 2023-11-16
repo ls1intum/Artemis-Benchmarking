@@ -1,4 +1,4 @@
-package de.tum.cit.ase.service.artemis;
+package de.tum.cit.ase.util;
 
 public enum ArtemisServer {
     LOCAL,

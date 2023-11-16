@@ -1,11 +1,18 @@
 package de.tum.cit.ase.web.websocket;
 
-import de.tum.cit.ase.domain.SimulationResult;
+import de.tum.cit.ase.domain.LogMessage;
+import de.tum.cit.ase.domain.SimulationRun;
+import de.tum.cit.ase.domain.SimulationStats;
+import java.util.Set;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
 @Service
 public class SimulationWebsocketService {
+
+    private static final String TOPIC_SIMULATION_RESULT = "/topic/simulation/runs/%d/result";
+    private static final String TOPIC_RUN_STATUS_UPDATE = "/topic/simulation/runs/%d/status";
+    private static final String TOPIC_RUN_LOG_MESSAGE = "/topic/simulation/runs/%d/log";
 
     private final SimpMessageSendingOperations messagingTemplate;
 
@@ -13,23 +20,28 @@ public class SimulationWebsocketService {
         this.messagingTemplate = messagingTemplate;
     }
 
-    public void sendSimulationResult(SimulationResult simulationResult) {
-        messagingTemplate.convertAndSend("/topic/simulation/result", simulationResult);
+    /**
+     * Send the simulation result (= the list of stats) to all clients subscribed to the corresponding topic.
+     * @param run the simulation run that was completed
+     */
+    public void sendSimulationResult(SimulationRun run) {
+        messagingTemplate.convertAndSend(String.format(TOPIC_SIMULATION_RESULT, run.getId()), run.getStats());
     }
 
-    public void sendSimulationCompleted() {
-        messagingTemplate.convertAndSend("/topic/simulation/completed", "");
+    /**
+     * Send the simulation status to all clients subscribed to the corresponding topic.
+     * @param run the simulation run whose status was updated
+     */
+    public void sendRunStatusUpdate(SimulationRun run) {
+        messagingTemplate.convertAndSend(String.format(TOPIC_RUN_STATUS_UPDATE, run.getId()), run.getStatus());
     }
 
-    public void sendSimulationError(String error) {
-        messagingTemplate.convertAndSend("/topic/simulation/error", error);
-    }
-
-    public void sendSimulationInfo(String info) {
-        messagingTemplate.convertAndSend("/topic/simulation/info", info);
-    }
-
-    public void sendSimulationFailed() {
-        messagingTemplate.convertAndSend("/topic/simulation/failed", "");
+    /**
+     * Send a log message to all clients subscribed to the corresponding topic.
+     * @param run the simulation run to which the message belongs
+     * @param logMessage the log message to send
+     */
+    public void sendRunLogMessage(SimulationRun run, LogMessage logMessage) {
+        messagingTemplate.convertAndSend(String.format(TOPIC_RUN_LOG_MESSAGE, run.getId()), logMessage);
     }
 }

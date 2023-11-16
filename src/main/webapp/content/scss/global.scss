@@ -1,6 +1,7 @@
-@import 'bootstrap-variables';
+@import './bootstrap-variables';
 @import 'bootstrap/scss/functions';
 @import 'bootstrap/scss/variables';
+@import 'bootstrap/scss/bootstrap';
 
 /* ==============================================================
 Bootstrap tweaks
@@ -92,13 +93,21 @@ Generic styles
   width: 60% !important;
 }
 
+.h-90 {
+  height: 90% !important;
+}
+
+.vh-90 {
+  height: 90vh !important;
+}
+
+.mw-60 {
+  max-width: 60% !important;
+}
+
 .break {
   white-space: normal;
   word-break: break-all;
-}
-
-.form-control {
-  background-color: #fff;
 }
 
 .readonly {
@@ -213,6 +222,24 @@ ui bootstrap tweaks
 
 .dropdown-menu {
   padding-left: 0px;
+}
+
+/* ==========================================================================
+Custom layouts
+========================================================================== */
+.space-between-wrapper {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.flex-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.flex-container {
+  display: flex;
 }
 
 /* ==========================================================================
