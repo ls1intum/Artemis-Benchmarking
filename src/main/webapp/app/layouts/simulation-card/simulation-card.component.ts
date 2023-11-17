@@ -5,7 +5,7 @@ import { SimulationsService } from '../../simulations/simulations.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ArtemisServer } from '../../models/artemisServer';
 import { ArtemisAccountDTO } from '../../models/artemisAccountDTO';
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faChevronRight, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'jhi-simulation-card',
@@ -14,6 +14,7 @@ import { faTrashCan } from '@fortawesome/free-solid-svg-icons';
 })
 export class SimulationCardComponent implements OnInit {
   faTrashCan = faTrashCan;
+  faChevronRight = faChevronRight;
 
   @Input()
   simulation!: Simulation;
