@@ -3,7 +3,7 @@
     class="badge"
     [ngClass]="{
       'bg-success': server == ArtemisServer.LOCAL,
-      'bg-warning': server == ArtemisServer.STAGING,
+      'bg-warning text-dark': server == ArtemisServer.STAGING,
       'bg-danger': server == ArtemisServer.PRODUCTION,
       'bg-info': server == ArtemisServer.TS1 || server == ArtemisServer.TS3
     }"

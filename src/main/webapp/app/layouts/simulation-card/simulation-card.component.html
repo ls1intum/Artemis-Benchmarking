@@ -29,20 +29,22 @@
       </button>
     </div>
   </div>
-  <div
-    class="card-footer run-item"
-    role="button"
-    *ngFor="let run of displayedRuns"
-    (click)="clickedRun(run)"
-    [ngClass]="{ 'bg-primary-subtle': run.id == selectedRun?.id }"
-  >
-    <div class="space-between-wrapper">
-      <div class="flex-container">
-        <jhi-status-icon [status]="run!.status"></jhi-status-icon>
-        <p class="mb-0 ms-3">{{ run!.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</p>
+  <div class="card-footer">
+    <button
+      type="button"
+      *ngFor="let run of displayedRuns"
+      class="shadow btn btn-outline-secondary w-100 mb-2"
+      (click)="clickedRun(run)"
+      [ngClass]="{ active: selectedRun == run }"
+    >
+      <div class="space-between-wrapper text-white">
+        <div class="flex-container">
+          <jhi-status-icon [status]="run!.status"></jhi-status-icon>
+          <p class="mb-0 ms-3">{{ run!.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</p>
+        </div>
+        <fa-icon [icon]="faChevronRight"></fa-icon>
       </div>
-      <fa-icon [icon]="faChevronRight"></fa-icon>
-    </div>
+    </button>
   </div>
   <div class="card-footer" *ngIf="simulation.runs.length > 3">
     <button
