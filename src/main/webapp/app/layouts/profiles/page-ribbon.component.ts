@@ -8,9 +8,11 @@ import { map } from 'rxjs/operators';
   standalone: true,
   selector: 'jhi-page-ribbon',
   template: `
-    <div class="ribbon" *ngIf="ribbonEnv$ | async as ribbonEnv">
-      <a href="">{{ { dev: 'Development' }[ribbonEnv] || '' }}</a>
-    </div>
+    @if (ribbonEnv$ | async; as ribbonEnv) {
+      <div class="ribbon">
+        <a href="">{{ { dev: 'Development' }[ribbonEnv] || '' }}</a>
+      </div>
+    }
   `,
   styleUrls: ['./page-ribbon.component.scss'],
   imports: [SharedModule],

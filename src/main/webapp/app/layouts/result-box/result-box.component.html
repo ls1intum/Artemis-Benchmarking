@@ -1,4 +1,4 @@
-<div class="card h-100" *ngIf="simulationStats">
+<div class="card h-100">
   <div class="card-header">
     {{ formatRequestType(simulationStats.requestType) }}
   </div>
@@ -11,17 +11,17 @@
       <div class="w-50">
         <strong class="mb-0">Requests per minute:</strong>
         <div class="ps-5">
-          <p class="mb-0" *ngFor="let statsMinute of simulationStats?.statsByMinute">
-            {{ statsMinute.dateTime | date: 'HH:mm' }}: {{ statsMinute.numberOfRequests }}
-          </p>
+          @for (statsMinute of simulationStats.statsByMinute; track statsMinute) {
+            <p class="mb-0">{{ statsMinute.dateTime | date: 'HH:mm' }}: {{ statsMinute.numberOfRequests }}</p>
+          }
         </div>
       </div>
       <div class="w-50">
         <strong class="mb-0">Avg. response time by minute:</strong>
         <div class="ps-5">
-          <p class="mb-0" *ngFor="let statsMinute of simulationStats?.statsByMinute">
-            {{ statsMinute.dateTime | date: 'HH:mm' }}: {{ formatDuration(statsMinute.avgResponseTime) }}
-          </p>
+          @for (statsMinute of simulationStats.statsByMinute; track statsMinute) {
+            <p class="mb-0">{{ statsMinute.dateTime | date: 'HH:mm' }}: {{ formatDuration(statsMinute.avgResponseTime) }}</p>
+          }
         </div>
       </div>
     </div>

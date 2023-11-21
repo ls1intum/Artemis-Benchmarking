@@ -14,7 +14,9 @@
           [(ngModel)]="server"
           [ngModelOptions]="{ standalone: true }"
         >
-          <option *ngFor="let server of availableServers">{{ server }}</option>
+          @for (server of availableServers; track server) {
+            <option>{{ server }}</option>
+          }
         </select>
       </div>
       <div class="me-3 mb-3">
@@ -26,7 +28,9 @@
           [(ngModel)]="mode"
           [ngModelOptions]="{ standalone: true }"
         >
-          <option *ngFor="let availableMode of availableModes" [value]="availableMode">{{ getTextRepresentation(availableMode) }}</option>
+          @for (availableMode of availableModes; track availableMode) {
+            <option [value]="availableMode">{{ getTextRepresentation(availableMode) }}</option>
+          }
         </select>
       </div>
       <div class="me-3 mb-3">
@@ -41,23 +45,34 @@
         />
       </div>
     </div>
-    <div *ngIf="mode != Mode.CREATE_COURSE_AND_EXAM" class="flex-wrapper">
-      <div class="me-3 mb-3">
-        <label for="course-input" class="form-label">Course ID</label>
-        <input
-          type="number"
-          class="form-control"
-          id="course-input"
-          min="0"
-          [(ngModel)]="courseId"
-          [ngModelOptions]="{ standalone: true }"
-        />
+    @if (mode != Mode.CREATE_COURSE_AND_EXAM) {
+      <div class="flex-wrapper">
+        <div class="me-3 mb-3">
+          <label for="course-input" class="form-label">Course ID</label>
+          <input
+            type="number"
+            class="form-control"
+            id="course-input"
+            min="0"
+            [(ngModel)]="courseId"
+            [ngModelOptions]="{ standalone: true }"
+          />
+        </div>
+        @if (mode != Mode.EXISTING_COURSE_CREATE_EXAM) {
+          <div class="me-3 mb-3">
+            <label for="exam-input" class="form-label">Exam ID</label>
+            <input
+              type="number"
+              class="form-control"
+              id="exam-input"
+              min="0"
+              [(ngModel)]="examId"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+        }
       </div>
-      <div class="me-3 mb-3" *ngIf="mode != Mode.EXISTING_COURSE_CREATE_EXAM">
-        <label for="exam-input" class="form-label">Exam ID</label>
-        <input type="number" class="form-control" id="exam-input" min="0" [(ngModel)]="examId" [ngModelOptions]="{ standalone: true }" />
-      </div>
-    </div>
+    }
     <button type="submit" class="btn btn-primary" [disabled]="!inputValid()" (click)="createSimulation()">Create Simulation</button>
     <div class="form-text">The simulation will not be executed immediately.</div>
   </form>
