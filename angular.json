@@ -18,15 +18,12 @@
       "prefix": "jhi",
       "architect": {
         "build": {
-          "builder": "@angular-builders/custom-webpack:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "customWebpackConfig": {
-              "path": "./webpack/webpack.custom.js"
-            },
             "allowedCommonJsDependencies": ["sockjs-client", "webstomp-client"],
             "outputPath": "build/resources/main/static/",
             "index": "src/main/webapp/index.html",
-            "main": "src/main/webapp/main.ts",
+            "browser": "src/main/webapp/main.ts",
             "polyfills": ["./src/main/webapp/sockjs-client.polyfill", "zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
@@ -46,10 +43,7 @@
               "sourceMap": false,
               "namedChunks": false,
               "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
-              "serviceWorker": true,
-              "ngswConfigPath": "ngsw-config.json",
+              "serviceWorker": "ngsw-config.json",
               "budgets": [
                 {
                   "type": "initial",
@@ -61,31 +55,42 @@
                   "maximumWarning": "2kb",
                   "maximumError": "4kb"
                 }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/main/webapp/app/environments/environment.ts",
+                  "with": "src/main/webapp/app/environments/environment.override.ts"
+                }
               ]
             },
             "development": {
-              "buildOptimizer": false,
               "optimization": false,
-              "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true
+              "namedChunks": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/main/webapp/app/environments/environment.ts",
+                  "with": "src/main/webapp/app/environments/environment.override.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-builders/custom-webpack:dev-server",
+          "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "artemis-benchmarking:build:development",
-            "port": 4200
+            "buildTarget": "artemis-benchmarking:build:development",
+            "proxyConfig": "proxy.conf.mjs",
+            "port": 9000
           },
           "configurations": {
             "production": {
-              "browserTarget": "artemis-benchmarking:build:production"
+              "buildTarget": "artemis-benchmarking:build:production"
             },
             "development": {
-              "browserTarget": "artemis-benchmarking:build:development"
+              "buildTarget": "artemis-benchmarking:build:development"
             }
           },
           "defaultConfiguration": "development"

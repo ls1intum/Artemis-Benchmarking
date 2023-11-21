@@ -217,9 +217,6 @@ dependencies {
     implementation("com.thedeanda:lorem:2.2")
     implementation("org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r")
     implementation("io.reactivex.rxjava3:rxjava:3.1.8")
-    implementation 'org.eclipse.jetty.websocket:websocket-client:9.4.53.v20231009'
-    implementation 'org.glassfish.tyrus:tyrus-client:2.1.4'
-    implementation 'org.glassfish.tyrus:tyrus-container-grizzly-client:2.1.4'
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.100.Final:osx-aarch_64'
 }
 
@@ -256,9 +253,6 @@ task webapp_test(type: NpmTask) {
         .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.files("tsconfig.json", "tsconfig.app.json")
         .withPropertyName("tsconfig")
-        .withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.dir("webpack/")
-        .withPropertyName("webpack/")
         .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.dir("src/main/webapp/")
         .withPropertyName("webapp-source-dir")

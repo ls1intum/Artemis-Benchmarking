@@ -1,15 +1,11 @@
 const {
   compilerOptions: { paths = {}, baseUrl = './' },
 } = require('./tsconfig.json');
-const environment = require('./webpack/environment');
 const { pathsToModuleNameMapper } = require('ts-jest');
 
 module.exports = {
   transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$|dayjs/esm)'],
   resolver: 'jest-preset-angular/build/resolvers/ng-jest-resolver.js',
-  globals: {
-    ...environment,
-  },
   roots: ['<rootDir>', `<rootDir>/${baseUrl}`],
   modulePaths: [`<rootDir>/${baseUrl}`],
   setupFiles: ['jest-date-mock'],
