@@ -4,6 +4,7 @@ import { enableProdMode } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 // disable debug data on prod profile to improve performance
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 if (!DEBUG_INFO_ENABLED) {
   enableProdMode();
 }
