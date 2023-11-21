@@ -100,7 +100,7 @@
     "@angular/cli": "17.0.2",
     "@angular/compiler-cli": "17.0.4",
     "@angular/service-worker": "17.0.4",
-    "@types/jest": "29.5.7",
+    "@types/jest": "29.5.9",
     "@types/node": "20.9.0",
     "@types/sockjs-client": "1.5.4",
     "@typescript-eslint/eslint-plugin": "6.9.1",
