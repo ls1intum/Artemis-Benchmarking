@@ -155,3 +155,4 @@ Desktop.ini
 # Local configurations
 ######################
 /src/main/resources/config/application-local.yml
+/src/main/webapp/app/environments/environment.*.ts

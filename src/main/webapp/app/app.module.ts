@@ -64,7 +64,6 @@ import { ModeExplanationComponent } from './layouts/mode-explanation/mode-explan
 })
 export class AppModule {
   constructor(applicationConfigService: ApplicationConfigService, iconLibrary: FaIconLibrary, dpConfig: NgbDatepickerConfig) {
-    applicationConfigService.setEndpointPrefix(SERVER_API_URL);
     registerLocaleData(locale);
     iconLibrary.addIcons(...fontAwesomeIcons);
     dpConfig.minDate = { year: dayjs().subtract(100, 'year').year(), month: 1, day: 1 };
