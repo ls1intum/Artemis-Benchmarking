@@ -11,7 +11,12 @@ import { fas, faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-i
     <table>
       <thead>
         <tr jhiSort [(predicate)]="predicate" [(ascending)]="ascending" (sortChange)="transition($event)">
-          <th jhiSortBy="name">ID<fa-icon *ngIf="sortAllowed" [icon]="'sort'"></fa-icon></th>
+          <th jhiSortBy="name">
+            ID
+            @if (sortAllowed) {
+              <fa-icon [icon]="'sort'"></fa-icon>
+            }
+          </th>
         </tr>
       </thead>
     </table>

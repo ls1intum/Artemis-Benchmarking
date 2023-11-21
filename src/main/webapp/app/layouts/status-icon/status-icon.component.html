@@ -1,10 +1,12 @@
-<fa-icon *ngIf="status == Status.FINISHED" [icon]="faCircleCheck" class="text-success" ngbTooltip="Finished"></fa-icon>
-<fa-icon *ngIf="status == Status.FAILED" [icon]="faCircleXmark" class="text-danger" ngbTooltip="Failed"></fa-icon>
-<fa-icon *ngIf="status == Status.QUEUED" [icon]="faCircle" class="text-warning" ngbTooltip="Queued"></fa-icon>
-<fa-icon
-  *ngIf="status == Status.RUNNING"
-  [icon]="faCircleNotch"
-  class="text-info fa-spin"
-  style="display: inline-block"
-  ngbTooltip="Running"
-></fa-icon>
+@if (status == Status.FINISHED) {
+  <fa-icon [icon]="faCircleCheck" class="text-success" ngbTooltip="Finished"></fa-icon>
+}
+@if (status == Status.FAILED) {
+  <fa-icon [icon]="faCircleXmark" class="text-danger" ngbTooltip="Failed"></fa-icon>
+}
+@if (status == Status.QUEUED) {
+  <fa-icon [icon]="faCircle" class="text-warning" ngbTooltip="Queued"></fa-icon>
+}
+@if (status == Status.RUNNING) {
+  <fa-icon [icon]="faCircleNotch" class="text-info fa-spin" style="display: inline-block" ngbTooltip="Running"></fa-icon>
+}

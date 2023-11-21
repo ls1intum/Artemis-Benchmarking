@@ -17,7 +17,7 @@
     >
       <fa-icon icon="bars"></fa-icon>
     </a>
-    <div class="navbar-collapse collapse" id="navbarResponsive" [ngbCollapse]="isNavbarCollapsed" [ngSwitch]="account !== null">
+    <div class="navbar-collapse collapse" id="navbarResponsive" [ngbCollapse]="isNavbarCollapsed">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <a class="nav-link" routerLink="/" (click)="collapseNavbar()">
@@ -28,20 +28,21 @@
           </a>
         </li>
         <!-- jhipster-needle-add-element-to-menu - JHipster will add new menu items here -->
-        <li
-          *ngSwitchCase="true"
-          ngbDropdown
-          class="nav-item dropdown pointer"
-          display="dynamic"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
-        >
-          <a *jhiHasAnyAuthority="'ROLE_ADMIN'" class="nav-link" routerLink="/simulations" (click)="collapseNavbar()">
-            <span>
-              <span>Simulations</span>
-            </span>
-          </a>
-        </li>
+        @if (account != null) {
+          <li
+            ngbDropdown
+            class="nav-item dropdown pointer"
+            display="dynamic"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            <a *jhiHasAnyAuthority="'ROLE_ADMIN'" class="nav-link" routerLink="/simulations" (click)="collapseNavbar()">
+              <span>
+                <span>Simulations</span>
+              </span>
+            </a>
+          </li>
+        }
         <li
           *jhiHasAnyAuthority="'ROLE_ADMIN'"
           ngbDropdown
@@ -87,12 +88,14 @@
                 <span>Logs</span>
               </a>
             </li>
-            <li *ngIf="openAPIEnabled">
-              <a class="dropdown-item" routerLink="/admin/docs" routerLinkActive="active" (click)="collapseNavbar()">
-                <fa-icon icon="book" [fixedWidth]="true"></fa-icon>
-                <span>API</span>
-              </a>
-            </li>
+            @if (openAPIEnabled) {
+              <li>
+                <a class="dropdown-item" routerLink="/admin/docs" routerLinkActive="active" (click)="collapseNavbar()">
+                  <fa-icon icon="book" [fixedWidth]="true"></fa-icon>
+                  <span>API</span>
+                </a>
+              </li>
+            }
             <!-- jhipster-needle-add-element-to-admin-menu - JHipster will add entities to the admin menu here -->
           </ul>
         </li>
@@ -104,51 +107,58 @@
           [routerLinkActiveOptions]="{ exact: true }"
         >
           <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);" id="account-menu" data-cy="accountMenu">
-            <span *ngIf="!account?.imageUrl">
-              <fa-icon icon="user"></fa-icon>
-              <span>Account</span>
-            </span>
-            <span *ngIf="account?.imageUrl">
-              <img [src]="account!.imageUrl" class="profile-image rounded-circle" alt="Avatar" />
-            </span>
+            @if (!account?.imageUrl) {
+              <span>
+                <fa-icon icon="user"></fa-icon>
+                <span>Account</span>
+              </span>
+            }
+            @if (account?.imageUrl) {
+              <span>
+                <img [src]="account!.imageUrl" class="profile-image rounded-circle" alt="Avatar" />
+              </span>
+            }
           </a>
           <ul class="dropdown-menu" ngbDropdownMenu aria-labelledby="account-menu">
-            <li *ngSwitchCase="true">
-              <a
-                class="dropdown-item"
-                routerLink="/account/settings"
-                routerLinkActive="active"
-                (click)="collapseNavbar()"
-                data-cy="settings"
-              >
-                <fa-icon icon="wrench" [fixedWidth]="true"></fa-icon>
-                <span>Settings</span>
-              </a>
-            </li>
-            <li *ngSwitchCase="true">
-              <a
-                class="dropdown-item"
-                routerLink="/account/password"
-                routerLinkActive="active"
-                (click)="collapseNavbar()"
-                data-cy="passwordItem"
-              >
-                <fa-icon icon="lock" [fixedWidth]="true"></fa-icon>
-                <span>Password</span>
-              </a>
-            </li>
-            <li *ngSwitchCase="true">
-              <a class="dropdown-item" (click)="logout()" id="logout" data-cy="logout">
-                <fa-icon icon="sign-out-alt" [fixedWidth]="true"></fa-icon>
-                <span>Sign out</span>
-              </a>
-            </li>
-            <li *ngSwitchCase="false">
-              <a class="dropdown-item" (click)="login()" id="login" data-cy="login">
-                <fa-icon icon="sign-in-alt" [fixedWidth]="true"></fa-icon>
-                <span>Sign in</span>
-              </a>
-            </li>
+            @if (account !== null) {
+              <li>
+                <a
+                  class="dropdown-item"
+                  routerLink="/account/settings"
+                  routerLinkActive="active"
+                  (click)="collapseNavbar()"
+                  data-cy="settings"
+                >
+                  <fa-icon icon="wrench" [fixedWidth]="true"></fa-icon>
+                  <span>Settings</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  routerLink="/account/password"
+                  routerLinkActive="active"
+                  (click)="collapseNavbar()"
+                  data-cy="passwordItem"
+                >
+                  <fa-icon icon="lock" [fixedWidth]="true"></fa-icon>
+                  <span>Password</span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" (click)="logout()" id="logout" data-cy="logout">
+                  <fa-icon icon="sign-out-alt" [fixedWidth]="true"></fa-icon>
+                  <span>Sign out</span>
+                </a>
+              </li>
+            } @else {
+              <li>
+                <a class="dropdown-item" (click)="login()" id="login" data-cy="login">
+                  <fa-icon icon="sign-in-alt" [fixedWidth]="true"></fa-icon>
+                  <span>Sign in</span>
+                </a>
+              </li>
+            }
           </ul>
         </li>
       </ul>
