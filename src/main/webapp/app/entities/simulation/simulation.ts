@@ -1,4 +1,4 @@
-import { ArtemisServer } from './artemisServer';
+import { ArtemisServer } from '../../core/util/artemisServer';
 import { SimulationRun } from './simulationRun';
 
 export class Simulation {

@@ -5,7 +5,9 @@ import de.tum.cit.ase.repository.ArtemisUserRepository;
 import de.tum.cit.ase.service.dto.ArtemisUserForCreationDTO;
 import de.tum.cit.ase.service.dto.ArtemisUserPatternDTO;
 import de.tum.cit.ase.util.ArtemisServer;
+import de.tum.cit.ase.web.rest.errors.BadRequestAlertException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
@@ -40,7 +42,7 @@ public class ArtemisUserService {
             artemisUser.setPassword(pattern.getPasswordPattern().replace("{i}", String.valueOf(i)));
             try {
                 createdUsers.add(saveArtemisUser(artemisUser));
-            } catch (DuplicatedArtemisUserException e) {
+            } catch (BadRequestAlertException e) {
                 log.warn(e.getMessage() + ". Skipping user.");
             }
         }
@@ -53,9 +55,11 @@ public class ArtemisUserService {
         artemisUser.setUsername(artemisUserDTO.getUsername());
         artemisUser.setPassword(artemisUserDTO.getPassword());
 
-        artemisUser.setServerWideId(
-            Objects.requireNonNullElseGet(artemisUserDTO.getServerWideId(), () -> findLowestFreeServerWideId(server))
-        );
+        if (artemisUserDTO.getServerWideId() != null) {
+            artemisUser.setServerWideId(artemisUserDTO.getServerWideId());
+        } else {
+            artemisUser.setServerWideId(findLowestFreeServerWideId(server));
+        }
 
         return saveArtemisUser(artemisUser);
     }
@@ -83,7 +87,13 @@ public class ArtemisUserService {
                 .stream()
                 .anyMatch(user -> user.getServerWideId() == artemisUser.getServerWideId())
         ) {
-            throw new DuplicatedArtemisUserException(artemisUser);
+            throw new BadRequestAlertException("User with server-wide ID already exists", "artemisUser", "duplicatedServerWideId");
+        } else if (artemisUser.getServerWideId() < 0) {
+            throw new BadRequestAlertException("Server-wide ID must be positive", "artemisUser", "negativeServerWideId");
+        } else if (artemisUser.getUsername() == null || artemisUser.getUsername().isBlank()) {
+            throw new BadRequestAlertException("Username must not be empty", "artemisUser", "emptyUsername");
+        } else if (artemisUser.getPassword() == null || artemisUser.getPassword().isBlank()) {
+            throw new BadRequestAlertException("Password must not be empty", "artemisUser", "emptyPassword");
         }
         return artemisUserRepository.save(artemisUser);
     }
@@ -100,6 +110,7 @@ public class ArtemisUserService {
      * @return The lowest missing positive number
      */
     public static int findLowestMissingPositive(List<Integer> numbers) {
+        numbers = new LinkedList<>(numbers); // Copy list to avoid modifying the original list
         int n = numbers.size();
         for (int i = 0; i < n; i++) {
             while (numbers.get(i) > 0 && numbers.get(i) <= n && numbers.get(numbers.get(i) - 1) != numbers.get(i)) {

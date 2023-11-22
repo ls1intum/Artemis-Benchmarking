@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Mode } from '../../models/simulation';
+import { Mode } from '../../entities/simulation/simulation';
 
 @Component({
   selector: 'jhi-mode-explanation',

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { getTextRepresentation, Mode, Simulation } from '../../models/simulation';
-import { ArtemisServer } from '../../models/artemisServer';
+import { getTextRepresentation, Mode, Simulation } from '../../entities/simulation/simulation';
+import { ArtemisServer } from '../../core/util/artemisServer';
 import { ProfileService } from '../profiles/profile.service';
 
 @Component({

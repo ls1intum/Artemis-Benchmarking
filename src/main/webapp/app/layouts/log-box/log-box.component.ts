@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { LogMessage } from '../../models/logMessage';
+import { LogMessage } from '../../entities/simulation/logMessage';
 
 @Component({
   selector: 'jhi-log-box',

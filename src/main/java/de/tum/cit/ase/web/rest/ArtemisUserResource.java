@@ -50,7 +50,7 @@ public class ArtemisUserResource {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/by-id")
     public ResponseEntity<Void> deleteArtemisUser(@PathVariable Long id) {
         artemisUserService.deleteArtemisUser(id);
         return new ResponseEntity<>(HttpStatus.OK);

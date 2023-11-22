@@ -4,11 +4,11 @@ import { ApplicationConfigService } from '../core/config/application-config.serv
 import { Observable } from 'rxjs/internal/Observable';
 import { map } from 'rxjs';
 import { WebsocketService } from '../core/websocket/websocket.service';
-import { ArtemisAccountDTO } from '../models/artemisAccountDTO';
-import { Simulation } from '../models/simulation';
-import { SimulationRun, Status } from '../models/simulationRun';
-import { SimulationStats } from '../models/simulationStats';
-import { LogMessage } from '../models/logMessage';
+import { ArtemisAccountDTO } from './artemisAccountDTO';
+import { Simulation } from '../entities/simulation/simulation';
+import { SimulationRun, Status } from '../entities/simulation/simulationRun';
+import { SimulationStats } from '../entities/simulation/simulationStats';
+import { LogMessage } from '../entities/simulation/logMessage';
 
 @Injectable({
   providedIn: 'root',

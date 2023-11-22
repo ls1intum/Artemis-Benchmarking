@@ -10,6 +10,7 @@ import LoginComponent from './login/login.component';
 import { RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
 import { SimulationsOverviewComponent } from './simulations/simulations-overview/simulations-overview.component';
+import { ArtemisUsersComponent } from './artemis-users/artemis-users.component';
 
 @NgModule({
   imports: [
@@ -53,6 +54,15 @@ import { SimulationsOverviewComponent } from './simulations/simulations-overview
           },
           component: SimulationsOverviewComponent,
           title: 'Simulations',
+          canActivate: [UserRouteAccessService],
+        },
+        {
+          path: 'artemis-users/:server',
+          data: {
+            authorities: [Authority.ADMIN],
+          },
+          component: ArtemisUsersComponent,
+          title: 'Artemis Users',
           canActivate: [UserRouteAccessService],
         },
         ...errorRoute,

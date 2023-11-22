@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { Simulation } from '../../models/simulation';
+import { Simulation } from '../../entities/simulation/simulation';
 import { SimulationsService } from '../simulations.service';
-import { SimulationRun, Status } from '../../models/simulationRun';
-import { getOrder } from '../../models/simulationStats';
+import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
+import { getOrder } from '../../entities/simulation/simulationStats';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
