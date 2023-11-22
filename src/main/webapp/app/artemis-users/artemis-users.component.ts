@@ -96,7 +96,7 @@ export class ArtemisUsersComponent implements OnInit {
     });
   }
 
-  updateUser() {
+  updateUser(): void {
     if (this.editedUser) {
       this.actionInProgress = true;
       this.artemisUsersService.updateUser(this.editedUser).subscribe((user: ArtemisUser) => {
@@ -107,8 +107,8 @@ export class ArtemisUsersComponent implements OnInit {
     }
   }
 
-  updateAdminUser() {
-    if (this.adminUserCopy && this.adminUserCopy.id !== undefined) {
+  updateAdminUser(): void {
+    if (this.adminUserCopy?.id !== undefined) {
       this.actionInProgress = true;
       this.artemisUsersService.updateUser(this.adminUserCopy).subscribe((user: ArtemisUser) => {
         this.adminUser = user;

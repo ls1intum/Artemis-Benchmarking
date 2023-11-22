@@ -33,6 +33,7 @@ export class CreateUserBoxComponent {
   }
 
   isValidManually(): boolean {
+    /* eslint-disable @typescript-eslint/no-unnecessary-condition */
     return this.username.length > 0 && this.password.length > 0 && (this.id === undefined || this.id === null || this.id > 0);
   }
 
