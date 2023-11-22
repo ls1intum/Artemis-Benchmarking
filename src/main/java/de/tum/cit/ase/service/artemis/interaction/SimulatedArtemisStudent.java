@@ -22,16 +22,16 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.slf4j.LoggerFactory;
 
-public class ArtemisStudent extends ArtemisUser {
+public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private String courseIdString;
     private String examIdString;
     private Long studentExamId;
     private StudentExam studentExam;
 
-    public ArtemisStudent(String username, String password, String artemisUrl) {
+    public SimulatedArtemisStudent(String username, String password, String artemisUrl) {
         super(username, password, artemisUrl);
-        log = LoggerFactory.getLogger(ArtemisStudent.class.getName() + "." + username);
+        log = LoggerFactory.getLogger(SimulatedArtemisStudent.class.getName() + "." + username);
     }
 
     @Override

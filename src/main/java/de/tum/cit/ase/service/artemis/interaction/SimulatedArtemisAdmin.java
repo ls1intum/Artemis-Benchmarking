@@ -14,11 +14,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
 
-public class ArtemisAdmin extends ArtemisUser {
+public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
-    public ArtemisAdmin(String username, String password, String artemisUrl) {
+    public SimulatedArtemisAdmin(String username, String password, String artemisUrl) {
         super(username, password, artemisUrl);
-        log = LoggerFactory.getLogger(ArtemisAdmin.class);
+        log = LoggerFactory.getLogger(SimulatedArtemisAdmin.class);
     }
 
     @Override

@@ -22,7 +22,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpSslContextSpec;
 
-public abstract class ArtemisUser {
+public abstract class SimulatedArtemisUser {
 
     protected Logger log;
 
@@ -33,7 +33,7 @@ public abstract class ArtemisUser {
     protected AuthToken authToken;
     protected boolean authenticated = false;
 
-    public ArtemisUser(String username, String password, String artemisUrl) {
+    public SimulatedArtemisUser(String username, String password, String artemisUrl) {
         this.username = username;
         this.password = password;
         this.artemisUrl = artemisUrl;

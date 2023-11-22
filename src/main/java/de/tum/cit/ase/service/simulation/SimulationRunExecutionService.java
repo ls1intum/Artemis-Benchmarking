@@ -1,4 +1,4 @@
-package de.tum.cit.ase.service;
+package de.tum.cit.ase.service.simulation;
 
 import static java.lang.Thread.sleep;
 
@@ -8,8 +8,8 @@ import de.tum.cit.ase.domain.*;
 import de.tum.cit.ase.repository.LogMessageRepository;
 import de.tum.cit.ase.repository.SimulationRunRepository;
 import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
-import de.tum.cit.ase.service.artemis.interaction.ArtemisAdmin;
-import de.tum.cit.ase.service.artemis.interaction.ArtemisStudent;
+import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisAdmin;
+import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisStudent;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
 import de.tum.cit.ase.util.ArtemisServer;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
@@ -67,7 +67,7 @@ public class SimulationRunExecutionService {
         var simulation = simulationRun.getSimulation();
         var courseId = simulation.getCourseId();
         var examId = simulation.getExamId();
-        ArtemisAdmin admin;
+        SimulatedArtemisAdmin admin;
 
         logAndSend(
             false,
@@ -198,7 +198,7 @@ public class SimulationRunExecutionService {
 
         logAndSend(false, simulationRun, "Starting simulation...");
 
-        ArtemisStudent[] students = initializeStudents(simulation.getNumberOfUsers(), simulation.getServer());
+        SimulatedArtemisStudent[] students = initializeStudents(simulation.getNumberOfUsers(), simulation.getServer());
 
         int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 10, simulation.getNumberOfUsers());
         logAndSend(false, simulationRun, "Using %d threads for simulation.", threadCount);
@@ -254,8 +254,8 @@ public class SimulationRunExecutionService {
      * @param server the Artemis Server to initialize the admin for
      * @return the initialized and logged in admin
      */
-    private ArtemisAdmin initializeAdmin(ArtemisServer server) {
-        var admin = new ArtemisAdmin(
+    private SimulatedArtemisAdmin initializeAdmin(ArtemisServer server) {
+        var admin = new SimulatedArtemisAdmin(
             artemisConfiguration.getAdminUsername(server),
             artemisConfiguration.getAdminPassword(server),
             artemisConfiguration.getUrl(server)
@@ -271,8 +271,12 @@ public class SimulationRunExecutionService {
      * @param artemisAccountDTO the account to use for logging in
      * @return the initialized and logged in admin
      */
-    private ArtemisAdmin initializeAdminWithAccount(ArtemisServer server, ArtemisAccountDTO artemisAccountDTO) {
-        var admin = new ArtemisAdmin(artemisAccountDTO.getUsername(), artemisAccountDTO.getPassword(), artemisConfiguration.getUrl(server));
+    private SimulatedArtemisAdmin initializeAdminWithAccount(ArtemisServer server, ArtemisAccountDTO artemisAccountDTO) {
+        var admin = new SimulatedArtemisAdmin(
+            artemisAccountDTO.getUsername(),
+            artemisAccountDTO.getPassword(),
+            artemisConfiguration.getUrl(server)
+        );
         admin.login();
         return admin;
     }
@@ -286,12 +290,12 @@ public class SimulationRunExecutionService {
      * @param server the Artemis Server to initialize the students for
      * @return an array of initialized students
      */
-    private ArtemisStudent[] initializeStudents(int numberOfUsers, ArtemisServer server) {
-        ArtemisStudent[] users = new ArtemisStudent[numberOfUsers];
+    private SimulatedArtemisStudent[] initializeStudents(int numberOfUsers, ArtemisServer server) {
+        SimulatedArtemisStudent[] users = new SimulatedArtemisStudent[numberOfUsers];
         for (int i = 0; i < numberOfUsers; i++) {
             var username = artemisConfiguration.getUsernameTemplate(server).replace("{i}", String.valueOf(i + 1));
             var password = artemisConfiguration.getPasswordTemplate(server).replace("{i}", String.valueOf(i + 1));
-            users[i] = new ArtemisStudent(username, password, artemisConfiguration.getUrl(server));
+            users[i] = new SimulatedArtemisStudent(username, password, artemisConfiguration.getUrl(server));
         }
         return users;
     }
@@ -332,7 +336,7 @@ public class SimulationRunExecutionService {
         return requestStats;
     }
 
-    private void cleanup(ArtemisAdmin admin, long courseId, SimulationRun simulationRun) {
+    private void cleanup(SimulatedArtemisAdmin admin, long courseId, SimulationRun simulationRun) {
         logAndSend(false, simulationRun, "Cleanup is currently disabled.");
     }
 
