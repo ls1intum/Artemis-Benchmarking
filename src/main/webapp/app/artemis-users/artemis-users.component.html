@@ -39,7 +39,9 @@
             <input type="password" class="form-control" [(ngModel)]="adminUserCopy!.password" />
           </td>
           <td>
-            <button type="button" class="btn btn-primary" [disabled]="!adminValid()" (click)="updateAdminUser()">Save</button>
+            <button type="button" class="btn btn-primary" [disabled]="!adminValid() || actionInProgress" (click)="updateAdminUser()">
+              Save
+            </button>
             <button type="button" class="btn btn-danger" (click)="adminUserCopy = undefined">Cancel</button>
           </td>
         }
@@ -71,7 +73,11 @@
   </button>
 }
 <div #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
-  <jhi-create-user-box (createUser)="createUser($event)" (createUserPattern)="createUserPattern($event)"></jhi-create-user-box>
+  <jhi-create-user-box
+    [actionInProgress]="actionInProgress"
+    (createUser)="createUser($event)"
+    (createUserPattern)="createUserPattern($event)"
+  ></jhi-create-user-box>
 </div>
 @if (users.length > 0) {
   <table class="table table-striped w-60">
@@ -107,7 +113,7 @@
             </td>
             <td class="flex-wrapper">
               <button type="button" class="btn btn-info me-3" (click)="editedUser = user">Edit</button>
-              <button type="button" class="btn btn-danger" (click)="deleteUser(user)">Delete</button>
+              <button type="button" class="btn btn-danger" [disabled]="actionInProgress" (click)="deleteUser(user)">Delete</button>
             </td>
           </tr>
         } @else {
@@ -120,7 +126,9 @@
               <input type="password" class="form-control" [(ngModel)]="editedUser!.password" />
             </td>
             <td class="flex-wrapper">
-              <button type="button" class="btn btn-primary me-3" [disabled]="!editValid()" (click)="updateUser()">Save</button>
+              <button type="button" class="btn btn-primary me-3" [disabled]="!editValid() || actionInProgress" (click)="updateUser()">
+                Save
+              </button>
               <button type="button" class="btn btn-danger" (click)="editedUser = undefined">Cancel</button>
             </td>
           </tr>

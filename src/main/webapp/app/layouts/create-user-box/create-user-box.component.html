@@ -24,7 +24,9 @@
               />
             </div>
           </div>
-          <button type="submit" class="btn btn-primary" [disabled]="!isValidManually()" (click)="onCreate()">Create User</button>
+          <button type="submit" class="btn btn-primary" [disabled]="!isValidManually() || actionInProgress" (click)="onCreate()">
+            Create User
+          </button>
         </form>
       </div>
     </ng-template>
@@ -79,7 +81,7 @@
               <input type="number" class="form-control" id="to-input" min="2" [(ngModel)]="to" [ngModelOptions]="{ standalone: true }" />
             </div>
           </div>
-          <button type="submit" class="btn btn-primary" [disabled]="!isValidPattern()" (click)="onCreatePattern()">
+          <button type="submit" class="btn btn-primary" [disabled]="!isValidPattern() || actionInProgress" (click)="onCreatePattern()">
             Create {{ to - from }} Users
           </button>
         </form>

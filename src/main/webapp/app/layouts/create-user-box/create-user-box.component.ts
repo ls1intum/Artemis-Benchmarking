@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ArtemisUserForCreationDTO } from '../../artemis-users/artemisUserForCreationDTO';
 import { FormsModule } from '@angular/forms';
@@ -13,6 +13,8 @@ import { ArtemisUserPatternDTO } from '../../artemis-users/artemisUserPatternDTO
   styleUrl: './create-user-box.component.scss',
 })
 export class CreateUserBoxComponent {
+  @Input() actionInProgress = false;
+
   username: string = '';
   password: string = '';
   id?: number;
