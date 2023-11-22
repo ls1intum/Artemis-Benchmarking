@@ -55,4 +55,12 @@ public class ArtemisUserResource {
         artemisUserService.deleteArtemisUser(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ArtemisUser> updateArtemisUser(@PathVariable Long id, @RequestBody ArtemisUser artemisUser) {
+        if (!id.equals(artemisUser.getId())) {
+            throw new IllegalArgumentException("Id in path and body do not match!");
+        }
+        return new ResponseEntity<>(artemisUserService.updateArtemisUser(id, artemisUser), HttpStatus.OK);
+    }
 }

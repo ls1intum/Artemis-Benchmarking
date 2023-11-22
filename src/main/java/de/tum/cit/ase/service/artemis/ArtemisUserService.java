@@ -9,6 +9,7 @@ import de.tum.cit.ase.web.rest.errors.BadRequestAlertException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -106,6 +107,31 @@ public class ArtemisUserService {
             throw new BadRequestAlertException("User with username already exists", "artemisUser", "duplicatedUsername");
         }
 
+        return artemisUserRepository.save(artemisUser);
+    }
+
+    public ArtemisUser updateArtemisUser(Long id, ArtemisUser artemisUser) {
+        if (!Objects.equals(id, artemisUser.getId())) {
+            throw new IllegalArgumentException("Id in path and body do not match!");
+        }
+
+        ArtemisUser existingUser = artemisUserRepository.findById(id).orElseThrow();
+        if (existingUser.getServerWideId() != artemisUser.getServerWideId()) {
+            throw new IllegalArgumentException("Server-wide ID cannot be changed!");
+        } else if (existingUser.getServer() != artemisUser.getServer()) {
+            throw new IllegalArgumentException("Server cannot be changed!");
+        } else if (artemisUser.getUsername() == null || artemisUser.getUsername().isBlank()) {
+            throw new BadRequestAlertException("Username must not be empty", "artemisUser", "emptyUsername");
+        } else if (artemisUser.getPassword() == null || artemisUser.getPassword().isBlank()) {
+            throw new BadRequestAlertException("Password must not be empty", "artemisUser", "emptyPassword");
+        } else if (
+            artemisUserRepository
+                .findAllByServer(artemisUser.getServer())
+                .stream()
+                .anyMatch(user -> user.getUsername().equals(artemisUser.getUsername()) && !user.getId().equals(id))
+        ) {
+            throw new BadRequestAlertException("User with username already exists", "artemisUser", "duplicatedUsername");
+        }
         return artemisUserRepository.save(artemisUser);
     }
 

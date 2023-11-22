@@ -41,4 +41,9 @@ export class ArtemisUsersService {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/artemis-users/' + id + '/by-id');
     return this.httpClient.delete(endpoint).pipe(map(() => {}));
   }
+
+  updateUser(user: ArtemisUser): Observable<ArtemisUser> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/artemis-users/' + user.id);
+    return this.httpClient.put(endpoint, user).pipe(map((res: any) => res as ArtemisUser));
+  }
 }

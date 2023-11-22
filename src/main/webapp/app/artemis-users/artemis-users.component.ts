@@ -10,11 +10,12 @@ import { CreateUserBoxComponent } from '../layouts/create-user-box/create-user-b
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ArtemisUserPatternDTO } from './artemisUserPatternDTO';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'jhi-artemis-users',
   standalone: true,
-  imports: [CommonModule, NgbCollapse, CreateUserBoxComponent, FontAwesomeModule, NgbTooltipModule],
+  imports: [CommonModule, NgbCollapse, CreateUserBoxComponent, FontAwesomeModule, NgbTooltipModule, FormsModule],
   templateUrl: './artemis-users.component.html',
   styleUrl: './artemis-users.component.scss',
 })
@@ -27,6 +28,12 @@ export class ArtemisUsersComponent implements OnInit {
 
   isCollapsed = true;
   showPasswords = false;
+  editedUser?: ArtemisUser;
+  adminUser?: ArtemisUser;
+  adminUserCopy?: ArtemisUser;
+  showAdminPassword = false;
+
+  protected readonly ArtemisServer = ArtemisServer;
 
   constructor(
     private route: ActivatedRoute,
@@ -41,15 +48,20 @@ export class ArtemisUsersComponent implements OnInit {
         this.router.navigate(['/404']);
       }
       this.artemisUsersService.getUsers(this.server).subscribe((users: ArtemisUser[]) => {
-        this.users = users.sort((a, b) => a.serverWideId - b.serverWideId);
+        this.users = users.filter(u => u.serverWideId !== 0).sort((a, b) => a.serverWideId - b.serverWideId);
+        this.adminUser = users.find(user => user.serverWideId === 0);
       });
     });
   }
 
   createUser(userDTO: ArtemisUserForCreationDTO): void {
     this.artemisUsersService.createUser(this.server, userDTO).subscribe((user: ArtemisUser) => {
-      this.users.push(user);
-      this.users.sort((a, b) => a.serverWideId - b.serverWideId);
+      if (user.serverWideId === 0) {
+        this.adminUser = user;
+      } else {
+        this.users.push(user);
+        this.users.sort((a, b) => a.serverWideId - b.serverWideId);
+      }
     });
   }
 
@@ -60,9 +72,12 @@ export class ArtemisUsersComponent implements OnInit {
     });
   }
 
-  deleteUser(id: number): void {
-    this.artemisUsersService.deleteById(id).subscribe(() => {
-      this.users = this.users.filter(user => user.id !== id);
+  deleteUser(user: ArtemisUser): void {
+    if (user.id === undefined) {
+      return;
+    }
+    this.artemisUsersService.deleteById(user.id).subscribe(() => {
+      this.users = this.users.filter(u => u.id !== user.id);
     });
   }
 
@@ -70,5 +85,44 @@ export class ArtemisUsersComponent implements OnInit {
     this.artemisUsersService.deleteByServer(this.server).subscribe(() => {
       this.users = [];
     });
+  }
+
+  updateUser() {
+    if (this.editedUser) {
+      this.artemisUsersService.updateUser(this.editedUser).subscribe((user: ArtemisUser) => {
+        this.users = this.users.map(u => (u.id === user.id ? user : u));
+        this.editedUser = undefined;
+      });
+    }
+  }
+
+  updateAdminUser() {
+    if (this.adminUserCopy && this.adminUserCopy.id !== undefined) {
+      this.artemisUsersService.updateUser(this.adminUserCopy).subscribe((user: ArtemisUser) => {
+        this.adminUser = user;
+        this.adminUserCopy = undefined;
+      });
+    } else if (this.adminUserCopy) {
+      this.artemisUsersService.createUser(this.server, this.adminUserCopy).subscribe((user: ArtemisUser) => {
+        this.adminUser = user;
+        this.adminUserCopy = undefined;
+      });
+    }
+  }
+
+  editValid(): boolean {
+    return this.editedUser !== undefined && this.editedUser.username.length > 0 && this.editedUser.password.length > 0;
+  }
+
+  adminValid(): boolean {
+    return this.adminUserCopy !== undefined && this.adminUserCopy.username.length > 0 && this.adminUserCopy.password.length > 0;
+  }
+
+  editAdmin(): void {
+    if (this.adminUser) {
+      this.adminUserCopy = Object.assign({}, this.adminUser);
+    } else {
+      this.adminUserCopy = new ArtemisUser(undefined, 0, '', '', this.server);
+    }
   }
 }

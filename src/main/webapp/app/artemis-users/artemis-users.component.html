@@ -1,4 +1,54 @@
 <h2>{{ server.charAt(0) + server.slice(1).toLowerCase() }} Users</h2>
+
+@if (server !== ArtemisServer.PRODUCTION) {
+  <h3 class="mb-0 mt-5">Admin Account</h3>
+  <table class="table table-striped w-60 mb-5">
+    <thead>
+      <tr>
+        <th scope="col">Username</th>
+        <th scope="col">Password</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        @if (adminUserCopy === undefined) {
+          <td>{{ adminUser?.username }}</td>
+          <td>
+            @if (showAdminPassword) {
+              <fa-icon
+                class="me-2"
+                role="button"
+                [icon]="faEyeSlash"
+                (click)="showAdminPassword = false"
+                ngbTooltip="Hide password"
+              ></fa-icon>
+              {{ adminUser?.password }}
+            } @else {
+              <fa-icon role="button" [icon]="faEye" (click)="showAdminPassword = true" ngbTooltip="Show password"></fa-icon>
+            }
+          </td>
+          <td>
+            <button type="button" class="btn btn-info" (click)="editAdmin()">Edit</button>
+          </td>
+        } @else {
+          <td>
+            <input type="text" class="form-control" [(ngModel)]="adminUserCopy!.username" />
+          </td>
+          <td>
+            <input type="password" class="form-control" [(ngModel)]="adminUserCopy!.password" />
+          </td>
+          <td>
+            <button type="button" class="btn btn-primary" [disabled]="!adminValid()" (click)="updateAdminUser()">Save</button>
+            <button type="button" class="btn btn-danger" (click)="adminUserCopy = undefined">Cancel</button>
+          </td>
+        }
+      </tr>
+    </tbody>
+  </table>
+}
+
+<h3>Student Accounts</h3>
 @if (isCollapsed) {
   <button
     type="button"
@@ -24,13 +74,13 @@
   <jhi-create-user-box (createUser)="createUser($event)" (createUserPattern)="createUserPattern($event)"></jhi-create-user-box>
 </div>
 @if (users.length > 0) {
-  <table class="table table-striped w-40 mt-3">
+  <table class="table table-striped w-60">
     <thead>
       <tr>
         <th scope="col">ID</th>
         <th scope="col">Username</th>
         <th scope="col">
-          <span class="me-2">Passwords</span>
+          <span class="me-2">Password</span>
           @if (showPasswords) {
             <fa-icon [icon]="faEyeSlash" role="button" (click)="showPasswords = false" ngbTooltip="Hide passwords"></fa-icon>
           } @else {
@@ -44,20 +94,37 @@
     </thead>
     <tbody>
       @for (user of users; track user.serverWideId) {
-        <tr>
-          <td>{{ user.serverWideId }}</td>
-          <td>{{ user.username }}</td>
-          <td>
-            @if (showPasswords) {
-              {{ user.password }}
-            } @else {
-              <fa-icon [icon]="faEyeSlash"></fa-icon>
-            }
-          </td>
-          <td>
-            <button type="button" class="btn btn-danger" (click)="deleteUser(user.id)">Delete</button>
-          </td>
-        </tr>
+        @if (user !== editedUser) {
+          <tr>
+            <td>{{ user.serverWideId }}</td>
+            <td>{{ user.username }}</td>
+            <td>
+              @if (showPasswords) {
+                {{ user.password }}
+              } @else {
+                <fa-icon class="text-secondary" [icon]="faEyeSlash"></fa-icon>
+              }
+            </td>
+            <td class="flex-wrapper">
+              <button type="button" class="btn btn-info me-3" (click)="editedUser = user">Edit</button>
+              <button type="button" class="btn btn-danger" (click)="deleteUser(user)">Delete</button>
+            </td>
+          </tr>
+        } @else {
+          <tr>
+            <td>{{ user.serverWideId }}</td>
+            <td>
+              <input type="text" class="form-control" [(ngModel)]="editedUser!.username" />
+            </td>
+            <td>
+              <input type="password" class="form-control" [(ngModel)]="editedUser!.password" />
+            </td>
+            <td class="flex-wrapper">
+              <button type="button" class="btn btn-primary me-3" [disabled]="!editValid()" (click)="updateUser()">Save</button>
+              <button type="button" class="btn btn-danger" (click)="editedUser = undefined">Cancel</button>
+            </td>
+          </tr>
+        }
       }
     </tbody>
   </table>
