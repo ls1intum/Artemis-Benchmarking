@@ -15,6 +15,6 @@ public interface ArtemisUserRepository extends JpaRepository<ArtemisUser, Long> 
 
     @Modifying
     @Transactional
-    @Query(value = "delete from ArtemisUser user where user.server = :#{#server}")
+    @Query(value = "delete from ArtemisUser user where user.server = :#{#server} and not user.serverWideId = 0")
     void deleteByServer(@Param("server") ArtemisServer server);
 }
