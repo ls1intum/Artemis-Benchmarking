@@ -1,0 +1,97 @@
+<nav ngbNav #nav="ngbNav" class="nav-tabs mt-3">
+  <ng-container ngbNavItem>
+    <button ngbNavLink>Manually</button>
+    <ng-template ngbNavContent>
+      <div class="flex-container">
+        <form class="mt-3 mb-3">
+          <div class="me-3 mb-3 w-40">
+            <label for="id-input" class="form-label">ID (optional)</label>
+            <input type="number" class="form-control" id="id-input" min="1" [(ngModel)]="id" [ngModelOptions]="{ standalone: true }" />
+          </div>
+          <div class="flex-wrapper">
+            <div class="me-3 mb-3 w-40">
+              <label for="username-input" class="form-label">Username</label>
+              <input type="text" class="form-control" id="username-input" [(ngModel)]="username" [ngModelOptions]="{ standalone: true }" />
+            </div>
+            <div class="me-3 mb-3 w-40">
+              <label for="password-input" class="form-label">Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password-input"
+                [(ngModel)]="password"
+                [ngModelOptions]="{ standalone: true }"
+              />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" [disabled]="!isValidManually()" (click)="onCreate()">Create User</button>
+        </form>
+      </div>
+    </ng-template>
+  </ng-container>
+  <ng-container ngbNavItem>
+    <button ngbNavLink>Pattern</button>
+    <ng-template ngbNavContent>
+      <div class="flex-container">
+        <form class="mt-3 mb-3">
+          <div class="flex-wrapper">
+            <div class="me-3 mb-3 w-40">
+              <label for="username-pattern-input" class="form-label">Username Pattern</label>
+              <input
+                type="text"
+                class="form-control"
+                id="username-pattern-input"
+                [(ngModel)]="usernamePattern"
+                [ngModelOptions]="{ standalone: true }"
+              />
+              <div class="form-text">
+                e.g. <samp>test_user_{{ '{' }}i{{ '}' }}</samp>
+              </div>
+            </div>
+            <div class="me-3 mb-3 w-40">
+              <label for="password-pattern-input" class="form-label">Password Pattern</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password-pattern-input"
+                [(ngModel)]="passwordPattern"
+                [ngModelOptions]="{ standalone: true }"
+              />
+              <div class="form-text">
+                e.g. <samp>test_password_{{ '{' }}i{{ '}' }}</samp>
+              </div>
+            </div>
+          </div>
+          <div class="flex-wrapper">
+            <div class="me-3 mb-3 w-40">
+              <label for="from-input" class="form-label">From</label>
+              <input
+                type="number"
+                class="form-control"
+                id="from-input"
+                min="1"
+                [(ngModel)]="from"
+                [ngModelOptions]="{ standalone: true }"
+              />
+            </div>
+            <div class="me-3 mb-3 w-40">
+              <label for="to-input" class="form-label">To (excluded)</label>
+              <input type="number" class="form-control" id="to-input" min="2" [(ngModel)]="to" [ngModelOptions]="{ standalone: true }" />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" [disabled]="!isValidPattern()" (click)="onCreatePattern()">
+            Create {{ to - from }} Users
+          </button>
+        </form>
+      </div>
+    </ng-template>
+  </ng-container>
+  <ng-container ngbNavItem>
+    <button ngbNavLink>CSV</button>
+    <ng-template ngbNavContent>
+      <p>test</p>
+    </ng-template>
+  </ng-container>
+</nav>
+
+<div [ngbNavOutlet]="nav" class="mt-2"></div>

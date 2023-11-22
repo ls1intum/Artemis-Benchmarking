@@ -9,7 +9,6 @@ import de.tum.cit.ase.web.rest.errors.BadRequestAlertException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -25,12 +24,16 @@ public class ArtemisUserService {
     }
 
     public List<ArtemisUser> createArtemisUsersByPattern(ArtemisServer server, ArtemisUserPatternDTO pattern) {
-        if (pattern.getFrom() >= pattern.getTo() || pattern.getFrom() < 0) {
-            throw new IllegalArgumentException("from must be smaller than to and greater than 0");
+        if (pattern.getFrom() >= pattern.getTo() || pattern.getFrom() <= 0) {
+            throw new BadRequestAlertException("from must be smaller than to and greater than 0", "artemisUser", "invalidRange");
         } else if (!pattern.getUsernamePattern().contains("{i}") || !pattern.getPasswordPattern().contains("{i}")) {
-            throw new IllegalArgumentException("usernamePattern and passwordPattern must contain {i} as placeholder for the index");
+            throw new BadRequestAlertException(
+                "usernamePattern and passwordPattern must contain {i} as placeholder for the index",
+                "artemisUser",
+                "missingPlaceholder"
+            );
         } else if (server == null) {
-            throw new IllegalArgumentException("server must not be null");
+            throw new BadRequestAlertException("server must not be null", "artemisUser", "missingServer");
         }
 
         List<ArtemisUser> createdUsers = new ArrayList<>();
@@ -94,7 +97,15 @@ public class ArtemisUserService {
             throw new BadRequestAlertException("Username must not be empty", "artemisUser", "emptyUsername");
         } else if (artemisUser.getPassword() == null || artemisUser.getPassword().isBlank()) {
             throw new BadRequestAlertException("Password must not be empty", "artemisUser", "emptyPassword");
+        } else if (
+            artemisUserRepository
+                .findAllByServer(artemisUser.getServer())
+                .stream()
+                .anyMatch(user -> user.getUsername().equals(artemisUser.getUsername()))
+        ) {
+            throw new BadRequestAlertException("User with username already exists", "artemisUser", "duplicatedUsername");
         }
+
         return artemisUserRepository.save(artemisUser);
     }
 

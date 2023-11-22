@@ -9,6 +9,8 @@ import { EntityNavbarItems } from 'app/entities/entity-navbar-items';
 import NavbarItem from './navbar-item.model';
 import { Router, RouterModule } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
+import { ArtemisServer } from '../../core/util/artemisServer';
+import { faCirclePlay, faHammer } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   standalone: true,
@@ -18,12 +20,16 @@ import { Component, OnInit } from '@angular/core';
   imports: [RouterModule, SharedModule, HasAnyAuthorityDirective],
 })
 export default class NavbarComponent implements OnInit {
+  faHammer = faHammer;
+  faCirclePlay = faCirclePlay;
+
   inProduction?: boolean;
   isNavbarCollapsed = true;
   openAPIEnabled?: boolean;
   version = '';
   account: Account | null = null;
   entitiesNavbarItems: NavbarItem[] = [];
+  availableServers = [ArtemisServer.TS1, ArtemisServer.TS3, ArtemisServer.PRODUCTION, ArtemisServer.STAGING];
 
   constructor(
     private loginService: LoginService,
@@ -46,6 +52,15 @@ export default class NavbarComponent implements OnInit {
 
     this.accountService.getAuthenticationState().subscribe(account => {
       this.account = account;
+    });
+
+    this.profileService.getProfileInfo().subscribe(profileInfo => {
+      if (profileInfo.inProduction && this.availableServers.includes(ArtemisServer.LOCAL)) {
+        const index = this.availableServers.indexOf(ArtemisServer.LOCAL);
+        this.availableServers.splice(index, 1);
+      } else if (!profileInfo.inProduction && !this.availableServers.includes(ArtemisServer.LOCAL)) {
+        this.availableServers.push(ArtemisServer.LOCAL);
+      }
     });
   }
 
