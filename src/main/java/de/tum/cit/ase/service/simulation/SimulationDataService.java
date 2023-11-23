@@ -1,5 +1,6 @@
 package de.tum.cit.ase.service.simulation;
 
+import static de.tum.cit.ase.util.NumberRangeParser.numberRangeRegex;
 import static java.time.ZonedDateTime.now;
 
 import de.tum.cit.ase.domain.*;
@@ -89,10 +90,13 @@ public class SimulationDataService {
 
     public boolean validateSimulation(Simulation simulation) {
         var basicRequirements =
-            simulation.getNumberOfUsers() > 0 &&
             simulation.getMode() != null &&
             simulation.getServer() != null &&
-            simulation.getName() != null;
+            simulation.getName() != null &&
+            ((!simulation.isCustomizeUserRange() && simulation.getNumberOfUsers() > 0) ||
+                (simulation.isCustomizeUserRange() &&
+                    simulation.getUserRange() != null &&
+                    simulation.getUserRange().matches(numberRangeRegex)));
 
         return (
             basicRequirements &&

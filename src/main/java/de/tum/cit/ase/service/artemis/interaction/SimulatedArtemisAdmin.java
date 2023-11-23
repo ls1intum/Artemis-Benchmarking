@@ -354,32 +354,31 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
      * @param numberOfStudents the number of students to register
      * @param usernameTemplate the template for the usernames of the students to register, e.g. "test-user{i}"
      */
-    public void registerStudentsForCourse(long courseId, int numberOfStudents, String usernameTemplate) {
+    public void registerStudentsForCourse(long courseId, SimulatedArtemisStudent[] students) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
-        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 10, numberOfStudents);
+        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 10, students.length);
         ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadCount);
         Scheduler scheduler = Schedulers.from(threadPoolExecutor);
 
         Flowable
-            .range(1, numberOfStudents)
+            .range(1, students.length)
             .parallel(threadCount)
             .runOn(scheduler)
             .doOnNext(i -> {
-                var studentName = usernameTemplate.replace("{i}", String.valueOf(i));
                 try {
                     webClient
                         .post()
                         .uri(uriBuilder ->
-                            uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", studentName).build()
+                            uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", students[i].username).build()
                         )
                         .retrieve()
                         .toBodilessEntity()
                         .block();
                 } catch (Exception e) {
-                    log.warn("Could not register student {{}} for course: {{}}", studentName, e.getMessage());
+                    log.warn("Could not register student {{}} for course: {{}}", students[i].username, e.getMessage());
                 }
             })
             .sequential()

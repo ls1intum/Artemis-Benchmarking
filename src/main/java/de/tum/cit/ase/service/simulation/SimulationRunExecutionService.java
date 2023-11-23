@@ -8,6 +8,7 @@ import de.tum.cit.ase.domain.*;
 import de.tum.cit.ase.repository.LogMessageRepository;
 import de.tum.cit.ase.repository.SimulationRunRepository;
 import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
+import de.tum.cit.ase.service.artemis.ArtemisUserService;
 import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisAdmin;
 import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisStudent;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
@@ -31,6 +32,7 @@ public class SimulationRunExecutionService {
     private final Logger log = LoggerFactory.getLogger(SimulationRunExecutionService.class);
 
     private final SimulationWebsocketService simulationWebsocketService;
+    private final ArtemisUserService artemisUserService;
     private final ArtemisConfiguration artemisConfiguration;
     private final SimulationRunRepository simulationRunRepository;
     private final SimulationResultService simulationResultService;
@@ -39,6 +41,7 @@ public class SimulationRunExecutionService {
     public SimulationRunExecutionService(
         ArtemisConfiguration artemisConfiguration,
         SimulationWebsocketService simulationWebsocketService,
+        ArtemisUserService artemisUserService,
         SimulationRunRepository simulationRunRepository,
         SimulationResultService simulationResultService,
         LogMessageRepository logMessageRepository
@@ -48,6 +51,7 @@ public class SimulationRunExecutionService {
         this.simulationRunRepository = simulationRunRepository;
         this.simulationResultService = simulationResultService;
         this.logMessageRepository = logMessageRepository;
+        this.artemisUserService = artemisUserService;
     }
 
     /**
@@ -68,6 +72,7 @@ public class SimulationRunExecutionService {
         var courseId = simulation.getCourseId();
         var examId = simulation.getExamId();
         SimulatedArtemisAdmin admin;
+        SimulatedArtemisStudent[] students;
 
         logAndSend(
             false,
@@ -76,6 +81,14 @@ public class SimulationRunExecutionService {
             simulation.getNumberOfUsers(),
             simulation.getServer().name()
         );
+
+        try {
+            students = initializeStudents(simulation);
+        } catch (Exception e) {
+            logAndSend(true, simulationRun, "Error while initializing students: %s", e.getMessage());
+            failSimulationRun(simulationRun);
+            return;
+        }
 
         // Initialize admin if necessary
         if (simulation.getMode() != Simulation.Mode.EXISTING_COURSE_PREPARED_EXAM) {
@@ -108,11 +121,7 @@ public class SimulationRunExecutionService {
                 // Register students for course
                 logAndSend(false, simulationRun, "Registering students for course...");
                 try {
-                    admin.registerStudentsForCourse(
-                        courseId,
-                        simulation.getNumberOfUsers(),
-                        artemisConfiguration.getUsernameTemplate(simulation.getServer())
-                    );
+                    admin.registerStudentsForCourse(courseId, students);
                 } catch (Exception e) {
                     logAndSend(true, simulationRun, "Error while registering students for course: %s", e.getMessage());
                     cleanup(admin, courseId, simulationRun);
@@ -198,8 +207,6 @@ public class SimulationRunExecutionService {
 
         logAndSend(false, simulationRun, "Starting simulation...");
 
-        SimulatedArtemisStudent[] students = initializeStudents(simulation.getNumberOfUsers(), simulation.getServer());
-
         int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 10, simulation.getNumberOfUsers());
         logAndSend(false, simulationRun, "Using %d threads for simulation.", threadCount);
 
@@ -255,11 +262,11 @@ public class SimulationRunExecutionService {
      * @return the initialized and logged in admin
      */
     private SimulatedArtemisAdmin initializeAdmin(ArtemisServer server) {
-        var admin = new SimulatedArtemisAdmin(
-            artemisConfiguration.getAdminUsername(server),
-            artemisConfiguration.getAdminPassword(server),
-            artemisConfiguration.getUrl(server)
-        );
+        var adminAccount = artemisUserService.getAdminUser(server);
+        if (adminAccount == null) {
+            throw new IllegalStateException("No admin account found for server " + server.name());
+        }
+        var admin = new SimulatedArtemisAdmin(adminAccount.getUsername(), adminAccount.getPassword(), artemisConfiguration.getUrl(server));
         admin.login();
         return admin;
     }
@@ -290,12 +297,22 @@ public class SimulationRunExecutionService {
      * @param server the Artemis Server to initialize the students for
      * @return an array of initialized students
      */
-    private SimulatedArtemisStudent[] initializeStudents(int numberOfUsers, ArtemisServer server) {
-        SimulatedArtemisStudent[] users = new SimulatedArtemisStudent[numberOfUsers];
-        for (int i = 0; i < numberOfUsers; i++) {
-            var username = artemisConfiguration.getUsernameTemplate(server).replace("{i}", String.valueOf(i + 1));
-            var password = artemisConfiguration.getPasswordTemplate(server).replace("{i}", String.valueOf(i + 1));
-            users[i] = new SimulatedArtemisStudent(username, password, artemisConfiguration.getUrl(server));
+    private SimulatedArtemisStudent[] initializeStudents(Simulation simulation) {
+        List<ArtemisUser> artemisUsers;
+        if (simulation.isCustomizeUserRange()) {
+            artemisUsers = artemisUserService.getUsersFromRange(simulation.getServer(), simulation.getUserRange());
+        } else {
+            artemisUsers = artemisUserService.getUsersFromRange(simulation.getServer(), "1-" + simulation.getNumberOfUsers());
+        }
+
+        SimulatedArtemisStudent[] users = new SimulatedArtemisStudent[artemisUsers.size()];
+        for (int i = 0; i < artemisUsers.size(); i++) {
+            users[i] =
+                new SimulatedArtemisStudent(
+                    artemisUsers.get(i).getUsername(),
+                    artemisUsers.get(i).getPassword(),
+                    artemisConfiguration.getUrl(simulation.getServer())
+                );
         }
         return users;
     }

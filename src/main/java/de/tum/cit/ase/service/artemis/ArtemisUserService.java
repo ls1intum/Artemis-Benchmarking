@@ -5,6 +5,7 @@ import de.tum.cit.ase.repository.ArtemisUserRepository;
 import de.tum.cit.ase.service.dto.ArtemisUserForCreationDTO;
 import de.tum.cit.ase.service.dto.ArtemisUserPatternDTO;
 import de.tum.cit.ase.util.ArtemisServer;
+import de.tum.cit.ase.util.NumberRangeParser;
 import de.tum.cit.ase.web.rest.errors.BadRequestAlertException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -133,6 +134,22 @@ public class ArtemisUserService {
             throw new BadRequestAlertException("User with username already exists", "artemisUser", "duplicatedUsername");
         }
         return artemisUserRepository.save(artemisUser);
+    }
+
+    public List<ArtemisUser> getUsersFromRange(ArtemisServer server, String range) {
+        List<ArtemisUser> users = new ArrayList<>();
+        List<Integer> serverWideIds = NumberRangeParser.parseNumberRange(range);
+        for (Integer serverWideId : serverWideIds) {
+            users.add(artemisUserRepository.findByServerAndServerWideId(server, serverWideId));
+        }
+        return users;
+    }
+
+    public ArtemisUser getAdminUser(ArtemisServer server) {
+        if (server == ArtemisServer.PRODUCTION) {
+            throw new IllegalArgumentException("Cannot get admin user for production server!");
+        }
+        return artemisUserRepository.findByServerAndServerWideId(server, 0);
     }
 
     private int findLowestFreeServerWideId(ArtemisServer server) {

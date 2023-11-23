@@ -13,6 +13,9 @@ public interface ArtemisUserRepository extends JpaRepository<ArtemisUser, Long> 
     @Query(value = "select user from ArtemisUser user where user.server = :#{#server}")
     List<ArtemisUser> findAllByServer(@Param("server") ArtemisServer server);
 
+    @Query(value = "select user from ArtemisUser user where user.server = :#{#server} and user.serverWideId = :#{#serverWideId}")
+    ArtemisUser findByServerAndServerWideId(@Param("server") ArtemisServer server, @Param("serverWideId") int serverWideId);
+
     @Modifying
     @Transactional
     @Query(value = "delete from ArtemisUser user where user.server = :#{#server} and not user.serverWideId = 0")
