@@ -8,6 +8,7 @@ import de.tum.cit.ase.repository.SimulationRepository;
 import de.tum.cit.ase.repository.SimulationRunRepository;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
 import de.tum.cit.ase.util.ArtemisServer;
+import de.tum.cit.ase.util.NumberRangeParser;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,10 @@ public class SimulationDataService {
 
     public Simulation createSimulation(Simulation simulation) {
         simulation.setCreationDate(now());
+        if (simulation.isCustomizeUserRange()) {
+            var users = NumberRangeParser.parseNumberRange(simulation.getUserRange()).size();
+            simulation.setNumberOfUsers(users);
+        }
         return simulationRepository.save(simulation);
     }
 

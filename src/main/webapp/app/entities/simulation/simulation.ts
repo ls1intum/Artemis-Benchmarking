@@ -12,6 +12,8 @@ export class Simulation {
     public mode: Mode,
     public runs: SimulationRun[],
     public creationDate: Date,
+    public customizeUserRange: boolean,
+    public userRange?: string,
   ) {}
 }
 
