@@ -10,12 +10,13 @@ import { CreateUserBoxComponent } from '../layouts/create-user-box/create-user-b
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ArtemisUserPatternDTO } from './artemisUserPatternDTO';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Observable, Subject, map, merge, startWith } from 'rxjs';
 
 @Component({
   selector: 'jhi-artemis-users',
   standalone: true,
-  imports: [CommonModule, NgbCollapse, CreateUserBoxComponent, FontAwesomeModule, NgbTooltipModule, FormsModule],
+  imports: [CommonModule, NgbCollapse, CreateUserBoxComponent, FontAwesomeModule, NgbTooltipModule, FormsModule, ReactiveFormsModule],
   templateUrl: './artemis-users.component.html',
   styleUrl: './artemis-users.component.scss',
 })
@@ -25,6 +26,7 @@ export class ArtemisUsersComponent implements OnInit {
 
   server: ArtemisServer = ArtemisServer.TS1;
   users: ArtemisUser[] = [];
+  users$: Observable<ArtemisUser[]>;
 
   isCollapsed = true;
   showPasswords = false;
@@ -35,6 +37,8 @@ export class ArtemisUsersComponent implements OnInit {
   actionInProgress = false;
   error = false;
   errorMsg = '';
+  filter = new FormControl('', { nonNullable: true });
+  usersChanged = new Subject<void>();
 
   protected readonly ArtemisServer = ArtemisServer;
 
@@ -42,7 +46,15 @@ export class ArtemisUsersComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private artemisUsersService: ArtemisUsersService,
-  ) {}
+  ) {
+    this.users$ = merge(
+      this.filter.valueChanges.pipe(
+        startWith(''),
+        map(text => this.search(text)),
+      ),
+      this.usersChanged.pipe(map(() => this.search(this.filter.value))),
+    );
+  }
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -53,6 +65,7 @@ export class ArtemisUsersComponent implements OnInit {
       this.artemisUsersService.getUsers(this.server).subscribe((users: ArtemisUser[]) => {
         this.users = users.filter(u => u.serverWideId !== 0).sort((a, b) => a.serverWideId - b.serverWideId);
         this.adminUser = users.find(user => user.serverWideId === 0);
+        this.usersChanged.next(void 0);
       });
     });
   }
@@ -66,6 +79,7 @@ export class ArtemisUsersComponent implements OnInit {
         } else {
           this.users.push(user);
           this.users.sort((a, b) => a.serverWideId - b.serverWideId);
+          this.usersChanged.next(void 0);
         }
         this.actionInProgress = false;
       },
@@ -83,6 +97,7 @@ export class ArtemisUsersComponent implements OnInit {
         this.users.push(...users);
         this.users.sort((a, b) => a.serverWideId - b.serverWideId);
         this.actionInProgress = false;
+        this.usersChanged.next(void 0);
       },
       error: () => {
         this.showError('Error creating users');
@@ -100,6 +115,7 @@ export class ArtemisUsersComponent implements OnInit {
       next: () => {
         this.users = this.users.filter(u => u.id !== user.id);
         this.actionInProgress = false;
+        this.usersChanged.next(void 0);
       },
       error: () => {
         this.showError('Error deleting user');
@@ -114,6 +130,7 @@ export class ArtemisUsersComponent implements OnInit {
       next: () => {
         this.users = [];
         this.actionInProgress = false;
+        this.usersChanged.next(void 0);
       },
       error: () => {
         this.showError('Error deleting users');
@@ -129,6 +146,7 @@ export class ArtemisUsersComponent implements OnInit {
         next: (user: ArtemisUser) => {
           this.users = this.users.map(u => (u.id === user.id ? user : u));
           this.editedUser = undefined;
+          this.usersChanged.next(void 0);
           this.actionInProgress = false;
         },
         error: () => {
@@ -191,5 +209,10 @@ export class ArtemisUsersComponent implements OnInit {
     setTimeout(() => {
       this.error = false;
     }, 3000);
+  }
+
+  search(text: string): ArtemisUser[] {
+    text = text.toLowerCase();
+    return this.users.filter(user => user.username.toLowerCase().includes(text) || user.serverWideId.toString().includes(text));
   }
 }
