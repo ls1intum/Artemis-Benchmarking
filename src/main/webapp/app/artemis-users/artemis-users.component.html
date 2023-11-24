@@ -114,7 +114,7 @@
         }
       </th>
       <th scope="col" class="col-3">
-        <button type="button" class="btn btn-danger" (click)="deleteAll()">Delete All</button>
+        <button type="button" class="btn btn-danger" (click)="deleteAll(deleteModal)">Delete All</button>
       </th>
     </tr>
   </thead>
@@ -158,3 +158,25 @@
     }
   </tbody>
 </table>
+
+<!-- Delete confirm modal-->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="delete-modal-title">Delete Users</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>
+      <strong>You are about to <span class="text-danger">delete all users</span> of {{ server }}!</strong>
+    </p>
+    <p>
+      This step cannot be undone.<br />
+      Before deleting all users, make sure that no simulation is running on this server, otherwise the behavior is undefined.<br />
+      The Admin Account will not be deleted.
+    </p>
+  </div>
+  <div class="modal-footer space-between-wrapper">
+    <button type="reset" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+    <button type="submit" class="btn btn-danger" (click)="modal.close()">Delete</button>
+  </div>
+</ng-template>

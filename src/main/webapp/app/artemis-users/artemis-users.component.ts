@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ArtemisUser } from '../entities/artemis-user/artemisUser';
 import { ArtemisUsersService } from './artemis-users.service';
 import { ArtemisUserForCreationDTO } from './artemisUserForCreationDTO';
-import { NgbCollapse, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbCollapse, NgbModal, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { CreateUserBoxComponent } from '../layouts/create-user-box/create-user-box.component';
 import { faCircleInfo, faEye, faEyeSlash, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -48,6 +48,7 @@ export class ArtemisUsersComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private artemisUsersService: ArtemisUsersService,
+    private modalService: NgbModal,
   ) {
     this.users$ = merge(
       this.filter.valueChanges.pipe(
@@ -126,19 +127,27 @@ export class ArtemisUsersComponent implements OnInit {
     });
   }
 
-  deleteAll(): void {
+  deleteAll(content: any): void {
     this.actionInProgress = true;
-    this.artemisUsersService.deleteByServer(this.server).subscribe({
-      next: () => {
-        this.users = [];
-        this.actionInProgress = false;
-        this.usersChanged.next(void 0);
+
+    this.modalService.open(content, { ariaLabelledBy: 'delete-modal-title' }).result.then(
+      () => {
+        this.artemisUsersService.deleteByServer(this.server).subscribe({
+          next: () => {
+            this.users = [];
+            this.actionInProgress = false;
+            this.usersChanged.next(void 0);
+          },
+          error: () => {
+            this.showError('Error deleting users');
+            this.actionInProgress = false;
+          },
+        });
       },
-      error: () => {
-        this.showError('Error deleting users');
+      () => {
         this.actionInProgress = false;
       },
-    });
+    );
   }
 
   updateUser(): void {
