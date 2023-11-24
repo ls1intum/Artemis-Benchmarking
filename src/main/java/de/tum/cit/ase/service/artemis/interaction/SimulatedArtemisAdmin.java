@@ -4,6 +4,8 @@ import static java.lang.Thread.sleep;
 import static java.time.ZonedDateTime.now;
 
 import de.tum.cit.ase.artemisModel.*;
+import de.tum.cit.ase.domain.ArtemisUser;
+import de.tum.cit.ase.service.artemis.ArtemisUserService;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -16,8 +18,13 @@ import org.springframework.web.reactive.function.BodyInserters;
 
 public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
-    public SimulatedArtemisAdmin(String username, String password, String artemisUrl) {
-        super(username, password, artemisUrl);
+    public SimulatedArtemisAdmin(String artemisUrl, ArtemisUser artemisUser, ArtemisUserService artemisUserService) {
+        super(artemisUrl, artemisUser, artemisUserService);
+        log = LoggerFactory.getLogger(SimulatedArtemisAdmin.class);
+    }
+
+    public SimulatedArtemisAdmin(String artemisUrl, String username, String password) {
+        super(artemisUrl, username, password);
         log = LoggerFactory.getLogger(SimulatedArtemisAdmin.class);
     }
 

@@ -140,7 +140,10 @@ public class ArtemisUserService {
         List<ArtemisUser> users = new ArrayList<>();
         List<Integer> serverWideIds = NumberRangeParser.parseNumberRange(range);
         for (Integer serverWideId : serverWideIds) {
-            users.add(artemisUserRepository.findByServerAndServerWideId(server, serverWideId));
+            var user = artemisUserRepository.findByServerAndServerWideId(server, serverWideId);
+            if (user != null) {
+                users.add(user);
+            }
         }
         return users;
     }
@@ -167,7 +170,7 @@ public class ArtemisUserService {
         numbers = new LinkedList<>(numbers); // Copy list to avoid modifying the original list
         int n = numbers.size();
         for (int i = 0; i < n; i++) {
-            while (numbers.get(i) > 0 && numbers.get(i) <= n && numbers.get(numbers.get(i) - 1) != numbers.get(i)) {
+            while (numbers.get(i) > 0 && numbers.get(i) <= n && !Objects.equals(numbers.get(numbers.get(i) - 1), numbers.get(i))) {
                 int correctIndex = numbers.get(i) - 1;
                 int temp = numbers.get(i);
                 numbers.set(i, numbers.get(correctIndex));

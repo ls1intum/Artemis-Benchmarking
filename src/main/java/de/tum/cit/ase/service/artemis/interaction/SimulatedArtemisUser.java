@@ -3,7 +3,9 @@ package de.tum.cit.ase.service.artemis.interaction;
 import static de.tum.cit.ase.domain.RequestType.AUTHENTICATION;
 import static java.time.ZonedDateTime.now;
 
+import de.tum.cit.ase.domain.ArtemisUser;
 import de.tum.cit.ase.domain.RequestStat;
+import de.tum.cit.ase.service.artemis.ArtemisUserService;
 import de.tum.cit.ase.service.artemis.util.AuthToken;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -32,8 +34,18 @@ public abstract class SimulatedArtemisUser {
     protected WebClient webClient;
     protected AuthToken authToken;
     protected boolean authenticated = false;
+    private ArtemisUser artemisUser;
+    private ArtemisUserService artemisUserService;
 
-    public SimulatedArtemisUser(String username, String password, String artemisUrl) {
+    public SimulatedArtemisUser(String artemisUrl, ArtemisUser artemisUser, ArtemisUserService artemisUserService) {
+        this.username = artemisUser.getUsername();
+        this.password = artemisUser.getPassword();
+        this.artemisUrl = artemisUrl;
+        this.artemisUser = artemisUser;
+        this.artemisUserService = artemisUserService;
+    }
+
+    public SimulatedArtemisUser(String artemisUrl, String username, String password) {
         this.username = username;
         this.password = password;
         this.artemisUrl = artemisUrl;
@@ -44,6 +56,22 @@ public abstract class SimulatedArtemisUser {
      * @return the request stats for the login request
      */
     public List<RequestStat> login() {
+        if (artemisUser != null && artemisUser.getJwtToken() != null && artemisUser.getTokenExpirationDate().isAfter(now())) {
+            log.debug("Using cached token for user {}", username);
+            authToken = new AuthToken(artemisUser.getJwtToken(), null, null, artemisUser.getTokenExpirationDate());
+            webClient =
+                WebClient
+                    .builder()
+                    .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
+                    .baseUrl(artemisUrl)
+                    .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                    .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .defaultHeader("Cookie", authToken.jwtToken())
+                    .build();
+            checkAccess();
+            return List.of();
+        }
+
         log.info("Logging in as {{}}", username);
         List<RequestStat> requestStats = new ArrayList<>();
         WebClient webClient = WebClient
@@ -68,8 +96,12 @@ public abstract class SimulatedArtemisUser {
             throw new RuntimeException("Login failed - No cookie received");
         }
         var cookieHeader = header.get(0);
-        this.authToken = AuthToken.fromResponseHeaderString(cookieHeader);
-        String cookieHeaderToken = authToken.jwtToken();
+        authToken = AuthToken.fromResponseHeaderString(cookieHeader);
+        if (artemisUser != null) {
+            artemisUser.setJwtToken(authToken.jwtToken());
+            artemisUser.setTokenExpirationDate(authToken.expireDate());
+            artemisUser = artemisUserService.updateArtemisUser(artemisUser.getId(), artemisUser);
+        }
         this.webClient =
             WebClient
                 .builder()
@@ -77,7 +109,7 @@ public abstract class SimulatedArtemisUser {
                 .baseUrl(artemisUrl)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader("Cookie", cookieHeaderToken)
+                .defaultHeader("Cookie", authToken.jwtToken())
                 .build();
         checkAccess();
         log.debug("Logged in as {}", username);

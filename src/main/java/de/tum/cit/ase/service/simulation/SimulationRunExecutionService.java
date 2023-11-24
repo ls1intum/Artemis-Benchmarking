@@ -266,7 +266,7 @@ public class SimulationRunExecutionService {
         if (adminAccount == null) {
             throw new IllegalStateException("No admin account found for server " + server.name());
         }
-        var admin = new SimulatedArtemisAdmin(adminAccount.getUsername(), adminAccount.getPassword(), artemisConfiguration.getUrl(server));
+        var admin = new SimulatedArtemisAdmin(artemisConfiguration.getUrl(server), adminAccount, artemisUserService);
         admin.login();
         return admin;
     }
@@ -308,11 +308,7 @@ public class SimulationRunExecutionService {
         SimulatedArtemisStudent[] users = new SimulatedArtemisStudent[artemisUsers.size()];
         for (int i = 0; i < artemisUsers.size(); i++) {
             users[i] =
-                new SimulatedArtemisStudent(
-                    artemisUsers.get(i).getUsername(),
-                    artemisUsers.get(i).getPassword(),
-                    artemisConfiguration.getUrl(simulation.getServer())
-                );
+                new SimulatedArtemisStudent(artemisConfiguration.getUrl(simulation.getServer()), artemisUsers.get(i), artemisUserService);
         }
         return users;
     }

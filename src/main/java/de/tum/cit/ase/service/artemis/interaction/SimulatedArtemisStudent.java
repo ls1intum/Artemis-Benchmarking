@@ -7,7 +7,9 @@ import static java.time.ZonedDateTime.now;
 
 import com.thedeanda.lorem.LoremIpsum;
 import de.tum.cit.ase.artemisModel.*;
+import de.tum.cit.ase.domain.ArtemisUser;
 import de.tum.cit.ase.domain.RequestStat;
+import de.tum.cit.ase.service.artemis.ArtemisUserService;
 import de.tum.cit.ase.util.UMLClassDiagrams;
 import jakarta.annotation.Nullable;
 import java.io.IOException;
@@ -29,8 +31,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private Long studentExamId;
     private StudentExam studentExam;
 
-    public SimulatedArtemisStudent(String username, String password, String artemisUrl) {
-        super(username, password, artemisUrl);
+    public SimulatedArtemisStudent(String artemisUrl, ArtemisUser artemisUser, ArtemisUserService artemisUserService) {
+        super(artemisUrl, artemisUser, artemisUserService);
         log = LoggerFactory.getLogger(SimulatedArtemisStudent.class.getName() + "." + username);
     }
 
