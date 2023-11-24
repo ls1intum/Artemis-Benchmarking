@@ -100,7 +100,13 @@
   <ng-container ngbNavItem>
     <button ngbNavLink>CSV</button>
     <ng-template ngbNavContent>
-      <p>test</p>
+      <div class="me-3 mb-3">
+        <label for="csv-file" class="form-label">CSV file</label>
+        <input class="form-control" type="file" id="csv-file" (change)="onFileSelect($event)" />
+      </div>
+      <button type="submit" class="btn btn-primary mb-3" [disabled]="file === undefined || actionInProgress" (click)="onSubmitCsv()">
+        Upload File and Create Users
+      </button>
     </ng-template>
   </ng-container>
 </nav>

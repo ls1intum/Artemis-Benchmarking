@@ -28,8 +28,11 @@ export class CreateUserBoxComponent {
   from: number = 1;
   to: number = 2;
 
+  file?: File;
+
   @Output() createUser = new EventEmitter<ArtemisUserForCreationDTO>();
   @Output() createUserPattern = new EventEmitter<ArtemisUserPatternDTO>();
+  @Output() createUserCsv = new EventEmitter<File>();
 
   onCreate(): void {
     const user: ArtemisUserForCreationDTO = new ArtemisUserForCreationDTO(this.username, this.password, this.id);
@@ -48,5 +51,21 @@ export class CreateUserBoxComponent {
 
   isValidPattern(): boolean {
     return this.usernamePattern.length > 0 && this.passwordPattern.length > 0 && this.from > 0 && this.from < this.to;
+  }
+
+  onFileSelect(event: any): void {
+    if (event.target.files.length === 1) {
+      const file: File = event.target.files[0];
+      if (file.type === 'text/csv') {
+        this.file = event.target.files[0];
+      }
+    }
+  }
+
+  onSubmitCsv(): void {
+    if (this.file) {
+      this.createUserCsv.emit(this.file);
+      this.file = undefined;
+    }
   }
 }

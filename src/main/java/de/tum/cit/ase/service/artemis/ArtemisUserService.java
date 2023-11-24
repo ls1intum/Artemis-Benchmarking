@@ -1,5 +1,7 @@
 package de.tum.cit.ase.service.artemis;
 
+import com.opencsv.bean.CsvToBean;
+import com.opencsv.bean.CsvToBeanBuilder;
 import de.tum.cit.ase.domain.ArtemisUser;
 import de.tum.cit.ase.repository.ArtemisUserRepository;
 import de.tum.cit.ase.service.dto.ArtemisUserForCreationDTO;
@@ -7,6 +9,7 @@ import de.tum.cit.ase.service.dto.ArtemisUserPatternDTO;
 import de.tum.cit.ase.util.ArtemisServer;
 import de.tum.cit.ase.util.NumberRangeParser;
 import de.tum.cit.ase.web.rest.errors.BadRequestAlertException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,6 +17,7 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ArtemisUserService {
@@ -83,6 +87,32 @@ public class ArtemisUserService {
 
     public void deleteByServer(ArtemisServer server) {
         artemisUserRepository.deleteByServer(server);
+    }
+
+    public List<ArtemisUser> createArtemisUsersFromCSV(MultipartFile file, ArtemisServer server) {
+        List<ArtemisUserForCreationDTO> artemisUserDTOs;
+        try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+            CsvToBean<ArtemisUserForCreationDTO> cb = new CsvToBeanBuilder<ArtemisUserForCreationDTO>(reader)
+                .withType(ArtemisUserForCreationDTO.class)
+                .withIgnoreLeadingWhiteSpace(true)
+                .build();
+
+            artemisUserDTOs = cb.parse();
+        } catch (Exception e) {
+            throw new BadRequestAlertException("Could not read CSV file", "artemisUser", "csvReadError");
+        }
+        List<ArtemisUser> result = new LinkedList<>();
+        for (ArtemisUserForCreationDTO artemisUserDTO : artemisUserDTOs) {
+            if (artemisUserDTO.getServerWideId() != null && artemisUserDTO.getServerWideId() == 0) {
+                continue;
+            }
+            try {
+                result.add(createArtemisUser(server, artemisUserDTO));
+            } catch (BadRequestAlertException e) {
+                log.warn(e.getMessage() + ". Skipping user.");
+            }
+        }
+        return result;
     }
 
     private ArtemisUser saveArtemisUser(ArtemisUser artemisUser) {

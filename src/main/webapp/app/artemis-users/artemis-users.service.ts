@@ -46,4 +46,11 @@ export class ArtemisUsersService {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/artemis-users/' + user.id);
     return this.httpClient.put(endpoint, user).pipe(map((res: any) => res as ArtemisUser));
   }
+
+  createUsersFromCsv(server: ArtemisServer, file: File): Observable<ArtemisUser[]> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/artemis-users/' + server + '/csv');
+    return this.httpClient.post(endpoint, formData).pipe(map((res: any) => res as ArtemisUser[]));
+  }
 }

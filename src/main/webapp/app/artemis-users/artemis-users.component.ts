@@ -109,6 +109,22 @@ export class ArtemisUsersComponent implements OnInit {
     });
   }
 
+  createUserCsv(file: File): void {
+    this.actionInProgress = true;
+    this.artemisUsersService.createUsersFromCsv(this.server, file).subscribe({
+      next: (users: ArtemisUser[]) => {
+        this.users.push(...users);
+        this.users.sort((a, b) => a.serverWideId - b.serverWideId);
+        this.actionInProgress = false;
+        this.usersChanged.next(void 0);
+      },
+      error: () => {
+        this.showError('Error creating users');
+        this.actionInProgress = false;
+      },
+    });
+  }
+
   deleteUser(user: ArtemisUser): void {
     if (user.id === undefined) {
       return;

@@ -1,11 +1,17 @@
 package de.tum.cit.ase.service.dto;
 
+import com.opencsv.bean.CsvBindByName;
 import java.io.Serializable;
 
 public class ArtemisUserForCreationDTO implements Serializable {
 
+    @CsvBindByName(column = "username")
     private String username;
+
+    @CsvBindByName(column = "password")
     private String password;
+
+    @CsvBindByName(column = "id")
     private Integer serverWideId;
 
     public String getUsername() {

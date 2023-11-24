@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/artemis-users")
@@ -62,5 +63,16 @@ public class ArtemisUserResource {
             throw new IllegalArgumentException("Id in path and body do not match!");
         }
         return new ResponseEntity<>(artemisUserService.updateArtemisUser(id, artemisUser), HttpStatus.OK);
+    }
+
+    @PostMapping("/{server}/csv")
+    public ResponseEntity<List<ArtemisUser>> createArtemisUsersFromCSV(
+        @PathVariable ArtemisServer server,
+        @RequestParam("file") MultipartFile file
+    ) {
+        if (file.isEmpty() || file.getContentType() == null || !file.getContentType().equals("text/csv")) {
+            throw new IllegalArgumentException("File must be non-empty and of type text/csv");
+        }
+        return new ResponseEntity<>(artemisUserService.createArtemisUsersFromCSV(file, server), HttpStatus.OK);
     }
 }

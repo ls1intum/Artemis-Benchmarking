@@ -1,6 +1,7 @@
 package de.tum.cit.ase.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.opencsv.bean.CsvBindByName;
 import de.tum.cit.ase.util.ArtemisServer;
 import jakarta.persistence.*;
 import java.time.ZonedDateTime;
@@ -14,9 +15,13 @@ public class ArtemisUser {
     private Long id;
 
     @Column(name = "server_wide_id")
+    @CsvBindByName(column = "id")
     private int serverWideId; // Needs to be unique within one server, could potentially be replaced by a composite key
 
+    @CsvBindByName(column = "username")
     private String username;
+
+    @CsvBindByName(column = "password")
     private String password;
 
     @Enumerated(EnumType.STRING)
