@@ -10,7 +10,7 @@ public record AuthToken(String jwtToken, String path, Long maxAge, ZonedDateTime
 
     public static AuthToken fromResponseHeaderString(String authTokenAsString) {
         var components = authTokenAsString.split(";");
-        var token = components[0]; // TODO: we could leave out "jwt=" here in the future and build this on our own
+        var token = components[0]; // 'jwt=...'
         var path = components[1];
         var maxAge = Long.valueOf(components[2].split("=")[1]);
 

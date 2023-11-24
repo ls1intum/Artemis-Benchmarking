@@ -5,7 +5,11 @@
       <div class="flex-container">
         <form class="mt-3 mb-3">
           <div class="me-3 mb-3 w-40">
-            <label for="id-input" class="form-label">ID (optional)</label>
+            <label for="id-input" class="form-label me-2">ID (optional)</label>
+            <fa-icon
+              [icon]="faCircleInfo"
+              ngbTooltip="If not provided, the lowest available ID will be used. If you provide an ID that is already occupied, user creation will fail."
+            ></fa-icon>
             <input type="number" class="form-control" id="id-input" min="1" [(ngModel)]="id" [ngModelOptions]="{ standalone: true }" />
           </div>
           <div class="flex-wrapper">
@@ -34,8 +38,13 @@
   <ng-container ngbNavItem>
     <button ngbNavLink>Pattern</button>
     <ng-template ngbNavContent>
+      <ngb-alert type="info" [dismissible]="false">
+        Specify a pattern for usernames and passwords. The pattern must contain a <samp>{{ '{' }}i{{ '}' }}</samp> placeholder that will be
+        replaced by the current number. The numbers will start at <samp>from</samp> and end at <samp>to-1</samp>. These number will also be
+        used as the ID. If the ID is already occupied, the respective user will be skipped.
+      </ngb-alert>
       <div class="flex-container">
-        <form class="mt-3 mb-3">
+        <form class="mb-3">
           <div class="flex-wrapper">
             <div class="me-3 mb-3 w-40">
               <label for="username-pattern-input" class="form-label">Username Pattern</label>

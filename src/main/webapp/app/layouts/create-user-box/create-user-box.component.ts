@@ -2,17 +2,21 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ArtemisUserForCreationDTO } from '../../artemis-users/artemisUserForCreationDTO';
 import { FormsModule } from '@angular/forms';
-import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbAlertModule, NgbNavModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { ArtemisUserPatternDTO } from '../../artemis-users/artemisUserPatternDTO';
+import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'jhi-create-user-box',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgbNavModule],
+  imports: [CommonModule, FormsModule, NgbNavModule, FontAwesomeModule, NgbTooltipModule, NgbAlertModule],
   templateUrl: './create-user-box.component.html',
   styleUrl: './create-user-box.component.scss',
 })
 export class CreateUserBoxComponent {
+  faCircleInfo = faCircleInfo;
+
   @Input() actionInProgress = false;
 
   username: string = '';

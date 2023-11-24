@@ -7,7 +7,7 @@ import { ArtemisUsersService } from './artemis-users.service';
 import { ArtemisUserForCreationDTO } from './artemisUserForCreationDTO';
 import { NgbCollapse, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { CreateUserBoxComponent } from '../layouts/create-user-box/create-user-box.component';
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faEye, faEyeSlash, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ArtemisUserPatternDTO } from './artemisUserPatternDTO';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -23,6 +23,8 @@ import { Observable, Subject, map, merge, startWith } from 'rxjs';
 export class ArtemisUsersComponent implements OnInit {
   faEye = faEye;
   faEyeSlash = faEyeSlash;
+  faCircleInfo = faCircleInfo;
+  faMagnifyingGlass = faMagnifyingGlass;
 
   server: ArtemisServer = ArtemisServer.TS1;
   users: ArtemisUser[] = [];
