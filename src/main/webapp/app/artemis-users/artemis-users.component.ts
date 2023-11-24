@@ -33,6 +33,8 @@ export class ArtemisUsersComponent implements OnInit {
   adminUserCopy?: ArtemisUser;
   showAdminPassword = false;
   actionInProgress = false;
+  error = false;
+  errorMsg = '';
 
   protected readonly ArtemisServer = ArtemisServer;
 
@@ -57,23 +59,35 @@ export class ArtemisUsersComponent implements OnInit {
 
   createUser(userDTO: ArtemisUserForCreationDTO): void {
     this.actionInProgress = true;
-    this.artemisUsersService.createUser(this.server, userDTO).subscribe((user: ArtemisUser) => {
-      if (user.serverWideId === 0) {
-        this.adminUser = user;
-      } else {
-        this.users.push(user);
-        this.users.sort((a, b) => a.serverWideId - b.serverWideId);
-      }
-      this.actionInProgress = false;
+    this.artemisUsersService.createUser(this.server, userDTO).subscribe({
+      next: (user: ArtemisUser) => {
+        if (user.serverWideId === 0) {
+          this.adminUser = user;
+        } else {
+          this.users.push(user);
+          this.users.sort((a, b) => a.serverWideId - b.serverWideId);
+        }
+        this.actionInProgress = false;
+      },
+      error: () => {
+        this.showError('Error creating user');
+        this.actionInProgress = false;
+      },
     });
   }
 
   createUserPattern(userPatternDTO: ArtemisUserPatternDTO): void {
     this.actionInProgress = true;
-    this.artemisUsersService.createUsersFromPattern(this.server, userPatternDTO).subscribe((users: ArtemisUser[]) => {
-      this.users.push(...users);
-      this.users.sort((a, b) => a.serverWideId - b.serverWideId);
-      this.actionInProgress = false;
+    this.artemisUsersService.createUsersFromPattern(this.server, userPatternDTO).subscribe({
+      next: (users: ArtemisUser[]) => {
+        this.users.push(...users);
+        this.users.sort((a, b) => a.serverWideId - b.serverWideId);
+        this.actionInProgress = false;
+      },
+      error: () => {
+        this.showError('Error creating users');
+        this.actionInProgress = false;
+      },
     });
   }
 
@@ -82,27 +96,45 @@ export class ArtemisUsersComponent implements OnInit {
       return;
     }
     this.actionInProgress = true;
-    this.artemisUsersService.deleteById(user.id).subscribe(() => {
-      this.users = this.users.filter(u => u.id !== user.id);
-      this.actionInProgress = false;
+    this.artemisUsersService.deleteById(user.id).subscribe({
+      next: () => {
+        this.users = this.users.filter(u => u.id !== user.id);
+        this.actionInProgress = false;
+      },
+      error: () => {
+        this.showError('Error deleting user');
+        this.actionInProgress = false;
+      },
     });
   }
 
   deleteAll(): void {
     this.actionInProgress = true;
-    this.artemisUsersService.deleteByServer(this.server).subscribe(() => {
-      this.users = [];
-      this.actionInProgress = false;
+    this.artemisUsersService.deleteByServer(this.server).subscribe({
+      next: () => {
+        this.users = [];
+        this.actionInProgress = false;
+      },
+      error: () => {
+        this.showError('Error deleting users');
+        this.actionInProgress = false;
+      },
     });
   }
 
   updateUser(): void {
     if (this.editedUser) {
       this.actionInProgress = true;
-      this.artemisUsersService.updateUser(this.editedUser).subscribe((user: ArtemisUser) => {
-        this.users = this.users.map(u => (u.id === user.id ? user : u));
-        this.editedUser = undefined;
-        this.actionInProgress = false;
+      this.artemisUsersService.updateUser(this.editedUser).subscribe({
+        next: (user: ArtemisUser) => {
+          this.users = this.users.map(u => (u.id === user.id ? user : u));
+          this.editedUser = undefined;
+          this.actionInProgress = false;
+        },
+        error: () => {
+          this.showError('Error updating user');
+          this.actionInProgress = false;
+        },
       });
     }
   }
@@ -110,17 +142,29 @@ export class ArtemisUsersComponent implements OnInit {
   updateAdminUser(): void {
     if (this.adminUserCopy?.id !== undefined) {
       this.actionInProgress = true;
-      this.artemisUsersService.updateUser(this.adminUserCopy).subscribe((user: ArtemisUser) => {
-        this.adminUser = user;
-        this.adminUserCopy = undefined;
-        this.actionInProgress = false;
+      this.artemisUsersService.updateUser(this.adminUserCopy).subscribe({
+        next: (user: ArtemisUser) => {
+          this.adminUser = user;
+          this.adminUserCopy = undefined;
+          this.actionInProgress = false;
+        },
+        error: () => {
+          this.showError('Error updating admin user');
+          this.actionInProgress = false;
+        },
       });
     } else if (this.adminUserCopy) {
       this.actionInProgress = true;
-      this.artemisUsersService.createUser(this.server, this.adminUserCopy).subscribe((user: ArtemisUser) => {
-        this.adminUser = user;
-        this.adminUserCopy = undefined;
-        this.actionInProgress = false;
+      this.artemisUsersService.createUser(this.server, this.adminUserCopy).subscribe({
+        next: (user: ArtemisUser) => {
+          this.adminUser = user;
+          this.adminUserCopy = undefined;
+          this.actionInProgress = false;
+        },
+        error: () => {
+          this.showError('Error creating admin user');
+          this.actionInProgress = false;
+        },
       });
     }
   }
@@ -139,5 +183,13 @@ export class ArtemisUsersComponent implements OnInit {
     } else {
       this.adminUserCopy = new ArtemisUser(undefined, 0, '', '', this.server);
     }
+  }
+
+  showError(errorMsg: string): void {
+    this.error = true;
+    this.errorMsg = errorMsg;
+    setTimeout(() => {
+      this.error = false;
+    }, 3000);
   }
 }

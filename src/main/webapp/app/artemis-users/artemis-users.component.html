@@ -1,3 +1,9 @@
+@if (error) {
+  <div class="alert alert-danger position-fixed position-absolute start-50 ps-5 pe-5" role="alert">
+    {{ errorMsg }}
+  </div>
+}
+
 <h2>{{ server.charAt(0) + server.slice(1).toLowerCase() }} Users</h2>
 
 @if (server !== ArtemisServer.PRODUCTION) {

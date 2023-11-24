@@ -364,7 +364,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         Scheduler scheduler = Schedulers.from(threadPoolExecutor);
 
         Flowable
-            .range(1, students.length)
+            .range(0, students.length)
             .parallel(threadCount)
             .runOn(scheduler)
             .doOnNext(i -> {
