@@ -8,19 +8,21 @@
 
 @if (server !== ArtemisServer.PRODUCTION) {
   <h3 class="mb-0 mt-5">Admin Account</h3>
-  <table class="table table-striped w-60 mb-5">
+  <table class="table table-striped mb-5">
     <thead>
-      <tr>
-        <th scope="col">Username</th>
-        <th scope="col">Password</th>
-        <th scope="col"></th>
+      <tr class="d-flex">
+        <th scope="col" class="col-1"></th>
+        <th scope="col" class="col-3">Username</th>
+        <th scope="col" class="col-3">Password</th>
+        <th scope="col" class="col-3"></th>
       </tr>
     </thead>
     <tbody>
-      <tr>
+      <tr class="d-flex">
         @if (adminUserCopy === undefined) {
-          <td>{{ adminUser?.username }}</td>
-          <td>
+          <td class="col-1"></td>
+          <td class="col-3">{{ adminUser?.username }}</td>
+          <td class="col-3">
             @if (showAdminPassword) {
               <fa-icon
                 class="me-2"
@@ -34,17 +36,18 @@
               <fa-icon role="button" [icon]="faEye" (click)="showAdminPassword = true" ngbTooltip="Show password"></fa-icon>
             }
           </td>
-          <td>
+          <td class="col-3">
             <button type="button" class="btn btn-info" (click)="editAdmin()">Edit</button>
           </td>
         } @else {
-          <td>
+          <td class="col-1"></td>
+          <td class="col-3 pe-5">
             <input type="text" class="form-control" [(ngModel)]="adminUserCopy!.username" />
           </td>
-          <td>
+          <td class="col-3 pe-5">
             <input type="password" class="form-control" [(ngModel)]="adminUserCopy!.password" />
           </td>
-          <td>
+          <td class="col-3">
             <button type="button" class="btn btn-primary" [disabled]="!adminValid() || actionInProgress" (click)="updateAdminUser()">
               Save
             </button>
@@ -78,20 +81,21 @@
     Cancel
   </button>
 }
-<div #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
+<div class="border mt-2 w-60 ps-3 pe-3 mb-3" #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
   <jhi-create-user-box
     [actionInProgress]="actionInProgress"
     (createUser)="createUser($event)"
     (createUserPattern)="createUserPattern($event)"
   ></jhi-create-user-box>
 </div>
+
 @if (users.length > 0) {
-  <table class="table table-striped w-60">
+  <table class="table table-striped">
     <thead>
-      <tr>
-        <th scope="col">ID</th>
-        <th scope="col">Username</th>
-        <th scope="col">
+      <tr class="d-flex">
+        <th scope="col" class="col-1">ID</th>
+        <th scope="col" class="col-3">Username</th>
+        <th scope="col" class="col-3">
           <span class="me-2">Password</span>
           @if (showPasswords) {
             <fa-icon [icon]="faEyeSlash" role="button" (click)="showPasswords = false" ngbTooltip="Hide passwords"></fa-icon>
@@ -99,7 +103,7 @@
             <fa-icon [icon]="faEye" role="button" (click)="showPasswords = true" ngbTooltip="Show passwords"></fa-icon>
           }
         </th>
-        <th scope="col">
+        <th scope="col" class="col-3">
           <button type="button" class="btn btn-danger" (click)="deleteAll()">Delete All</button>
         </th>
       </tr>
@@ -107,31 +111,31 @@
     <tbody>
       @for (user of users; track user.serverWideId) {
         @if (user !== editedUser) {
-          <tr>
-            <td>{{ user.serverWideId }}</td>
-            <td>{{ user.username }}</td>
-            <td>
+          <tr class="d-flex">
+            <td class="col-1">{{ user.serverWideId }}</td>
+            <td class="col-3">{{ user.username }}</td>
+            <td class="col-3">
               @if (showPasswords) {
                 {{ user.password }}
               } @else {
                 <fa-icon class="text-secondary" [icon]="faEyeSlash"></fa-icon>
               }
             </td>
-            <td class="flex-wrapper">
+            <td class="col-3 flex-wrapper">
               <button type="button" class="btn btn-info me-3" (click)="editedUser = user">Edit</button>
               <button type="button" class="btn btn-danger" [disabled]="actionInProgress" (click)="deleteUser(user)">Delete</button>
             </td>
           </tr>
         } @else {
-          <tr>
-            <td>{{ user.serverWideId }}</td>
-            <td>
+          <tr class="d-flex">
+            <td class="col-1">{{ user.serverWideId }}</td>
+            <td class="col-3 pe-5">
               <input type="text" class="form-control" [(ngModel)]="editedUser!.username" />
             </td>
-            <td>
+            <td class="col-3 pe-5">
               <input type="password" class="form-control" [(ngModel)]="editedUser!.password" />
             </td>
-            <td class="flex-wrapper">
+            <td class="col-3 flex-wrapper">
               <button type="button" class="btn btn-primary me-3" [disabled]="!editValid() || actionInProgress" (click)="updateUser()">
                 Save
               </button>
