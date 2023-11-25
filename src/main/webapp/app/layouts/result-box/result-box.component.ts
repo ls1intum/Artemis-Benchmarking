@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
-import { SimulationStats } from '../../models/simulationStats';
-import { RequestType } from '../../models/requestType';
+import { SimulationStats } from '../../entities/simulation/simulationStats';
+import { RequestType } from '../../entities/simulation/requestType';
 
 @Component({
   selector: 'jhi-result-box',

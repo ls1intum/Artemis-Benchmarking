@@ -1,5 +1,6 @@
-package de.tum.cit.ase.service;
+package de.tum.cit.ase.service.simulation;
 
+import static de.tum.cit.ase.util.NumberRangeParser.numberRangeRegex;
 import static java.time.ZonedDateTime.now;
 
 import de.tum.cit.ase.domain.*;
@@ -7,6 +8,7 @@ import de.tum.cit.ase.repository.SimulationRepository;
 import de.tum.cit.ase.repository.SimulationRunRepository;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
 import de.tum.cit.ase.util.ArtemisServer;
+import de.tum.cit.ase.util.NumberRangeParser;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,10 @@ public class SimulationDataService {
 
     public Simulation createSimulation(Simulation simulation) {
         simulation.setCreationDate(now());
+        if (simulation.isCustomizeUserRange()) {
+            var users = NumberRangeParser.parseNumberRange(simulation.getUserRange()).size();
+            simulation.setNumberOfUsers(users);
+        }
         return simulationRepository.save(simulation);
     }
 
@@ -89,10 +95,13 @@ public class SimulationDataService {
 
     public boolean validateSimulation(Simulation simulation) {
         var basicRequirements =
-            simulation.getNumberOfUsers() > 0 &&
             simulation.getMode() != null &&
             simulation.getServer() != null &&
-            simulation.getName() != null;
+            simulation.getName() != null &&
+            ((!simulation.isCustomizeUserRange() && simulation.getNumberOfUsers() > 0) ||
+                (simulation.isCustomizeUserRange() &&
+                    simulation.getUserRange() != null &&
+                    simulation.getUserRange().matches(numberRangeRegex)));
 
         return (
             basicRequirements &&

@@ -4,6 +4,8 @@ import static java.lang.Thread.sleep;
 import static java.time.ZonedDateTime.now;
 
 import de.tum.cit.ase.artemisModel.*;
+import de.tum.cit.ase.domain.ArtemisUser;
+import de.tum.cit.ase.service.artemis.ArtemisUserService;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -14,11 +16,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
 
-public class ArtemisAdmin extends ArtemisUser {
+public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
-    public ArtemisAdmin(String username, String password, String artemisUrl) {
-        super(username, password, artemisUrl);
-        log = LoggerFactory.getLogger(ArtemisAdmin.class);
+    public SimulatedArtemisAdmin(String artemisUrl, ArtemisUser artemisUser, ArtemisUserService artemisUserService) {
+        super(artemisUrl, artemisUser, artemisUserService);
+        log = LoggerFactory.getLogger(SimulatedArtemisAdmin.class);
+    }
+
+    public SimulatedArtemisAdmin(String artemisUrl, String username, String password) {
+        super(artemisUrl, username, password);
+        log = LoggerFactory.getLogger(SimulatedArtemisAdmin.class);
     }
 
     @Override
@@ -349,37 +356,35 @@ public class ArtemisAdmin extends ArtemisUser {
     }
 
     /**
-     * Register the given number of test-users (1 to numberOfStudents) to the given course. The registration is parallelized to speed up the process.
+     * Register the given students for the course. The registration is parallelized to speed up the process.
      * @param courseId the ID of the course
-     * @param numberOfStudents the number of students to register
-     * @param usernameTemplate the template for the usernames of the students to register, e.g. "test-user{i}"
+     * @param students the students to register
      */
-    public void registerStudentsForCourse(long courseId, int numberOfStudents, String usernameTemplate) {
+    public void registerStudentsForCourse(long courseId, SimulatedArtemisStudent[] students) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
-        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 10, numberOfStudents);
+        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 10, students.length);
         ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadCount);
         Scheduler scheduler = Schedulers.from(threadPoolExecutor);
 
         Flowable
-            .range(1, numberOfStudents)
+            .range(0, students.length)
             .parallel(threadCount)
             .runOn(scheduler)
             .doOnNext(i -> {
-                var studentName = usernameTemplate.replace("{i}", String.valueOf(i));
                 try {
                     webClient
                         .post()
                         .uri(uriBuilder ->
-                            uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", studentName).build()
+                            uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", students[i].username).build()
                         )
                         .retrieve()
                         .toBodilessEntity()
                         .block();
                 } catch (Exception e) {
-                    log.warn("Could not register student {{}} for course: {{}}", studentName, e.getMessage());
+                    log.warn("Could not register student {{}} for course: {{}}", students[i].username, e.getMessage());
                 }
             })
             .sequential()

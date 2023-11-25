@@ -1,4 +1,4 @@
-package de.tum.cit.ase.service;
+package de.tum.cit.ase.service.simulation;
 
 import de.tum.cit.ase.domain.SimulationRun;
 import de.tum.cit.ase.repository.SimulationRunRepository;

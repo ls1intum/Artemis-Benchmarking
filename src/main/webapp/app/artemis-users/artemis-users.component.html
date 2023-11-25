@@ -1,0 +1,183 @@
+@if (error) {
+  <div class="alert alert-danger position-fixed position-absolute start-50 ps-5 pe-5" role="alert">
+    {{ errorMsg }}
+  </div>
+}
+
+<h2>{{ server.charAt(0) + server.slice(1).toLowerCase() }} Users</h2>
+
+@if (server !== ArtemisServer.PRODUCTION) {
+  <h3 class="mb-0 mt-5">Admin Account</h3>
+  <table class="table table-striped mb-5">
+    <thead>
+      <tr class="d-flex">
+        <th scope="col" class="col-1"></th>
+        <th scope="col" class="col-3">Username</th>
+        <th scope="col" class="col-3">Password</th>
+        <th scope="col" class="col-3"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="d-flex">
+        @if (adminUserCopy === undefined) {
+          <td class="col-1"></td>
+          <td class="col-3">{{ adminUser?.username }}</td>
+          <td class="col-3">
+            @if (showAdminPassword) {
+              <fa-icon
+                class="me-2"
+                role="button"
+                [icon]="faEyeSlash"
+                (click)="showAdminPassword = false"
+                ngbTooltip="Hide password"
+              ></fa-icon>
+              {{ adminUser?.password }}
+            } @else {
+              <fa-icon role="button" [icon]="faEye" (click)="showAdminPassword = true" ngbTooltip="Show password"></fa-icon>
+            }
+          </td>
+          <td class="col-3">
+            <button type="button" class="btn btn-info" (click)="editAdmin()">Edit</button>
+          </td>
+        } @else {
+          <td class="col-1"></td>
+          <td class="col-3 pe-5">
+            <input type="text" class="form-control" [(ngModel)]="adminUserCopy!.username" />
+            <div class="ms-2 form-text">
+              Note: The Admin cannot be a Student! Please make sure that the Admin Account is not in the list of Student Accounts.
+            </div>
+          </td>
+          <td class="col-3 pe-5">
+            <input type="password" class="form-control" [(ngModel)]="adminUserCopy!.password" />
+          </td>
+          <td class="col-3">
+            <button type="button" class="btn btn-primary me-1" [disabled]="!adminValid() || actionInProgress" (click)="updateAdminUser()">
+              Save
+            </button>
+            <button type="button" class="btn btn-danger" (click)="adminUserCopy = undefined">Cancel</button>
+          </td>
+        }
+      </tr>
+    </tbody>
+  </table>
+}
+
+<h3>Student Accounts</h3>
+@if (isCollapsed) {
+  <button
+    type="button"
+    class="btn btn-primary"
+    (click)="collapse.toggle()"
+    [attr.aria-expanded]="!isCollapsed"
+    aria-controls="collapseExample"
+  >
+    Create users
+  </button>
+} @else {
+  <button
+    type="button"
+    class="btn btn-danger"
+    (click)="collapse.toggle()"
+    [attr.aria-expanded]="!isCollapsed"
+    aria-controls="collapseExample"
+  >
+    Cancel
+  </button>
+}
+<div class="border mt-2 w-60 ps-3 pe-3 mb-3" #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
+  <jhi-create-user-box
+    [actionInProgress]="actionInProgress"
+    (createUser)="createUser($event)"
+    (createUserPattern)="createUserPattern($event)"
+    (createUserCsv)="createUserCsv($event)"
+  ></jhi-create-user-box>
+</div>
+
+<div class="input-group mt-3 w-25">
+  <fa-icon class="input-group-text" [icon]="faMagnifyingGlass"></fa-icon>
+  <input id="table-filtering-search" class="form-control" type="text" [formControl]="filter" />
+</div>
+
+<table class="table table-striped">
+  <thead>
+    <tr class="d-flex">
+      <th scope="col" class="col-1">
+        <span class="me-2">ID</span>
+        <fa-icon [icon]="faCircleInfo" ngbTooltip="These IDs decide which users are used in a simulation."></fa-icon>
+      </th>
+      <th scope="col" class="col-3">Username</th>
+      <th scope="col" class="col-3">
+        <span class="me-2">Password</span>
+        @if (showPasswords) {
+          <fa-icon [icon]="faEyeSlash" role="button" (click)="showPasswords = false" ngbTooltip="Hide passwords"></fa-icon>
+        } @else {
+          <fa-icon [icon]="faEye" role="button" (click)="showPasswords = true" ngbTooltip="Show passwords"></fa-icon>
+        }
+      </th>
+      <th scope="col" class="col-3">
+        <button type="button" class="btn btn-danger" (click)="deleteAll(deleteModal)">Delete All</button>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (user of users$ | async; track user.serverWideId) {
+      @if (user !== editedUser) {
+        <tr class="d-flex">
+          <td class="col-1">{{ user.serverWideId }}</td>
+          <td class="col-3">{{ user.username }}</td>
+          <td class="col-3">
+            @if (showPasswords) {
+              {{ user.password }}
+            } @else {
+              <fa-icon class="text-secondary" [icon]="faEyeSlash"></fa-icon>
+            }
+          </td>
+          <td class="col-3 flex-wrapper">
+            <button type="button" class="btn btn-info me-2" (click)="editedUser = user">Edit</button>
+            <button type="button" class="btn btn-danger" [disabled]="actionInProgress" (click)="deleteUser(user)">Delete</button>
+          </td>
+        </tr>
+      } @else {
+        <tr class="d-flex">
+          <td class="col-1">{{ user.serverWideId }}</td>
+          <td class="col-3 pe-5">
+            <input type="text" class="form-control" [(ngModel)]="editedUser!.username" />
+          </td>
+          <td class="col-3 pe-5">
+            <input [type]="showPasswords ? 'text' : 'password'" class="form-control" [(ngModel)]="editedUser!.password" />
+          </td>
+          <td class="col-3 flex-wrapper">
+            <button type="button" class="btn btn-primary me-2" [disabled]="!editValid() || actionInProgress" (click)="updateUser()">
+              Save
+            </button>
+            <button type="button" class="btn btn-danger" (click)="editedUser = undefined">Cancel</button>
+          </td>
+        </tr>
+      }
+    } @empty {
+      <div class="mt-3">No users found</div>
+    }
+  </tbody>
+</table>
+
+<!-- Delete confirm modal-->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="delete-modal-title">Delete Users</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>
+      <strong>You are about to <span class="text-danger">delete all users</span> of {{ server }}!</strong>
+    </p>
+    <p>
+      This step cannot be undone.<br />
+      Before deleting all users, make sure that no simulation is running on this server, otherwise the behavior is undefined.<br />
+      The Admin Account will not be deleted.
+    </p>
+  </div>
+  <div class="modal-footer space-between-wrapper">
+    <button type="reset" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+    <button type="submit" class="btn btn-danger" (click)="modal.close()">Delete</button>
+  </div>
+</ng-template>

@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Status } from '../../models/simulationRun';
+import { Status } from '../../entities/simulation/simulationRun';
 import { faCircle, faCircleCheck, faCircleNotch, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
 
 @Component({

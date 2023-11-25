@@ -17,7 +17,13 @@
         <p>
           <strong>{{ getTextRepresentation(simulation.mode) }}</strong>
         </p>
-        <p>Users: {{ simulation.numberOfUsers }}</p>
+        <p>
+          @if (simulation.customizeUserRange) {
+            Users: {{ simulation.userRange }} (Total: {{ simulation.numberOfUsers }})
+          } @else {
+            Users: {{ simulation.numberOfUsers }}
+          }
+        </p>
         @if (simulation.mode != Mode.CREATE_COURSE_AND_EXAM) {
           <p>Course-ID: {{ simulation.courseId }}</p>
         }

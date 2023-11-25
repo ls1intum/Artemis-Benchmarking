@@ -3,7 +3,9 @@ package de.tum.cit.ase.service.artemis.interaction;
 import static de.tum.cit.ase.domain.RequestType.AUTHENTICATION;
 import static java.time.ZonedDateTime.now;
 
+import de.tum.cit.ase.domain.ArtemisUser;
 import de.tum.cit.ase.domain.RequestStat;
+import de.tum.cit.ase.service.artemis.ArtemisUserService;
 import de.tum.cit.ase.service.artemis.util.AuthToken;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -22,7 +24,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpSslContextSpec;
 
-public abstract class ArtemisUser {
+public abstract class SimulatedArtemisUser {
 
     protected Logger log;
 
@@ -32,8 +34,34 @@ public abstract class ArtemisUser {
     protected WebClient webClient;
     protected AuthToken authToken;
     protected boolean authenticated = false;
+    private ArtemisUser artemisUser;
+    private ArtemisUserService artemisUserService;
 
-    public ArtemisUser(String username, String password, String artemisUrl) {
+    /**
+     * Create a new SimulatedArtemisUser.
+     * The artemisUser and artemisUserService parameters are used to cache the JWT token.
+     *
+     * @param artemisUrl the URL of the Artemis server
+     * @param artemisUser the ArtemisUser entity to cache the JWT token in
+     * @param artemisUserService the ArtemisUserService to use to update the ArtemisUser entity
+     */
+    public SimulatedArtemisUser(String artemisUrl, ArtemisUser artemisUser, ArtemisUserService artemisUserService) {
+        this.username = artemisUser.getUsername();
+        this.password = artemisUser.getPassword();
+        this.artemisUrl = artemisUrl;
+        this.artemisUser = artemisUser;
+        this.artemisUserService = artemisUserService;
+    }
+
+    /**
+     * Create a new SimulatedArtemisUser.
+     * No JWT token caching will be performed for this user.
+     *
+     * @param artemisUrl the URL of the Artemis server
+     * @param username the username to use for logging in
+     * @param password the password to use for logging in
+     */
+    public SimulatedArtemisUser(String artemisUrl, String username, String password) {
         this.username = username;
         this.password = password;
         this.artemisUrl = artemisUrl;
@@ -41,9 +69,27 @@ public abstract class ArtemisUser {
 
     /**
      * Login to Artemis and return the request stats for the login request.
-     * @return the request stats for the login request
+     * If an artemisUser is specified and a valid token is already cached, it will be used instead of logging in again.
+     *
+     * @return the request stats for the login request (empty if a cached token was used)
      */
     public List<RequestStat> login() {
+        if (artemisUser != null && artemisUser.getJwtToken() != null && artemisUser.getTokenExpirationDate().isAfter(now())) {
+            log.debug("Using cached token for user {}", username);
+            authToken = new AuthToken(artemisUser.getJwtToken(), null, null, artemisUser.getTokenExpirationDate());
+            webClient =
+                WebClient
+                    .builder()
+                    .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
+                    .baseUrl(artemisUrl)
+                    .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                    .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .defaultHeader("Cookie", authToken.jwtToken())
+                    .build();
+            checkAccess();
+            return List.of();
+        }
+
         log.info("Logging in as {{}}", username);
         List<RequestStat> requestStats = new ArrayList<>();
         WebClient webClient = WebClient
@@ -68,8 +114,12 @@ public abstract class ArtemisUser {
             throw new RuntimeException("Login failed - No cookie received");
         }
         var cookieHeader = header.get(0);
-        this.authToken = AuthToken.fromResponseHeaderString(cookieHeader);
-        String cookieHeaderToken = authToken.jwtToken();
+        authToken = AuthToken.fromResponseHeaderString(cookieHeader);
+        if (artemisUser != null) {
+            artemisUser.setJwtToken(authToken.jwtToken());
+            artemisUser.setTokenExpirationDate(authToken.expireDate());
+            artemisUser = artemisUserService.updateArtemisUser(artemisUser.getId(), artemisUser);
+        }
         this.webClient =
             WebClient
                 .builder()
@@ -77,7 +127,7 @@ public abstract class ArtemisUser {
                 .baseUrl(artemisUrl)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader("Cookie", cookieHeaderToken)
+                .defaultHeader("Cookie", authToken.jwtToken())
                 .build();
         checkAccess();
         log.debug("Logged in as {}", username);

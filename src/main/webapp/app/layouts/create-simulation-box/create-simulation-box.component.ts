@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { getTextRepresentation, Mode, Simulation } from '../../models/simulation';
-import { ArtemisServer } from '../../models/artemisServer';
+import { getTextRepresentation, Mode, Simulation } from '../../entities/simulation/simulation';
+import { ArtemisServer } from '../../core/util/artemisServer';
 import { ProfileService } from '../profiles/profile.service';
 
 @Component({
@@ -17,6 +17,8 @@ export class CreateSimulationBoxComponent implements OnInit {
   examId: number = 0;
   server: ArtemisServer = ArtemisServer.TS1;
   mode: Mode = Mode.CREATE_COURSE_AND_EXAM;
+  customizeUserRange: boolean = false;
+  userRange: string = '';
 
   availableServers = [ArtemisServer.TS1, ArtemisServer.TS3, ArtemisServer.PRODUCTION, ArtemisServer.STAGING];
   availableModes = [
@@ -31,6 +33,7 @@ export class CreateSimulationBoxComponent implements OnInit {
   protected readonly getTextRepresentation = getTextRepresentation;
 
   constructor(private profileService: ProfileService) {}
+
   ngOnInit(): void {
     this.profileService.getProfileInfo().subscribe(profileInfo => {
       if (profileInfo.inProduction && this.availableServers.includes(ArtemisServer.LOCAL)) {
@@ -54,18 +57,24 @@ export class CreateSimulationBoxComponent implements OnInit {
         this.mode,
         [],
         new Date(),
+        this.customizeUserRange,
+        this.userRange,
       );
       this.simulationToCreate.emit(simulation);
     }
   }
 
   inputValid(): boolean {
+    const basicRequirements: boolean =
+      this.name.length > 0 &&
+      ((!this.customizeUserRange && this.numberOfUsers > 0) || (this.customizeUserRange && this.userRange.length > 0));
+
     if (this.mode === Mode.CREATE_COURSE_AND_EXAM) {
-      return this.name.length > 0 && this.numberOfUsers > 0;
+      return basicRequirements;
     }
     if (this.mode === Mode.EXISTING_COURSE_CREATE_EXAM) {
-      return this.name.length > 0 && this.numberOfUsers > 0 && this.courseId > 0;
+      return basicRequirements && this.courseId > 0;
     }
-    return this.name.length > 0 && this.numberOfUsers > 0 && this.courseId > 0 && this.examId > 0;
+    return basicRequirements && this.courseId > 0 && this.examId > 0;
   }
 }

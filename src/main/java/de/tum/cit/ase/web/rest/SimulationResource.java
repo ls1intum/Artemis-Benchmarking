@@ -3,7 +3,7 @@ package de.tum.cit.ase.web.rest;
 import de.tum.cit.ase.domain.Simulation;
 import de.tum.cit.ase.domain.SimulationRun;
 import de.tum.cit.ase.security.AuthoritiesConstants;
-import de.tum.cit.ase.service.SimulationDataService;
+import de.tum.cit.ase.service.simulation.SimulationDataService;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
 import java.util.List;
 import org.springframework.http.HttpStatus;

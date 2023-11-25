@@ -1,10 +1,10 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { getTextRepresentation, Mode, Simulation } from '../../models/simulation';
-import { SimulationRun, Status } from '../../models/simulationRun';
+import { getTextRepresentation, Mode, Simulation } from '../../entities/simulation/simulation';
+import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
 import { SimulationsService } from '../../simulations/simulations.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { ArtemisServer } from '../../models/artemisServer';
-import { ArtemisAccountDTO } from '../../models/artemisAccountDTO';
+import { ArtemisServer } from '../../core/util/artemisServer';
+import { ArtemisAccountDTO } from '../../simulations/artemisAccountDTO';
 import { faChevronRight, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 
 @Component({

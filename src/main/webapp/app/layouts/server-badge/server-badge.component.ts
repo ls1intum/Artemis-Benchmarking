@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { ArtemisServer } from '../../models/artemisServer';
+import { ArtemisServer } from '../../core/util/artemisServer';
 
 @Component({
   selector: 'jhi-server-badge',

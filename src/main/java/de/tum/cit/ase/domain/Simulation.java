@@ -38,6 +38,12 @@ public class Simulation {
     @Column(name = "creation_date", nullable = false)
     private ZonedDateTime creationDate;
 
+    @Column(name = "customize_user_range")
+    private boolean customizeUserRange = false;
+
+    @Column(name = "user_range")
+    private String userRange;
+
     public Long getId() {
         return id;
     }
@@ -108,6 +114,22 @@ public class Simulation {
 
     public void setCreationDate(ZonedDateTime creationDate) {
         this.creationDate = creationDate;
+    }
+
+    public boolean isCustomizeUserRange() {
+        return customizeUserRange;
+    }
+
+    public void setCustomizeUserRange(boolean customizeUserRange) {
+        this.customizeUserRange = customizeUserRange;
+    }
+
+    public String getUserRange() {
+        return userRange;
+    }
+
+    public void setUserRange(String userRange) {
+        this.userRange = userRange;
     }
 
     public enum Mode {

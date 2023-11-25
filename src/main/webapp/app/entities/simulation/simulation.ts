@@ -1,4 +1,4 @@
-import { ArtemisServer } from './artemisServer';
+import { ArtemisServer } from '../../core/util/artemisServer';
 import { SimulationRun } from './simulationRun';
 
 export class Simulation {
@@ -12,6 +12,8 @@ export class Simulation {
     public mode: Mode,
     public runs: SimulationRun[],
     public creationDate: Date,
+    public customizeUserRange: boolean,
+    public userRange?: string,
   ) {}
 }
 

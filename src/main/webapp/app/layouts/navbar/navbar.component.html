@@ -2,7 +2,7 @@
   <div class="container-fluid">
     <a class="navbar-brand logo" routerLink="/" (click)="collapseNavbar()">
       <span class="logo-img"></span>
-      <span class="navbar-title">Artemis-benchmarking</span>
+      <span class="navbar-title">Artemis-Benchmarking</span>
       <span class="navbar-version">{{ version }}</span>
     </a>
     <a
@@ -38,6 +38,7 @@
           >
             <a *jhiHasAnyAuthority="'ROLE_ADMIN'" class="nav-link" routerLink="/simulations" (click)="collapseNavbar()">
               <span>
+                <fa-icon [icon]="faCirclePlay"></fa-icon>
                 <span>Simulations</span>
               </span>
             </a>
@@ -51,9 +52,33 @@
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: true }"
         >
-          <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);" id="admin-menu" data-cy="adminMenu">
+          <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);" id="user-menu" data-cy="userMenu">
             <span>
               <fa-icon icon="users-cog"></fa-icon>
+              <span>Artemis Users</span>
+            </span>
+          </a>
+          <ul class="dropdown-menu" ngbDropdownMenu aria-labelledby="user-menu">
+            @for (server of availableServers; track $index) {
+              <li>
+                <a class="dropdown-item" routerLink="/artemis-users/{{ server.toLowerCase() }}" (click)="collapseNavbar()">
+                  <span>{{ server }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </li>
+        <li
+          *jhiHasAnyAuthority="'ROLE_ADMIN'"
+          ngbDropdown
+          class="nav-item dropdown pointer"
+          display="dynamic"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);" id="admin-menu" data-cy="adminMenu">
+            <span>
+              <fa-icon [icon]="faHammer"></fa-icon>
               <span>Administration</span>
             </span>
           </a>

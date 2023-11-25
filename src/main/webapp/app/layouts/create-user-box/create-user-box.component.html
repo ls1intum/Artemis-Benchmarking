@@ -1,0 +1,123 @@
+<nav ngbNav #nav="ngbNav" class="nav-tabs mt-3">
+  <ng-container ngbNavItem>
+    <button ngbNavLink>Manually</button>
+    <ng-template ngbNavContent>
+      <div class="flex-container">
+        <form class="mt-3 mb-3">
+          <div class="me-3 mb-3 w-40">
+            <label for="id-input" class="form-label me-2">ID (optional)</label>
+            <fa-icon
+              [icon]="faCircleInfo"
+              ngbTooltip="If not provided, the lowest available ID will be used. If you provide an ID that is already occupied, user creation will fail."
+            ></fa-icon>
+            <input type="number" class="form-control" id="id-input" min="1" [(ngModel)]="id" [ngModelOptions]="{ standalone: true }" />
+          </div>
+          <div class="flex-wrapper">
+            <div class="me-3 mb-3 w-40">
+              <label for="username-input" class="form-label me-2">Username</label>
+              <fa-icon
+                [icon]="faCircleInfo"
+                ngbTooltip="Usernames must be unique. If you provide a username that is already occupied, user creation will fail."
+              ></fa-icon>
+              <input type="text" class="form-control" id="username-input" [(ngModel)]="username" [ngModelOptions]="{ standalone: true }" />
+            </div>
+            <div class="me-3 mb-3 w-40">
+              <label for="password-input" class="form-label">Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password-input"
+                [(ngModel)]="password"
+                [ngModelOptions]="{ standalone: true }"
+              />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" [disabled]="!isValidManually() || actionInProgress" (click)="onCreate()">
+            Create User
+          </button>
+        </form>
+      </div>
+    </ng-template>
+  </ng-container>
+  <ng-container ngbNavItem>
+    <button ngbNavLink>Pattern</button>
+    <ng-template ngbNavContent>
+      <ngb-alert type="info" [dismissible]="false">
+        Specify a pattern for usernames and passwords. The pattern must contain a <samp>{{ '{' }}i{{ '}' }}</samp> placeholder that will be
+        replaced by the current number. The numbers will start at <samp>from</samp> and end at <samp>to-1</samp>. These number will also be
+        used as the ID. If the ID is already occupied, the respective user will be skipped. Usernames must be unique.
+      </ngb-alert>
+      <div class="flex-container">
+        <form class="mb-3">
+          <div class="flex-wrapper">
+            <div class="me-3 mb-3 w-40">
+              <label for="username-pattern-input" class="form-label">Username Pattern</label>
+              <input
+                type="text"
+                class="form-control"
+                id="username-pattern-input"
+                [(ngModel)]="usernamePattern"
+                [ngModelOptions]="{ standalone: true }"
+              />
+              <div class="form-text">
+                e.g. <samp>test_user_{{ '{' }}i{{ '}' }}</samp>
+              </div>
+            </div>
+            <div class="me-3 mb-3 w-40">
+              <label for="password-pattern-input" class="form-label">Password Pattern</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password-pattern-input"
+                [(ngModel)]="passwordPattern"
+                [ngModelOptions]="{ standalone: true }"
+              />
+              <div class="form-text">
+                e.g. <samp>test_password_{{ '{' }}i{{ '}' }}</samp>
+              </div>
+            </div>
+          </div>
+          <div class="flex-wrapper">
+            <div class="me-3 mb-3 w-40">
+              <label for="from-input" class="form-label">From</label>
+              <input
+                type="number"
+                class="form-control"
+                id="from-input"
+                min="1"
+                [(ngModel)]="from"
+                [ngModelOptions]="{ standalone: true }"
+              />
+            </div>
+            <div class="me-3 mb-3 w-40">
+              <label for="to-input" class="form-label">To (excluded)</label>
+              <input type="number" class="form-control" id="to-input" min="2" [(ngModel)]="to" [ngModelOptions]="{ standalone: true }" />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" [disabled]="!isValidPattern() || actionInProgress" (click)="onCreatePattern()">
+            Create {{ to - from }} Users
+          </button>
+        </form>
+      </div>
+    </ng-template>
+  </ng-container>
+  <ng-container ngbNavItem>
+    <button ngbNavLink>CSV</button>
+    <ng-template ngbNavContent>
+      <ngb-alert type="info" [dismissible]="false">
+        Upload a CSV file with the following columns: <samp>id</samp>, <samp>username</samp>, <samp>password</samp>. The ID is optional and
+        can be left out. If you provide an ID that is already occupied, the respective user will be skipped. IDs must be positive. Please
+        note that the first line of the CSV file must contain the column names. Usernames must be unique.
+      </ngb-alert>
+      <div class="me-3 mb-3">
+        <label for="csv-file" class="form-label">CSV file</label>
+        <input #fileInput class="form-control" type="file" id="csv-file" (change)="onFileSelect($event)" accept="text/csv" />
+      </div>
+      <button type="submit" class="btn btn-primary mb-3" [disabled]="file === undefined || actionInProgress" (click)="onSubmitCsv()">
+        Upload File and Create Users
+      </button>
+    </ng-template>
+  </ng-container>
+</nav>
+
+<div [ngbNavOutlet]="nav" class="mt-2"></div>
