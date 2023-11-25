@@ -1,4 +1,4 @@
-<nav ngbNav #nav="ngbNav" class="nav-tabs mt-3">
+<nav ngbNav #nav="ngbNav" class="nav-tabs mt-3" (navChange)="showPassword = false">
   <ng-container ngbNavItem>
     <button ngbNavLink>Manually</button>
     <ng-template ngbNavContent>
@@ -22,9 +22,14 @@
               <input type="text" class="form-control" id="username-input" [(ngModel)]="username" [ngModelOptions]="{ standalone: true }" />
             </div>
             <div class="me-3 mb-3 w-40">
-              <label for="password-input" class="form-label">Password</label>
+              <label for="password-input" class="form-label me-2">Password</label>
+              @if (!showPassword) {
+                <fa-icon role="button" [icon]="faEye" ngbTooltip="Show password" (click)="showPassword = true"></fa-icon>
+              } @else {
+                <fa-icon role="button" [icon]="faEyeSlash" ngbTooltip="Hide password" (click)="showPassword = false"></fa-icon>
+              }
               <input
-                type="password"
+                [type]="showPassword ? 'text' : 'password'"
                 class="form-control"
                 id="password-input"
                 [(ngModel)]="password"
@@ -64,9 +69,14 @@
               </div>
             </div>
             <div class="me-3 mb-3 w-40">
-              <label for="password-pattern-input" class="form-label">Password Pattern</label>
+              <label for="password-pattern-input" class="form-label me-2">Password Pattern</label>
+              @if (!showPassword) {
+                <fa-icon role="button" [icon]="faEye" ngbTooltip="Show password pattern" (click)="showPassword = true"></fa-icon>
+              } @else {
+                <fa-icon role="button" [icon]="faEyeSlash" ngbTooltip="Hide password pattern" (click)="showPassword = false"></fa-icon>
+              }
               <input
-                type="password"
+                [type]="showPassword ? 'text' : 'password'"
                 class="form-control"
                 id="password-pattern-input"
                 [(ngModel)]="passwordPattern"

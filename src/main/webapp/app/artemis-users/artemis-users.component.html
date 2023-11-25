@@ -48,13 +48,25 @@
             </div>
           </td>
           <td class="col-3 pe-5">
-            <input type="password" class="form-control" [(ngModel)]="adminUserCopy!.password" />
+            <div class="input-group">
+              @if (showAdminPassword) {
+                <fa-icon class="input-group-text" [icon]="faEyeSlash" role="button" (click)="showAdminPassword = false"></fa-icon>
+              } @else {
+                <fa-icon class="input-group-text" [icon]="faEye" role="button" (click)="showAdminPassword = true"></fa-icon>
+              }
+              <input [type]="showAdminPassword ? 'text' : 'password'" class="form-control" [(ngModel)]="adminUserCopy!.password" />
+            </div>
           </td>
           <td class="col-3">
-            <button type="button" class="btn btn-primary me-1" [disabled]="!adminValid() || actionInProgress" (click)="updateAdminUser()">
+            <button
+              type="button"
+              class="btn btn-primary me-1"
+              [disabled]="!adminValid() || actionInProgress"
+              (click)="showAdminPassword = false; updateAdminUser()"
+            >
               Save
             </button>
-            <button type="button" class="btn btn-danger" (click)="adminUserCopy = undefined">Cancel</button>
+            <button type="button" class="btn btn-danger" (click)="showAdminPassword = false; adminUserCopy = undefined">Cancel</button>
           </td>
         }
       </tr>
@@ -151,13 +163,25 @@
             <input type="text" class="form-control" [(ngModel)]="editedUser!.username" />
           </td>
           <td class="col-3 pe-5">
-            <input [type]="showPasswords ? 'text' : 'password'" class="form-control" [(ngModel)]="editedUser!.password" />
+            <div class="input-group">
+              @if (showEditUserPassword) {
+                <fa-icon class="input-group-text" [icon]="faEyeSlash" role="button" (click)="showEditUserPassword = false"></fa-icon>
+              } @else {
+                <fa-icon class="input-group-text" [icon]="faEye" role="button" (click)="showEditUserPassword = true"></fa-icon>
+              }
+              <input [type]="showEditUserPassword ? 'text' : 'password'" class="form-control" [(ngModel)]="editedUser!.password" />
+            </div>
           </td>
           <td class="col-3 flex-wrapper">
-            <button type="button" class="btn btn-primary me-2" [disabled]="!editValid() || actionInProgress" (click)="updateUser()">
+            <button
+              type="button"
+              class="btn btn-primary me-2"
+              [disabled]="!editValid() || actionInProgress"
+              (click)="showEditUserPassword = false; updateUser()"
+            >
               Save
             </button>
-            <button type="button" class="btn btn-danger" (click)="editedUser = undefined">Cancel</button>
+            <button type="button" class="btn btn-danger" (click)="editedUser = undefined; showEditUserPassword = false">Cancel</button>
           </td>
         </tr>
       }

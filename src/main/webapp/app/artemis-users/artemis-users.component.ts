@@ -37,6 +37,7 @@ export class ArtemisUsersComponent implements OnInit {
   adminUser?: ArtemisUser;
   adminUserCopy?: ArtemisUser;
   showAdminPassword = false;
+  showEditUserPassword = false;
   actionInProgress = false;
   error = false;
   errorMsg = '';

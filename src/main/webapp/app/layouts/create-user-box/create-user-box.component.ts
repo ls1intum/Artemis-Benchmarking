@@ -4,7 +4,7 @@ import { ArtemisUserForCreationDTO } from '../../artemis-users/artemisUserForCre
 import { FormsModule } from '@angular/forms';
 import { NgbAlertModule, NgbNavModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { ArtemisUserPatternDTO } from '../../artemis-users/artemisUserPatternDTO';
-import { faCircleInfo, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faEye, faEyeSlash, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
@@ -17,6 +17,8 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 export class CreateUserBoxComponent {
   faCircleInfo = faCircleInfo;
   faSpinner = faSpinner;
+  faEye = faEye;
+  faEyeSlash = faEyeSlash;
 
   @Input() actionInProgress = false;
   @Input() loading = false;
@@ -32,6 +34,8 @@ export class CreateUserBoxComponent {
 
   file?: File;
   @ViewChild('fileInput') fileInput?: ElementRef;
+
+  showPassword = false;
 
   @Output() createUser = new EventEmitter<ArtemisUserForCreationDTO>();
   @Output() createUserPattern = new EventEmitter<ArtemisUserPatternDTO>();
