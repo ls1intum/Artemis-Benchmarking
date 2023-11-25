@@ -87,6 +87,7 @@
 <div class="border mt-2 w-60 ps-3 pe-3 mb-3" #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
   <jhi-create-user-box
     [actionInProgress]="actionInProgress"
+    [loading]="loadingCreate"
     (createUser)="createUser($event)"
     (createUserPattern)="createUserPattern($event)"
     (createUserCsv)="createUserCsv($event)"
@@ -115,7 +116,12 @@
         }
       </th>
       <th scope="col" class="col-3">
-        <button type="button" class="btn btn-danger" (click)="deleteAll(deleteModal)">Delete All</button>
+        <button type="button" class="btn btn-danger" (click)="deleteAll(deleteModal)">
+          @if (loadingDelete) {
+            <fa-icon class="me-2" [icon]="faSpinner" class="fa-spin" style="display: inline-block"></fa-icon>
+          }
+          Delete All
+        </button>
       </th>
     </tr>
   </thead>

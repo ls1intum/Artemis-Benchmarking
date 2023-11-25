@@ -95,6 +95,9 @@
             </div>
           </div>
           <button type="submit" class="btn btn-primary" [disabled]="!isValidPattern() || actionInProgress" (click)="onCreatePattern()">
+            @if (loading) {
+              <fa-icon [icon]="faSpinner" class="fa-spin" style="display: inline-block"></fa-icon>
+            }
             Create {{ to - from }} Users
           </button>
         </form>
@@ -114,6 +117,9 @@
         <input #fileInput class="form-control" type="file" id="csv-file" (change)="onFileSelect($event)" accept="text/csv" />
       </div>
       <button type="submit" class="btn btn-primary mb-3" [disabled]="file === undefined || actionInProgress" (click)="onSubmitCsv()">
+        @if (loading) {
+          <fa-icon [icon]="faSpinner" class="fa-spin" style="display: inline-block"></fa-icon>
+        }
         Upload File and Create Users
       </button>
     </ng-template>

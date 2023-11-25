@@ -7,7 +7,7 @@ import { ArtemisUsersService } from './artemis-users.service';
 import { ArtemisUserForCreationDTO } from './artemisUserForCreationDTO';
 import { NgbCollapse, NgbModal, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { CreateUserBoxComponent } from '../layouts/create-user-box/create-user-box.component';
-import { faCircleInfo, faEye, faEyeSlash, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faEye, faEyeSlash, faMagnifyingGlass, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ArtemisUserPatternDTO } from './artemisUserPatternDTO';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -25,6 +25,7 @@ export class ArtemisUsersComponent implements OnInit {
   faEyeSlash = faEyeSlash;
   faCircleInfo = faCircleInfo;
   faMagnifyingGlass = faMagnifyingGlass;
+  faSpinner = faSpinner;
 
   server: ArtemisServer = ArtemisServer.TS1;
   users: ArtemisUser[] = [];
@@ -41,6 +42,8 @@ export class ArtemisUsersComponent implements OnInit {
   errorMsg = '';
   filter = new FormControl('', { nonNullable: true });
   usersChanged = new Subject<void>();
+  loadingCreate = false;
+  loadingDelete = false;
 
   protected readonly ArtemisServer = ArtemisServer;
 
@@ -95,32 +98,38 @@ export class ArtemisUsersComponent implements OnInit {
 
   createUserPattern(userPatternDTO: ArtemisUserPatternDTO): void {
     this.actionInProgress = true;
+    this.loadingCreate = true;
     this.artemisUsersService.createUsersFromPattern(this.server, userPatternDTO).subscribe({
       next: (users: ArtemisUser[]) => {
         this.users.push(...users);
         this.users.sort((a, b) => a.serverWideId - b.serverWideId);
         this.actionInProgress = false;
+        this.loadingCreate = false;
         this.usersChanged.next(void 0);
       },
       error: () => {
         this.showError('Error creating users');
         this.actionInProgress = false;
+        this.loadingCreate = false;
       },
     });
   }
 
   createUserCsv(file: File): void {
     this.actionInProgress = true;
+    this.loadingCreate = true;
     this.artemisUsersService.createUsersFromCsv(this.server, file).subscribe({
       next: (users: ArtemisUser[]) => {
         this.users.push(...users);
         this.users.sort((a, b) => a.serverWideId - b.serverWideId);
         this.actionInProgress = false;
+        this.loadingCreate = false;
         this.usersChanged.next(void 0);
       },
       error: () => {
         this.showError('Error creating users');
         this.actionInProgress = false;
+        this.loadingCreate = false;
       },
     });
   }
@@ -145,18 +154,20 @@ export class ArtemisUsersComponent implements OnInit {
 
   deleteAll(content: any): void {
     this.actionInProgress = true;
-
     this.modalService.open(content, { ariaLabelledBy: 'delete-modal-title' }).result.then(
       () => {
+        this.loadingDelete = true;
         this.artemisUsersService.deleteByServer(this.server).subscribe({
           next: () => {
             this.users = [];
             this.actionInProgress = false;
+            this.loadingDelete = false;
             this.usersChanged.next(void 0);
           },
           error: () => {
             this.showError('Error deleting users');
             this.actionInProgress = false;
+            this.loadingDelete = false;
           },
         });
       },
