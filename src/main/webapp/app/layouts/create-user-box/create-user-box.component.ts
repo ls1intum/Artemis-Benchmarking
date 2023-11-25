@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ArtemisUserForCreationDTO } from '../../artemis-users/artemisUserForCreationDTO';
 import { FormsModule } from '@angular/forms';
@@ -29,6 +29,7 @@ export class CreateUserBoxComponent {
   to: number = 2;
 
   file?: File;
+  @ViewChild('fileInput') fileInput?: ElementRef;
 
   @Output() createUser = new EventEmitter<ArtemisUserForCreationDTO>();
   @Output() createUserPattern = new EventEmitter<ArtemisUserPatternDTO>();
@@ -66,6 +67,9 @@ export class CreateUserBoxComponent {
     if (this.file) {
       this.createUserCsv.emit(this.file);
       this.file = undefined;
+      if (this.fileInput) {
+        this.fileInput.nativeElement.value = '';
+      }
     }
   }
 }
