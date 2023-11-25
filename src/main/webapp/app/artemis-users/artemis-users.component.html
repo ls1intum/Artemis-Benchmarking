@@ -144,7 +144,7 @@
             <input type="text" class="form-control" [(ngModel)]="editedUser!.username" />
           </td>
           <td class="col-3 pe-5">
-            <input type="password" class="form-control" [(ngModel)]="editedUser!.password" />
+            <input [type]="showPasswords ? 'text' : 'password'" class="form-control" [(ngModel)]="editedUser!.password" />
           </td>
           <td class="col-3 flex-wrapper">
             <button type="button" class="btn btn-primary me-2" [disabled]="!editValid() || actionInProgress" (click)="updateUser()">

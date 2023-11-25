@@ -289,12 +289,11 @@ public class SimulationRunExecutionService {
     }
 
     /**
-     * Initializes the given number of students with the given server.
+     * Initializes the students for the simulation.
      * <p>
      * Note: This method does not log in the students.
      *
-     * @param numberOfUsers the number of students to initialize
-     * @param server the Artemis Server to initialize the students for
+     * @param simulation the simulation to initialize the students for
      * @return an array of initialized students
      */
     private SimulatedArtemisStudent[] initializeStudents(Simulation simulation) {

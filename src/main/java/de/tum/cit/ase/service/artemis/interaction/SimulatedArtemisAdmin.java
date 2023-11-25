@@ -356,10 +356,9 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
     }
 
     /**
-     * Register the given number of test-users (1 to numberOfStudents) to the given course. The registration is parallelized to speed up the process.
+     * Register the given students for the course. The registration is parallelized to speed up the process.
      * @param courseId the ID of the course
-     * @param numberOfStudents the number of students to register
-     * @param usernameTemplate the template for the usernames of the students to register, e.g. "test-user{i}"
+     * @param students the students to register
      */
     public void registerStudentsForCourse(long courseId, SimulatedArtemisStudent[] students) {
         if (!authenticated) {

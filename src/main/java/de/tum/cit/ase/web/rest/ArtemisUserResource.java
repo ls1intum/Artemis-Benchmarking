@@ -24,11 +24,24 @@ public class ArtemisUserResource {
         this.artemisUserService = artemisUserService;
     }
 
+    /**
+     * Get all ArtemisUsers for a given ArtemisServer.
+     *
+     * @param server the ArtemisServer to get the users for
+     * @return a list of all ArtemisUsers
+     */
     @GetMapping("/{server}")
     public ResponseEntity<List<ArtemisUser>> getArtemisUsersByServer(@PathVariable ArtemisServer server) {
         return new ResponseEntity<>(artemisUserService.getArtemisUsersByServer(server), HttpStatus.OK);
     }
 
+    /**
+     * Create a new ArtemisUser for a given ArtemisServer.
+     *
+     * @param server the ArtemisServer to create the user for
+     * @param artemisUserDTO the ArtemisUser to create
+     * @return the created ArtemisUser
+     */
     @PostMapping("/{server}")
     public ResponseEntity<ArtemisUser> createArtemisUser(
         @PathVariable ArtemisServer server,
@@ -37,6 +50,13 @@ public class ArtemisUserResource {
         return new ResponseEntity<>(artemisUserService.createArtemisUser(server, artemisUserDTO), HttpStatus.OK);
     }
 
+    /**
+     * Create multiple ArtemisUsers for a given ArtemisServer using a pattern.
+     *
+     * @param server the ArtemisServer to create the users for
+     * @param pattern the ArtemisUserPatternDTO to use to create the users
+     * @return a list of the created ArtemisUsers
+     */
     @PostMapping("/{server}/create-by-pattern")
     public ResponseEntity<List<ArtemisUser>> createArtemisUsersByPattern(
         @PathVariable ArtemisServer server,
@@ -45,18 +65,37 @@ public class ArtemisUserResource {
         return new ResponseEntity<>(artemisUserService.createArtemisUsersByPattern(server, pattern), HttpStatus.OK);
     }
 
+    /**
+     * Delete all ArtemisUsers for a given ArtemisServer.
+     *
+     * @param server the ArtemisServer to delete the users for
+     * @return an empty response
+     */
     @DeleteMapping("/{server}")
     public ResponseEntity<Void> deleteArtemisUsersByServer(@PathVariable ArtemisServer server) {
         artemisUserService.deleteByServer(server);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**
+     * Delete an ArtemisUser by its id.
+     *
+     * @param id the id of the ArtemisUser to delete
+     * @return an empty response
+     */
     @DeleteMapping("/{id}/by-id")
     public ResponseEntity<Void> deleteArtemisUser(@PathVariable Long id) {
         artemisUserService.deleteArtemisUser(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**
+     * Update an ArtemisUser by its id.
+     *
+     * @param id the id of the ArtemisUser to update
+     * @param artemisUser the updated ArtemisUser
+     * @return the updated ArtemisUser
+     */
     @PutMapping("/{id}")
     public ResponseEntity<ArtemisUser> updateArtemisUser(@PathVariable Long id, @RequestBody ArtemisUser artemisUser) {
         if (!id.equals(artemisUser.getId())) {
@@ -65,6 +104,13 @@ public class ArtemisUserResource {
         return new ResponseEntity<>(artemisUserService.updateArtemisUser(id, artemisUser), HttpStatus.OK);
     }
 
+    /**
+     * Create multiple ArtemisUsers for a given ArtemisServer using a CSV file.
+     *
+     * @param server the ArtemisServer to create the users for
+     * @param file the CSV file to use to create the users
+     * @return a list of the created ArtemisUsers
+     */
     @PostMapping("/{server}/csv")
     public ResponseEntity<List<ArtemisUser>> createArtemisUsersFromCSV(
         @PathVariable ArtemisServer server,

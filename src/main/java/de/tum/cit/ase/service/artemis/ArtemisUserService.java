@@ -29,6 +29,13 @@ public class ArtemisUserService {
         this.artemisUserRepository = artemisUserRepository;
     }
 
+    /**
+     * Creates a list of ArtemisUsers from a pattern.
+     *
+     * @param server the ArtemisServer to create the users for
+     * @param pattern the pattern to use for the usernames and passwords
+     * @return a list of the created ArtemisUsers
+     */
     public List<ArtemisUser> createArtemisUsersByPattern(ArtemisServer server, ArtemisUserPatternDTO pattern) {
         if (pattern.getFrom() >= pattern.getTo() || pattern.getFrom() <= 0) {
             throw new BadRequestAlertException("from must be smaller than to and greater than 0", "artemisUser", "invalidRange");
@@ -58,6 +65,14 @@ public class ArtemisUserService {
         return createdUsers;
     }
 
+    /**
+     * Creates a new ArtemisUser.
+     *
+     * @param server the ArtemisServer to create the user for
+     * @param artemisUserDTO the DTO containing the username, password and server-wide ID of the user
+     * @return the created ArtemisUser
+     * @throws BadRequestAlertException if the server-wide ID is already taken, negative or the username or password is invalid
+     */
     public ArtemisUser createArtemisUser(ArtemisServer server, ArtemisUserForCreationDTO artemisUserDTO) {
         ArtemisUser artemisUser = new ArtemisUser();
         artemisUser.setServer(server);
@@ -89,6 +104,13 @@ public class ArtemisUserService {
         artemisUserRepository.deleteByServer(server);
     }
 
+    /**
+     * Creates a list of ArtemisUsers from a CSV file.
+     *
+     * @param file the CSV file to read the users from
+     * @param server the ArtemisServer to create the users for
+     * @return a list of the created ArtemisUsers
+     */
     public List<ArtemisUser> createArtemisUsersFromCSV(MultipartFile file, ArtemisServer server) {
         List<ArtemisUserForCreationDTO> artemisUserDTOs;
         try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
@@ -141,6 +163,13 @@ public class ArtemisUserService {
         return artemisUserRepository.save(artemisUser);
     }
 
+    /**
+     * Updates an ArtemisUser.
+     *
+     * @param id the ID of the ArtemisUser to update
+     * @param artemisUser the updated ArtemisUser
+     * @return the updated ArtemisUser
+     */
     public ArtemisUser updateArtemisUser(Long id, ArtemisUser artemisUser) {
         if (!Objects.equals(id, artemisUser.getId())) {
             throw new IllegalArgumentException("Id in path and body do not match!");

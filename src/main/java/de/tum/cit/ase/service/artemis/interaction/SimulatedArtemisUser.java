@@ -37,6 +37,14 @@ public abstract class SimulatedArtemisUser {
     private ArtemisUser artemisUser;
     private ArtemisUserService artemisUserService;
 
+    /**
+     * Create a new SimulatedArtemisUser.
+     * The artemisUser and artemisUserService parameters are used to cache the JWT token.
+     *
+     * @param artemisUrl the URL of the Artemis server
+     * @param artemisUser the ArtemisUser entity to cache the JWT token in
+     * @param artemisUserService the ArtemisUserService to use to update the ArtemisUser entity
+     */
     public SimulatedArtemisUser(String artemisUrl, ArtemisUser artemisUser, ArtemisUserService artemisUserService) {
         this.username = artemisUser.getUsername();
         this.password = artemisUser.getPassword();
@@ -45,6 +53,14 @@ public abstract class SimulatedArtemisUser {
         this.artemisUserService = artemisUserService;
     }
 
+    /**
+     * Create a new SimulatedArtemisUser.
+     * No JWT token caching will be performed for this user.
+     *
+     * @param artemisUrl the URL of the Artemis server
+     * @param username the username to use for logging in
+     * @param password the password to use for logging in
+     */
     public SimulatedArtemisUser(String artemisUrl, String username, String password) {
         this.username = username;
         this.password = password;
@@ -53,7 +69,9 @@ public abstract class SimulatedArtemisUser {
 
     /**
      * Login to Artemis and return the request stats for the login request.
-     * @return the request stats for the login request
+     * If an artemisUser is specified and a valid token is already cached, it will be used instead of logging in again.
+     *
+     * @return the request stats for the login request (empty if a cached token was used)
      */
     public List<RequestStat> login() {
         if (artemisUser != null && artemisUser.getJwtToken() != null && artemisUser.getTokenExpirationDate().isAfter(now())) {
