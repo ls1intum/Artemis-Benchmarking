@@ -115,13 +115,14 @@
           <fa-icon [icon]="faEye" role="button" (click)="showPasswords = true" ngbTooltip="Show passwords"></fa-icon>
         }
       </th>
-      <th scope="col" class="col-3">
+      <th scope="col" class="col-3 space-between-wrapper">
         <button type="button" class="btn btn-danger" (click)="deleteAll(deleteModal)">
           @if (loadingDelete) {
             <fa-icon class="me-2" [icon]="faSpinner" class="fa-spin" style="display: inline-block"></fa-icon>
           }
           Delete All
         </button>
+        Total: {{ (users$ | async)?.length }}
       </th>
     </tr>
   </thead>
