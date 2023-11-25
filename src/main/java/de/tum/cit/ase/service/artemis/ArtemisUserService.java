@@ -37,6 +37,7 @@ public class ArtemisUserService {
      * @return a list of the created ArtemisUsers
      */
     public List<ArtemisUser> createArtemisUsersByPattern(ArtemisServer server, ArtemisUserPatternDTO pattern) {
+        log.info("Creating ArtemisUsers by pattern for {}", server);
         if (pattern.getFrom() >= pattern.getTo() || pattern.getFrom() <= 0) {
             throw new BadRequestAlertException("from must be smaller than to and greater than 0", "artemisUser", "invalidRange");
         } else if (!pattern.getUsernamePattern().contains("{i}") || !pattern.getPasswordPattern().contains("{i}")) {
@@ -59,9 +60,10 @@ public class ArtemisUserService {
             try {
                 createdUsers.add(saveArtemisUser(artemisUser));
             } catch (BadRequestAlertException e) {
-                log.warn(e.getMessage() + ". Skipping user.");
+                log.debug(e.getMessage() + ". Skipping user.");
             }
         }
+        log.info("Created {} ArtemisUsers by pattern", createdUsers.size());
         return createdUsers;
     }
 
@@ -74,6 +76,7 @@ public class ArtemisUserService {
      * @throws BadRequestAlertException if the server-wide ID is already taken, negative or the username or password is invalid
      */
     public ArtemisUser createArtemisUser(ArtemisServer server, ArtemisUserForCreationDTO artemisUserDTO) {
+        log.info("Creating ArtemisUser for {}", server);
         ArtemisUser artemisUser = new ArtemisUser();
         artemisUser.setServer(server);
         artemisUser.setUsername(artemisUserDTO.getUsername());
@@ -101,6 +104,7 @@ public class ArtemisUserService {
     }
 
     public void deleteByServer(ArtemisServer server) {
+        log.info("Deleting all ArtemisUsers for {}", server);
         artemisUserRepository.deleteByServer(server);
     }
 
@@ -112,6 +116,7 @@ public class ArtemisUserService {
      * @return a list of the created ArtemisUsers
      */
     public List<ArtemisUser> createArtemisUsersFromCSV(MultipartFile file, ArtemisServer server) {
+        log.info("Creating ArtemisUsers from CSV for {}", server);
         List<ArtemisUserForCreationDTO> artemisUserDTOs;
         try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
             CsvToBean<ArtemisUserForCreationDTO> cb = new CsvToBeanBuilder<ArtemisUserForCreationDTO>(reader)
@@ -131,9 +136,10 @@ public class ArtemisUserService {
             try {
                 result.add(createArtemisUser(server, artemisUserDTO));
             } catch (BadRequestAlertException e) {
-                log.warn(e.getMessage() + ". Skipping user.");
+                log.debug(e.getMessage() + ". Skipping user.");
             }
         }
+        log.info("Created {} ArtemisUsers from CSV", result.size());
         return result;
     }
 
@@ -171,6 +177,7 @@ public class ArtemisUserService {
      * @return the updated ArtemisUser
      */
     public ArtemisUser updateArtemisUser(Long id, ArtemisUser artemisUser) {
+        log.info("Updating ArtemisUser with ID {}", id);
         if (!Objects.equals(id, artemisUser.getId())) {
             throw new IllegalArgumentException("Id in path and body do not match!");
         }

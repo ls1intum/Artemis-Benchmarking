@@ -48,13 +48,25 @@
             </div>
           </td>
           <td class="col-3 pe-5">
-            <input type="password" class="form-control" [(ngModel)]="adminUserCopy!.password" />
+            <div class="input-group">
+              @if (showAdminPassword) {
+                <fa-icon class="input-group-text" [icon]="faEyeSlash" role="button" (click)="showAdminPassword = false"></fa-icon>
+              } @else {
+                <fa-icon class="input-group-text" [icon]="faEye" role="button" (click)="showAdminPassword = true"></fa-icon>
+              }
+              <input [type]="showAdminPassword ? 'text' : 'password'" class="form-control" [(ngModel)]="adminUserCopy!.password" />
+            </div>
           </td>
           <td class="col-3">
-            <button type="button" class="btn btn-primary me-1" [disabled]="!adminValid() || actionInProgress" (click)="updateAdminUser()">
+            <button
+              type="button"
+              class="btn btn-primary me-1"
+              [disabled]="!adminValid() || actionInProgress"
+              (click)="showAdminPassword = false; updateAdminUser()"
+            >
               Save
             </button>
-            <button type="button" class="btn btn-danger" (click)="adminUserCopy = undefined">Cancel</button>
+            <button type="button" class="btn btn-danger" (click)="showAdminPassword = false; adminUserCopy = undefined">Cancel</button>
           </td>
         }
       </tr>
@@ -87,6 +99,7 @@
 <div class="border mt-2 w-60 ps-3 pe-3 mb-3" #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
   <jhi-create-user-box
     [actionInProgress]="actionInProgress"
+    [loading]="loadingCreate"
     (createUser)="createUser($event)"
     (createUserPattern)="createUserPattern($event)"
     (createUserCsv)="createUserCsv($event)"
@@ -114,8 +127,14 @@
           <fa-icon [icon]="faEye" role="button" (click)="showPasswords = true" ngbTooltip="Show passwords"></fa-icon>
         }
       </th>
-      <th scope="col" class="col-3">
-        <button type="button" class="btn btn-danger" (click)="deleteAll(deleteModal)">Delete All</button>
+      <th scope="col" class="col-3 space-between-wrapper">
+        <button type="button" class="btn btn-danger" (click)="deleteAll(deleteModal)">
+          @if (loadingDelete) {
+            <fa-icon class="me-2" [icon]="faSpinner" class="fa-spin" style="display: inline-block"></fa-icon>
+          }
+          Delete All
+        </button>
+        Total: {{ (users$ | async)?.length }}
       </th>
     </tr>
   </thead>
@@ -144,13 +163,25 @@
             <input type="text" class="form-control" [(ngModel)]="editedUser!.username" />
           </td>
           <td class="col-3 pe-5">
-            <input [type]="showPasswords ? 'text' : 'password'" class="form-control" [(ngModel)]="editedUser!.password" />
+            <div class="input-group">
+              @if (showEditUserPassword) {
+                <fa-icon class="input-group-text" [icon]="faEyeSlash" role="button" (click)="showEditUserPassword = false"></fa-icon>
+              } @else {
+                <fa-icon class="input-group-text" [icon]="faEye" role="button" (click)="showEditUserPassword = true"></fa-icon>
+              }
+              <input [type]="showEditUserPassword ? 'text' : 'password'" class="form-control" [(ngModel)]="editedUser!.password" />
+            </div>
           </td>
           <td class="col-3 flex-wrapper">
-            <button type="button" class="btn btn-primary me-2" [disabled]="!editValid() || actionInProgress" (click)="updateUser()">
+            <button
+              type="button"
+              class="btn btn-primary me-2"
+              [disabled]="!editValid() || actionInProgress"
+              (click)="showEditUserPassword = false; updateUser()"
+            >
               Save
             </button>
-            <button type="button" class="btn btn-danger" (click)="editedUser = undefined">Cancel</button>
+            <button type="button" class="btn btn-danger" (click)="editedUser = undefined; showEditUserPassword = false">Cancel</button>
           </td>
         </tr>
       }
