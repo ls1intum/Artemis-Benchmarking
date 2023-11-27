@@ -97,6 +97,8 @@ public class SimulationDataService {
         var basicRequirements =
             simulation.getMode() != null &&
             simulation.getServer() != null &&
+            simulation.getNumberOfCommitsAndPushesTo() > simulation.getNumberOfCommitsAndPushesFrom() &&
+            simulation.getNumberOfCommitsAndPushesFrom() >= 0 &&
             simulation.getName() != null &&
             ((!simulation.isCustomizeUserRange() && simulation.getNumberOfUsers() > 0) ||
                 (simulation.isCustomizeUserRange() &&

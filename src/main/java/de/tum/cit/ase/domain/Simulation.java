@@ -44,6 +44,12 @@ public class Simulation {
     @Column(name = "user_range")
     private String userRange;
 
+    @Column(name = "number_of_commits_and_pushes_from")
+    private int numberOfCommitsAndPushesFrom;
+
+    @Column(name = "number_of_commits_and_pushes_to")
+    private int numberOfCommitsAndPushesTo;
+
     public Long getId() {
         return id;
     }
@@ -130,6 +136,22 @@ public class Simulation {
 
     public void setUserRange(String userRange) {
         this.userRange = userRange;
+    }
+
+    public int getNumberOfCommitsAndPushesFrom() {
+        return numberOfCommitsAndPushesFrom;
+    }
+
+    public void setNumberOfCommitsAndPushesFrom(int numberOfCommitsAndPushesFrom) {
+        this.numberOfCommitsAndPushesFrom = numberOfCommitsAndPushesFrom;
+    }
+
+    public int getNumberOfCommitsAndPushesTo() {
+        return numberOfCommitsAndPushesTo;
+    }
+
+    public void setNumberOfCommitsAndPushesTo(int numberOfCommitsAndPushesTo) {
+        this.numberOfCommitsAndPushesTo = numberOfCommitsAndPushesTo;
     }
 
     public enum Mode {

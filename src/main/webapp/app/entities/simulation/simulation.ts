@@ -13,6 +13,8 @@ export class Simulation {
     public runs: SimulationRun[],
     public creationDate: Date,
     public customizeUserRange: boolean,
+    public numberOfCommitsAndPushesFrom: number,
+    public numberOfCommitsAndPushesTo: number,
     public userRange?: string,
   ) {}
 }
