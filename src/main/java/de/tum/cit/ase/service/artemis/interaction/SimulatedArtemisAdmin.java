@@ -371,28 +371,31 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadCount);
         Scheduler scheduler = Schedulers.from(threadPoolExecutor);
 
-        Flowable
-            .range(0, students.length)
-            .parallel(threadCount)
-            .runOn(scheduler)
-            .doOnNext(i -> {
-                try {
-                    webClient
-                        .post()
-                        .uri(uriBuilder ->
-                            uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", students[i].username).build()
-                        )
-                        .retrieve()
-                        .toBodilessEntity()
-                        .block();
-                } catch (Exception e) {
-                    log.warn("Could not register student {{}} for course: {{}}", students[i].username, e.getMessage());
-                }
-            })
-            .sequential()
-            .blockingSubscribe();
-        threadPoolExecutor.shutdownNow();
-        scheduler.shutdown();
+        try {
+            Flowable
+                .range(0, students.length)
+                .parallel(threadCount)
+                .runOn(scheduler)
+                .doOnNext(i -> {
+                    try {
+                        webClient
+                            .post()
+                            .uri(uriBuilder ->
+                                uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", students[i].username).build()
+                            )
+                            .retrieve()
+                            .toBodilessEntity()
+                            .block();
+                    } catch (Exception e) {
+                        log.warn("Could not register student {{}} for course: {{}}", students[i].username, e.getMessage());
+                    }
+                })
+                .sequential()
+                .blockingSubscribe();
+        } finally {
+            threadPoolExecutor.shutdownNow();
+            scheduler.shutdown();
+        }
     }
 
     /**

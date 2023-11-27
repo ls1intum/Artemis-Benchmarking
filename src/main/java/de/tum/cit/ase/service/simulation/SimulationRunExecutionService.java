@@ -339,30 +339,38 @@ public class SimulationRunExecutionService {
         Scheduler scheduler = Schedulers.from(threadPoolExecutor);
         List<RequestStat> requestStats = Collections.synchronizedList(new ArrayList<>());
 
-        Flowable
-            .range(0, numberOfUsers)
-            .parallel(threadCount)
-            .runOn(scheduler)
-            .doOnNext(i -> {
-                try {
-                    requestStats.addAll(action.apply(i));
-                } catch (Exception e) {
-                    log.warn("Error while performing action for user {{}}: {{}}", i + 1, e.getMessage());
-                }
-            })
-            .sequential()
-            .blockingSubscribe();
-
-        threadPoolExecutor.shutdownNow();
-        scheduler.shutdown();
+        try {
+            Flowable
+                .range(0, numberOfUsers)
+                .parallel(threadCount)
+                .runOn(scheduler)
+                .doOnNext(i -> {
+                    try {
+                        requestStats.addAll(action.apply(i));
+                    } catch (Exception e) {
+                        log.warn("Error while performing action for user {{}}: {{}}", i + 1, e.getMessage());
+                    }
+                })
+                .sequential()
+                .blockingSubscribe();
+        } finally {
+            threadPoolExecutor.shutdownNow();
+            scheduler.shutdown();
+        }
         return requestStats;
     }
 
     private void cleanup(SimulatedArtemisAdmin admin, long courseId, SimulationRun simulationRun) {
+        if (Thread.currentThread().isInterrupted()) {
+            return;
+        }
         logAndSend(false, simulationRun, "Cleanup is currently disabled.");
     }
 
     private void logAndSend(boolean error, SimulationRun simulationRun, String format, Object... args) {
+        if (Thread.currentThread().isInterrupted()) {
+            return;
+        }
         var message = String.format(format, args);
         if (error) {
             log.error(message);
@@ -382,6 +390,9 @@ public class SimulationRunExecutionService {
     }
 
     private void failSimulationRun(SimulationRun simulationRun) {
+        if (Thread.currentThread().isInterrupted()) {
+            return;
+        }
         simulationRun.setStatus(SimulationRun.Status.FAILED);
         SimulationRun savedSimulationRun = simulationRunRepository.save(simulationRun);
         simulationWebsocketService.sendRunStatusUpdate(savedSimulationRun);
