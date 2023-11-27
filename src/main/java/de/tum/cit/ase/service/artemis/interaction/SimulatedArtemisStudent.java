@@ -30,10 +30,20 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private String examIdString;
     private Long studentExamId;
     private StudentExam studentExam;
+    private final int numberOfCommitsAndPushesFrom;
+    private final int numberOfCommitsAndPushesTo;
 
-    public SimulatedArtemisStudent(String artemisUrl, ArtemisUser artemisUser, ArtemisUserService artemisUserService) {
+    public SimulatedArtemisStudent(
+        String artemisUrl,
+        ArtemisUser artemisUser,
+        ArtemisUserService artemisUserService,
+        int numberOfCommitsAndPushesFrom,
+        int numberOfCommitsAndPushesTo
+    ) {
         super(artemisUrl, artemisUser, artemisUserService);
         log = LoggerFactory.getLogger(SimulatedArtemisStudent.class.getName() + "." + username);
+        this.numberOfCommitsAndPushesFrom = numberOfCommitsAndPushesFrom;
+        this.numberOfCommitsAndPushesTo = numberOfCommitsAndPushesTo;
     }
 
     @Override
@@ -293,7 +303,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             long start = System.nanoTime();
             requestStats.add(cloneRepo(repositoryCloneUrl));
 
-            int n = new Random().nextInt(10, 15); // we do a random number of commits and pushes to make some noise
+            int n = new Random().nextInt(numberOfCommitsAndPushesFrom, numberOfCommitsAndPushesTo); // we do a random number of commits and pushes to make some noise
             log.info("Commit and push {}x for {}", n, username);
             for (int j = 0; j < n; j++) {
                 sleep(100);
