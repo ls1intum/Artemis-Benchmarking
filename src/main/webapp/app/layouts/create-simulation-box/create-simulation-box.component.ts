@@ -19,6 +19,8 @@ export class CreateSimulationBoxComponent implements OnInit {
   mode: Mode = Mode.CREATE_COURSE_AND_EXAM;
   customizeUserRange: boolean = false;
   userRange: string = '';
+  numberOfCommitsAndPushesFrom: number = 8;
+  numberOfCommitsAndPushesTo: number = 15;
 
   availableServers = [ArtemisServer.TS1, ArtemisServer.TS3, ArtemisServer.PRODUCTION, ArtemisServer.STAGING];
   availableModes = [
@@ -58,6 +60,8 @@ export class CreateSimulationBoxComponent implements OnInit {
         [],
         new Date(),
         this.customizeUserRange,
+        this.numberOfCommitsAndPushesFrom,
+        this.numberOfCommitsAndPushesTo,
         this.userRange,
       );
       this.simulationToCreate.emit(simulation);
@@ -67,7 +71,9 @@ export class CreateSimulationBoxComponent implements OnInit {
   inputValid(): boolean {
     const basicRequirements: boolean =
       this.name.length > 0 &&
-      ((!this.customizeUserRange && this.numberOfUsers > 0) || (this.customizeUserRange && this.userRange.length > 0));
+      ((!this.customizeUserRange && this.numberOfUsers > 0) || (this.customizeUserRange && this.userRange.length > 0)) &&
+      this.numberOfCommitsAndPushesFrom > 0 &&
+      this.numberOfCommitsAndPushesTo > this.numberOfCommitsAndPushesFrom;
 
     if (this.mode === Mode.CREATE_COURSE_AND_EXAM) {
       return basicRequirements;

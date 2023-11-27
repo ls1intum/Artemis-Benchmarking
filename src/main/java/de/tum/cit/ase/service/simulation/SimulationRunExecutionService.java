@@ -307,7 +307,13 @@ public class SimulationRunExecutionService {
         SimulatedArtemisStudent[] users = new SimulatedArtemisStudent[artemisUsers.size()];
         for (int i = 0; i < artemisUsers.size(); i++) {
             users[i] =
-                new SimulatedArtemisStudent(artemisConfiguration.getUrl(simulation.getServer()), artemisUsers.get(i), artemisUserService);
+                new SimulatedArtemisStudent(
+                    artemisConfiguration.getUrl(simulation.getServer()),
+                    artemisUsers.get(i),
+                    artemisUserService,
+                    simulation.getNumberOfCommitsAndPushesFrom(),
+                    simulation.getNumberOfCommitsAndPushesTo()
+                );
         }
         return users;
     }
@@ -358,6 +364,9 @@ public class SimulationRunExecutionService {
             log.error(message);
         } else {
             log.info(message);
+        }
+        if (message.length() > 255) {
+            message = message.substring(0, 255);
         }
         LogMessage logMessage = new LogMessage();
         logMessage.setSimulationRun(simulationRun);

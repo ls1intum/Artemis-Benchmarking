@@ -24,6 +24,7 @@
             Users: {{ simulation.numberOfUsers }}
           }
         </p>
+        <p>Commits: {{ simulation.numberOfCommitsAndPushesFrom }} - {{ simulation.numberOfCommitsAndPushesTo }}</p>
         @if (simulation.mode != Mode.CREATE_COURSE_AND_EXAM) {
           <p>Course-ID: {{ simulation.courseId }}</p>
         }
