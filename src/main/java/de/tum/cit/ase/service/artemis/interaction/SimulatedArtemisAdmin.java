@@ -103,7 +103,9 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         do {
             try {
                 sleep(1000);
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
 
             status =
                 webClient

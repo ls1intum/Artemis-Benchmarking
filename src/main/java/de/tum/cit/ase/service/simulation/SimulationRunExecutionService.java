@@ -133,7 +133,9 @@ public class SimulationRunExecutionService {
                 try {
                     logAndSend(false, simulationRun, "Waiting for synchronization of user groups (1 min)...");
                     sleep(1_000 * 60);
-                } catch (InterruptedException ignored) {}
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             } else {
                 logAndSend(false, simulationRun, "Using existing course.");
                 try {
@@ -199,7 +201,9 @@ public class SimulationRunExecutionService {
                 // Wait for a couple of seconds. Without this, students cannot access their repos.
                 // Not sure why this is necessary, trying to figure it out
                 sleep(5_000);
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
             logAndSend(false, simulationRun, "Preparation finished...");
         } else {
             logAndSend(false, simulationRun, "Using existing course and exam. No admin required.");

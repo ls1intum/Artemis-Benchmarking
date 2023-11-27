@@ -70,6 +70,11 @@ export class SimulationsService {
     return this.httpClient.delete(endpoint).pipe(map(() => {}));
   }
 
+  abortSimulationRun(runId: number): Observable<void> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/runs/' + runId + '/abort');
+    return this.httpClient.post(endpoint, {}).pipe(map(() => {}));
+  }
+
   public unsubscribeFromSelectedSimulationRun(run: SimulationRun): void {
     this.websocketService.unsubscribe('/topic/simulation/runs/' + run.id + '/result');
     this.websocketService.unsubscribe('/topic/simulation/runs/' + run.id + '/log');

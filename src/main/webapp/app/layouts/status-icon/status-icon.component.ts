@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { Status } from '../../entities/simulation/simulationRun';
-import { faCircle, faCircleCheck, faCircleNotch, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCircle, faCircleCheck, faCircleNotch, faCircleXmark, faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'jhi-status-icon',
@@ -12,6 +12,7 @@ export class StatusIconComponent {
   faCircleXmark = faCircleXmark;
   faCircle = faCircle;
   faCircleNotch = faCircleNotch;
+  faCircleExclamation = faCircleExclamation;
 
   @Input() status?: Status;
 

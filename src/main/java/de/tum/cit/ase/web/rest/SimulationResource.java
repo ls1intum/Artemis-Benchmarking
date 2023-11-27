@@ -93,6 +93,17 @@ public class SimulationResource {
     }
 
     /**
+     * POST /api/simulations/runs/{runId}/abort : Abort a simulation run.
+     * @param runId the ID of the run to abort
+     * @return the ResponseEntity with status 200 (OK) or with status 404 (Not Found) if the run does not exist or with status 400 (Bad Request) if the run is not running
+     */
+    @PostMapping("/runs/{runId}/abort")
+    public ResponseEntity<Void> abortSimulationRun(@PathVariable long runId) {
+        simulationDataService.cancelActiveRun(runId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
      * DELETE /api/simulations/{simulationId} : Delete a simulation.
      * All runs of the simulation and their associated results and logs will be deleted as well.
      * If the given simulation does not exist, nothing will happen.

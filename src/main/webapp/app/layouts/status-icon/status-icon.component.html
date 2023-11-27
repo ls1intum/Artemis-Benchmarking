@@ -1,12 +1,17 @@
-@if (status == Status.FINISHED) {
-  <fa-icon [icon]="faCircleCheck" class="text-success" ngbTooltip="Finished"></fa-icon>
-}
-@if (status == Status.FAILED) {
-  <fa-icon [icon]="faCircleXmark" class="text-danger" ngbTooltip="Failed"></fa-icon>
-}
-@if (status == Status.QUEUED) {
-  <fa-icon [icon]="faCircle" class="text-warning" ngbTooltip="Queued"></fa-icon>
-}
-@if (status == Status.RUNNING) {
-  <fa-icon [icon]="faCircleNotch" class="text-info fa-spin" style="display: inline-block" ngbTooltip="Running"></fa-icon>
+@switch (status) {
+  @case (Status.FINISHED) {
+    <fa-icon [icon]="faCircleCheck" class="text-success" ngbTooltip="Finished"></fa-icon>
+  }
+  @case (Status.FAILED) {
+    <fa-icon [icon]="faCircleXmark" class="text-danger" ngbTooltip="Failed"></fa-icon>
+  }
+  @case (Status.QUEUED) {
+    <fa-icon [icon]="faCircle" class="text-warning" ngbTooltip="Queued"></fa-icon>
+  }
+  @case (Status.RUNNING) {
+    <fa-icon [icon]="faCircleNotch" class="text-info fa-spin" style="display: inline-block" ngbTooltip="Running"></fa-icon>
+  }
+  @case (Status.CANCELLED) {
+    <fa-icon [icon]="faCircleExclamation" ngbTooltip="Cancelled" class="text-secondary-emphasis"></fa-icon>
+  }
 }

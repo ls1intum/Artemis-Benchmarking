@@ -78,6 +78,10 @@ export class SimulationsOverviewComponent implements OnInit {
     );
   }
 
+  cancelSelectedRun(): void {
+    this.simulationsService.abortSimulationRun(this.selectedRun!.id).subscribe(() => {});
+  }
+
   deleteSimulation(simulation: Simulation): void {
     this.simulationsService.deleteSimulation(simulation.id!).subscribe(() => {
       simulation.runs.forEach(run => {
