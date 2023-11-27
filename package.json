@@ -104,7 +104,7 @@
     "@types/node": "20.9.0",
     "@types/sockjs-client": "1.5.4",
     "@typescript-eslint/eslint-plugin": "6.9.1",
-    "@typescript-eslint/parser": "6.9.1",
+    "@typescript-eslint/parser": "6.12.0",
     "browser-sync": "2.29.3",
     "buffer": "6.0.3",
     "concurrently": "8.2.2",
