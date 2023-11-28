@@ -71,7 +71,7 @@ public class SimulationRunExecutionService {
         var simulation = simulationRun.getSimulation();
         var courseId = simulation.getCourseId();
         var examId = simulation.getExamId();
-        SimulatedArtemisAdmin admin;
+        SimulatedArtemisAdmin admin = null;
         SimulatedArtemisStudent[] students;
 
         logAndSend(
@@ -124,7 +124,7 @@ public class SimulationRunExecutionService {
                     admin.registerStudentsForCourse(courseId, students);
                 } catch (Exception e) {
                     logAndSend(true, simulationRun, "Error while registering students for course: %s", e.getMessage());
-                    cleanup(admin, courseId, simulationRun);
+                    cleanupAsync(admin, simulationRun, courseId, 0);
                     failSimulationRun(simulationRun);
                     return;
                 }
@@ -156,7 +156,7 @@ public class SimulationRunExecutionService {
                     examId = exam.getId();
                 } catch (Exception e) {
                     logAndSend(true, simulationRun, "Error while creating exam: %s", e.getMessage());
-                    cleanup(admin, courseId, simulationRun);
+                    cleanupAsync(admin, simulationRun, courseId, 0);
                     failSimulationRun(simulationRun);
                     return;
                 }
@@ -168,7 +168,7 @@ public class SimulationRunExecutionService {
                     admin.createExamExercises(courseId, exam);
                 } catch (Exception e) {
                     logAndSend(true, simulationRun, "Error while creating exam exercises: %s", e.getMessage());
-                    cleanup(admin, courseId, simulationRun);
+                    cleanupAsync(admin, simulationRun, courseId, examId);
                     failSimulationRun(simulationRun);
                     return;
                 }
@@ -179,7 +179,7 @@ public class SimulationRunExecutionService {
                     admin.registerStudentsForExam(courseId, examId);
                 } catch (Exception e) {
                     logAndSend(true, simulationRun, "Error while registering students for exam: %s", e.getMessage());
-                    cleanup(admin, courseId, simulationRun);
+                    cleanupAsync(admin, simulationRun, courseId, examId);
                     failSimulationRun(simulationRun);
                     return;
                 }
@@ -193,7 +193,7 @@ public class SimulationRunExecutionService {
                 admin.prepareExam(courseId, examId);
             } catch (Exception e) {
                 logAndSend(true, simulationRun, "Error while preparing exam: %s", e.getMessage());
-                cleanup(admin, courseId, simulationRun);
+                cleanupAsync(admin, simulationRun, courseId, examId);
                 failSimulationRun(simulationRun);
                 return;
             }
@@ -249,11 +249,13 @@ public class SimulationRunExecutionService {
             );
         } catch (Exception e) {
             logAndSend(true, simulationRun, "Error while performing simulation: %s", e.getMessage());
+            cleanupAsync(admin, simulationRun, courseId, examId);
             failSimulationRun(simulationRun);
             return;
         }
 
         logAndSend(false, simulationRun, "Simulation finished.");
+        cleanupAsync(admin, simulationRun, courseId, examId);
         SimulationRun runWithResult = simulationResultService.calculateAndSaveResult(simulationRun, requestStats);
         finishSimulationRun(runWithResult);
         sendRunResult(runWithResult);
@@ -360,11 +362,66 @@ public class SimulationRunExecutionService {
         return requestStats;
     }
 
-    private void cleanup(SimulatedArtemisAdmin admin, long courseId, SimulationRun simulationRun) {
-        if (Thread.currentThread().isInterrupted()) {
+    /**
+     * Calls {@link #cleanup(SimulatedArtemisAdmin, SimulationRun, long, long)} asynchronously.
+     * @param admin the admin to use for cleanup
+     * @param simulationRun the simulation run to cleanup
+     * @param courseId the ID of the course to cleanup
+     * @param examId the ID of the exam to cleanup
+     */
+    private void cleanupAsync(SimulatedArtemisAdmin admin, SimulationRun simulationRun, long courseId, long examId) {
+        if (Thread.currentThread().isInterrupted() || admin == null) {
             return;
         }
-        logAndSend(false, simulationRun, "Cleanup is currently disabled.");
+        new Thread(() -> cleanup(admin, simulationRun, courseId, examId)).start();
+    }
+
+    /**
+     * Cleans up the course and exam created for the simulation-run if necessary (depending on the simulation mode).
+     * Cleanup is only performed if the cleanup flag is set to true in the application properties.
+     * Note that this method can take a while to complete because it waits for the Artemis server to finish the cleanup.
+     * <p>
+     * It is recommended to call this method asynchronously via {@link #cleanupAsync(SimulatedArtemisAdmin, SimulationRun, long, long)}.
+     *
+     * @param admin the admin to use for cleanup
+     * @param simulationRun the simulation run to cleanup
+     * @param courseId the ID of the course to cleanup
+     * @param examId the ID of the exam to cleanup
+     */
+    private void cleanup(SimulatedArtemisAdmin admin, SimulationRun simulationRun, long courseId, long examId) {
+        if (Thread.currentThread().isInterrupted() || admin == null) {
+            return;
+        }
+
+        var server = simulationRun.getSimulation().getServer();
+        var mode = simulationRun.getSimulation().getMode();
+        if (!artemisConfiguration.getCleanup(server)) {
+            logAndSend(false, simulationRun, "Cleanup is currently disabled for this Artemis instance.");
+            return;
+        }
+
+        logAndSend(false, simulationRun, "Cleaning up... This may take a while.");
+        try {
+            if (mode == Simulation.Mode.EXISTING_COURSE_CREATE_EXAM) {
+                if (examId != 0) {
+                    logAndSend(false, simulationRun, "Deleting exam...");
+                    admin.deleteExam(courseId, examId);
+                    logAndSend(false, simulationRun, "Successfully deleted exam.");
+                } else {
+                    logAndSend(false, simulationRun, "Deleting course...");
+                    admin.deleteCourse(courseId);
+                    logAndSend(false, simulationRun, "Successfully deleted course.");
+                }
+            } else if (mode == Simulation.Mode.CREATE_COURSE_AND_EXAM) {
+                logAndSend(false, simulationRun, "Deleting course...");
+                admin.deleteCourse(courseId);
+                logAndSend(false, simulationRun, "Successfully deleted course.");
+            } else {
+                logAndSend(false, simulationRun, "No cleanup necessary.");
+            }
+        } catch (Exception e) {
+            logAndSend(true, simulationRun, "Error while cleaning up: %s", e.getMessage());
+        }
     }
 
     private void logAndSend(boolean error, SimulationRun simulationRun, String format, Object... args) {

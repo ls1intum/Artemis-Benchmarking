@@ -92,34 +92,16 @@ management:
 artemis:
   local:
     url:
-    websocket_url:
-    username_template:
-    password_template:
-    admin_username:
-    admin_password:
+    cleanup-enabled: false
   ts3:
     url:
-    websocket_url:
-    username_template:
-    password_template:
-    admin_username:
-    admin_password:
+    cleanup-enabled: false
   ts1:
     url:
-    websocket_url:
-    username_template:
-    password_template:
-    admin_username:
-    admin_password:
+    cleanup-enabled: false
   staging:
     url:
-    websocket_url:
-    username_template:
-    password_template:
-    admin_username:
-    admin_password:
+    cleanup-enabled: false
   production:
     url:
-    websocket_url:
-    username_template:
-    password_template:
+    cleanup-enabled: false

@@ -444,4 +444,17 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .toBodilessEntity()
             .block();
     }
+
+    public void deleteExam(long courseId, long examId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
+        }
+
+        webClient
+            .delete()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "exams", String.valueOf(examId)).build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+    }
 }

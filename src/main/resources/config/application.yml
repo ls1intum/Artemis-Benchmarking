@@ -209,43 +209,19 @@ jhipster:
 # https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 
-# Please fill out the missing fields in a local profile or environment variables
-# application-local.yml is already included in the .gitignore and will be used when running with the "local" profile.
-
-# !!! DO NOT COMMIT PASSWORDS TO GIT !!!
-
 artemis:
   local:
     url: http://localhost:8080/
-    websocket_url: ws://localhost:8080/websocket
-    username_template: artemis_test_user_{i}
-    password_template: # DO NOT COMMIT
-    admin_username: admin
-    admin_password: # DO NOT COMMIT
+    cleanup-enabled: false
   ts3:
     url: https://artemis-test3.artemis.cit.tum.de/
-    websocket_url: wss://artemis-test3.artemis.cit.tum.de/websocket
-    username_template: artemis_test_user_{i}
-    password_template: # DO NOT COMMIT
-    admin_username: artemis_test_admin
-    admin_password: # DO NOT COMMIT
+    cleanup-enabled: false
   ts1:
     url: https://artemis-test1.artemis.cit.tum.de/
-    websocket_url: wss://artemis-test1.artemis.cit.tum.de/websocket
-    username_template: artemis_test_user_{i}
-    password_template: # DO NOT COMMIT
-    admin_username: # DO NOT COMMIT
-    admin_password: # DO NOT COMMIT
+    cleanup-enabled: false
   staging:
     url: https://artemis-staging.artemis.in.tum.de/
-    websocket_url: wss://artemis-staging.artemis.in.tum.de/websocket
-    username_template: artemis_test_user_{i}
-    password_template: # DO NOT COMMIT
-    admin_username: # DO NOT COMMIT
-    admin_password: # DO NOT COMMIT
+    cleanup-enabled: false
   production:
     url: https://artemis.cit.tum.de/
-    websocket_url: wss://artemis.cit.tum.de/websocket
-    username_template: artemis_test_user_{i}
-    password_template: # DO NOT COMMIT
-    # NO ADMIN CREDENTIALS FOR PRODUCTION
+    cleanup-enabled: false
