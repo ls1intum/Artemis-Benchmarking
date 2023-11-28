@@ -2,6 +2,7 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { getTextRepresentation, Mode, Simulation } from '../../entities/simulation/simulation';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ProfileService } from '../profiles/profile.service';
+import { SimulationsService } from '../../simulations/simulations.service';
 
 @Component({
   selector: 'jhi-create-simulation-box',
@@ -29,12 +30,16 @@ export class CreateSimulationBoxComponent implements OnInit {
     Mode.EXISTING_COURSE_PREPARED_EXAM,
     Mode.EXISTING_COURSE_UNPREPARED_EXAM,
   ];
+  serversWithCleanupEnabled: ArtemisServer[] = [];
 
   protected readonly Mode = Mode;
   protected readonly ArtemisServer = ArtemisServer;
   protected readonly getTextRepresentation = getTextRepresentation;
 
-  constructor(private profileService: ProfileService) {}
+  constructor(
+    private profileService: ProfileService,
+    private simulationService: SimulationsService,
+  ) {}
 
   ngOnInit(): void {
     this.profileService.getProfileInfo().subscribe(profileInfo => {
@@ -44,6 +49,9 @@ export class CreateSimulationBoxComponent implements OnInit {
       } else if (!profileInfo.inProduction && !this.availableServers.includes(ArtemisServer.LOCAL)) {
         this.availableServers.push(ArtemisServer.LOCAL);
       }
+    });
+    this.simulationService.getServersWithCleanupEnabled().subscribe(servers => {
+      this.serversWithCleanupEnabled = servers;
     });
   }
 

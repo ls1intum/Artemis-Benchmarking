@@ -5,6 +5,7 @@ import de.tum.cit.ase.domain.SimulationRun;
 import de.tum.cit.ase.security.AuthoritiesConstants;
 import de.tum.cit.ase.service.simulation.SimulationDataService;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
+import de.tum.cit.ase.util.ArtemisServer;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -129,5 +130,15 @@ public class SimulationResource {
     public ResponseEntity<Void> deleteSimulationRun(@PathVariable long runId) {
         simulationDataService.deleteSimulationRun(runId);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * GET /api/servers/cleanup-enabled : Get all servers for which cleanup is enabled.
+     *
+     * @return the ResponseEntity with status 200 (OK) and with body the list of servers
+     */
+    @GetMapping("/servers/cleanup-enabled")
+    public ResponseEntity<List<ArtemisServer>> getServersWithCleanupEnabled() {
+        return new ResponseEntity<>(simulationDataService.getServersWithCleanupEnabled(), HttpStatus.OK);
     }
 }

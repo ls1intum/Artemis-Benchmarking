@@ -8,6 +8,7 @@ import de.tum.cit.ase.domain.*;
 import de.tum.cit.ase.repository.LogMessageRepository;
 import de.tum.cit.ase.repository.SimulationRepository;
 import de.tum.cit.ase.repository.SimulationRunRepository;
+import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
 import de.tum.cit.ase.util.ArtemisServer;
 import de.tum.cit.ase.util.NumberRangeParser;
@@ -27,19 +28,22 @@ public class SimulationDataService {
     private final SimulationRunQueueService simulationRunQueueService;
     private final SimulationWebsocketService simulationWebsocketService;
     private final LogMessageRepository logMessageRepository;
+    private final ArtemisConfiguration artemisConfiguration;
 
     public SimulationDataService(
         SimulationRepository simulationRepository,
         SimulationRunRepository simulationRunRepository,
         SimulationRunQueueService simulationRunQueueService,
         SimulationWebsocketService simulationWebsocketService,
-        LogMessageRepository logMessageRepository
+        LogMessageRepository logMessageRepository,
+        ArtemisConfiguration artemisConfiguration
     ) {
         this.simulationRepository = simulationRepository;
         this.simulationRunRepository = simulationRunRepository;
         this.simulationRunQueueService = simulationRunQueueService;
         this.simulationWebsocketService = simulationWebsocketService;
         this.logMessageRepository = logMessageRepository;
+        this.artemisConfiguration = artemisConfiguration;
     }
 
     public Simulation createSimulation(Simulation simulation) {
@@ -161,5 +165,19 @@ public class SimulationDataService {
 
             simulationRunQueueService.restartSimulationExecution();
         }
+    }
+
+    /**
+     * Get a list of all Artemis servers that have cleanup enabled.
+     * @return a list of all Artemis servers that have cleanup enabled
+     */
+    public List<ArtemisServer> getServersWithCleanupEnabled() {
+        List<ArtemisServer> servers = new ArrayList<>();
+        for (ArtemisServer server : ArtemisServer.values()) {
+            if (artemisConfiguration.getCleanup(server)) {
+                servers.add(server);
+            }
+        }
+        return servers;
     }
 }

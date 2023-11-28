@@ -133,6 +133,6 @@
     <div class="form-text">The simulation will not be executed immediately.</div>
   </form>
   <div class="mt-5 w-40 ms-2">
-    <jhi-mode-explanation [mode]="mode"></jhi-mode-explanation>
+    <jhi-mode-explanation [mode]="mode" [cleanupEnabled]="serversWithCleanupEnabled.includes(server)"></jhi-mode-explanation>
   </div>
 </div>

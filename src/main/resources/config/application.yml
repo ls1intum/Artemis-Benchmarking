@@ -212,7 +212,7 @@ jhipster:
 artemis:
   local:
     url: http://localhost:8080/
-    cleanup-enabled: false
+    cleanup-enabled: true
   ts3:
     url: https://artemis-test3.artemis.cit.tum.de/
     cleanup-enabled: false

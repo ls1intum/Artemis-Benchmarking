@@ -9,6 +9,7 @@ import { Simulation } from '../entities/simulation/simulation';
 import { SimulationRun, Status } from '../entities/simulation/simulationRun';
 import { SimulationStats } from '../entities/simulation/simulationStats';
 import { LogMessage } from '../entities/simulation/logMessage';
+import { ArtemisServer } from '../core/util/artemisServer';
 
 @Injectable({
   providedIn: 'root',
@@ -73,6 +74,11 @@ export class SimulationsService {
   abortSimulationRun(runId: number): Observable<void> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/runs/' + runId + '/abort');
     return this.httpClient.post(endpoint, {}).pipe(map(() => {}));
+  }
+
+  getServersWithCleanupEnabled(): Observable<ArtemisServer[]> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/servers/cleanup-enabled');
+    return this.httpClient.get(endpoint).pipe(map((res: any) => res as ArtemisServer[]));
   }
 
   public unsubscribeFromSelectedSimulationRun(run: SimulationRun): void {
