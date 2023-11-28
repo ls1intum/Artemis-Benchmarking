@@ -96,5 +96,6 @@ public class SimulationRun {
         RUNNING,
         FINISHED,
         FAILED,
+        CANCELLED,
     }
 }

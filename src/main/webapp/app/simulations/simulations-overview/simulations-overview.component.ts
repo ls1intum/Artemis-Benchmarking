@@ -4,6 +4,7 @@ import { SimulationsService } from '../simulations.service';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
 import { getOrder } from '../../entities/simulation/simulationStats';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'jhi-simulations-overview',
@@ -11,9 +12,12 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
   styleUrls: ['./simulations-overview.component.scss'],
 })
 export class SimulationsOverviewComponent implements OnInit {
+  faSpinner = faSpinner;
+
   simulations: Simulation[] = [];
   selectedRun?: SimulationRun;
   isCollapsed = true;
+  cancellationInProgress = false;
 
   protected readonly Status = Status;
 
@@ -76,6 +80,13 @@ export class SimulationsOverviewComponent implements OnInit {
       },
       () => {},
     );
+  }
+
+  cancelSelectedRun(): void {
+    this.cancellationInProgress = true;
+    this.simulationsService.abortSimulationRun(this.selectedRun!.id).subscribe(() => {
+      this.cancellationInProgress = false;
+    });
   }
 
   deleteSimulation(simulation: Simulation): void {

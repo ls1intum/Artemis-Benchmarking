@@ -5,6 +5,7 @@ import de.tum.cit.ase.domain.SimulationRun;
 import de.tum.cit.ase.security.AuthoritiesConstants;
 import de.tum.cit.ase.service.simulation.SimulationDataService;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
+import de.tum.cit.ase.util.ArtemisServer;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -93,6 +94,17 @@ public class SimulationResource {
     }
 
     /**
+     * POST /api/simulations/runs/{runId}/abort : Abort a simulation run.
+     * @param runId the ID of the run to abort
+     * @return the ResponseEntity with status 200 (OK) or with status 404 (Not Found) if the run does not exist or with status 400 (Bad Request) if the run is not running
+     */
+    @PostMapping("/runs/{runId}/abort")
+    public ResponseEntity<Void> abortSimulationRun(@PathVariable long runId) {
+        simulationDataService.cancelActiveRun(runId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
      * DELETE /api/simulations/{simulationId} : Delete a simulation.
      * All runs of the simulation and their associated results and logs will be deleted as well.
      * If the given simulation does not exist, nothing will happen.
@@ -118,5 +130,15 @@ public class SimulationResource {
     public ResponseEntity<Void> deleteSimulationRun(@PathVariable long runId) {
         simulationDataService.deleteSimulationRun(runId);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * GET /api/servers/cleanup-enabled : Get all servers for which cleanup is enabled.
+     *
+     * @return the ResponseEntity with status 200 (OK) and with body the list of servers
+     */
+    @GetMapping("/servers/cleanup-enabled")
+    public ResponseEntity<List<ArtemisServer>> getServersWithCleanupEnabled() {
+        return new ResponseEntity<>(simulationDataService.getServersWithCleanupEnabled(), HttpStatus.OK);
     }
 }

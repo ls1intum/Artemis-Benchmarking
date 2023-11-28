@@ -103,7 +103,9 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         do {
             try {
                 sleep(1000);
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
 
             status =
                 webClient
@@ -369,28 +371,31 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadCount);
         Scheduler scheduler = Schedulers.from(threadPoolExecutor);
 
-        Flowable
-            .range(0, students.length)
-            .parallel(threadCount)
-            .runOn(scheduler)
-            .doOnNext(i -> {
-                try {
-                    webClient
-                        .post()
-                        .uri(uriBuilder ->
-                            uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", students[i].username).build()
-                        )
-                        .retrieve()
-                        .toBodilessEntity()
-                        .block();
-                } catch (Exception e) {
-                    log.warn("Could not register student {{}} for course: {{}}", students[i].username, e.getMessage());
-                }
-            })
-            .sequential()
-            .blockingSubscribe();
-        threadPoolExecutor.shutdownNow();
-        scheduler.shutdown();
+        try {
+            Flowable
+                .range(0, students.length)
+                .parallel(threadCount)
+                .runOn(scheduler)
+                .doOnNext(i -> {
+                    try {
+                        webClient
+                            .post()
+                            .uri(uriBuilder ->
+                                uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", students[i].username).build()
+                            )
+                            .retrieve()
+                            .toBodilessEntity()
+                            .block();
+                    } catch (Exception e) {
+                        log.warn("Could not register student {{}} for course: {{}}", students[i].username, e.getMessage());
+                    }
+                })
+                .sequential()
+                .blockingSubscribe();
+        } finally {
+            threadPoolExecutor.shutdownNow();
+            scheduler.shutdown();
+        }
     }
 
     /**
@@ -435,6 +440,19 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         webClient
             .delete()
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "admin", "courses", String.valueOf(courseId)).build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+    }
+
+    public void deleteExam(long courseId, long examId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
+        }
+
+        webClient
+            .delete()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "exams", String.valueOf(examId)).build())
             .retrieve()
             .toBodilessEntity()
             .block();

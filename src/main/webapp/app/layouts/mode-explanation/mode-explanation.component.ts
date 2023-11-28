@@ -8,5 +8,7 @@ import { Mode } from '../../entities/simulation/simulation';
 })
 export class ModeExplanationComponent {
   @Input() mode?: Mode;
+  @Input() cleanupEnabled: boolean = false;
+
   protected readonly Mode = Mode;
 }

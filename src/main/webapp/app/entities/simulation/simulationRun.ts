@@ -18,4 +18,5 @@ export enum Status {
   RUNNING = 'RUNNING',
   FINISHED = 'FINISHED',
   FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
 }
