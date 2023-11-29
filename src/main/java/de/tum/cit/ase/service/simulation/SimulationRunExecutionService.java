@@ -11,6 +11,7 @@ import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
 import de.tum.cit.ase.service.artemis.ArtemisUserService;
 import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisAdmin;
 import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisStudent;
+import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisUser;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
 import de.tum.cit.ase.util.ArtemisServer;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
@@ -37,6 +38,7 @@ public class SimulationRunExecutionService {
     private final SimulationRunRepository simulationRunRepository;
     private final SimulationResultService simulationResultService;
     private final LogMessageRepository logMessageRepository;
+    private boolean doNotSleep = false;
 
     public SimulationRunExecutionService(
         ArtemisConfiguration artemisConfiguration,
@@ -63,7 +65,6 @@ public class SimulationRunExecutionService {
      */
     public synchronized void simulateExam(SimulationRun simulationRun) {
         ArtemisAccountDTO accountDTO = simulationRun.getAdminAccount();
-
         simulationRun.setStatus(SimulationRun.Status.RUNNING);
         simulationRun = simulationRunRepository.save(simulationRun);
         simulationWebsocketService.sendRunStatusUpdate(simulationRun);
@@ -129,12 +130,14 @@ public class SimulationRunExecutionService {
                     return;
                 }
 
-                // Wait for synchronization of user groups
-                try {
-                    logAndSend(false, simulationRun, "Waiting for synchronization of user groups (1 min)...");
-                    sleep(1_000 * 60);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                if (!doNotSleep) {
+                    // Wait for synchronization of user groups
+                    try {
+                        logAndSend(false, simulationRun, "Waiting for synchronization of user groups (1 min)...");
+                        sleep(1_000 * 60);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
             } else {
                 logAndSend(false, simulationRun, "Using existing course.");
@@ -197,12 +200,14 @@ public class SimulationRunExecutionService {
                 failSimulationRun(simulationRun);
                 return;
             }
-            try {
-                // Wait for a couple of seconds. Without this, students cannot access their repos.
-                // Not sure why this is necessary, trying to figure it out
-                sleep(5_000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+            if (!doNotSleep) {
+                try {
+                    // Wait for a couple of seconds. Without this, students cannot access their repos.
+                    // Not sure why this is necessary, trying to figure it out
+                    sleep(5_000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
             logAndSend(false, simulationRun, "Preparation finished...");
         } else {
@@ -262,6 +267,16 @@ public class SimulationRunExecutionService {
     }
 
     /**
+     * Sets the doNotSleep flag.
+     * If the flag is set to true, the simulation will not wait for user group synchronization.
+     * The flag should only be set to true for testing purposes when the connection to Artemis is mocked.
+     * @param doNotSleep the value to set the flag to
+     */
+    public void setDoNotSleep(boolean doNotSleep) {
+        this.doNotSleep = doNotSleep;
+    }
+
+    /**
      * Initializes the admin for the given server and logs in.
      *
      * @param server the Artemis Server to initialize the admin for
@@ -272,7 +287,7 @@ public class SimulationRunExecutionService {
         if (adminAccount == null) {
             throw new IllegalStateException("No admin account found for server " + server.name());
         }
-        var admin = new SimulatedArtemisAdmin(artemisConfiguration.getUrl(server), adminAccount, artemisUserService);
+        var admin = SimulatedArtemisUser.createArtemisAdminFromUser(artemisConfiguration.getUrl(server), adminAccount, artemisUserService);
         admin.login();
         return admin;
     }
@@ -285,10 +300,10 @@ public class SimulationRunExecutionService {
      * @return the initialized and logged in admin
      */
     private SimulatedArtemisAdmin initializeAdminWithAccount(ArtemisServer server, ArtemisAccountDTO artemisAccountDTO) {
-        var admin = new SimulatedArtemisAdmin(
+        var admin = SimulatedArtemisUser.createArtemisAdminFromCredentials(
+            artemisConfiguration.getUrl(server),
             artemisAccountDTO.getUsername(),
-            artemisAccountDTO.getPassword(),
-            artemisConfiguration.getUrl(server)
+            artemisAccountDTO.getPassword()
         );
         admin.login();
         return admin;
@@ -313,7 +328,7 @@ public class SimulationRunExecutionService {
         SimulatedArtemisStudent[] users = new SimulatedArtemisStudent[artemisUsers.size()];
         for (int i = 0; i < artemisUsers.size(); i++) {
             users[i] =
-                new SimulatedArtemisStudent(
+                SimulatedArtemisUser.createArtemisStudent(
                     artemisConfiguration.getUrl(simulation.getServer()),
                     artemisUsers.get(i),
                     artemisUserService,
