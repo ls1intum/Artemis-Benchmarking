@@ -417,16 +417,10 @@ public class SimulationRunExecutionService {
 
         logAndSend(false, simulationRun, "Cleaning up... This may take a while.");
         try {
-            if (mode == Simulation.Mode.EXISTING_COURSE_CREATE_EXAM) {
-                if (examId != 0) {
-                    logAndSend(false, simulationRun, "Deleting exam...");
-                    admin.deleteExam(courseId, examId);
-                    logAndSend(false, simulationRun, "Successfully deleted exam.");
-                } else {
-                    logAndSend(false, simulationRun, "Deleting course...");
-                    admin.deleteCourse(courseId);
-                    logAndSend(false, simulationRun, "Successfully deleted course.");
-                }
+            if (mode == Simulation.Mode.EXISTING_COURSE_CREATE_EXAM && examId != 0) {
+                logAndSend(false, simulationRun, "Deleting exam...");
+                admin.deleteExam(courseId, examId);
+                logAndSend(false, simulationRun, "Successfully deleted exam.");
             } else if (mode == Simulation.Mode.CREATE_COURSE_AND_EXAM) {
                 logAndSend(false, simulationRun, "Deleting course...");
                 admin.deleteCourse(courseId);
