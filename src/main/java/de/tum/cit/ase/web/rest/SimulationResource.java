@@ -2,8 +2,10 @@ package de.tum.cit.ase.web.rest;
 
 import de.tum.cit.ase.domain.Simulation;
 import de.tum.cit.ase.domain.SimulationRun;
+import de.tum.cit.ase.domain.SimulationSchedule;
 import de.tum.cit.ase.security.AuthoritiesConstants;
 import de.tum.cit.ase.service.simulation.SimulationDataService;
+import de.tum.cit.ase.service.simulation.SimulationScheduleService;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
 import de.tum.cit.ase.util.ArtemisServer;
 import java.util.List;
@@ -18,9 +20,11 @@ import org.springframework.web.bind.annotation.*;
 public class SimulationResource {
 
     private final SimulationDataService simulationDataService;
+    private final SimulationScheduleService simulationScheduleService;
 
-    public SimulationResource(SimulationDataService simulationService) {
+    public SimulationResource(SimulationDataService simulationService, SimulationScheduleService simulationScheduleService) {
         this.simulationDataService = simulationService;
+        this.simulationScheduleService = simulationScheduleService;
     }
 
     /**
@@ -140,5 +144,34 @@ public class SimulationResource {
     @GetMapping("/servers/cleanup-enabled")
     public ResponseEntity<List<ArtemisServer>> getServersWithCleanupEnabled() {
         return new ResponseEntity<>(simulationDataService.getServersWithCleanupEnabled(), HttpStatus.OK);
+    }
+
+    @PostMapping("/{simulationId}/schedule")
+    public ResponseEntity<SimulationSchedule> scheduleSimulation(
+        @PathVariable long simulationId,
+        @RequestBody SimulationSchedule simulationSchedule
+    ) {
+        var schedule = simulationScheduleService.createSimulationSchedule(simulationId, simulationSchedule);
+        return new ResponseEntity<>(schedule, HttpStatus.OK);
+    }
+
+    @PutMapping("/schedules/{scheduleId}")
+    public ResponseEntity<SimulationSchedule> updateSchedule(
+        @PathVariable long scheduleId,
+        @RequestBody SimulationSchedule simulationSchedule
+    ) {
+        var schedule = simulationScheduleService.updateSimulationSchedule(scheduleId, simulationSchedule);
+        return new ResponseEntity<>(schedule, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/schedules/{scheduleId}")
+    public ResponseEntity<Void> deleteSchedule(@PathVariable long scheduleId) {
+        simulationScheduleService.deleteSimulationSchedule(scheduleId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/{simulationId}/schedules")
+    public ResponseEntity<List<SimulationSchedule>> getSchedules(@PathVariable long simulationId) {
+        return new ResponseEntity<>(simulationScheduleService.getSimulationSchedules(simulationId), HttpStatus.OK);
     }
 }
