@@ -140,6 +140,34 @@ public abstract class SimulatedArtemisUser {
         return authToken;
     }
 
+    public static SimulatedArtemisStudent createArtemisStudent(
+        String artemisUrl,
+        ArtemisUser artemisUser,
+        ArtemisUserService artemisUserService,
+        int numberOfCommitsAndPushesFrom,
+        int numberOfCommitsAndPushesTo
+    ) {
+        return new SimulatedArtemisStudent(
+            artemisUrl,
+            artemisUser,
+            artemisUserService,
+            numberOfCommitsAndPushesFrom,
+            numberOfCommitsAndPushesTo
+        );
+    }
+
+    public static SimulatedArtemisAdmin createArtemisAdminFromUser(
+        String artemisUrl,
+        ArtemisUser artemisUser,
+        ArtemisUserService artemisUserService
+    ) {
+        return new SimulatedArtemisAdmin(artemisUrl, artemisUser, artemisUserService);
+    }
+
+    public static SimulatedArtemisAdmin createArtemisAdminFromCredentials(String artemisUrl, String username, String password) {
+        return new SimulatedArtemisAdmin(artemisUrl, username, password);
+    }
+
     private static HttpClient createHttpClient() {
         return HttpClient
             .create()
