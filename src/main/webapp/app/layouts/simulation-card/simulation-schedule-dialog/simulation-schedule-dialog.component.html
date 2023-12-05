@@ -1,0 +1,119 @@
+<div class="modal-header">
+  <h4 class="modal-title" id="account-modal-title">Simulation Schedules for {{ simulation?.name }}</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss()"></button>
+</div>
+<div class="modal-body">
+  @if (isCollapsed) {
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="collapse.toggle()"
+      [attr.aria-expanded]="!isCollapsed"
+      aria-controls="collapseExample"
+    >
+      Create schedule
+    </button>
+  } @else {
+    <button
+      type="button"
+      class="btn btn-danger"
+      (click)="collapse.toggle()"
+      [attr.aria-expanded]="!isCollapsed"
+      aria-controls="collapseExample"
+    >
+      Cancel
+    </button>
+  }
+  <div class="mt-3 w-60" #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
+    <div class="me-3 mb-3 w-60">
+      <label for="cycle-select" class="form-label">Cycle</label>
+      <select id="cycle-select" class="form-select" aria-label="Cycle" [(ngModel)]="cycle" [ngModelOptions]="{ standalone: true }">
+        @for (cycle of Cycle | keyvalue; track cycle) {
+          <option>{{ cycle.key }}</option>
+        }
+      </select>
+    </div>
+    <div class="flex-wrapper">
+      <div class="me-3 mb-3">
+        <label for="start-input" class="form-label">Start of Repetition</label>
+        <div class="input-group">
+          <input
+            id="start-input"
+            class="form-control"
+            placeholder="yyyy-mm-dd"
+            name="dp"
+            [(ngModel)]="startDate"
+            ngbDatepicker
+            #d1="ngbDatepicker"
+          />
+          <button class="btn btn-outline-secondary" (click)="d1.toggle()" type="button">
+            <fa-icon [icon]="faCalendarDays"></fa-icon>
+          </button>
+        </div>
+      </div>
+      <div class="me-3 mb-3">
+        <label for="start-input" class="form-label">End of Repetition (optional)</label>
+        <div class="input-group">
+          <input
+            id="end-input"
+            class="form-control"
+            placeholder="yyyy-mm-dd"
+            name="dp"
+            [(ngModel)]="endDate"
+            ngbDatepicker
+            #d2="ngbDatepicker"
+          />
+          <button class="btn btn-outline-secondary" (click)="d2.toggle()" type="button">
+            <fa-icon [icon]="faCalendarDays"></fa-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="flex-wrapper">
+      <div class="me-3 mb-3">
+        <label class="form-label">Time of Day</label>
+        <ngb-timepicker id="time-picker" [spinners]="false" [(ngModel)]="timeOfDay"></ngb-timepicker>
+      </div>
+      @if (cycle === Cycle.WEEKLY) {
+        <div class="me-3 mb-3 w-60">
+          <label for="day-select" class="form-label">Day of Week</label>
+          <select
+            id="day-select"
+            class="form-select"
+            aria-label="Day of Week"
+            [(ngModel)]="weekday"
+            [ngModelOptions]="{ standalone: true }"
+          >
+            @for (day of DayOfWeek | keyvalue; track day) {
+              <option>{{ day.key }}</option>
+            }
+          </select>
+        </div>
+      }
+    </div>
+    <button type="submit" class="btn btn-primary mt-3" [disabled]="!inputValid()" (click)="createSchedule()">Create Schedule</button>
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Cycle</th>
+        <th scope="col">Time of Day</th>
+        <th scope="col">Weekday</th>
+        <th scope="col">From</th>
+        <th scope="col">To</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (schedule of existingSchedules; track schedule.id) {
+        <tr>
+          <td>{{ schedule.cycle }}</td>
+          <td>{{ schedule.timeOfDay | date: 'HH:mm' }}</td>
+          <td>{{ schedule.dayOfWeek }}</td>
+          <td>{{ schedule.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</td>
+          <td>{{ schedule.endDateTime | date: 'dd.MM.yyyy, HH:mm' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

@@ -5,7 +5,8 @@ import { SimulationsService } from '../../simulations/simulations.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ArtemisAccountDTO } from '../../simulations/artemisAccountDTO';
-import { faChevronRight, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDays, faChevronRight, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { SimulationScheduleDialogComponent } from './simulation-schedule-dialog/simulation-schedule-dialog.component';
 
 @Component({
   selector: 'jhi-simulation-card',
@@ -15,6 +16,7 @@ import { faChevronRight, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 export class SimulationCardComponent implements OnInit {
   faTrashCan = faTrashCan;
   faChevronRight = faChevronRight;
+  faCalendarDays = faCalendarDays;
 
   @Input()
   simulation!: Simulation;
@@ -116,5 +118,10 @@ export class SimulationCardComponent implements OnInit {
 
   hasActiveRun(): boolean {
     return this.simulation.runs.some(run => run.status === Status.RUNNING);
+  }
+
+  openScheduleDialog(): void {
+    const modalRef = this.modalService.open(SimulationScheduleDialogComponent, { size: 'xl' });
+    modalRef.componentInstance.simulation = this.simulation;
   }
 }

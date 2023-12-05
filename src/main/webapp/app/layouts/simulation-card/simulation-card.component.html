@@ -1,15 +1,20 @@
 <div class="card mb-3">
   <div class="card-header space-between-wrapper">
     {{ simulation.name }}
-    <button
-      type="button"
-      class="btn btn-link btn-sm p-0"
-      (click)="deleteSimulation(deleteModal)"
-      [disabled]="hasActiveRun()"
-      ngbTooltip="Delete"
-    >
-      <fa-icon [icon]="faTrashCan" class="text-danger"></fa-icon>
-    </button>
+    <div>
+      <button type="button" class="btn btn-link btn-sm p-0 me-3" (click)="openScheduleDialog()" ngbTooltip="Schedule">
+        <fa-icon [icon]="faCalendarDays" class="text-info"></fa-icon>
+      </button>
+      <button
+        type="button"
+        class="btn btn-link btn-sm p-0"
+        (click)="deleteSimulation(deleteModal)"
+        [disabled]="hasActiveRun()"
+        ngbTooltip="Delete"
+      >
+        <fa-icon [icon]="faTrashCan" class="text-danger"></fa-icon>
+      </button>
+    </div>
   </div>
   <div class="card-body" style="position: relative">
     <div class="space-between-wrapper">
