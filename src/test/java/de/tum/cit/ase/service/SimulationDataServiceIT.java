@@ -18,7 +18,9 @@ import de.tum.cit.ase.service.simulation.SimulationDataService;
 import de.tum.cit.ase.service.simulation.SimulationRunQueueService;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import jakarta.transaction.Transactional;
+import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,6 +128,28 @@ public class SimulationDataServiceIT {
     }
 
     @Test
+    public void testDeleteSimulationRun_success() {
+        var run = new SimulationRun();
+        run.setStatus(SimulationRun.Status.FINISHED);
+
+        doNothing().when(simulationRunRepository).deleteById(anyLong());
+        when(simulationRunRepository.findById(1L)).thenReturn(java.util.Optional.of(run));
+        simulationDataService.deleteSimulationRun(1L);
+        verify(simulationRunRepository).deleteById(1L);
+    }
+
+    @Test
+    public void testDeleteSimulationRun_throwOnRunning() {
+        var run = new SimulationRun();
+        run.setStatus(SimulationRun.Status.RUNNING);
+
+        doNothing().when(simulationRunRepository).deleteById(anyLong());
+        when(simulationRunRepository.findById(1L)).thenReturn(java.util.Optional.of(run));
+        assertThrows(IllegalArgumentException.class, () -> simulationDataService.deleteSimulationRun(1L));
+        verify(simulationRunRepository, times(0)).deleteById(anyLong());
+    }
+
+    @Test
     public void createAndQueueSimulationRun_success() {
         simulation.setId(1L);
         when(simulationRepository.findById(1L)).thenReturn(java.util.Optional.of(simulation));
@@ -162,5 +186,265 @@ public class SimulationDataServiceIT {
         verify(simulationRunRepository, times(0)).save(any());
         verify(simulationRunQueueService, times(0)).queueSimulationRun(any());
         verify(simulationWebsocketService, times(0)).sendRunStatusUpdate(any());
+    }
+
+    @Test
+    public void testValidateSimulation_success_fixedUsers() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.CREATE_COURSE_AND_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        assertTrue(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_success_userRange() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.CREATE_COURSE_AND_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(-1);
+        simulation.setCustomizeUserRange(true);
+        simulation.setUserRange("2-5,7,10-13");
+        simulation.setName("Test");
+        assertTrue(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_fail_onMode() {
+        simulation.setServer(TS1);
+        simulation.setMode(null);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        assertFalse(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_fail_onServer() {
+        simulation.setServer(null);
+        simulation.setMode(Simulation.Mode.CREATE_COURSE_AND_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        assertFalse(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_fail_onName() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.CREATE_COURSE_AND_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName(null);
+        assertFalse(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_fail_onPushesSmaller() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.CREATE_COURSE_AND_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(2);
+        simulation.setNumberOfCommitsAndPushesTo(1);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        assertFalse(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_fail_onPushesNegative() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.CREATE_COURSE_AND_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(-1);
+        simulation.setNumberOfCommitsAndPushesTo(1);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        assertFalse(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_fail_onUsersZero() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.CREATE_COURSE_AND_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(2);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(0);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        assertFalse(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_fail_onCustomRange() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.CREATE_COURSE_AND_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(2);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(-1);
+        simulation.setCustomizeUserRange(true);
+        simulation.setUserRange("1--2");
+        simulation.setName("Test");
+        assertFalse(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_existingCourseUnpreparedExam_success() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.EXISTING_COURSE_UNPREPARED_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        simulation.setCourseId(1L);
+        simulation.setExamId(1L);
+        assertTrue(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_existingCoursePreparedExam_success() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.EXISTING_COURSE_PREPARED_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        simulation.setCourseId(1L);
+        simulation.setExamId(1L);
+        assertTrue(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_existingCourseUnpreparedExam_fail_onCourseId() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.EXISTING_COURSE_UNPREPARED_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        simulation.setCourseId(0);
+        simulation.setExamId(1L);
+        assertFalse(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_existingCoursePreparedExam_fail_onCourseId() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.EXISTING_COURSE_PREPARED_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        simulation.setCourseId(0);
+        simulation.setExamId(1L);
+        assertFalse(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_existingCourseUnpreparedExam_fail_onExamId() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.EXISTING_COURSE_UNPREPARED_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        simulation.setCourseId(1);
+        simulation.setExamId(0);
+        assertFalse(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_existingCoursePreparedExam_fail_onExamId() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.EXISTING_COURSE_PREPARED_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        simulation.setCourseId(1);
+        simulation.setExamId(0);
+        assertFalse(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_existingCourseCreateExam_success() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.EXISTING_COURSE_CREATE_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        simulation.setCourseId(1L);
+        simulation.setExamId(0);
+        assertTrue(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void testValidateSimulation_existingCourseCreateExam_fail_onCourseId() {
+        simulation.setServer(TS1);
+        simulation.setMode(Simulation.Mode.EXISTING_COURSE_CREATE_EXAM);
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setNumberOfUsers(10);
+        simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        simulation.setCourseId(0);
+        simulation.setExamId(0);
+        assertFalse(simulationDataService.validateSimulation(simulation));
+    }
+
+    @Test
+    public void cancelActiveRun_success() {
+        var run = new SimulationRun();
+        run.setLogMessages(new HashSet<>());
+        run.setStatus(SimulationRun.Status.RUNNING);
+
+        when(simulationRunRepository.findById(1L)).thenReturn(java.util.Optional.of(run));
+        doNothing().when(simulationRunQueueService).abortSimulationExecution();
+        doNothing().when(simulationWebsocketService).sendRunStatusUpdate(any());
+        doNothing().when(simulationWebsocketService).sendRunLogMessage(any(), any());
+
+        simulationDataService.cancelActiveRun(1L);
+
+        verify(simulationRunQueueService).abortSimulationExecution();
+        verify(simulationWebsocketService).sendRunStatusUpdate(run);
+        verify(simulationWebsocketService).sendRunLogMessage(eq(run), any());
+        verify(simulationRunRepository).save(run);
+        verify(logMessageRepository).save(any());
+        verify(simulationRunQueueService).restartSimulationExecution();
+        assertEquals(SimulationRun.Status.CANCELLED, run.getStatus());
+    }
+
+    @Test
+    public void cancelActiveRun_fail_notFound() {
+        when(simulationRunRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+        assertThrows(NoSuchElementException.class, () -> simulationDataService.cancelActiveRun(1L));
+    }
+
+    @Test
+    public void cancelActiveRun_fail_notRunning() {
+        var run = new SimulationRun();
+        run.setLogMessages(new HashSet<>());
+        run.setStatus(SimulationRun.Status.FINISHED);
+
+        when(simulationRunRepository.findById(1L)).thenReturn(java.util.Optional.of(run));
+        assertThrows(IllegalArgumentException.class, () -> simulationDataService.cancelActiveRun(1L));
     }
 }
