@@ -52,9 +52,8 @@ public class SimulationScheduleService {
         } else if (!verifySchedule(simulationSchedule)) {
             throw new IllegalArgumentException("Invalid schedule");
         }
-        simulationSchedule.setNextRun(calculateNextRun(simulationSchedule));
         simulationSchedule.setSimulation(simulationDataService.getSimulation(simulationId));
-        return simulationScheduleRepository.save(simulationSchedule);
+        return updateNextRun(simulationSchedule);
     }
 
     public SimulationSchedule updateSimulationSchedule(long simulationScheduleId, SimulationSchedule simulationSchedule) {
@@ -81,8 +80,7 @@ public class SimulationScheduleService {
         } else if (!verifySchedule(simulationSchedule)) {
             throw new IllegalArgumentException("Invalid schedule");
         }
-        simulationSchedule.setNextRun(calculateNextRun(simulationSchedule));
-        return simulationScheduleRepository.save(simulationSchedule);
+        return updateNextRun(simulationSchedule);
     }
 
     public void deleteSimulationSchedule(long simulationScheduleId) {
@@ -95,7 +93,7 @@ public class SimulationScheduleService {
     }
 
     @Scheduled(fixedRate = 1000 * 60 * 15, initialDelay = 0)
-    void executeScheduledSimulation() {
+    void executeScheduledSimulations() {
         log.info("Executing scheduled simulation runs");
         var simulationSchedules = simulationScheduleRepository.findAll();
         simulationSchedules
@@ -105,9 +103,19 @@ public class SimulationScheduleService {
                 log.info("Executing scheduled simulation run for simulation {}", simulationSchedule.getSimulation().getId());
                 var simulation = simulationSchedule.getSimulation();
                 simulationDataService.createAndQueueSimulationRun(simulation.getId(), null);
-                simulationSchedule.setNextRun(calculateNextRun(simulationSchedule));
-                simulationScheduleRepository.save(simulationSchedule);
+                updateNextRun(simulationSchedule);
             });
+    }
+
+    private SimulationSchedule updateNextRun(SimulationSchedule simulationSchedule) {
+        var nextRun = calculateNextRun(simulationSchedule);
+        if (simulationSchedule.getEndDateTime() != null && nextRun.isAfter(simulationSchedule.getEndDateTime())) {
+            simulationScheduleRepository.delete(simulationSchedule);
+            return null;
+        } else {
+            simulationSchedule.setNextRun(nextRun);
+            return simulationScheduleRepository.save(simulationSchedule);
+        }
     }
 
     private ZonedDateTime calculateNextRun(SimulationSchedule simulationSchedule) {
