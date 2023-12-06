@@ -124,4 +124,6 @@ export class SimulationCardComponent implements OnInit {
     const modalRef = this.modalService.open(SimulationScheduleDialogComponent, { size: 'xl' });
     modalRef.componentInstance.simulation = this.simulation;
   }
+
+  protected readonly ArtemisServer = ArtemisServer;
 }

@@ -1,25 +1,45 @@
 import { Component, inject, Input, OnInit } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
-import { NgbActiveModal, NgbCollapseModule, NgbDatepickerModule, NgbTimepickerModule, NgbTimeStruct } from '@ng-bootstrap/ng-bootstrap';
+import {
+  NgbActiveModal,
+  NgbCollapseModule,
+  NgbDatepickerModule,
+  NgbTimepickerModule,
+  NgbTimeStruct,
+  NgbTooltipModule,
+} from '@ng-bootstrap/ng-bootstrap';
 import { Simulation } from '../../../entities/simulation/simulation';
 import { SimulationsService } from '../../../simulations/simulations.service';
 import { Cycle, DayOfWeek, SimulationSchedule } from '../../../entities/simulation/simulationSchedule';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { faCalendarDays } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDays, faCircleInfo, faLightbulb } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'jhi-simulation-schedule-dialog',
   standalone: true,
-  imports: [CommonModule, NgbCollapseModule, FormsModule, NgbDatepickerModule, FontAwesomeModule, NgbTimepickerModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    NgbCollapseModule,
+    FormsModule,
+    NgbDatepickerModule,
+    FontAwesomeModule,
+    NgbTimepickerModule,
+    ReactiveFormsModule,
+    NgbTooltipModule,
+  ],
   templateUrl: './simulation-schedule-dialog.component.html',
   styleUrl: './simulation-schedule-dialog.component.scss',
 })
 export class SimulationScheduleDialogComponent implements OnInit {
   faCalendarDays = faCalendarDays;
+  faLightbulb = faLightbulb;
+  faCircleInfo = faCircleInfo;
 
   @Input()
   simulation?: Simulation;
+
+  timezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   existingSchedules: SimulationSchedule[] = [];
   activeModal = inject(NgbActiveModal);

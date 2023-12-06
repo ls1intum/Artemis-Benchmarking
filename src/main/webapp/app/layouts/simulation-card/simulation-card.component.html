@@ -2,9 +2,11 @@
   <div class="card-header space-between-wrapper">
     {{ simulation.name }}
     <div>
-      <button type="button" class="btn btn-link btn-sm p-0 me-3" (click)="openScheduleDialog()" ngbTooltip="Schedule">
-        <fa-icon [icon]="faCalendarDays" class="text-info"></fa-icon>
-      </button>
+      @if (simulation.server !== ArtemisServer.PRODUCTION || simulation.mode == Mode.EXISTING_COURSE_PREPARED_EXAM) {
+        <button type="button" class="btn btn-link btn-sm p-0 me-3" (click)="openScheduleDialog()" ngbTooltip="Schedule">
+          <fa-icon [icon]="faCalendarDays" class="text-info"></fa-icon>
+        </button>
+      }
       <button
         type="button"
         class="btn btn-link btn-sm p-0"

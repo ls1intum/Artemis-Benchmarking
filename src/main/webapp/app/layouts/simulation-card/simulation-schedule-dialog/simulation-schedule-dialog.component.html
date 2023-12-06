@@ -3,6 +3,10 @@
   <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss()"></button>
 </div>
 <div class="modal-body">
+  <div class="alert alert-info">
+    <fa-icon class="me-2" [icon]="faLightbulb"></fa-icon>
+    All dates and times are in your local timezone ({{ timezone }}).
+  </div>
   @if (isCollapsed) {
     <button
       type="button"
@@ -26,7 +30,20 @@
   }
   <div class="mt-3 w-60" #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
     <div class="me-3 mb-3 w-60">
-      <label for="cycle-select" class="form-label">Cycle</label>
+      <label for="cycle-select" class="form-label"> Cycle </label>
+      @if (cycle === Cycle.DAILY) {
+        <fa-icon
+          class="ms-2"
+          [icon]="faCircleInfo"
+          ngbTooltip="DAILY: The simulation will be executed once per day at the specified time."
+        ></fa-icon>
+      } @else {
+        <fa-icon
+          class="ms-2"
+          [icon]="faCircleInfo"
+          ngbTooltip="WEEKLY: The simulation will be executed once per week on the specified day at the specified time."
+        ></fa-icon>
+      }
       <select id="cycle-select" class="form-select" aria-label="Cycle" [(ngModel)]="cycle" [ngModelOptions]="{ standalone: true }">
         @for (cycle of Cycle | keyvalue; track cycle) {
           <option>{{ cycle.key }}</option>
@@ -35,7 +52,12 @@
     </div>
     <div class="flex-wrapper">
       <div class="me-3 mb-3">
-        <label for="start-input" class="form-label">Start of Repetition</label>
+        <label for="start-input" class="form-label">From</label>
+        <fa-icon
+          class="ms-2"
+          [icon]="faCircleInfo"
+          ngbTooltip="The schedule will only be active in the given timeframe. Afterwards, it will be deleted automatically."
+        ></fa-icon>
         <div class="input-group">
           <input
             id="start-input"
@@ -52,7 +74,12 @@
         </div>
       </div>
       <div class="me-3 mb-3">
-        <label for="start-input" class="form-label">End of Repetition (optional)</label>
+        <label for="start-input" class="form-label">Until (optional)</label>
+        <fa-icon
+          class="ms-2"
+          [icon]="faCircleInfo"
+          ngbTooltip="If this value is omitted, the schedule will remain active until it is deleted."
+        ></fa-icon>
         <div class="input-group">
           <input
             id="end-input"
@@ -101,7 +128,7 @@
         <th scope="col" class="col-2">Time of Day</th>
         <th scope="col" class="col-2">Weekday</th>
         <th scope="col" class="col-2">From</th>
-        <th scope="col" class="col-2">To</th>
+        <th scope="col" class="col-2">Until</th>
         <th class="col-3"></th>
       </tr>
     </thead>
@@ -115,7 +142,7 @@
             <td class="col-2">{{ schedule.startDateTime | date: 'dd.MM.yyyy HH:mm' }}</td>
             <td class="col-2">{{ schedule.endDateTime | date: 'dd.MM.yyyy HH:mm' }}</td>
             <td class="col-3">
-              <button type="button" class="btn btn-primary" (click)="openEditSchedule(schedule.id!)">Edit</button>
+              <button type="button" class="btn btn-info" (click)="openEditSchedule(schedule.id!)">Edit</button>
               <button type="button" class="btn btn-danger" (click)="deleteSchedule(schedule.id!)">Delete</button>
             </td>
           </tr>
