@@ -4,11 +4,9 @@ import static java.time.ZonedDateTime.now;
 
 import de.tum.cit.ase.domain.SimulationSchedule;
 import de.tum.cit.ase.repository.SimulationScheduleRepository;
-import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
-import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -64,7 +62,7 @@ public class SimulationScheduleService {
             throw new IllegalArgumentException("Invalid id!");
         }
         var existingSimulationSchedule = simulationScheduleRepository.findById(simulationScheduleId).orElseThrow();
-        if (!Objects.equals(existingSimulationSchedule.getSimulation().getId(), simulationSchedule.getSimulation().getId())) {
+        if (simulationSchedule.getSimulation() != null) {
             throw new IllegalArgumentException("Id of simulation must not be changed!");
         } else if (simulationSchedule.getStartDateTime() == null) {
             throw new IllegalArgumentException("Start date time must not be null");
@@ -80,6 +78,7 @@ public class SimulationScheduleService {
         } else if (!verifySchedule(simulationSchedule)) {
             throw new IllegalArgumentException("Invalid schedule");
         }
+        simulationSchedule.setSimulation(existingSimulationSchedule.getSimulation());
         return updateNextRun(simulationSchedule);
     }
 
@@ -119,15 +118,15 @@ public class SimulationScheduleService {
     }
 
     private ZonedDateTime calculateNextRun(SimulationSchedule simulationSchedule) {
-        LocalTime time = simulationSchedule.getTimeOfDay().toLocalTime();
+        ZonedDateTime time = simulationSchedule.getTimeOfDay();
         if (simulationSchedule.getCycle() == SimulationSchedule.Cycle.DAILY) {
-            if (time.isBefore(LocalTime.now())) {
+            if (time.isBefore(now())) {
                 return now().plusDays(1).withHour(time.getHour()).withMinute(time.getMinute());
             } else {
                 return now().withHour(time.getHour()).withMinute(time.getMinute());
             }
         } else {
-            if (now().getDayOfWeek() == simulationSchedule.getDayOfWeek() && !time.isBefore(LocalTime.now())) {
+            if (now().getDayOfWeek() == simulationSchedule.getDayOfWeek() && !time.isBefore(now())) {
                 return now().withHour(time.getHour()).withMinute(time.getMinute());
             }
             return now()
