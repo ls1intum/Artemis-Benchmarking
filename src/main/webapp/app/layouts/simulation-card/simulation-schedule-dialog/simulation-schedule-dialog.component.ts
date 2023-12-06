@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, inject, Input, OnInit } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
-import { NgbActiveModal, NgbCollapseModule, NgbDatepickerModule, NgbTimeStruct, NgbTimepickerModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbCollapseModule, NgbDatepickerModule, NgbTimepickerModule, NgbTimeStruct } from '@ng-bootstrap/ng-bootstrap';
 import { Simulation } from '../../../entities/simulation/simulation';
 import { SimulationsService } from '../../../simulations/simulations.service';
 import { Cycle, DayOfWeek, SimulationSchedule } from '../../../entities/simulation/simulationSchedule';
@@ -37,9 +37,17 @@ export class SimulationScheduleDialogComponent implements OnInit {
   editWeekday?: DayOfWeek;
   editStartDate = new FormControl('');
   editEndDate = new FormControl('');
+  daysOfWeek = [
+    DayOfWeek.MONDAY,
+    DayOfWeek.TUESDAY,
+    DayOfWeek.WEDNESDAY,
+    DayOfWeek.THURSDAY,
+    DayOfWeek.FRIDAY,
+    DayOfWeek.SATURDAY,
+    DayOfWeek.SUNDAY,
+  ];
 
   protected readonly Cycle = Cycle;
-  protected readonly DayOfWeek = DayOfWeek;
 
   constructor(private simulationService: SimulationsService) {}
 
@@ -70,11 +78,15 @@ export class SimulationScheduleDialogComponent implements OnInit {
 
   inputValid(): boolean {
     const basicRequirements =
-      this.startDate !== undefined && this.timeOfDay !== undefined && (this.endDate === undefined || this.endDate >= this.startDate);
+      this.startDate !== undefined &&
+      this.startDate !== null &&
+      this.timeOfDay !== undefined &&
+      this.timeOfDay !== null &&
+      (this.endDate === undefined || this.endDate === null || this.endDate >= this.startDate);
     if (this.cycle === Cycle.DAILY) {
       return basicRequirements;
     } else {
-      return basicRequirements && this.weekday !== undefined;
+      return basicRequirements && this.weekday !== undefined && this.weekday !== null;
     }
   }
 
@@ -94,7 +106,7 @@ export class SimulationScheduleDialogComponent implements OnInit {
 
       const startDate = new Date(schedule.startDateTime.valueOf());
       this.editStartDate.setValue(formatDate(startDate, 'yyyy-MM-dd', 'en-US'));
-      if (schedule.endDateTime !== undefined) {
+      if (schedule.endDateTime !== undefined && schedule.endDateTime !== null) {
         const endDate = new Date(schedule.endDateTime.valueOf());
         this.editEndDate.setValue(formatDate(endDate, 'yyyy-MM-dd', 'en-US'));
       }
@@ -121,6 +133,26 @@ export class SimulationScheduleDialogComponent implements OnInit {
         this.existingSchedules = this.existingSchedules.map(s => (s.id === newSchedule.id ? newSchedule : s));
         this.editScheduleId = undefined;
       });
+    }
+  }
+
+  deleteSchedule(id: number): void {
+    this.simulationService.deleteSimulationSchedule(id).subscribe(() => {
+      this.existingSchedules = this.existingSchedules.filter(s => s.id !== id);
+    });
+  }
+
+  editValid(): boolean {
+    const basicRequirements =
+      this.editStartDate.value !== '' &&
+      this.editTimeOfDay !== undefined &&
+      this.editTimeOfDay !== null &&
+      (this.editEndDate.value === '' ||
+        new Date(this.editEndDate.value! + 'T00:00:00.000') >= new Date(this.editStartDate.value! + 'T00:00:00.000'));
+    if (this.editCycle === Cycle.DAILY) {
+      return basicRequirements;
+    } else {
+      return basicRequirements && this.editWeekday !== undefined && this.editWeekday !== null;
     }
   }
 }

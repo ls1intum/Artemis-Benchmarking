@@ -84,8 +84,8 @@
             [(ngModel)]="weekday"
             [ngModelOptions]="{ standalone: true }"
           >
-            @for (day of DayOfWeek | keyvalue; track day) {
-              <option>{{ day.key }}</option>
+            @for (day of daysOfWeek; track day) {
+              <option>{{ day }}</option>
             }
           </select>
         </div>
@@ -97,31 +97,31 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th scope="col">Cycle</th>
-        <th scope="col">Time of Day</th>
-        <th scope="col">Weekday</th>
-        <th scope="col">From</th>
-        <th scope="col">To</th>
-        <th></th>
+        <th scope="col" class="col-2">Cycle</th>
+        <th scope="col" class="col-2">Time of Day</th>
+        <th scope="col" class="col-2">Weekday</th>
+        <th scope="col" class="col-2">From</th>
+        <th scope="col" class="col-2">To</th>
+        <th class="col-3"></th>
       </tr>
     </thead>
     <tbody>
       @for (schedule of existingSchedules; track schedule.id) {
         @if (schedule.id !== editScheduleId) {
           <tr>
-            <td>{{ schedule.cycle }}</td>
-            <td>{{ schedule.timeOfDay | date: 'HH:mm' }}</td>
-            <td>{{ schedule.dayOfWeek }}</td>
-            <td>{{ schedule.startDateTime | date: 'dd.MM.yyyy' }}</td>
-            <td>{{ schedule.endDateTime | date: 'dd.MM.yyyy' }}</td>
-            <td>
+            <td class="col-2">{{ schedule.cycle }}</td>
+            <td class="col-2">{{ schedule.timeOfDay | date: 'HH:mm' }}</td>
+            <td class="col-2">{{ schedule.dayOfWeek }}</td>
+            <td class="col-2">{{ schedule.startDateTime | date: 'dd.MM.yyyy HH:mm' }}</td>
+            <td class="col-2">{{ schedule.endDateTime | date: 'dd.MM.yyyy HH:mm' }}</td>
+            <td class="col-3">
               <button type="button" class="btn btn-primary" (click)="openEditSchedule(schedule.id!)">Edit</button>
-              <button type="button" class="btn btn-danger">Delete</button>
+              <button type="button" class="btn btn-danger" (click)="deleteSchedule(schedule.id!)">Delete</button>
             </td>
           </tr>
         } @else {
           <tr>
-            <td>
+            <td class="col-2">
               <select
                 id="cycle-select-edit"
                 class="form-select"
@@ -134,11 +134,11 @@
                 }
               </select>
             </td>
-            <td>
+            <td class="col-2">
               <ngb-timepicker id="time-picker" [spinners]="false" [(ngModel)]="editTimeOfDay"></ngb-timepicker>
             </td>
             @if (editCycle === Cycle.WEEKLY) {
-              <td>
+              <td class="col-2">
                 <select
                   id="day-select-edit"
                   class="form-select"
@@ -146,22 +146,22 @@
                   [(ngModel)]="editWeekday"
                   [ngModelOptions]="{ standalone: true }"
                 >
-                  @for (day of DayOfWeek | keyvalue; track day) {
-                    <option>{{ day.key }}</option>
+                  @for (day of daysOfWeek; track day) {
+                    <option>{{ day }}</option>
                   }
                 </select>
               </td>
             } @else {
-              <td></td>
+              <td class="col-2"></td>
             }
-            <td>
+            <td class="col-2">
               <input id="start-input-edit" class="form-control" type="date" [formControl]="editStartDate" />
             </td>
-            <td>
+            <td class="col-2">
               <input id="end-input-edit" class="form-control" type="date" [formControl]="editEndDate" />
             </td>
-            <td>
-              <button type="button" class="btn btn-primary" (click)="updateSchedule()">Save</button>
+            <td class="col-3">
+              <button type="button" class="btn btn-primary" (click)="updateSchedule()" [disabled]="!editValid()">Save</button>
               <button type="button" class="btn btn-danger" (click)="editScheduleId = undefined">Cancel</button>
             </td>
           </tr>
