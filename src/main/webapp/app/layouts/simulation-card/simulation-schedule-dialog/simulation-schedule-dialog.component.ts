@@ -72,13 +72,14 @@ export class SimulationScheduleDialogComponent implements OnInit {
   constructor(private simulationService: SimulationsService) {}
 
   ngOnInit(): void {
-    this.simulationService.getSimulationSchedules(this.simulation?.id!).subscribe(schedules => {
-      this.existingSchedules = schedules;
-    });
+    if (this.simulation?.id) {
+      this.simulationService.getSimulationSchedules(this.simulation.id).subscribe(schedules => {
+        this.existingSchedules = schedules;
+      });
+    }
   }
 
   createSchedule(): void {
-    console.log(this.timeOfDay);
     const hourString = this.timeOfDay!.hour.toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false });
     const minuteString = this.timeOfDay!.minute.toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false });
     const dateForTimeOfDay = new Date('2023-12-01T' + hourString + ':' + minuteString + ':00.000');
@@ -92,23 +93,18 @@ export class SimulationScheduleDialogComponent implements OnInit {
     );
     this.isCollapsed = true;
     this.simulationService.createSimulationSchedule(this.simulation!.id!, schedule).subscribe(newSchedule => {
-      if (newSchedule != undefined) {
+      if (newSchedule) {
         this.existingSchedules.push(newSchedule);
       }
     });
   }
 
   inputValid(): boolean {
-    const basicRequirements =
-      this.startDate !== undefined &&
-      this.startDate !== null &&
-      this.timeOfDay !== undefined &&
-      this.timeOfDay !== null &&
-      (this.endDate === undefined || this.endDate === null || this.endDate >= this.startDate);
+    const basicRequirements = !!this.startDate && !!this.timeOfDay && (!this.endDate || this.endDate >= this.startDate);
     if (this.cycle === Cycle.DAILY) {
       return basicRequirements;
     } else {
-      return basicRequirements && this.weekday !== undefined && this.weekday !== null;
+      return basicRequirements && !!this.weekday;
     }
   }
 
@@ -116,7 +112,6 @@ export class SimulationScheduleDialogComponent implements OnInit {
     this.editScheduleId = id;
     const schedule = this.existingSchedules.find(s => s.id === id);
     if (schedule) {
-      console.log(schedule);
       this.editCycle = schedule.cycle;
       const time = new Date(schedule.timeOfDay);
       this.editTimeOfDay = {
@@ -128,7 +123,7 @@ export class SimulationScheduleDialogComponent implements OnInit {
 
       const startDate = new Date(schedule.startDateTime.valueOf());
       this.editStartDate.setValue(formatDate(startDate, 'yyyy-MM-dd', 'en-US'));
-      if (schedule.endDateTime !== undefined && schedule.endDateTime !== null) {
+      if (schedule.endDateTime) {
         const endDate = new Date(schedule.endDateTime.valueOf());
         this.editEndDate.setValue(formatDate(endDate, 'yyyy-MM-dd', 'en-US'));
       }
@@ -152,7 +147,7 @@ export class SimulationScheduleDialogComponent implements OnInit {
         this.editWeekday,
       );
       this.simulationService.updateSimulationSchedule(updatedSchedule).subscribe(newSchedule => {
-        if (newSchedule == undefined) {
+        if (newSchedule === undefined) {
           this.existingSchedules = this.existingSchedules.filter(s => s.id !== schedule.id);
         } else {
           this.existingSchedules = this.existingSchedules.map(s => (s.id === newSchedule.id ? newSchedule : s));
@@ -171,14 +166,13 @@ export class SimulationScheduleDialogComponent implements OnInit {
   editValid(): boolean {
     const basicRequirements =
       this.editStartDate.value !== '' &&
-      this.editTimeOfDay !== undefined &&
-      this.editTimeOfDay !== null &&
+      !!this.editTimeOfDay &&
       (this.editEndDate.value === '' ||
         new Date(this.editEndDate.value! + 'T00:00:00.000') >= new Date(this.editStartDate.value! + 'T00:00:00.000'));
     if (this.editCycle === Cycle.DAILY) {
       return basicRequirements;
     } else {
-      return basicRequirements && this.editWeekday !== undefined && this.editWeekday !== null;
+      return basicRequirements && !!this.editWeekday;
     }
   }
 }

@@ -35,6 +35,7 @@ export class SimulationCardComponent implements OnInit {
   protected readonly Mode = Mode;
   protected readonly Status = Status;
   protected readonly getTextRepresentation = getTextRepresentation;
+  protected readonly ArtemisServer = ArtemisServer;
 
   constructor(
     private simulationService: SimulationsService,
@@ -124,6 +125,4 @@ export class SimulationCardComponent implements OnInit {
     const modalRef = this.modalService.open(SimulationScheduleDialogComponent, { size: 'xl' });
     modalRef.componentInstance.simulation = this.simulation;
   }
-
-  protected readonly ArtemisServer = ArtemisServer;
 }

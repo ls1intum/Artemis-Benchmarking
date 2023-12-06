@@ -82,12 +82,12 @@ export class SimulationsService {
     return this.httpClient.get(endpoint).pipe(map((res: any) => res as ArtemisServer[]));
   }
 
-  createSimulationSchedule(simulationId: number, simulationSchedule: SimulationSchedule): Observable<SimulationSchedule> {
+  createSimulationSchedule(simulationId: number, simulationSchedule: SimulationSchedule): Observable<SimulationSchedule | undefined> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId + '/schedule');
     return this.httpClient.post(endpoint, simulationSchedule).pipe(map((res: any) => res as SimulationSchedule));
   }
 
-  updateSimulationSchedule(simulationSchedule: SimulationSchedule): Observable<SimulationSchedule> {
+  updateSimulationSchedule(simulationSchedule: SimulationSchedule): Observable<SimulationSchedule | undefined> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/schedules/' + simulationSchedule.id);
     return this.httpClient.put(endpoint, simulationSchedule).pipe(map((res: any) => res as SimulationSchedule));
   }
