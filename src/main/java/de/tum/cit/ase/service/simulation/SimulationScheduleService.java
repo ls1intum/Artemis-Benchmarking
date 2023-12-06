@@ -4,6 +4,7 @@ import static java.time.ZonedDateTime.now;
 
 import de.tum.cit.ase.domain.SimulationSchedule;
 import de.tum.cit.ase.repository.SimulationScheduleRepository;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
@@ -118,21 +119,29 @@ public class SimulationScheduleService {
     }
 
     private ZonedDateTime calculateNextRun(SimulationSchedule simulationSchedule) {
-        ZonedDateTime time = simulationSchedule.getTimeOfDay();
+        ZonedDateTime lookFrom;
+        if (simulationSchedule.getStartDateTime().isAfter(now(ZoneId.of("UTC")))) {
+            lookFrom = simulationSchedule.getStartDateTime();
+        } else {
+            lookFrom = now(ZoneId.of("UTC"));
+        }
+        ZonedDateTime time = simulationSchedule
+            .getTimeOfDay()
+            .withYear(lookFrom.getYear())
+            .withMonth(lookFrom.getMonthValue())
+            .withDayOfMonth(lookFrom.getDayOfMonth());
+
         if (simulationSchedule.getCycle() == SimulationSchedule.Cycle.DAILY) {
-            if (time.isBefore(now())) {
-                return now().plusDays(1).withHour(time.getHour()).withMinute(time.getMinute());
+            if (time.isBefore(lookFrom)) {
+                return time.plusDays(1);
             } else {
-                return now().withHour(time.getHour()).withMinute(time.getMinute());
+                return time;
             }
         } else {
-            if (now().getDayOfWeek() == simulationSchedule.getDayOfWeek() && !time.isBefore(now())) {
-                return now().withHour(time.getHour()).withMinute(time.getMinute());
+            if (lookFrom.getDayOfWeek() == simulationSchedule.getDayOfWeek() && !time.isBefore(lookFrom)) {
+                return time;
             }
-            return now()
-                .with(TemporalAdjusters.next(simulationSchedule.getDayOfWeek()))
-                .withHour(time.getHour())
-                .withMinute(time.getMinute());
+            return time.with(TemporalAdjusters.next(simulationSchedule.getDayOfWeek()));
         }
     }
 

@@ -81,7 +81,7 @@ export class SimulationScheduleDialogComponent implements OnInit {
     console.log(this.timeOfDay);
     const hourString = this.timeOfDay!.hour.toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false });
     const minuteString = this.timeOfDay!.minute.toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false });
-    const dateForTimeOfDay = new Date('1970-01-01T' + hourString + ':' + minuteString + ':00.000');
+    const dateForTimeOfDay = new Date('2023-12-01T' + hourString + ':' + minuteString + ':00.000');
     const schedule = new SimulationSchedule(
       undefined,
       this.startDate!,
@@ -92,7 +92,9 @@ export class SimulationScheduleDialogComponent implements OnInit {
     );
     this.isCollapsed = true;
     this.simulationService.createSimulationSchedule(this.simulation!.id!, schedule).subscribe(newSchedule => {
-      this.existingSchedules.push(newSchedule);
+      if (newSchedule != undefined) {
+        this.existingSchedules.push(newSchedule);
+      }
     });
   }
 
@@ -138,7 +140,7 @@ export class SimulationScheduleDialogComponent implements OnInit {
     if (schedule) {
       const hourString = this.editTimeOfDay!.hour.toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false });
       const minuteString = this.editTimeOfDay!.minute.toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false });
-      const dateForTimeOfDay = new Date('1970-01-01T' + hourString + ':' + minuteString + ':00.000');
+      const dateForTimeOfDay = new Date('2023-12-01T' + hourString + ':' + minuteString + ':00.000');
       const dateForStart = new Date(this.editStartDate.value! + 'T00:00:00.000');
       const dateForEnd = this.editEndDate.value === '' ? undefined : new Date(this.editEndDate.value! + 'T00:00:00.000');
       const updatedSchedule = new SimulationSchedule(
@@ -150,7 +152,11 @@ export class SimulationScheduleDialogComponent implements OnInit {
         this.editWeekday,
       );
       this.simulationService.updateSimulationSchedule(updatedSchedule).subscribe(newSchedule => {
-        this.existingSchedules = this.existingSchedules.map(s => (s.id === newSchedule.id ? newSchedule : s));
+        if (newSchedule == undefined) {
+          this.existingSchedules = this.existingSchedules.filter(s => s.id !== schedule.id);
+        } else {
+          this.existingSchedules = this.existingSchedules.map(s => (s.id === newSchedule.id ? newSchedule : s));
+        }
         this.editScheduleId = undefined;
       });
     }
