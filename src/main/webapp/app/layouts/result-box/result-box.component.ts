@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { SimulationStats } from '../../entities/simulation/simulationStats';
 import { RequestType } from '../../entities/simulation/requestType';
 
@@ -7,9 +7,12 @@ import { RequestType } from '../../entities/simulation/requestType';
   templateUrl: './result-box.component.html',
   styleUrls: ['./result-box.component.scss'],
 })
-export class ResultBoxComponent {
+export class ResultBoxComponent implements OnInit {
   @Input() simulationStats?: SimulationStats;
 
+  ngOnInit(): void {
+    this.simulationStats?.statsByMinute.sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
+  }
   formatDuration(durationInNanoSeconds: number): string {
     const durationInMicroSeconds = durationInNanoSeconds / 1000;
     if (durationInMicroSeconds > 1000) {
