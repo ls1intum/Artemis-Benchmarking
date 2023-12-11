@@ -154,8 +154,8 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(time.minusHours(1));
 
         var result = simulationScheduleService.createSimulationSchedule(1L, schedule);
-        assertNull(result.getNextRun());
-        verify(simulationScheduleRepository, times(1)).delete(result);
+        assertNull(result);
+        verify(simulationScheduleRepository, times(1)).delete(any());
         verify(simulationDataService, times(1)).getSimulation(1L);
         verifyNoMoreInteractions(simulationDataService);
     }
@@ -171,8 +171,8 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(time.minusHours(1));
 
         var result = simulationScheduleService.createSimulationSchedule(1L, schedule);
-        assertNull(result.getNextRun());
-        verify(simulationScheduleRepository, times(1)).delete(result);
+        assertNull(result);
+        verify(simulationScheduleRepository, times(1)).delete(any());
         verify(simulationDataService, times(1)).getSimulation(1L);
         verifyNoMoreInteractions(simulationDataService);
     }

@@ -3,7 +3,7 @@
     {{ simulation.name }}
     <div>
       @if (simulation.server !== ArtemisServer.PRODUCTION || simulation.mode == Mode.EXISTING_COURSE_PREPARED_EXAM) {
-        <button type="button" class="btn btn-link btn-sm p-0 me-3" (click)="openScheduleDialog()" ngbTooltip="Schedule">
+        <button type="button" class="btn btn-sm me-3" (click)="openScheduleDialog()" ngbTooltip="Schedule">
           <fa-icon [icon]="faCalendarDays" class="text-info"></fa-icon>
         </button>
       }
@@ -18,9 +18,15 @@
       </button>
     </div>
   </div>
-  <div class="card-body" style="position: relative">
+  <div class="card-body pt-2 pb-2 position-relative">
     <div class="space-between-wrapper">
       <div class="me-3 w-60">
+        @if (numberOfActiveSchedules > 0) {
+          <div class="alert alert-warning p-1 w-fit-content" role="button" (click)="openScheduleDialog()">
+            <fa-icon class="ms-2" [icon]="faClock"></fa-icon>
+            <span class="ms-2 me-2"> {{ numberOfActiveSchedules }} {{ numberOfActiveSchedules == 1 ? 'Schedule' : 'Schedules' }} </span>
+          </div>
+        }
         <p>
           <strong>{{ getTextRepresentation(simulation.mode) }}</strong>
         </p>
@@ -39,10 +45,8 @@
           <p>Exam-ID: {{ simulation.examId }}</p>
         }
       </div>
-      <jhi-server-badge style="position: absolute; top: 10px; right: 10px" class="mb-5" [server]="simulation.server"></jhi-server-badge>
-      <button style="position: absolute; bottom: 10px; right: 10px" type="button" class="btn btn-primary" (click)="startRun(accountModal)">
-        Start run
-      </button>
+      <jhi-server-badge class="mb-5 position-absolute top-10 end-10" [server]="simulation.server"></jhi-server-badge>
+      <button type="button" class="btn btn-primary position-absolute bottom-10 end-10" (click)="startRun(accountModal)">Start run</button>
     </div>
   </div>
   <div class="card-footer">

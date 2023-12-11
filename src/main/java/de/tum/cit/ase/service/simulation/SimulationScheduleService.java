@@ -37,20 +37,8 @@ public class SimulationScheduleService {
             throw new IllegalArgumentException("Simulation schedule must not have an id yet");
         } else if (simulationSchedule.getSimulation() != null) {
             throw new IllegalArgumentException("Simulation schedule must not have a simulation yet");
-        } else if (simulationSchedule.getStartDateTime() == null) {
-            throw new IllegalArgumentException("Start date time must not be null");
-        } else if (
-            simulationSchedule.getEndDateTime() != null &&
-            simulationSchedule.getEndDateTime().isBefore(simulationSchedule.getStartDateTime())
-        ) {
-            throw new IllegalArgumentException("End date time must not be before start date time");
-        } else if (simulationSchedule.getCycle() == null) {
-            throw new IllegalArgumentException("Cycle must not be null");
-        } else if (simulationSchedule.getEndDateTime() != null && simulationSchedule.getEndDateTime().isBefore(now())) {
-            throw new IllegalArgumentException("End date time must not be in the past");
-        } else if (!verifySchedule(simulationSchedule)) {
-            throw new IllegalArgumentException("Invalid schedule");
         }
+        verifySchedule(simulationSchedule);
         simulationSchedule.setSimulation(simulationDataService.getSimulation(simulationId));
         return updateNextRun(simulationSchedule);
     }
@@ -65,20 +53,8 @@ public class SimulationScheduleService {
         var existingSimulationSchedule = simulationScheduleRepository.findById(simulationScheduleId).orElseThrow();
         if (simulationSchedule.getSimulation() != null) {
             throw new IllegalArgumentException("Id of simulation must not be changed!");
-        } else if (simulationSchedule.getStartDateTime() == null) {
-            throw new IllegalArgumentException("Start date time must not be null");
-        } else if (
-            simulationSchedule.getEndDateTime() != null &&
-            simulationSchedule.getEndDateTime().isBefore(simulationSchedule.getStartDateTime())
-        ) {
-            throw new IllegalArgumentException("End date time must not be before start date time");
-        } else if (simulationSchedule.getCycle() == null) {
-            throw new IllegalArgumentException("Cycle must not be null");
-        } else if (simulationSchedule.getEndDateTime() != null && simulationSchedule.getEndDateTime().isBefore(now())) {
-            throw new IllegalArgumentException("End date time must not be in the past");
-        } else if (!verifySchedule(simulationSchedule)) {
-            throw new IllegalArgumentException("Invalid schedule");
         }
+        verifySchedule(simulationSchedule);
         simulationSchedule.setSimulation(existingSimulationSchedule.getSimulation());
         return updateNextRun(simulationSchedule);
     }
@@ -145,13 +121,22 @@ public class SimulationScheduleService {
         }
     }
 
-    private boolean verifySchedule(SimulationSchedule simulationSchedule) {
-        if (simulationSchedule.getCycle() == SimulationSchedule.Cycle.DAILY) {
-            return simulationSchedule.getTimeOfDay() != null;
-        } else if (simulationSchedule.getCycle() == SimulationSchedule.Cycle.WEEKLY) {
-            return simulationSchedule.getTimeOfDay() != null && simulationSchedule.getDayOfWeek() != null;
-        } else {
-            return false;
+    private void verifySchedule(SimulationSchedule simulationSchedule) {
+        if (simulationSchedule.getStartDateTime() == null) {
+            throw new IllegalArgumentException("Start date time must not be null");
+        } else if (
+            simulationSchedule.getEndDateTime() != null &&
+            simulationSchedule.getEndDateTime().isBefore(simulationSchedule.getStartDateTime())
+        ) {
+            throw new IllegalArgumentException("End date time must not be before start date time");
+        } else if (simulationSchedule.getCycle() == null) {
+            throw new IllegalArgumentException("Cycle must not be null");
+        } else if (simulationSchedule.getEndDateTime() != null && simulationSchedule.getEndDateTime().isBefore(now())) {
+            throw new IllegalArgumentException("End date time must not be in the past");
+        } else if (simulationSchedule.getTimeOfDay() == null) {
+            throw new IllegalArgumentException("Time of day must not be null");
+        } else if (simulationSchedule.getCycle() == SimulationSchedule.Cycle.WEEKLY && simulationSchedule.getDayOfWeek() == null) {
+            throw new IllegalArgumentException("Day of week must not be null");
         }
     }
 }

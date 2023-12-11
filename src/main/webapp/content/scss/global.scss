@@ -93,6 +93,10 @@ Generic styles
   width: 60% !important;
 }
 
+.w-fit-content {
+  width: fit-content !important;
+}
+
 .h-90 {
   height: 90% !important;
 }
@@ -122,6 +126,14 @@ Generic styles
 .hand,
 [jhisortby] {
   cursor: pointer;
+}
+
+.end-10 {
+  right: 10px;
+}
+
+.bottom-10 {
+  bottom: 10px;
 }
 
 /* ==========================================================================

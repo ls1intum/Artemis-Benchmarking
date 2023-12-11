@@ -5,7 +5,7 @@ import { SimulationsService } from '../../simulations/simulations.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ArtemisAccountDTO } from '../../simulations/artemisAccountDTO';
-import { faCalendarDays, faChevronRight, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDays, faChevronRight, faClock, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { SimulationScheduleDialogComponent } from './simulation-schedule-dialog/simulation-schedule-dialog.component';
 
 @Component({
@@ -17,6 +17,7 @@ export class SimulationCardComponent implements OnInit {
   faTrashCan = faTrashCan;
   faChevronRight = faChevronRight;
   faCalendarDays = faCalendarDays;
+  faClock = faClock;
 
   @Input()
   simulation!: Simulation;
@@ -24,6 +25,7 @@ export class SimulationCardComponent implements OnInit {
   selectedRun?: SimulationRun;
   displayedRuns: SimulationRun[] = [];
   numberOfDisplayedRuns = 3;
+  numberOfActiveSchedules = 0;
 
   adminPassword = '';
   adminUsername = '';
@@ -45,6 +47,9 @@ export class SimulationCardComponent implements OnInit {
   ngOnInit(): void {
     this.sortRuns();
     this.updateDisplayRuns();
+    this.simulationService.getSimulationSchedules(this.simulation.id!).subscribe(numberOfActiveSchedules => {
+      this.numberOfActiveSchedules = numberOfActiveSchedules.length;
+    });
   }
 
   startRun(content: any): void {
@@ -124,5 +129,10 @@ export class SimulationCardComponent implements OnInit {
   openScheduleDialog(): void {
     const modalRef = this.modalService.open(SimulationScheduleDialogComponent, { size: 'xl' });
     modalRef.componentInstance.simulation = this.simulation;
+    modalRef.closed.subscribe(() => {
+      this.simulationService.getSimulationSchedules(this.simulation.id!).subscribe(numberOfActiveSchedules => {
+        this.numberOfActiveSchedules = numberOfActiveSchedules.length;
+      });
+    });
   }
 }
