@@ -10,6 +10,7 @@ import { SimulationRun, Status } from '../entities/simulation/simulationRun';
 import { SimulationStats } from '../entities/simulation/simulationStats';
 import { LogMessage } from '../entities/simulation/logMessage';
 import { ArtemisServer } from '../core/util/artemisServer';
+import { SimulationSchedule } from '../entities/simulation/simulationSchedule';
 
 @Injectable({
   providedIn: 'root',
@@ -34,6 +35,11 @@ export class SimulationsService {
   receiveSimulationStatus(run: SimulationRun): Observable<Status> {
     this.websocketService.subscribe('/topic/simulation/runs/' + run.id + '/status');
     return this.websocketService.receive('/topic/simulation/runs/' + run.id + '/status').pipe(map((res: any) => res as Status));
+  }
+
+  receiveNewSimulationRun(simulation: Simulation): Observable<SimulationRun> {
+    this.websocketService.subscribe('/topic/simulation/' + simulation.id + '/runs/new');
+    return this.websocketService.receive('/topic/simulation/' + simulation.id + '/runs/new').pipe(map((res: any) => res as SimulationRun));
   }
 
   createSimulation(simulation: Simulation): Observable<Simulation> {
@@ -79,6 +85,26 @@ export class SimulationsService {
   getServersWithCleanupEnabled(): Observable<ArtemisServer[]> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/servers/cleanup-enabled');
     return this.httpClient.get(endpoint).pipe(map((res: any) => res as ArtemisServer[]));
+  }
+
+  createSimulationSchedule(simulationId: number, simulationSchedule: SimulationSchedule): Observable<SimulationSchedule | undefined> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId + '/schedule');
+    return this.httpClient.post(endpoint, simulationSchedule).pipe(map((res: any) => res as SimulationSchedule));
+  }
+
+  updateSimulationSchedule(simulationSchedule: SimulationSchedule): Observable<SimulationSchedule | undefined> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/schedules/' + simulationSchedule.id);
+    return this.httpClient.put(endpoint, simulationSchedule).pipe(map((res: any) => res as SimulationSchedule));
+  }
+
+  deleteSimulationSchedule(simulationScheduleId: number): Observable<void> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/schedules/' + simulationScheduleId);
+    return this.httpClient.delete(endpoint).pipe(map(() => {}));
+  }
+
+  getSimulationSchedules(simulationId: number): Observable<SimulationSchedule[]> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId + '/schedules');
+    return this.httpClient.get(endpoint).pipe(map((res: any) => res as SimulationSchedule[]));
   }
 
   public unsubscribeFromSelectedSimulationRun(run: SimulationRun): void {

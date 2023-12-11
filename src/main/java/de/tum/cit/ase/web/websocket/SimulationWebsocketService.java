@@ -2,8 +2,6 @@ package de.tum.cit.ase.web.websocket;
 
 import de.tum.cit.ase.domain.LogMessage;
 import de.tum.cit.ase.domain.SimulationRun;
-import de.tum.cit.ase.domain.SimulationStats;
-import java.util.Set;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +11,7 @@ public class SimulationWebsocketService {
     private static final String TOPIC_SIMULATION_RESULT = "/topic/simulation/runs/%d/result";
     private static final String TOPIC_RUN_STATUS_UPDATE = "/topic/simulation/runs/%d/status";
     private static final String TOPIC_RUN_LOG_MESSAGE = "/topic/simulation/runs/%d/log";
+    private static final String TOPIC_NEW_RUN = "/topic/simulation/%d/runs/new";
 
     private final SimpMessageSendingOperations messagingTemplate;
 
@@ -43,5 +42,9 @@ public class SimulationWebsocketService {
      */
     public void sendRunLogMessage(SimulationRun run, LogMessage logMessage) {
         messagingTemplate.convertAndSend(String.format(TOPIC_RUN_LOG_MESSAGE, run.getId()), logMessage);
+    }
+
+    public void sendNewRun(SimulationRun run) {
+        messagingTemplate.convertAndSend(String.format(TOPIC_NEW_RUN, run.getSimulation().getId()), run);
     }
 }

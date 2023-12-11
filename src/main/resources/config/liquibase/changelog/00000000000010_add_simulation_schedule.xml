@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <changeSet id="00000000000010" author="valentin-boehm">
+        <createTable tableName="simulation_schedule">
+            <column name="id" type="bigint" autoIncrement="true" startWith="0">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="start_date_time" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_date_time" type="timestamp"/>
+            <column name="cycle" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="simulation_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <changeSet id="00000000000011" author="valentin-boehm">
+        <addColumn tableName="simulation_schedule">
+            <column name="next_run" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="time_of_day" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="day_of_week" type="varchar(30)"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

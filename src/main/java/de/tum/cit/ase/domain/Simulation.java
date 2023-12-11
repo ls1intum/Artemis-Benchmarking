@@ -1,5 +1,6 @@
 package de.tum.cit.ase.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.tum.cit.ase.util.ArtemisServer;
 import jakarta.persistence.*;
 import java.time.ZonedDateTime;
@@ -49,6 +50,10 @@ public class Simulation {
 
     @Column(name = "number_of_commits_and_pushes_to")
     private int numberOfCommitsAndPushesTo;
+
+    @OneToMany(mappedBy = "simulation", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @JsonIgnore
+    private Set<SimulationSchedule> schedules;
 
     public Long getId() {
         return id;
