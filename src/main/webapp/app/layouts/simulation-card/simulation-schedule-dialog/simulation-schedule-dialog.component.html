@@ -138,9 +138,21 @@
           <tr>
             <td class="col-2">{{ schedule.cycle }}</td>
             <td class="col-2">{{ schedule.timeOfDay | date: 'HH:mm' }}</td>
-            <td class="col-2">{{ schedule.dayOfWeek }}</td>
+            <td class="col-2">
+              @if (schedule.cycle === Cycle.WEEKLY) {
+                {{ schedule.dayOfWeek }}
+              } @else {
+                -
+              }
+            </td>
             <td class="col-2">{{ schedule.startDateTime | date: 'dd.MM.yyyy HH:mm' }}</td>
-            <td class="col-2">{{ schedule.endDateTime | date: 'dd.MM.yyyy HH:mm' }}</td>
+            <td class="col-2">
+              @if (schedule.endDateTime === null) {
+                -
+              } @else {
+                {{ schedule.endDateTime | date: 'dd.MM.yyyy HH:mm' }}
+              }
+            </td>
             <td class="col-3">
               <button type="button" class="btn btn-info" (click)="openEditSchedule(schedule.id!)">Edit</button>
               <button type="button" class="btn btn-danger" (click)="deleteSchedule(schedule.id!)">Delete</button>

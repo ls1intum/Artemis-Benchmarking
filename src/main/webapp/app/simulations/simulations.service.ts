@@ -37,6 +37,11 @@ export class SimulationsService {
     return this.websocketService.receive('/topic/simulation/runs/' + run.id + '/status').pipe(map((res: any) => res as Status));
   }
 
+  receiveNewSimulationRun(simulation: Simulation): Observable<SimulationRun> {
+    this.websocketService.subscribe('/topic/simulation/' + simulation.id + '/runs/new');
+    return this.websocketService.receive('/topic/simulation/' + simulation.id + '/runs/new').pipe(map((res: any) => res as SimulationRun));
+  }
+
   createSimulation(simulation: Simulation): Observable<Simulation> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations');
     return this.httpClient.post(endpoint, simulation).pipe(map((res: any) => res as Simulation));

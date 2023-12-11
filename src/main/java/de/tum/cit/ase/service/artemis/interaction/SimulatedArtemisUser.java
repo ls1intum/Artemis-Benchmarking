@@ -87,7 +87,10 @@ public abstract class SimulatedArtemisUser {
                     .defaultHeader("Cookie", authToken.jwtToken())
                     .build();
             checkAccess();
-            return List.of();
+            if (authenticated) {
+                return List.of();
+            }
+            // If the cached token is invalid, we will try to log in again...
         }
 
         log.info("Logging in as {{}}", username);

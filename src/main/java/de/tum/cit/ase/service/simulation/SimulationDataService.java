@@ -75,8 +75,12 @@ public class SimulationDataService {
     }
 
     public void deleteSimulationRun(long runId) {
-        if (simulationRunRepository.findById(runId).orElseThrow().getStatus() == SimulationRun.Status.RUNNING) {
+        var run = simulationRunRepository.findById(runId).orElseThrow();
+        if (run.getStatus() == SimulationRun.Status.RUNNING) {
             throw new IllegalArgumentException("Cannot delete a running simulation run!");
+        }
+        if (run.getStatus() == SimulationRun.Status.QUEUED) {
+            simulationRunQueueService.removeSimulationRunFromQueue(run);
         }
         simulationRunRepository.deleteById(runId);
     }
@@ -102,7 +106,7 @@ public class SimulationDataService {
         SimulationRun savedSimulationRun = simulationRunRepository.save(simulationRun);
         savedSimulationRun.setAdminAccount(accountDTO);
         simulationRunQueueService.queueSimulationRun(savedSimulationRun);
-        simulationWebsocketService.sendRunStatusUpdate(savedSimulationRun);
+        simulationWebsocketService.sendNewRun(savedSimulationRun);
         return savedSimulationRun;
     }
 

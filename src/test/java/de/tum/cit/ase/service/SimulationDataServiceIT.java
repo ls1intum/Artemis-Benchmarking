@@ -166,7 +166,7 @@ public class SimulationDataServiceIT {
         assertEquals(1L, queuedRun.getId());
         verify(simulationRunRepository).save(queuedRun);
         verify(simulationRunQueueService).queueSimulationRun(queuedRun);
-        verify(simulationWebsocketService).sendRunStatusUpdate(queuedRun);
+        verify(simulationWebsocketService).sendNewRun(queuedRun);
     }
 
     @Test

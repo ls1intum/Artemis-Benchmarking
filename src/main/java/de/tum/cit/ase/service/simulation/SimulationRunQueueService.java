@@ -66,6 +66,10 @@ public class SimulationRunQueueService {
         simulatorThread.start();
     }
 
+    public boolean removeSimulationRunFromQueue(SimulationRun simulationRun) {
+        return simulationRunQueue.remove(simulationRun);
+    }
+
     /**
      * Infinite loop that takes simulation runs from the queue and executes them.
      * When no simulation runs are available, the thread is blocked until a new simulation run is added to the queue.

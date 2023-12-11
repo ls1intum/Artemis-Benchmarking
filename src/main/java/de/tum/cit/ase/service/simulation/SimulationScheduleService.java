@@ -68,7 +68,7 @@ public class SimulationScheduleService {
         return simulationScheduleRepository.findAllBySimulationId(simulationId);
     }
 
-    @Scheduled(fixedRate = 1000 * 60 * 15, initialDelay = 0)
+    @Scheduled(fixedRate = 1000 * 60, initialDelay = 0)
     void executeScheduledSimulations() {
         log.info("Executing scheduled simulation runs");
         var simulationSchedules = simulationScheduleRepository.findAll();

@@ -50,6 +50,7 @@ export class SimulationCardComponent implements OnInit {
     this.simulationService.getSimulationSchedules(this.simulation.id!).subscribe(numberOfActiveSchedules => {
       this.numberOfActiveSchedules = numberOfActiveSchedules.length;
     });
+    this.subscribeToNewSimulationRun();
   }
 
   startRun(content: any): void {
@@ -61,28 +62,14 @@ export class SimulationCardComponent implements OnInit {
             account = new ArtemisAccountDTO(this.adminUsername, this.adminPassword);
           }
           this.simulationService.runSimulation(this.simulation.id!, account).subscribe(newRun => {
-            this.simulation.runs.push(newRun);
-
-            this.simulationService.receiveSimulationStatus(newRun).subscribe(status => {
-              newRun.status = status;
-            });
-
-            this.sortRuns();
-            this.updateDisplayRuns();
+            this.addNewRun(newRun);
           });
         },
         () => {},
       );
     } else {
       this.simulationService.runSimulation(this.simulation.id!).subscribe(newRun => {
-        this.simulation.runs.push(newRun);
-
-        this.simulationService.receiveSimulationStatus(newRun).subscribe(status => {
-          newRun.status = status;
-        });
-
-        this.sortRuns();
-        this.updateDisplayRuns();
+        this.addNewRun(newRun);
       });
     }
   }
@@ -129,10 +116,30 @@ export class SimulationCardComponent implements OnInit {
   openScheduleDialog(): void {
     const modalRef = this.modalService.open(SimulationScheduleDialogComponent, { size: 'xl' });
     modalRef.componentInstance.simulation = this.simulation;
-    modalRef.closed.subscribe(() => {
+    modalRef.hidden.subscribe(() => {
       this.simulationService.getSimulationSchedules(this.simulation.id!).subscribe(numberOfActiveSchedules => {
         this.numberOfActiveSchedules = numberOfActiveSchedules.length;
       });
     });
+  }
+
+  subscribeToNewSimulationRun(): void {
+    this.simulationService.receiveNewSimulationRun(this.simulation).subscribe(newRun => {
+      this.addNewRun(newRun);
+    });
+  }
+
+  addNewRun(newRun: SimulationRun): void {
+    if (this.simulation.runs.some(run => run.id === newRun.id)) {
+      return;
+    }
+    this.simulation.runs.push(newRun);
+
+    this.simulationService.receiveSimulationStatus(newRun).subscribe(status => {
+      newRun.status = status;
+    });
+
+    this.sortRuns();
+    this.updateDisplayRuns();
   }
 }
