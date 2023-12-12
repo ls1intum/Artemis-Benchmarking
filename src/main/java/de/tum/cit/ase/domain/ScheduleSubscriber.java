@@ -1,9 +1,10 @@
 package de.tum.cit.ase.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "simulation_schedule")
+@Table(name = "schedule_subscriber")
 public class ScheduleSubscriber {
 
     @Id
@@ -12,12 +13,13 @@ public class ScheduleSubscriber {
 
     @ManyToOne
     @JoinColumn(name = "schedule_id", nullable = false)
+    @JsonIgnore
     private SimulationSchedule schedule;
 
     @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "key", nullable = false, length = 20)
+    @Column(name = "subscription_key", nullable = false, length = 20)
     private String key;
 
     public Long getId() {

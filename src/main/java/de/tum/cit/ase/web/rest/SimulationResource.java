@@ -174,4 +174,10 @@ public class SimulationResource {
     public ResponseEntity<List<SimulationSchedule>> getSchedules(@PathVariable long simulationId) {
         return new ResponseEntity<>(simulationScheduleService.getSimulationSchedules(simulationId), HttpStatus.OK);
     }
+
+    @PostMapping("/schedules/{scheduleId}/subscribe")
+    public ResponseEntity<Void> subscribeToSchedule(@PathVariable long scheduleId, @RequestBody String email) {
+        simulationScheduleService.subscribeToSchedule(scheduleId, email);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

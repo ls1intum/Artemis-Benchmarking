@@ -6,6 +6,7 @@ import de.tum.cit.ase.domain.ScheduleSubscriber;
 import de.tum.cit.ase.domain.SimulationSchedule;
 import de.tum.cit.ase.repository.ScheduleSubscriberRepository;
 import de.tum.cit.ase.repository.SimulationScheduleRepository;
+import de.tum.cit.ase.service.MailService;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
@@ -24,15 +25,18 @@ public class SimulationScheduleService {
     private final SimulationScheduleRepository simulationScheduleRepository;
     private final SimulationDataService simulationDataService;
     private final ScheduleSubscriberRepository scheduleSubscriberRepository;
+    private final MailService mailService;
 
     public SimulationScheduleService(
         SimulationScheduleRepository simulationScheduleRepository,
         SimulationDataService simulationDataService,
-        ScheduleSubscriberRepository scheduleSubscriberRepository
+        ScheduleSubscriberRepository scheduleSubscriberRepository,
+        MailService mailService
     ) {
         this.simulationScheduleRepository = simulationScheduleRepository;
         this.simulationDataService = simulationDataService;
         this.scheduleSubscriberRepository = scheduleSubscriberRepository;
+        this.mailService = mailService;
     }
 
     public SimulationSchedule createSimulationSchedule(long simulationId, SimulationSchedule simulationSchedule) {
@@ -75,15 +79,18 @@ public class SimulationScheduleService {
     }
 
     public ScheduleSubscriber subscribeToSchedule(long scheduleId, String email) {
+        log.debug("Subscribing {} to schedule {}", email, scheduleId);
         var schedule = simulationScheduleRepository.findById(scheduleId).orElseThrow();
         if (schedule.getSubscribers().stream().anyMatch(subscriber -> subscriber.getEmail().equals(email))) {
             throw new IllegalArgumentException("Already subscribed to this schedule");
         }
         var subscriber = new ScheduleSubscriber();
         subscriber.setSchedule(schedule);
-        subscriber.setEmail(email);
+        subscriber.setEmail(email.toLowerCase());
         subscriber.setKey(RandomUtil.generateActivationKey());
-        return scheduleSubscriberRepository.save(subscriber);
+        var savedSubscriber = scheduleSubscriberRepository.save(subscriber);
+        mailService.sendSubscribedMail(savedSubscriber);
+        return savedSubscriber;
     }
 
     @Scheduled(fixedRate = 1000 * 60, initialDelay = 0)

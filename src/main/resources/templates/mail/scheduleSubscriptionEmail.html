@@ -6,9 +6,9 @@
   </head>
   <body>
     <p>Hello,</p>
-    <p th:text="This email address has subscribed to a schedule of the Artemis-Benchmarking simulation ${schedule.simulation.name}."></p>
+    <p th:text="${simulationName}"></p>
     <p>
-      <a th:with="url=(@{|${baseUrl}/unsubscribe?key=${subscriber.key}|})" th:href="${url}">Click here to unsubscribe.</a>
+      <a th:with="url=(@{|${baseUrl}/unsubscribe?key=${subscriptionKey}|})" th:href="${url}">Click here to unsubscribe.</a>
     </p>
     <p>
       <span>Regards, </span>

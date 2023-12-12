@@ -17,7 +17,7 @@
             <column name="email" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="key" type="varchar(20)">
+            <column name="subscription_key" type="varchar(20)">
                 <constraints nullable="false"/>
             </column>
         </createTable>

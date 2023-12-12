@@ -1,5 +1,6 @@
 package de.tum.cit.ase.service;
 
+import de.tum.cit.ase.domain.ScheduleSubscriber;
 import de.tum.cit.ase.domain.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -32,6 +33,10 @@ public class MailService {
     private static final String USER = "user";
 
     private static final String BASE_URL = "baseUrl";
+
+    private static final String SUBSCRIPTION_KEY = "subscriptionKey";
+
+    private static final String SIMULATION_NAME = "simulationName";
 
     private final JHipsterProperties jHipsterProperties;
 
@@ -114,5 +119,18 @@ public class MailService {
     public void sendPasswordResetMail(User user) {
         log.debug("Sending password reset email to '{}'", user.getEmail());
         self.sendEmailFromTemplate(user, "mail/passwordResetEmail", "email.reset.title");
+    }
+
+    @Async
+    public void sendSubscribedMail(ScheduleSubscriber subscriber) {
+        log.debug("Sending subscription confirmation email to '{}'", subscriber.getEmail());
+        Locale locale = Locale.forLanguageTag("en");
+        Context context = new Context(locale);
+        context.setVariable(SIMULATION_NAME, subscriber.getSchedule().getSimulation().getName());
+        context.setVariable(SUBSCRIPTION_KEY, subscriber.getKey());
+        context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
+        String content = templateEngine.process("mail/scheduleSubscriptionEmail", context);
+        String subject = "Artemis-Benchmarking - Subscription to simulation schedule";
+        self.sendEmail(subscriber.getEmail(), subject, content, false, true);
     }
 }
