@@ -1,6 +1,9 @@
 package de.tum.cit.ase.service;
 
 import de.tum.cit.ase.domain.ScheduleSubscriber;
+import de.tum.cit.ase.domain.SimulationResultForSummary;
+import de.tum.cit.ase.domain.SimulationRun;
+import de.tum.cit.ase.domain.SimulationSchedule;
 import de.tum.cit.ase.domain.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -126,11 +129,29 @@ public class MailService {
         log.debug("Sending subscription confirmation email to '{}'", subscriber.getEmail());
         Locale locale = Locale.forLanguageTag("en");
         Context context = new Context(locale);
-        context.setVariable(SIMULATION_NAME, subscriber.getSchedule().getSimulation().getName());
-        context.setVariable(SUBSCRIPTION_KEY, subscriber.getKey());
+        context.setVariable("subscriber", subscriber);
         context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
         String content = templateEngine.process("mail/scheduleSubscriptionEmail", context);
         String subject = "Artemis-Benchmarking - Subscription to simulation schedule";
         self.sendEmail(subscriber.getEmail(), subject, content, false, true);
+    }
+
+    @Async
+    public void sendRunResultMail(SimulationRun run, SimulationSchedule schedule) {
+        SimulationResultForSummary result = SimulationResultForSummary.from(run);
+        Locale locale = Locale.forLanguageTag("en");
+        Context context = new Context(locale);
+        context.setVariable("run", run);
+        context.setVariable("result", result);
+        context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
+        String subject = "Artemis-Benchmarking - Result for scheduled run";
+        schedule
+            .getSubscribers()
+            .forEach(subscriber -> {
+                context.setVariable("subscriber", subscriber);
+                String content = templateEngine.process("mail/subscriptionResultEmail", context);
+                log.debug("Sending result email to '{}'", subscriber.getEmail());
+                self.sendEmail(subscriber.getEmail(), subject, content, false, true);
+            });
     }
 }

@@ -5,6 +5,7 @@ import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
 import { getOrder } from '../../entities/simulation/simulationStats';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'jhi-simulations-overview',
@@ -24,15 +25,25 @@ export class SimulationsOverviewComponent implements OnInit {
   constructor(
     private simulationsService: SimulationsService,
     private modalService: NgbModal,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
+    const selectedRunString = this.route.snapshot.queryParamMap.get('runId');
+    let selectedRunId = -1;
+    if (selectedRunString) {
+      selectedRunId = parseInt(selectedRunString, 10);
+    }
     this.simulationsService.getSimulations().subscribe(simulations => {
       this.simulations = simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
 
       this.simulations.forEach(simulation => {
         simulation.runs.forEach(run => {
           this.subscribeToRunStatus(run);
+          if (run.id === selectedRunId) {
+            this.selectRun(run);
+          }
         });
       });
     });
@@ -58,6 +69,7 @@ export class SimulationsOverviewComponent implements OnInit {
       run.logMessages = updatedRun.logMessages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
       this.selectedRun = run;
       this.subscribeToSelectedRun(run);
+      this.router.navigate([], { queryParams: { runId: run.id } });
     });
   }
 

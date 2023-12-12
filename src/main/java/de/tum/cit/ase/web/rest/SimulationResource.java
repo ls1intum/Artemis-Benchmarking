@@ -93,7 +93,7 @@ public class SimulationResource {
         @PathVariable long simulationId,
         @RequestBody(required = false) ArtemisAccountDTO accountDTO
     ) {
-        var run = simulationDataService.createAndQueueSimulationRun(simulationId, accountDTO);
+        var run = simulationDataService.createAndQueueSimulationRun(simulationId, accountDTO, null);
         return new ResponseEntity<>(run, HttpStatus.OK);
     }
 

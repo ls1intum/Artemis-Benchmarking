@@ -1,0 +1,41 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="en">
+  <head>
+    <title>Result for scheduled run</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  </head>
+  <body>
+    <p>
+      Hello,<br />
+      A scheduled run for the simulation
+      <strong th:text="${run.getSimulation().getName()}">Simulation</strong> was executed. <br />
+      Here are the results:
+    </p>
+    <p>
+      Users: <strong th:text="${run.getSimulation().getNumberOfUsers()}">0</strong><br />
+      Server: <strong th:text="${run.getSimulation().getServer()}">STAGING</strong><br />
+      Mode: <strong th:text="${run.getSimulation().getMode()}">CREATE_COURSE_AND_EXAM</strong><br />
+    </p>
+    <p>
+      Avg. response times: <br />
+      - total: <strong th:text="${result.avgTotal}">0 ms</strong><br />
+      - authentication: <strong th:text="${result.avgAuthentication}">0 ms</strong><br />
+      - get student exam: <strong th:text="${result.avgGetStudentExam}">0 ms</strong><br />
+      - start student exam: <strong th:text="${result.avgStartStudentExam}">0 ms</strong><br />
+      - submit exercises: <strong th:text="${result.avgSubmitExercise}">0 ms</strong><br />
+      - submit student exam: <strong th:text="${result.avgSubmitStudentExam}">0 ms</strong><br />
+      - clone: <strong th:text="${result.avgClone}">0 ms</strong><br />
+      - push: <strong th:text="${result.avgPush}">0 ms</strong><br />
+    </p>
+    To see more details, please visit the <a th:with="url=(@{|${baseUrl}/simulations?runId=${run.getId()}|})" th:href="${url}">run page</a>.
+    <p>
+      You are receiving this email because you subscribed to the schedule. <br />
+      Click here to unsubscribe: <a th:with="url=(@{|${baseUrl}/unsubscribe?key=${subscriber.getKey()}|})" th:href="${url}">Unsubscribe</a>
+    </p>
+    <p>
+      <span>Best regards,</span>
+      <br />
+      <em>The Artemis-Benchmarking Team</em>
+    </p>
+  </body>
+</html>

@@ -103,7 +103,7 @@ public class SimulationScheduleService {
             .forEach(simulationSchedule -> {
                 log.info("Executing scheduled simulation run for simulation {}", simulationSchedule.getSimulation().getId());
                 var simulation = simulationSchedule.getSimulation();
-                simulationDataService.createAndQueueSimulationRun(simulation.getId(), null);
+                simulationDataService.createAndQueueSimulationRun(simulation.getId(), null, simulationSchedule);
                 updateNextRun(simulationSchedule);
             });
     }

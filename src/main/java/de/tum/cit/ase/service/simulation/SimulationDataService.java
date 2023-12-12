@@ -85,7 +85,7 @@ public class SimulationDataService {
         simulationRunRepository.deleteById(runId);
     }
 
-    public SimulationRun createAndQueueSimulationRun(long simulationId, ArtemisAccountDTO accountDTO) {
+    public SimulationRun createAndQueueSimulationRun(long simulationId, ArtemisAccountDTO accountDTO, SimulationSchedule schedule) {
         Simulation simulation = simulationRepository.findById(simulationId).orElseThrow();
 
         if (
@@ -105,6 +105,7 @@ public class SimulationDataService {
 
         SimulationRun savedSimulationRun = simulationRunRepository.save(simulationRun);
         savedSimulationRun.setAdminAccount(accountDTO);
+        savedSimulationRun.setSchedule(schedule);
         simulationRunQueueService.queueSimulationRun(savedSimulationRun);
         simulationWebsocketService.sendNewRun(savedSimulationRun);
         return savedSimulationRun;

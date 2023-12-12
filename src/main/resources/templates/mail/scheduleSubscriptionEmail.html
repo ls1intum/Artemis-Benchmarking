@@ -5,15 +5,20 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   </head>
   <body>
-    <p>Hello,</p>
-    <p th:text="${simulationName}"></p>
     <p>
-      <a th:with="url=(@{|${baseUrl}/unsubscribe?key=${subscriptionKey}|})" th:href="${url}">Click here to unsubscribe.</a>
+      Hello,<br />
+      You have been subscribed to a schedule for the simulation <br />
+      <strong th:text="${subscriber.getSchedule().getSimulation().getName()}">Simulation</strong>.
+    </p>
+    <p>You will receive a summary of the simulation results after every scheduled run.</p>
+    <p>
+      If you subscribed by mistake, you can unsubscribe here:
+      <a th:with="url=(@{|${baseUrl}/unsubscribe?key=${subscriber.getKey()}|})" th:href="${url}">Unsubscribe</a>
     </p>
     <p>
-      <span>Regards, </span>
+      <span>Best regards,</span>
       <br />
-      <em>Artemis-Benchmarking</em>
+      <em>The Artemis-Benchmarking Team</em>
     </p>
   </body>
 </html>
