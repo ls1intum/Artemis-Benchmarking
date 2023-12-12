@@ -82,7 +82,8 @@ public class SimulationScheduleService {
         log.debug("Subscribing {} to schedule {}", email, scheduleId);
         var schedule = simulationScheduleRepository.findById(scheduleId).orElseThrow();
         if (schedule.getSubscribers().stream().anyMatch(subscriber -> subscriber.getEmail().equals(email))) {
-            throw new IllegalArgumentException("Already subscribed to this schedule");
+            log.debug("Subscriber {} already subscribed to schedule {}", email, scheduleId);
+            return null;
         }
         var subscriber = new ScheduleSubscriber();
         subscriber.setSchedule(schedule);

@@ -22,7 +22,7 @@
     To see more details, please visit the <a th:with="url=(@{|${baseUrl}/simulations?runId=${run.getId()}|})" th:href="${url}">run page</a>.
     <p>
       You are receiving this email because you subscribed to the schedule. <br />
-      Click here to unsubscribe: <a th:with="url=(@{|${baseUrl}/unsubscribe?key=${subscriber.getKey()}|})" th:href="${url}">Unsubscribe</a>
+      <a th:with="url=(@{|${baseUrl}/unsubscribe?key=${subscriber.getKey()}|})" th:href="${url}">Click here to unsubscribe</a>
     </p>
     <p>
       <span>Best regards,</span>

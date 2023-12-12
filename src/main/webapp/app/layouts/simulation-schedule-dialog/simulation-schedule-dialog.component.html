@@ -3,10 +3,15 @@
   <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.close()"></button>
 </div>
 <div class="modal-body">
-  <div class="alert alert-info">
+  <div class="alert alert-info" role="alert">
     <fa-icon class="me-2" [icon]="faLightbulb"></fa-icon>
     All dates and times are in your local timezone ({{ timezone }}).
   </div>
+  @if (success) {
+    <div class="alert alert-success" role="alert">Subscribed successfully.</div>
+  } @else if (error) {
+    <div class="alert alert-danger" role="alert">Subscription failed.</div>
+  }
   @if (isCollapsed) {
     <button
       type="button"
@@ -154,8 +159,15 @@
               }
             </td>
             <td class="col-3">
-              <button type="button" class="btn btn-info" (click)="openEditSchedule(schedule.id!)">Edit</button>
-              <button type="button" class="btn btn-danger" (click)="deleteSchedule(schedule.id!)">Delete</button>
+              <button type="button" class="btn btn-info ms-2" (click)="openEditSchedule(schedule.id!)">
+                <fa-icon [icon]="faPen" ngbTooltip="Edit this schedule"></fa-icon>
+              </button>
+              <button type="button" class="btn btn-danger ms-2" (click)="deleteSchedule(schedule.id!)">
+                <fa-icon [icon]="faTrash" ngbTooltip="Delete this schedule"></fa-icon>
+              </button>
+              <button class="btn btn-secondary ms-2" type="button" (click)="subscribeToSchedule(schedule.id!, subscribeModal)">
+                <fa-icon [icon]="faBell" ngbTooltip="Subscribe to this schedule"></fa-icon>
+              </button>
             </td>
           </tr>
         } @else {
@@ -213,3 +225,20 @@
     </tbody>
   </table>
 </div>
+
+<!-- Subscription modal -->
+<ng-template #subscribeModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="subscribe-modal-title">Subscribe to schedule</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" class="form-control" id="email" [(ngModel)]="email" [ngModelOptions]="{ standalone: true }" />
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-primary" [disabled]="!email || !email.match(emailRegex)" (click)="modal.close()">Subscribe</button>
+  </div>
+</ng-template>

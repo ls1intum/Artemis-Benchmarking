@@ -107,6 +107,11 @@ export class SimulationsService {
     return this.httpClient.get(endpoint).pipe(map((res: any) => res as SimulationSchedule[]));
   }
 
+  subscribeToSimulationSchedule(simulationScheduleId: number, email: string): Observable<void> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/schedules/' + simulationScheduleId + '/subscribe');
+    return this.httpClient.post(endpoint, email).pipe(map(() => {}));
+  }
+
   public unsubscribeFromSelectedSimulationRun(run: SimulationRun): void {
     this.websocketService.unsubscribe('/topic/simulation/runs/' + run.id + '/result');
     this.websocketService.unsubscribe('/topic/simulation/runs/' + run.id + '/log');

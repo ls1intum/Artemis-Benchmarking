@@ -6,7 +6,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ArtemisAccountDTO } from '../../simulations/artemisAccountDTO';
 import { faCalendarDays, faChevronRight, faClock, faTrashCan } from '@fortawesome/free-solid-svg-icons';
-import { SimulationScheduleDialogComponent } from './simulation-schedule-dialog/simulation-schedule-dialog.component';
+import { SimulationScheduleDialogComponent } from '../simulation-schedule-dialog/simulation-schedule-dialog.component';
 
 @Component({
   selector: 'jhi-simulation-card',
