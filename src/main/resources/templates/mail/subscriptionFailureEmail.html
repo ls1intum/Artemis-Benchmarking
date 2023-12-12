@@ -15,9 +15,9 @@
       <samp th:text="${error}">Error message</samp>
     </p>
     <p>
-      Users: <strong th:text="${run.getSimulation().getNumberOfUsers()}">0</strong><br />
-      Server: <strong th:text="${run.getSimulation().getServer()}">STAGING</strong><br />
-      Mode: <strong th:text="${run.getSimulation().getMode()}">CREATE_COURSE_AND_EXAM</strong><br />
+      Users: <span th:text="${run.getSimulation().getNumberOfUsers()}">0</span><br />
+      Server: <span th:text="${run.getSimulation().getServer()}">STAGING</span><br />
+      Mode: <span th:text="${run.getSimulation().getMode()}">CREATE_COURSE_AND_EXAM</span><br />
     </p>
     To see more details, please visit the <a th:with="url=(@{|${baseUrl}/simulations?runId=${run.getId()}|})" th:href="${url}">run page</a>.
     <p>
