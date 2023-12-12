@@ -73,6 +73,7 @@ public class SimulationRunExecutionService {
 
         simulationRun.setStatus(SimulationRun.Status.RUNNING);
         simulationRun = simulationRunRepository.save(simulationRun);
+        simulationRun.setSchedule(schedule);
         simulationWebsocketService.sendRunStatusUpdate(simulationRun);
 
         var simulation = simulationRun.getSimulation();
@@ -269,7 +270,6 @@ public class SimulationRunExecutionService {
         cleanupAsync(admin, simulationRun, courseId, examId);
         SimulationRun runWithResult = simulationResultService.calculateAndSaveResult(simulationRun, requestStats);
         finishSimulationRun(runWithResult);
-        runWithResult.setSchedule(schedule);
         sendRunResult(runWithResult);
     }
 
@@ -465,6 +465,14 @@ public class SimulationRunExecutionService {
     private void failSimulationRun(SimulationRun simulationRun) {
         if (Thread.currentThread().isInterrupted()) {
             return;
+        }
+        if (simulationRun.getSchedule() != null) {
+            LogMessage errorLogMessage = logMessageRepository
+                .findBySimulationRunIdAndErrorIsTrue(simulationRun.getId())
+                .stream()
+                .max(Comparator.comparing(LogMessage::getTimestamp))
+                .orElse(null);
+            mailService.sendRunFailureMail(simulationRun, simulationRun.getSchedule(), errorLogMessage);
         }
         simulationRun.setStatus(SimulationRun.Status.FAILED);
         SimulationRun savedSimulationRun = simulationRunRepository.save(simulationRun);
