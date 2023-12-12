@@ -2,7 +2,9 @@ package de.tum.cit.ase.service.simulation;
 
 import static java.time.ZonedDateTime.now;
 
+import de.tum.cit.ase.domain.ScheduleSubscriber;
 import de.tum.cit.ase.domain.SimulationSchedule;
+import de.tum.cit.ase.repository.ScheduleSubscriberRepository;
 import de.tum.cit.ase.repository.SimulationScheduleRepository;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -12,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import tech.jhipster.security.RandomUtil;
 
 @Service
 public class SimulationScheduleService {
@@ -20,13 +23,16 @@ public class SimulationScheduleService {
 
     private final SimulationScheduleRepository simulationScheduleRepository;
     private final SimulationDataService simulationDataService;
+    private final ScheduleSubscriberRepository scheduleSubscriberRepository;
 
     public SimulationScheduleService(
         SimulationScheduleRepository simulationScheduleRepository,
-        SimulationDataService simulationDataService
+        SimulationDataService simulationDataService,
+        ScheduleSubscriberRepository scheduleSubscriberRepository
     ) {
         this.simulationScheduleRepository = simulationScheduleRepository;
         this.simulationDataService = simulationDataService;
+        this.scheduleSubscriberRepository = scheduleSubscriberRepository;
     }
 
     public SimulationSchedule createSimulationSchedule(long simulationId, SimulationSchedule simulationSchedule) {
@@ -66,6 +72,18 @@ public class SimulationScheduleService {
 
     public List<SimulationSchedule> getSimulationSchedules(long simulationId) {
         return simulationScheduleRepository.findAllBySimulationId(simulationId);
+    }
+
+    public ScheduleSubscriber subscribeToSchedule(long scheduleId, String email) {
+        var schedule = simulationScheduleRepository.findById(scheduleId).orElseThrow();
+        if (schedule.getSubscribers().stream().anyMatch(subscriber -> subscriber.getEmail().equals(email))) {
+            throw new IllegalArgumentException("Already subscribed to this schedule");
+        }
+        var subscriber = new ScheduleSubscriber();
+        subscriber.setSchedule(schedule);
+        subscriber.setEmail(email);
+        subscriber.setKey(RandomUtil.generateActivationKey());
+        return scheduleSubscriberRepository.save(subscriber);
     }
 
     @Scheduled(fixedRate = 1000 * 60, initialDelay = 0)

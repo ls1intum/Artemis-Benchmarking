@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.DayOfWeek;
 import java.time.ZonedDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "simulation_schedule")
@@ -38,6 +39,10 @@ public class SimulationSchedule {
     @Enumerated(EnumType.STRING)
     @Column(name = "day_of_week")
     private DayOfWeek dayOfWeek;
+
+    @OneToMany(mappedBy = "schedule", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @JsonIgnore
+    private Set<ScheduleSubscriber> subscribers;
 
     public Long getId() {
         return id;
@@ -101,6 +106,14 @@ public class SimulationSchedule {
 
     public void setDayOfWeek(DayOfWeek dayOfWeek) {
         this.dayOfWeek = dayOfWeek;
+    }
+
+    public Set<ScheduleSubscriber> getSubscribers() {
+        return subscribers;
+    }
+
+    public void setSubscribers(Set<ScheduleSubscriber> subscribers) {
+        this.subscribers = subscribers;
     }
 
     public enum Cycle {
