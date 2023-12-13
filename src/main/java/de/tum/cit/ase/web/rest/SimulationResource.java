@@ -202,4 +202,14 @@ public class SimulationResource {
         simulationScheduleService.subscribeToSchedule(scheduleId, email);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @PatchMapping("/{simulationId}/instructor-account")
+    public ResponseEntity<Simulation> updateInstructorAccount(@PathVariable long simulationId, @RequestBody ArtemisAccountDTO account) {
+        var simulation = simulationDataService.updateInstructorAccount(simulationId, account);
+        if (simulation.getInstructorUsername() != null || simulation.getInstructorPassword() != null) {
+            simulation.setInstructorUsername("");
+            simulation.setInstructorPassword("");
+        }
+        return new ResponseEntity<>(simulation, HttpStatus.OK);
+    }
 }

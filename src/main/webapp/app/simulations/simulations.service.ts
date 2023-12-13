@@ -72,6 +72,11 @@ export class SimulationsService {
     return this.httpClient.delete(endpoint).pipe(map(() => {}));
   }
 
+  patchSimulationInstructorAccount(simulationId: number, account: ArtemisAccountDTO): Observable<Simulation> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId + '/instructor-account');
+    return this.httpClient.patch(endpoint, account).pipe(map((res: any) => res as Simulation));
+  }
+
   deleteSimulationRun(runId: number): Observable<void> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/runs/' + runId);
     return this.httpClient.delete(endpoint).pipe(map(() => {}));

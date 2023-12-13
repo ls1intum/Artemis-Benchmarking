@@ -22,7 +22,7 @@
       </button>
     </div>
   </div>
-  <div class="card-body pt-2 pb-2 position-relative">
+  <div class="card-body pt-2 pb-3 position-relative">
     <div class="space-between-wrapper">
       <div class="me-3 w-60">
         @if (numberOfActiveSchedules > 0) {
@@ -34,19 +34,40 @@
         <p>
           <strong>{{ getTextRepresentation(simulation.mode) }}</strong>
         </p>
-        <p>
+        <p class="mb-1">
           @if (simulation.customizeUserRange) {
             Users: {{ simulation.userRange }} (Total: {{ simulation.numberOfUsers }})
           } @else {
             Users: {{ simulation.numberOfUsers }}
           }
         </p>
-        <p>Commits: {{ simulation.numberOfCommitsAndPushesFrom }} - {{ simulation.numberOfCommitsAndPushesTo }}</p>
+        <p class="mb-1">Commits: {{ simulation.numberOfCommitsAndPushesFrom }} - {{ simulation.numberOfCommitsAndPushesTo }}</p>
         @if (simulation.mode != Mode.CREATE_COURSE_AND_EXAM) {
-          <p>Course-ID: {{ simulation.courseId }}</p>
+          <div class="flex-wrapper">
+            <p class="mb-1">Course-ID: {{ simulation.courseId }}</p>
+            @if (
+              simulation.server === ArtemisServer.PRODUCTION &&
+              (simulation.mode === Mode.EXISTING_COURSE_CREATE_EXAM || simulation.mode === Mode.EXISTING_COURSE_UNPREPARED_EXAM)
+            ) {
+              <button
+                type="button"
+                class="btn btn-sm btn-link p-0 h-fit-content ms-2"
+                [ngClass]="instructorAccountAvailable ? 'text-success' : 'text-danger'"
+                (click)="patchInstructorAccount(instructorUpdateModal)"
+                [disabled]="hasActiveRun()"
+                [ngbTooltip]="
+                  instructorAccountAvailable
+                    ? 'Instructor account available. Click here to update it.'
+                    : 'No Instructor account available. Click here to add one.'
+                "
+              >
+                <fa-icon [icon]="faUserTie"></fa-icon>
+              </button>
+            }
+          </div>
         }
         @if (simulation.mode == Mode.EXISTING_COURSE_PREPARED_EXAM || simulation.mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM) {
-          <p>Exam-ID: {{ simulation.examId }}</p>
+          <p class="mb-1">Exam-ID: {{ simulation.examId }}</p>
         }
       </div>
       <jhi-server-badge class="mb-5 position-absolute top-10 end-10" [server]="simulation.server"></jhi-server-badge>
@@ -109,9 +130,18 @@
           <input type="text" class="form-control" id="adminUsername" [(ngModel)]="adminUsername" [ngModelOptions]="{ standalone: true }" />
         </div>
         <div class="mb-3">
-          <label for="adminPassword" class="form-label">Password</label>
+          <label for="adminPassword" class="form-label">
+            Password
+            <fa-icon
+              class="ms-2"
+              [icon]="showAdminPassword ? faEyeSlash : faEye"
+              (click)="showAdminPassword = !showAdminPassword"
+              [ngbTooltip]="showAdminPassword ? 'Hide password' : 'Show password'"
+            >
+            </fa-icon>
+          </label>
           <input
-            type="password"
+            [type]="showAdminPassword ? 'text' : 'password'"
             class="form-control"
             id="adminPassword"
             aria-describedby="password-hint"
@@ -159,5 +189,54 @@
   <div class="modal-footer space-between-wrapper">
     <button type="reset" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
     <button type="submit" class="btn btn-danger" (click)="modal.close()">Delete</button>
+  </div>
+</ng-template>
+
+<!-- Update Instructor Account modal -->
+<ng-template #instructorUpdateModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="instructor-modal-title">Update Instructor Account</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>
+      You can specify an Artemis Account that has at least Instructor rights for the course with the ID
+      {{ simulation.courseId }}. <span class="text-warning">The credentials will be stored in the database!</span>
+    </p>
+    <p>If you only want to run this simulation manually, this step is not necessary. For scheduled runs, the credentials are required.</p>
+    <div class="mb-3">
+      <label for="username" class="form-label">Username</label>
+      <input type="email" class="form-control" id="username" [(ngModel)]="adminUsername" [ngModelOptions]="{ standalone: true }" />
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">
+        Password
+        <fa-icon
+          class="ms-2"
+          [icon]="showAdminPassword ? faEyeSlash : faEye"
+          (click)="showAdminPassword = !showAdminPassword"
+          [ngbTooltip]="showAdminPassword ? 'Hide password' : 'Show password'"
+        >
+        </fa-icon>
+      </label>
+      <input
+        [type]="showAdminPassword ? 'text' : 'password'"
+        class="form-control"
+        id="password"
+        [(ngModel)]="adminPassword"
+        [ngModelOptions]="{ standalone: true }"
+      />
+    </div>
+  </div>
+  <div class="modal-footer space-between-wrapper">
+    <button type="reset" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+    <button
+      type="submit"
+      class="btn btn-primary"
+      [disabled]="adminUsername.length == 0 || adminPassword.length == 0"
+      (click)="modal.close()"
+    >
+      Save
+    </button>
   </div>
 </ng-template>

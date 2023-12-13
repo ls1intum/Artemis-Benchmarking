@@ -5,7 +5,7 @@ import { SimulationsService } from '../../simulations/simulations.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ArtemisAccountDTO } from '../../simulations/artemisAccountDTO';
-import { faCalendarDays, faChevronRight, faClock, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarDays, faChevronRight, faClock, faEye, faEyeSlash, faTrashCan, faUserTie } from '@fortawesome/free-solid-svg-icons';
 import { SimulationScheduleDialogComponent } from '../simulation-schedule-dialog/simulation-schedule-dialog.component';
 
 @Component({
@@ -18,6 +18,9 @@ export class SimulationCardComponent implements OnInit {
   faChevronRight = faChevronRight;
   faCalendarDays = faCalendarDays;
   faClock = faClock;
+  faUserTie = faUserTie;
+  faEye = faEye;
+  faEyeSlash = faEyeSlash;
 
   @Input()
   simulation!: Simulation;
@@ -27,9 +30,11 @@ export class SimulationCardComponent implements OnInit {
   numberOfDisplayedRuns = 3;
   numberOfActiveSchedules = 0;
   credentialsRequired = false;
+  instructorAccountAvailable = false;
 
   adminPassword = '';
   adminUsername = '';
+  showAdminPassword = false;
 
   @Output() clickedRunEvent = new EventEmitter<SimulationRun>();
   @Output() delete = new EventEmitter<void>();
@@ -56,6 +61,7 @@ export class SimulationCardComponent implements OnInit {
       this.simulation.server === ArtemisServer.PRODUCTION &&
       this.simulation.mode !== Mode.EXISTING_COURSE_PREPARED_EXAM &&
       !instructorCredentialsProvided(this.simulation);
+    this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);
   }
 
   startRun(content: any): void {
@@ -69,14 +75,37 @@ export class SimulationCardComponent implements OnInit {
           this.simulationService.runSimulation(this.simulation.id!, account).subscribe(newRun => {
             this.addNewRun(newRun);
           });
+          this.adminPassword = '';
+          this.adminUsername = '';
+          this.showAdminPassword = false;
         },
-        () => {},
+        () => {
+          this.adminPassword = '';
+          this.adminUsername = '';
+          this.showAdminPassword = false;
+        },
       );
     } else {
       this.simulationService.runSimulation(this.simulation.id!).subscribe(newRun => {
         this.addNewRun(newRun);
       });
     }
+  }
+
+  patchInstructorAccount(content: any): void {
+    this.modalService.open(content, { ariaLabelledBy: 'instructor-modal-title' }).result.then(
+      () => {
+        this.patchSimulationInstructorAccount();
+        this.adminPassword = '';
+        this.adminUsername = '';
+        this.showAdminPassword = false;
+      },
+      () => {
+        this.adminPassword = '';
+        this.adminUsername = '';
+        this.showAdminPassword = false;
+      },
+    );
   }
 
   sortRuns(): void {
@@ -146,5 +175,14 @@ export class SimulationCardComponent implements OnInit {
 
     this.sortRuns();
     this.updateDisplayRuns();
+  }
+
+  patchSimulationInstructorAccount(): void {
+    const account = new ArtemisAccountDTO(this.adminUsername, this.adminPassword);
+    this.simulationService.patchSimulationInstructorAccount(this.simulation.id!, account).subscribe(updatedSimulation => {
+      this.simulation.instructorUsername = updatedSimulation.instructorUsername;
+      this.simulation.instructorPassword = updatedSimulation.instructorPassword;
+      this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);
+    });
   }
 }

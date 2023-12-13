@@ -195,4 +195,25 @@ public class SimulationDataService {
         }
         return servers;
     }
+
+    public Simulation updateInstructorAccount(long simulationId, ArtemisAccountDTO account) {
+        var simulation = simulationRepository.findById(simulationId).orElseThrow();
+        if (simulation.getServer() != PRODUCTION) {
+            log.warn("Cannot update instructor account for simulation {} because it is not running on production server", simulationId);
+            return simulation;
+        }
+        if (
+            simulation.getMode() != Simulation.Mode.EXISTING_COURSE_CREATE_EXAM &&
+            simulation.getMode() != Simulation.Mode.EXISTING_COURSE_UNPREPARED_EXAM
+        ) {
+            log.warn(
+                "Cannot update instructor account for simulation {} because it is not in a mode that requires an instructor account",
+                simulationId
+            );
+            return simulation;
+        }
+        simulation.setInstructorUsername(account.getUsername());
+        simulation.setInstructorPassword(account.getPassword());
+        return simulationRepository.save(simulation);
+    }
 }
