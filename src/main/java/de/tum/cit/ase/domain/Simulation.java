@@ -193,6 +193,10 @@ public class Simulation {
     }
 
     public boolean instructorCredentialsProvided() {
+        if (mode == Mode.CREATE_COURSE_AND_EXAM) {
+            // For this mode we need admin credentials, not instructor credentials
+            return false;
+        }
         return instructorUsername != null && instructorPassword != null;
     }
 

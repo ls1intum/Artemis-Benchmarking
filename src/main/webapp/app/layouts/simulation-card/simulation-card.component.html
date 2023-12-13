@@ -7,7 +7,7 @@
         class="btn btn-link btn-sm me-3"
         (click)="openScheduleDialog()"
         ngbTooltip="Schedule"
-        [disabled]="!scheduleEnabled"
+        [disabled]="credentialsRequired"
       >
         <fa-icon [icon]="faCalendarDays" class="text-info"></fa-icon>
       </button>
@@ -92,14 +92,17 @@
     @if (simulation.mode == Mode.CREATE_COURSE_AND_EXAM) {
       <p>To perform a run of this simulation, you need to specify an Artemis Admin Account.</p>
     }
-    @if (simulation.mode == Mode.EXISTING_COURSE_CREATE_EXAM || simulation.mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM) {
+    @if (
+      (simulation.mode == Mode.EXISTING_COURSE_CREATE_EXAM || simulation.mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM) &&
+      !instructorCredentialsProvided(simulation)
+    ) {
       <p>
         To perform a run of this simulation, you need to specify an Artemis Account that has at least Instructor rights for the course with
         the ID
         {{ simulation.courseId }}.
       </p>
     }
-    @if (simulation.mode != Mode.EXISTING_COURSE_PREPARED_EXAM) {
+    @if (credentialsRequired) {
       <form>
         <div class="mb-3">
           <label for="adminUsername" class="form-label">Username</label>
@@ -133,7 +136,7 @@
     <button
       type="submit"
       class="btn btn-primary"
-      [disabled]="(adminPassword.length == 0 || adminUsername.length == 0) && simulation.mode != Mode.EXISTING_COURSE_PREPARED_EXAM"
+      [disabled]="(adminPassword.length == 0 || adminUsername.length == 0) && credentialsRequired"
       (click)="modal.close()"
     >
       Start run

@@ -82,6 +82,15 @@ public class SimulationRunExecutionService {
         SimulatedArtemisAdmin admin = null;
         SimulatedArtemisStudent[] students;
 
+        if (
+            (accountDTO == null || accountDTO.getUsername().isBlank() || accountDTO.getPassword().isBlank()) &&
+            simulation.instructorCredentialsProvided()
+        ) {
+            accountDTO = new ArtemisAccountDTO();
+            accountDTO.setUsername(simulation.getInstructorUsername());
+            accountDTO.setPassword(simulation.getInstructorPassword());
+        }
+
         logAndSend(
             false,
             simulationRun,

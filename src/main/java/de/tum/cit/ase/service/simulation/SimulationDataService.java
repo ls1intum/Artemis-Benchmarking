@@ -100,6 +100,7 @@ public class SimulationDataService {
         if (
             simulation.getServer() == PRODUCTION &&
             simulation.getMode() != Simulation.Mode.EXISTING_COURSE_PREPARED_EXAM &&
+            !simulation.instructorCredentialsProvided() &&
             accountDTO == null
         ) {
             throw new IllegalArgumentException("This simulation mode requires an admin / instructor account!");

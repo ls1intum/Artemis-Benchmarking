@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { getTextRepresentation, Mode, Simulation } from '../../entities/simulation/simulation';
+import { getTextRepresentation, instructorCredentialsProvided, Mode, Simulation } from '../../entities/simulation/simulation';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
 import { SimulationsService } from '../../simulations/simulations.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -26,7 +26,7 @@ export class SimulationCardComponent implements OnInit {
   displayedRuns: SimulationRun[] = [];
   numberOfDisplayedRuns = 3;
   numberOfActiveSchedules = 0;
-  scheduleEnabled = false;
+  credentialsRequired = false;
 
   adminPassword = '';
   adminUsername = '';
@@ -34,11 +34,11 @@ export class SimulationCardComponent implements OnInit {
   @Output() clickedRunEvent = new EventEmitter<SimulationRun>();
   @Output() delete = new EventEmitter<void>();
 
-  protected readonly Simulation = Simulation;
   protected readonly Mode = Mode;
   protected readonly Status = Status;
   protected readonly getTextRepresentation = getTextRepresentation;
   protected readonly ArtemisServer = ArtemisServer;
+  protected readonly instructorCredentialsProvided = instructorCredentialsProvided;
 
   constructor(
     private simulationService: SimulationsService,
@@ -52,10 +52,10 @@ export class SimulationCardComponent implements OnInit {
       this.numberOfActiveSchedules = numberOfActiveSchedules.length;
     });
     this.subscribeToNewSimulationRun();
-    this.scheduleEnabled =
-      this.simulation.server !== ArtemisServer.PRODUCTION ||
-      this.simulation.mode === Mode.EXISTING_COURSE_PREPARED_EXAM ||
-      (this.simulation.instructorUsername !== null && this.simulation.instructorPassword !== null);
+    this.credentialsRequired =
+      this.simulation.server === ArtemisServer.PRODUCTION &&
+      this.simulation.mode !== Mode.EXISTING_COURSE_PREPARED_EXAM &&
+      !instructorCredentialsProvided(this.simulation);
   }
 
   startRun(content: any): void {
