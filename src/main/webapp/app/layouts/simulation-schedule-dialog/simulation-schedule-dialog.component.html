@@ -159,14 +159,19 @@
               }
             </td>
             <td class="col-3">
-              <button type="button" class="btn btn-info ms-2" (click)="openEditSchedule(schedule.id!)">
-                <fa-icon [icon]="faPen" ngbTooltip="Edit this schedule"></fa-icon>
+              <button type="button" class="btn btn-info ms-2" (click)="openEditSchedule(schedule.id!)" ngbTooltip="Edit this schedule">
+                <fa-icon [icon]="faPen"></fa-icon>
               </button>
-              <button type="button" class="btn btn-danger ms-2" (click)="deleteSchedule(schedule.id!)">
-                <fa-icon [icon]="faTrash" ngbTooltip="Delete this schedule"></fa-icon>
+              <button type="button" class="btn btn-danger ms-2" (click)="deleteSchedule(schedule.id!)" ngbTooltip="Delete this schedule">
+                <fa-icon [icon]="faTrash"></fa-icon>
               </button>
-              <button class="btn btn-secondary ms-2" type="button" (click)="subscribeToSchedule(schedule.id!, subscribeModal)">
-                <fa-icon [icon]="faBell" ngbTooltip="Subscribe to this schedule"></fa-icon>
+              <button
+                class="btn btn-secondary ms-2"
+                type="button"
+                (click)="subscribeToSchedule(schedule.id!, subscribeModal)"
+                ngbTooltip="Subscribe to this schedule"
+              >
+                <fa-icon [icon]="faBell"></fa-icon>
               </button>
             </td>
           </tr>
@@ -233,6 +238,11 @@
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
   </div>
   <div class="modal-body">
+    <p>
+      You can subscribe to this schedule to receive an email notification whenever the simulation is executed through this schedule. You
+      will not be notified for executions that were triggered manually or by other schedules.
+    </p>
+    <p>You can unsubscribe later via a link in the email.</p>
     <div class="mb-3">
       <label for="email" class="form-label">Email</label>
       <input type="email" class="form-control" id="email" [(ngModel)]="email" [ngModelOptions]="{ standalone: true }" />
