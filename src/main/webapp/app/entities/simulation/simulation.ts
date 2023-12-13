@@ -16,6 +16,8 @@ export class Simulation {
     public numberOfCommitsAndPushesFrom: number,
     public numberOfCommitsAndPushesTo: number,
     public userRange?: string,
+    public instructorUsername?: string,
+    public instructorPassword?: string,
   ) {}
 }
 

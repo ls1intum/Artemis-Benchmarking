@@ -55,6 +55,15 @@ public class Simulation {
     @JsonIgnore
     private Set<SimulationSchedule> schedules;
 
+    // Instructor credentials, only used for EXISTING_COURSE_UNPREPARED_EXAM or EXISTING_COURSE_CREATE_EXAM on PRODUCTION
+    // The credentials are optional, but required for scheduled simulations
+    // They must NEVER be sent to the client!
+    @Column(name = "instructor_username")
+    private String instructorUsername;
+
+    @Column(name = "instructor_password")
+    private String instructorPassword;
+
     public Long getId() {
         return id;
     }
@@ -157,6 +166,34 @@ public class Simulation {
 
     public void setNumberOfCommitsAndPushesTo(int numberOfCommitsAndPushesTo) {
         this.numberOfCommitsAndPushesTo = numberOfCommitsAndPushesTo;
+    }
+
+    public Set<SimulationSchedule> getSchedules() {
+        return schedules;
+    }
+
+    public void setSchedules(Set<SimulationSchedule> schedules) {
+        this.schedules = schedules;
+    }
+
+    public String getInstructorUsername() {
+        return instructorUsername;
+    }
+
+    public void setInstructorUsername(String instructorUsername) {
+        this.instructorUsername = instructorUsername;
+    }
+
+    public String getInstructorPassword() {
+        return instructorPassword;
+    }
+
+    public void setInstructorPassword(String instructorPassword) {
+        this.instructorPassword = instructorPassword;
+    }
+
+    public boolean instructorCredentialsProvided() {
+        return instructorUsername != null && instructorPassword != null;
     }
 
     public enum Mode {

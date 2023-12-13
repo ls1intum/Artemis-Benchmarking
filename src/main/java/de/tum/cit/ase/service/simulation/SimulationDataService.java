@@ -1,5 +1,6 @@
 package de.tum.cit.ase.service.simulation;
 
+import static de.tum.cit.ase.util.ArtemisServer.PRODUCTION;
 import static de.tum.cit.ase.util.NumberRangeParser.numberRangeRegex;
 import static java.lang.Thread.sleep;
 import static java.time.ZonedDateTime.now;
@@ -52,6 +53,14 @@ public class SimulationDataService {
             var users = NumberRangeParser.parseNumberRange(simulation.getUserRange()).size();
             simulation.setNumberOfUsers(users);
         }
+        if (
+            simulation.getServer() != PRODUCTION ||
+            simulation.getMode() == Simulation.Mode.EXISTING_COURSE_PREPARED_EXAM ||
+            simulation.getMode() == Simulation.Mode.CREATE_COURSE_AND_EXAM
+        ) {
+            simulation.setInstructorUsername(null);
+            simulation.setInstructorPassword(null);
+        }
         return simulationRepository.save(simulation);
     }
 
@@ -89,7 +98,7 @@ public class SimulationDataService {
         Simulation simulation = simulationRepository.findById(simulationId).orElseThrow();
 
         if (
-            simulation.getServer() == ArtemisServer.PRODUCTION &&
+            simulation.getServer() == PRODUCTION &&
             simulation.getMode() != Simulation.Mode.EXISTING_COURSE_PREPARED_EXAM &&
             accountDTO == null
         ) {

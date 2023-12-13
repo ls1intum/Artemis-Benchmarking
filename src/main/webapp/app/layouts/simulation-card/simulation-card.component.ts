@@ -26,6 +26,7 @@ export class SimulationCardComponent implements OnInit {
   displayedRuns: SimulationRun[] = [];
   numberOfDisplayedRuns = 3;
   numberOfActiveSchedules = 0;
+  scheduleEnabled = false;
 
   adminPassword = '';
   adminUsername = '';
@@ -51,6 +52,10 @@ export class SimulationCardComponent implements OnInit {
       this.numberOfActiveSchedules = numberOfActiveSchedules.length;
     });
     this.subscribeToNewSimulationRun();
+    this.scheduleEnabled =
+      this.simulation.server !== ArtemisServer.PRODUCTION ||
+      this.simulation.mode === Mode.EXISTING_COURSE_PREPARED_EXAM ||
+      (this.simulation.instructorUsername !== null && this.simulation.instructorPassword !== null);
   }
 
   startRun(content: any): void {

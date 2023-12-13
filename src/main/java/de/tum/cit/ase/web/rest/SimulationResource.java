@@ -47,7 +47,17 @@ public class SimulationResource {
         if (!simulationDataService.validateSimulation(simulation)) {
             throw new IllegalArgumentException("Invalid simulation");
         }
-        return new ResponseEntity<>(simulationDataService.createSimulation(simulation), HttpStatus.OK);
+        // If only one of the instructor credentials is set, remove both
+        if ((simulation.getInstructorUsername() != null) ^ (simulation.getInstructorPassword() != null)) {
+            simulation.setInstructorUsername(null);
+            simulation.setInstructorPassword(null);
+        }
+        var savedSimulation = simulationDataService.createSimulation(simulation);
+        if (savedSimulation.getInstructorUsername() != null || savedSimulation.getInstructorPassword() != null) {
+            savedSimulation.setInstructorUsername("");
+            savedSimulation.setInstructorPassword("");
+        }
+        return new ResponseEntity<>(savedSimulation, HttpStatus.OK);
     }
 
     /**
@@ -57,7 +67,14 @@ public class SimulationResource {
      */
     @GetMapping
     public ResponseEntity<List<Simulation>> getAllSimulations() {
-        return new ResponseEntity<>(simulationDataService.getAllSimulations(), HttpStatus.OK);
+        var simulations = simulationDataService.getAllSimulations();
+        simulations.forEach(simulation -> {
+            if (simulation.getInstructorUsername() != null || simulation.getInstructorPassword() != null) {
+                simulation.setInstructorUsername("");
+                simulation.setInstructorPassword("");
+            }
+        });
+        return new ResponseEntity<>(simulations, HttpStatus.OK);
     }
 
     /**
@@ -68,7 +85,12 @@ public class SimulationResource {
      */
     @GetMapping("/{simulationId}")
     public ResponseEntity<Simulation> getSimulation(@PathVariable long simulationId) {
-        return new ResponseEntity<>(simulationDataService.getSimulation(simulationId), HttpStatus.OK);
+        var simulation = simulationDataService.getSimulation(simulationId);
+        if (simulation.getInstructorUsername() != null || simulation.getInstructorPassword() != null) {
+            simulation.setInstructorUsername("");
+            simulation.setInstructorPassword("");
+        }
+        return new ResponseEntity<>(simulation, HttpStatus.OK);
     }
 
     /**

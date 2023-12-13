@@ -3,6 +3,7 @@ import { getTextRepresentation, Mode, Simulation } from '../../entities/simulati
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ProfileService } from '../profiles/profile.service';
 import { SimulationsService } from '../../simulations/simulations.service';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'jhi-create-simulation-box',
@@ -10,6 +11,9 @@ import { SimulationsService } from '../../simulations/simulations.service';
   styleUrls: ['./create-simulation-box.component.scss'],
 })
 export class CreateSimulationBoxComponent implements OnInit {
+  faEye = faEye;
+  faEyeSlash = faEyeSlash;
+
   @Output() simulationToCreate = new EventEmitter<Simulation>();
 
   name: string = '';
@@ -22,6 +26,8 @@ export class CreateSimulationBoxComponent implements OnInit {
   userRange: string = '';
   numberOfCommitsAndPushesFrom: number = 8;
   numberOfCommitsAndPushesTo: number = 15;
+  instructorUsername: string = '';
+  instructorPassword: string = '';
 
   availableServers = [ArtemisServer.TS1, ArtemisServer.TS3, ArtemisServer.PRODUCTION, ArtemisServer.STAGING];
   availableModes = [
@@ -31,6 +37,7 @@ export class CreateSimulationBoxComponent implements OnInit {
     Mode.EXISTING_COURSE_UNPREPARED_EXAM,
   ];
   serversWithCleanupEnabled: ArtemisServer[] = [];
+  showPassword: boolean = false;
 
   protected readonly Mode = Mode;
   protected readonly ArtemisServer = ArtemisServer;
@@ -71,8 +78,13 @@ export class CreateSimulationBoxComponent implements OnInit {
         this.numberOfCommitsAndPushesFrom,
         this.numberOfCommitsAndPushesTo,
         this.userRange,
+        this.instructorUsername.length > 0 ? this.instructorUsername : undefined,
+        this.instructorPassword.length > 0 ? this.instructorPassword : undefined,
       );
       this.simulationToCreate.emit(simulation);
+      this.instructorUsername = '';
+      this.instructorPassword = '';
+      this.showPassword = false;
     }
   }
 
