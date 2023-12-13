@@ -94,6 +94,12 @@ public class SimulationScheduleService {
         return savedSubscriber;
     }
 
+    public void unsubscribeFromSchedule(String key) {
+        log.debug("Unsubscribing from schedule with key {}", key);
+        var subscriber = scheduleSubscriberRepository.findByKey(key).orElseThrow();
+        scheduleSubscriberRepository.delete(subscriber);
+    }
+
     @Scheduled(fixedRate = 1000 * 60, initialDelay = 0)
     void executeScheduledSimulations() {
         log.info("Executing scheduled simulation runs");
