@@ -175,9 +175,9 @@ public abstract class SimulatedArtemisUser {
         return HttpClient
             .create()
             .doOnConnected(conn ->
-                conn.addHandlerFirst(new ReadTimeoutHandler(10, TimeUnit.MINUTES)).addHandlerFirst(new WriteTimeoutHandler(30))
+                conn.addHandlerFirst(new ReadTimeoutHandler(20, TimeUnit.MINUTES)).addHandlerFirst(new WriteTimeoutHandler(30))
             )
-            .responseTimeout(Duration.ofMinutes(10))
+            .responseTimeout(Duration.ofMinutes(20))
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30 * 1000)
             .secure(spec -> {
                 try {

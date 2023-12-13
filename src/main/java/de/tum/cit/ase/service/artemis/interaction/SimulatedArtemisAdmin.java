@@ -70,7 +70,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         exam.setStartDate(ZonedDateTime.now().plusDays(1L));
         exam.setEndDate(ZonedDateTime.now().plusDays(5L));
 
-        log.debug("Updating exam...");
+        log.info("Updating exam...");
         // Update exam
         webClient
             .put()
@@ -80,7 +80,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .toBodilessEntity()
             .block();
 
-        log.debug("Generating student exams...");
+        log.info("Generating student exams...");
         // Generate student exams
         webClient
             .post()
@@ -91,7 +91,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .toBodilessEntity()
             .block();
 
-        log.debug("Preparing exercise start...");
+        log.info("Preparing exercise start...");
         // Prepare exercise start
         webClient
             .post()
@@ -103,7 +103,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .block();
 
         // Wait for exercise preparation to finish
-        log.debug("Waiting for exercise preparation to finish...");
+        log.info("Waiting for exercise preparation to finish...");
         ExamExerciseStartPreparationStatus status;
         do {
             try {
@@ -150,7 +150,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         // Set start-date to now
         exam.setStartDate(now());
 
-        log.debug("Updating exam...");
+        log.info("Updating exam...");
         // Update exam
         webClient
             .put()
