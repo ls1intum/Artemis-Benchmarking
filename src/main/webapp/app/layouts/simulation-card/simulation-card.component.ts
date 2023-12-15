@@ -94,8 +94,12 @@ export class SimulationCardComponent implements OnInit {
 
   patchInstructorAccount(content: any): void {
     this.modalService.open(content, { ariaLabelledBy: 'instructor-modal-title' }).result.then(
-      () => {
-        this.patchSimulationInstructorAccount();
+      (res: string) => {
+        if (res == 'submit') {
+          this.patchSimulationInstructorAccount();
+        } else if (res == 'delete') {
+          this.deleteSimulationInstructorAccount();
+        }
         this.adminPassword = '';
         this.adminUsername = '';
         this.showAdminPassword = false;
@@ -180,6 +184,14 @@ export class SimulationCardComponent implements OnInit {
   patchSimulationInstructorAccount(): void {
     const account = new ArtemisAccountDTO(this.adminUsername, this.adminPassword);
     this.simulationService.patchSimulationInstructorAccount(this.simulation.id!, account).subscribe(updatedSimulation => {
+      this.simulation.instructorUsername = updatedSimulation.instructorUsername;
+      this.simulation.instructorPassword = updatedSimulation.instructorPassword;
+      this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);
+    });
+  }
+
+  deleteSimulationInstructorAccount(): void {
+    this.simulationService.deleteSimulationInstructorAccount(this.simulation.id!).subscribe(updatedSimulation => {
       this.simulation.instructorUsername = updatedSimulation.instructorUsername;
       this.simulation.instructorPassword = updatedSimulation.instructorPassword;
       this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);

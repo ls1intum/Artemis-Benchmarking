@@ -204,6 +204,9 @@
       {{ simulation.courseId }}. <span class="text-warning">The credentials will be stored in the database!</span>
     </p>
     <p>If you only want to run this simulation manually, this step is not necessary. For scheduled runs, the credentials are required.</p>
+    @if (instructorAccountAvailable) {
+      <p class="text-warning">Note: An Instructor account already exists for this simulation. You can override it here.</p>
+    }
     <div class="mb-3">
       <label for="username" class="form-label">Username</label>
       <input type="email" class="form-control" id="username" [(ngModel)]="adminUsername" [ngModelOptions]="{ standalone: true }" />
@@ -229,12 +232,26 @@
     </div>
   </div>
   <div class="modal-footer space-between-wrapper">
-    <button type="reset" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+    <div>
+      <button type="reset" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+      @if (instructorAccountAvailable) {
+        <button
+          type="button"
+          class="btn btn-danger"
+          (click)="modal.close('delete')"
+          [ngbTooltip]="
+            'Delete the stored credentials. If you want to run this simulation automatically, you will have to specify the credentials again.'
+          "
+        >
+          Delete
+        </button>
+      }
+    </div>
     <button
       type="submit"
       class="btn btn-primary"
       [disabled]="adminUsername.length == 0 || adminPassword.length == 0"
-      (click)="modal.close()"
+      (click)="modal.close('submit')"
     >
       Save
     </button>

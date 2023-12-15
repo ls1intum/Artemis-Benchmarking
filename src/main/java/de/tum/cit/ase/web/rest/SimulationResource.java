@@ -212,4 +212,14 @@ public class SimulationResource {
         }
         return new ResponseEntity<>(simulation, HttpStatus.OK);
     }
+
+    @DeleteMapping("/{simulationId}/instructor-account")
+    public ResponseEntity<Simulation> removeInstructorAccount(@PathVariable long simulationId) {
+        var simulation = simulationDataService.removeInstructorAccount(simulationId);
+        if (simulation.getInstructorUsername() != null || simulation.getInstructorPassword() != null) {
+            simulation.setInstructorUsername("");
+            simulation.setInstructorPassword("");
+        }
+        return new ResponseEntity<>(simulation, HttpStatus.OK);
+    }
 }

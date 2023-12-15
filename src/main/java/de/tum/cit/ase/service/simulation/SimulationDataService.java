@@ -216,4 +216,12 @@ public class SimulationDataService {
         simulation.setInstructorPassword(account.getPassword());
         return simulationRepository.save(simulation);
     }
+
+    public Simulation removeInstructorAccount(long simulationId) {
+        var simulation = simulationRepository.findById(simulationId).orElseThrow();
+
+        simulation.setInstructorUsername(null);
+        simulation.setInstructorPassword(null);
+        return simulationRepository.save(simulation);
+    }
 }
