@@ -57,10 +57,7 @@ export class SimulationCardComponent implements OnInit {
       this.numberOfActiveSchedules = numberOfActiveSchedules.length;
     });
     this.subscribeToNewSimulationRun();
-    this.credentialsRequired =
-      this.simulation.server === ArtemisServer.PRODUCTION &&
-      this.simulation.mode !== Mode.EXISTING_COURSE_PREPARED_EXAM &&
-      !instructorCredentialsProvided(this.simulation);
+    this.updateCredentialsRequired();
     this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);
   }
 
@@ -187,6 +184,7 @@ export class SimulationCardComponent implements OnInit {
       this.simulation.instructorUsername = updatedSimulation.instructorUsername;
       this.simulation.instructorPassword = updatedSimulation.instructorPassword;
       this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);
+      this.updateCredentialsRequired();
     });
   }
 
@@ -195,6 +193,14 @@ export class SimulationCardComponent implements OnInit {
       this.simulation.instructorUsername = updatedSimulation.instructorUsername;
       this.simulation.instructorPassword = updatedSimulation.instructorPassword;
       this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);
+      this.updateCredentialsRequired();
     });
+  }
+
+  updateCredentialsRequired(): void {
+    this.credentialsRequired =
+      this.simulation.server === ArtemisServer.PRODUCTION &&
+      this.simulation.mode !== Mode.EXISTING_COURSE_PREPARED_EXAM &&
+      !instructorCredentialsProvided(this.simulation);
   }
 }
