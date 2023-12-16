@@ -92,9 +92,9 @@ export class SimulationCardComponent implements OnInit {
   patchInstructorAccount(content: any): void {
     this.modalService.open(content, { ariaLabelledBy: 'instructor-modal-title' }).result.then(
       (res: string) => {
-        if (res == 'submit') {
+        if (res === 'submit') {
           this.patchSimulationInstructorAccount();
-        } else if (res == 'delete') {
+        } else if (res === 'delete') {
           this.deleteSimulationInstructorAccount();
         }
         this.adminPassword = '';
