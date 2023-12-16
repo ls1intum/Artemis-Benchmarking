@@ -47,7 +47,17 @@ public class SimulationResource {
         if (!simulationDataService.validateSimulation(simulation)) {
             throw new IllegalArgumentException("Invalid simulation");
         }
-        return new ResponseEntity<>(simulationDataService.createSimulation(simulation), HttpStatus.OK);
+        // If only one of the instructor credentials is set, remove both
+        if ((simulation.getInstructorUsername() != null) ^ (simulation.getInstructorPassword() != null)) {
+            simulation.setInstructorUsername(null);
+            simulation.setInstructorPassword(null);
+        }
+        var savedSimulation = simulationDataService.createSimulation(simulation);
+        if (savedSimulation.getInstructorUsername() != null || savedSimulation.getInstructorPassword() != null) {
+            savedSimulation.setInstructorUsername("");
+            savedSimulation.setInstructorPassword("");
+        }
+        return new ResponseEntity<>(savedSimulation, HttpStatus.OK);
     }
 
     /**
@@ -57,7 +67,14 @@ public class SimulationResource {
      */
     @GetMapping
     public ResponseEntity<List<Simulation>> getAllSimulations() {
-        return new ResponseEntity<>(simulationDataService.getAllSimulations(), HttpStatus.OK);
+        var simulations = simulationDataService.getAllSimulations();
+        simulations.forEach(simulation -> {
+            if (simulation.getInstructorUsername() != null || simulation.getInstructorPassword() != null) {
+                simulation.setInstructorUsername("");
+                simulation.setInstructorPassword("");
+            }
+        });
+        return new ResponseEntity<>(simulations, HttpStatus.OK);
     }
 
     /**
@@ -68,7 +85,12 @@ public class SimulationResource {
      */
     @GetMapping("/{simulationId}")
     public ResponseEntity<Simulation> getSimulation(@PathVariable long simulationId) {
-        return new ResponseEntity<>(simulationDataService.getSimulation(simulationId), HttpStatus.OK);
+        var simulation = simulationDataService.getSimulation(simulationId);
+        if (simulation.getInstructorUsername() != null || simulation.getInstructorPassword() != null) {
+            simulation.setInstructorUsername("");
+            simulation.setInstructorPassword("");
+        }
+        return new ResponseEntity<>(simulation, HttpStatus.OK);
     }
 
     /**
@@ -93,7 +115,7 @@ public class SimulationResource {
         @PathVariable long simulationId,
         @RequestBody(required = false) ArtemisAccountDTO accountDTO
     ) {
-        var run = simulationDataService.createAndQueueSimulationRun(simulationId, accountDTO);
+        var run = simulationDataService.createAndQueueSimulationRun(simulationId, accountDTO, null);
         return new ResponseEntity<>(run, HttpStatus.OK);
     }
 
@@ -173,5 +195,31 @@ public class SimulationResource {
     @GetMapping("/{simulationId}/schedules")
     public ResponseEntity<List<SimulationSchedule>> getSchedules(@PathVariable long simulationId) {
         return new ResponseEntity<>(simulationScheduleService.getSimulationSchedules(simulationId), HttpStatus.OK);
+    }
+
+    @PostMapping("/schedules/{scheduleId}/subscribe")
+    public ResponseEntity<Void> subscribeToSchedule(@PathVariable long scheduleId, @RequestBody String email) {
+        simulationScheduleService.subscribeToSchedule(scheduleId, email);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PatchMapping("/{simulationId}/instructor-account")
+    public ResponseEntity<Simulation> updateInstructorAccount(@PathVariable long simulationId, @RequestBody ArtemisAccountDTO account) {
+        var simulation = simulationDataService.updateInstructorAccount(simulationId, account);
+        if (simulation.getInstructorUsername() != null || simulation.getInstructorPassword() != null) {
+            simulation.setInstructorUsername("");
+            simulation.setInstructorPassword("");
+        }
+        return new ResponseEntity<>(simulation, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{simulationId}/instructor-account")
+    public ResponseEntity<Simulation> removeInstructorAccount(@PathVariable long simulationId) {
+        var simulation = simulationDataService.removeInstructorAccount(simulationId);
+        if (simulation.getInstructorUsername() != null || simulation.getInstructorPassword() != null) {
+            simulation.setInstructorUsername("");
+            simulation.setInstructorPassword("");
+        }
+        return new ResponseEntity<>(simulation, HttpStatus.OK);
     }
 }

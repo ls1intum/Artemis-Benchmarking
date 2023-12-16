@@ -1,6 +1,7 @@
 package de.tum.cit.ase.service.simulation;
 
 import de.tum.cit.ase.domain.*;
+import de.tum.cit.ase.domain.RequestType;
 import de.tum.cit.ase.repository.SimulationStatsRepository;
 import de.tum.cit.ase.repository.StatsByMinuteRepository;
 import java.time.ZonedDateTime;

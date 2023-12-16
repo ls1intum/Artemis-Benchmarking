@@ -4,15 +4,16 @@ import {
   NgbActiveModal,
   NgbCollapseModule,
   NgbDatepickerModule,
+  NgbModal,
   NgbTimepickerModule,
   NgbTimeStruct,
   NgbTooltipModule,
 } from '@ng-bootstrap/ng-bootstrap';
-import { Simulation } from '../../../entities/simulation/simulation';
-import { SimulationsService } from '../../../simulations/simulations.service';
-import { Cycle, DayOfWeek, SimulationSchedule } from '../../../entities/simulation/simulationSchedule';
+import { Mode, Simulation } from '../../entities/simulation/simulation';
+import { SimulationsService } from '../../simulations/simulations.service';
+import { Cycle, DayOfWeek, SimulationSchedule } from '../../entities/simulation/simulationSchedule';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { faCalendarDays, faCircleInfo, faLightbulb } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faCalendarDays, faCircleInfo, faLightbulb, faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @Component({
@@ -32,9 +33,15 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
   styleUrl: './simulation-schedule-dialog.component.scss',
 })
 export class SimulationScheduleDialogComponent implements OnInit {
+  emailRegex =
+    '(?:[a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\\])';
+
   faCalendarDays = faCalendarDays;
   faLightbulb = faLightbulb;
   faCircleInfo = faCircleInfo;
+  faBell = faBell;
+  faTrash = faTrash;
+  faPen = faPen;
 
   @Input()
   simulation?: Simulation;
@@ -52,6 +59,8 @@ export class SimulationScheduleDialogComponent implements OnInit {
   startDate?: Date = undefined;
   endDate?: Date = undefined;
 
+  email = '';
+
   editCycle = Cycle.DAILY;
   editTimeOfDay?: NgbTimeStruct = undefined;
   editWeekday?: DayOfWeek;
@@ -67,9 +76,16 @@ export class SimulationScheduleDialogComponent implements OnInit {
     DayOfWeek.SUNDAY,
   ];
 
-  protected readonly Cycle = Cycle;
+  error = false;
+  success = false;
 
-  constructor(private simulationService: SimulationsService) {}
+  protected readonly Cycle = Cycle;
+  protected readonly Mode = Mode;
+
+  constructor(
+    private simulationService: SimulationsService,
+    private modalService: NgbModal,
+  ) {}
 
   ngOnInit(): void {
     if (this.simulation?.id) {
@@ -174,5 +190,33 @@ export class SimulationScheduleDialogComponent implements OnInit {
     } else {
       return basicRequirements && !!this.editWeekday;
     }
+  }
+
+  subscribeToSchedule(id: number, content: any): void {
+    this.modalService.open(content, { ariaLabelledBy: 'subscribe-modal-title' }).result.then(
+      () => {
+        if (this.email.length > 0 && this.email.includes('@')) {
+          this.simulationService.subscribeToSimulationSchedule(id, this.email).subscribe({
+            next: () => {
+              this.email = '';
+              this.success = true;
+              setTimeout(() => {
+                this.success = false;
+              }, 3000);
+            },
+            error: () => {
+              this.email = '';
+              this.error = true;
+              setTimeout(() => {
+                this.error = false;
+              }, 3000);
+            },
+          });
+        }
+      },
+      () => {
+        this.email = '';
+      },
+    );
   }
 }

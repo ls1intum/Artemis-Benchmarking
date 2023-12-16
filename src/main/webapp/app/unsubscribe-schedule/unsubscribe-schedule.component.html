@@ -1,0 +1,11 @@
+@switch (state) {
+  @case ('PENDING') {
+    <div class="alert alert-primary" role="alert">Unsubscribing..</div>
+  }
+  @case ('SUCCESS') {
+    <div class="alert alert-success" role="alert">Successfully unsubscribed!</div>
+  }
+  @case ('ERROR') {
+    <div class="alert alert-danger" role="alert">Unsubscribe failed!</div>
+  }
+}

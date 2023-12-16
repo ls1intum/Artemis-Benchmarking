@@ -1,0 +1,43 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="en">
+  <head>
+    <title>Result for scheduled run</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  </head>
+  <body>
+    <p>
+      Hello,<br />
+      A scheduled run for the simulation
+      <strong th:text="${run.getSimulation().getName()}">Simulation</strong> was executed. <br />
+      Here are the results:
+    </p>
+    <p>
+      Users: <span th:text="${run.getSimulation().getNumberOfUsers()}">0</span><br />
+      Server: <span th:text="${run.getSimulation().getServer()}">STAGING</span><br />
+      Mode: <span th:text="${run.getSimulation().getMode()}">CREATE_COURSE_AND_EXAM</span><br />
+    </p>
+    <div>
+      <h4 style="margin-bottom: 0">Avg. response times:</h4>
+      <p style="margin-left: 10px; margin-top: 5px">
+        - total: <strong th:text="${result.avgTotal}">0 ms</strong><br />
+        - authentication: <strong th:text="${result.avgAuthentication}">0 ms</strong><br />
+        - get student exam: <strong th:text="${result.avgGetStudentExam}">0 ms</strong><br />
+        - start student exam: <strong th:text="${result.avgStartStudentExam}">0 ms</strong><br />
+        - submit exercises: <strong th:text="${result.avgSubmitExercise}">0 ms</strong><br />
+        - submit student exam: <strong th:text="${result.avgSubmitStudentExam}">0 ms</strong><br />
+        - clone: <strong th:text="${result.avgClone}">0 ms</strong><br />
+        - push: <strong th:text="${result.avgPush}">0 ms</strong><br />
+      </p>
+    </div>
+    To see more details, please visit the <a th:with="url=(@{|${baseUrl}/simulations?runId=${run.getId()}|})" th:href="${url}">run page</a>.
+    <p>
+      You are receiving this email because you subscribed to the schedule. <br />
+      <a th:with="url=(@{|${baseUrl}/unsubscribe?key=${subscriber.getKey()}|})" th:href="${url}">Click here to unsubscribe</a>
+    </p>
+    <p>
+      <span>Best regards,</span>
+      <br />
+      <em>The Artemis-Benchmarking Team</em>
+    </p>
+  </body>
+</html>

@@ -161,7 +161,7 @@ public class SimulationDataServiceIT {
                 return runArg;
             });
 
-        var queuedRun = simulationDataService.createAndQueueSimulationRun(1L, null);
+        var queuedRun = simulationDataService.createAndQueueSimulationRun(1L, null, null);
 
         assertEquals(1L, queuedRun.getId());
         verify(simulationRunRepository).save(queuedRun);
@@ -181,7 +181,7 @@ public class SimulationDataServiceIT {
                 runArg.setId(1L);
                 return runArg;
             });
-        assertThrows(IllegalArgumentException.class, () -> simulationDataService.createAndQueueSimulationRun(1L, null));
+        assertThrows(IllegalArgumentException.class, () -> simulationDataService.createAndQueueSimulationRun(1L, null, null));
 
         verify(simulationRunRepository, times(0)).save(any());
         verify(simulationRunQueueService, times(0)).queueSimulationRun(any());

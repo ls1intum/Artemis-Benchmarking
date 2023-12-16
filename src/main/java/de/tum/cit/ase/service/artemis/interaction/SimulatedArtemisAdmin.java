@@ -47,6 +47,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         var examIdString = String.valueOf(examId);
         var courseIdString = String.valueOf(courseId);
 
+        log.debug("Fetching exam...");
         // Get exam
         Exam exam = webClient
             .get()
@@ -69,6 +70,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         exam.setStartDate(ZonedDateTime.now().plusDays(1L));
         exam.setEndDate(ZonedDateTime.now().plusDays(5L));
 
+        log.info("Updating exam...");
         // Update exam
         webClient
             .put()
@@ -78,6 +80,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .toBodilessEntity()
             .block();
 
+        log.info("Generating student exams...");
         // Generate student exams
         webClient
             .post()
@@ -88,6 +91,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .toBodilessEntity()
             .block();
 
+        log.info("Preparing exercise start...");
         // Prepare exercise start
         webClient
             .post()
@@ -99,6 +103,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .block();
 
         // Wait for exercise preparation to finish
+        log.info("Waiting for exercise preparation to finish...");
         ExamExerciseStartPreparationStatus status;
         do {
             try {
@@ -145,6 +150,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         // Set start-date to now
         exam.setStartDate(now());
 
+        log.info("Updating exam...");
         // Update exam
         webClient
             .put()

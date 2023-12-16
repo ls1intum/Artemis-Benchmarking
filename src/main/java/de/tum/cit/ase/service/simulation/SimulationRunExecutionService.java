@@ -7,6 +7,7 @@ import de.tum.cit.ase.artemisModel.Exam;
 import de.tum.cit.ase.domain.*;
 import de.tum.cit.ase.repository.LogMessageRepository;
 import de.tum.cit.ase.repository.SimulationRunRepository;
+import de.tum.cit.ase.service.MailService;
 import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
 import de.tum.cit.ase.service.artemis.ArtemisUserService;
 import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisAdmin;
@@ -38,6 +39,7 @@ public class SimulationRunExecutionService {
     private final SimulationRunRepository simulationRunRepository;
     private final SimulationResultService simulationResultService;
     private final LogMessageRepository logMessageRepository;
+    private final MailService mailService;
     private boolean doNotSleep = false;
 
     public SimulationRunExecutionService(
@@ -46,7 +48,8 @@ public class SimulationRunExecutionService {
         ArtemisUserService artemisUserService,
         SimulationRunRepository simulationRunRepository,
         SimulationResultService simulationResultService,
-        LogMessageRepository logMessageRepository
+        LogMessageRepository logMessageRepository,
+        MailService mailService
     ) {
         this.simulationWebsocketService = simulationWebsocketService;
         this.artemisConfiguration = artemisConfiguration;
@@ -54,6 +57,7 @@ public class SimulationRunExecutionService {
         this.simulationResultService = simulationResultService;
         this.logMessageRepository = logMessageRepository;
         this.artemisUserService = artemisUserService;
+        this.mailService = mailService;
     }
 
     /**
@@ -65,8 +69,11 @@ public class SimulationRunExecutionService {
      */
     public synchronized void simulateExam(SimulationRun simulationRun) {
         ArtemisAccountDTO accountDTO = simulationRun.getAdminAccount();
+        SimulationSchedule schedule = simulationRun.getSchedule();
+
         simulationRun.setStatus(SimulationRun.Status.RUNNING);
         simulationRun = simulationRunRepository.save(simulationRun);
+        simulationRun.setSchedule(schedule);
         simulationWebsocketService.sendRunStatusUpdate(simulationRun);
 
         var simulation = simulationRun.getSimulation();
@@ -74,6 +81,15 @@ public class SimulationRunExecutionService {
         var examId = simulation.getExamId();
         SimulatedArtemisAdmin admin = null;
         SimulatedArtemisStudent[] students;
+
+        if (
+            (accountDTO == null || accountDTO.getUsername().isBlank() || accountDTO.getPassword().isBlank()) &&
+            simulation.instructorCredentialsProvided()
+        ) {
+            accountDTO = new ArtemisAccountDTO();
+            accountDTO.setUsername(simulation.getInstructorUsername());
+            accountDTO.setPassword(simulation.getInstructorPassword());
+        }
 
         logAndSend(
             false,
@@ -459,6 +475,14 @@ public class SimulationRunExecutionService {
         if (Thread.currentThread().isInterrupted()) {
             return;
         }
+        if (simulationRun.getSchedule() != null) {
+            LogMessage errorLogMessage = logMessageRepository
+                .findBySimulationRunIdAndErrorIsTrue(simulationRun.getId())
+                .stream()
+                .max(Comparator.comparing(LogMessage::getTimestamp))
+                .orElse(null);
+            mailService.sendRunFailureMail(simulationRun, simulationRun.getSchedule(), errorLogMessage);
+        }
         simulationRun.setStatus(SimulationRun.Status.FAILED);
         SimulationRun savedSimulationRun = simulationRunRepository.save(simulationRun);
         simulationWebsocketService.sendRunStatusUpdate(savedSimulationRun);
@@ -472,5 +496,8 @@ public class SimulationRunExecutionService {
 
     private void sendRunResult(SimulationRun simulationRun) {
         simulationWebsocketService.sendSimulationResult(simulationRun);
+        if (simulationRun.getSchedule() != null) {
+            mailService.sendRunResultMail(simulationRun, simulationRun.getSchedule());
+        }
     }
 }

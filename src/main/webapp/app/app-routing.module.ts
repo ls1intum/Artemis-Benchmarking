@@ -11,6 +11,7 @@ import { RouterModule } from '@angular/router';
 import { NgModule } from '@angular/core';
 import { SimulationsOverviewComponent } from './simulations/simulations-overview/simulations-overview.component';
 import { ArtemisUsersComponent } from './artemis-users/artemis-users.component';
+import { UnsubscribeScheduleComponent } from './unsubscribe-schedule/unsubscribe-schedule.component';
 
 @NgModule({
   imports: [
@@ -19,7 +20,7 @@ import { ArtemisUsersComponent } from './artemis-users/artemis-users.component';
         {
           path: '',
           component: HomeComponent,
-          title: 'Welcome, Java Hipster!',
+          title: 'Artemis-Benchmarking',
         },
         {
           path: '',
@@ -64,6 +65,11 @@ import { ArtemisUsersComponent } from './artemis-users/artemis-users.component';
           component: ArtemisUsersComponent,
           title: 'Artemis Users',
           canActivate: [UserRouteAccessService],
+        },
+        {
+          path: 'unsubscribe',
+          component: UnsubscribeScheduleComponent,
+          title: 'Unsubscribe',
         },
         ...errorRoute,
       ],

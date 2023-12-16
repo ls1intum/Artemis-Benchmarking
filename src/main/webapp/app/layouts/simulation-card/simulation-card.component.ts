@@ -1,12 +1,12 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { getTextRepresentation, Mode, Simulation } from '../../entities/simulation/simulation';
+import { getTextRepresentation, instructorCredentialsProvided, Mode, Simulation } from '../../entities/simulation/simulation';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
 import { SimulationsService } from '../../simulations/simulations.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ArtemisAccountDTO } from '../../simulations/artemisAccountDTO';
-import { faCalendarDays, faChevronRight, faClock, faTrashCan } from '@fortawesome/free-solid-svg-icons';
-import { SimulationScheduleDialogComponent } from './simulation-schedule-dialog/simulation-schedule-dialog.component';
+import { faCalendarDays, faChevronRight, faClock, faEye, faEyeSlash, faTrashCan, faUserTie } from '@fortawesome/free-solid-svg-icons';
+import { SimulationScheduleDialogComponent } from '../simulation-schedule-dialog/simulation-schedule-dialog.component';
 
 @Component({
   selector: 'jhi-simulation-card',
@@ -18,6 +18,9 @@ export class SimulationCardComponent implements OnInit {
   faChevronRight = faChevronRight;
   faCalendarDays = faCalendarDays;
   faClock = faClock;
+  faUserTie = faUserTie;
+  faEye = faEye;
+  faEyeSlash = faEyeSlash;
 
   @Input()
   simulation!: Simulation;
@@ -26,18 +29,21 @@ export class SimulationCardComponent implements OnInit {
   displayedRuns: SimulationRun[] = [];
   numberOfDisplayedRuns = 3;
   numberOfActiveSchedules = 0;
+  credentialsRequired = false;
+  instructorAccountAvailable = false;
 
   adminPassword = '';
   adminUsername = '';
+  showAdminPassword = false;
 
   @Output() clickedRunEvent = new EventEmitter<SimulationRun>();
   @Output() delete = new EventEmitter<void>();
 
-  protected readonly Simulation = Simulation;
   protected readonly Mode = Mode;
   protected readonly Status = Status;
   protected readonly getTextRepresentation = getTextRepresentation;
   protected readonly ArtemisServer = ArtemisServer;
+  protected readonly instructorCredentialsProvided = instructorCredentialsProvided;
 
   constructor(
     private simulationService: SimulationsService,
@@ -51,6 +57,8 @@ export class SimulationCardComponent implements OnInit {
       this.numberOfActiveSchedules = numberOfActiveSchedules.length;
     });
     this.subscribeToNewSimulationRun();
+    this.updateCredentialsRequired();
+    this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);
   }
 
   startRun(content: any): void {
@@ -64,14 +72,41 @@ export class SimulationCardComponent implements OnInit {
           this.simulationService.runSimulation(this.simulation.id!, account).subscribe(newRun => {
             this.addNewRun(newRun);
           });
+          this.adminPassword = '';
+          this.adminUsername = '';
+          this.showAdminPassword = false;
         },
-        () => {},
+        () => {
+          this.adminPassword = '';
+          this.adminUsername = '';
+          this.showAdminPassword = false;
+        },
       );
     } else {
       this.simulationService.runSimulation(this.simulation.id!).subscribe(newRun => {
         this.addNewRun(newRun);
       });
     }
+  }
+
+  patchInstructorAccount(content: any): void {
+    this.modalService.open(content, { ariaLabelledBy: 'instructor-modal-title' }).result.then(
+      (res: string) => {
+        if (res === 'submit') {
+          this.patchSimulationInstructorAccount();
+        } else if (res === 'delete') {
+          this.deleteSimulationInstructorAccount();
+        }
+        this.adminPassword = '';
+        this.adminUsername = '';
+        this.showAdminPassword = false;
+      },
+      () => {
+        this.adminPassword = '';
+        this.adminUsername = '';
+        this.showAdminPassword = false;
+      },
+    );
   }
 
   sortRuns(): void {
@@ -141,5 +176,31 @@ export class SimulationCardComponent implements OnInit {
 
     this.sortRuns();
     this.updateDisplayRuns();
+  }
+
+  patchSimulationInstructorAccount(): void {
+    const account = new ArtemisAccountDTO(this.adminUsername, this.adminPassword);
+    this.simulationService.patchSimulationInstructorAccount(this.simulation.id!, account).subscribe(updatedSimulation => {
+      this.simulation.instructorUsername = updatedSimulation.instructorUsername;
+      this.simulation.instructorPassword = updatedSimulation.instructorPassword;
+      this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);
+      this.updateCredentialsRequired();
+    });
+  }
+
+  deleteSimulationInstructorAccount(): void {
+    this.simulationService.deleteSimulationInstructorAccount(this.simulation.id!).subscribe(updatedSimulation => {
+      this.simulation.instructorUsername = updatedSimulation.instructorUsername;
+      this.simulation.instructorPassword = updatedSimulation.instructorPassword;
+      this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);
+      this.updateCredentialsRequired();
+    });
+  }
+
+  updateCredentialsRequired(): void {
+    this.credentialsRequired =
+      this.simulation.server === ArtemisServer.PRODUCTION &&
+      this.simulation.mode !== Mode.EXISTING_COURSE_PREPARED_EXAM &&
+      !instructorCredentialsProvided(this.simulation);
   }
 }

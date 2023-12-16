@@ -16,7 +16,17 @@ export class Simulation {
     public numberOfCommitsAndPushesFrom: number,
     public numberOfCommitsAndPushesTo: number,
     public userRange?: string,
+    public instructorUsername?: string | null,
+    public instructorPassword?: string | null,
   ) {}
+}
+
+export function instructorCredentialsProvided(simulation: Simulation): boolean {
+  if (simulation.mode === Mode.CREATE_COURSE_AND_EXAM) {
+    // For this mode we need admin credentials, not instructor credentials
+    return false;
+  }
+  return simulation.instructorUsername !== null && simulation.instructorPassword !== null;
 }
 
 export enum Mode {

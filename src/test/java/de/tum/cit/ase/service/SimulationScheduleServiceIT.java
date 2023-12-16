@@ -53,7 +53,7 @@ public class SimulationScheduleServiceIT {
 
         when(simulationDataService.getSimulation(1L)).thenReturn(simulation);
 
-        when(simulationDataService.createAndQueueSimulationRun(anyLong(), any())).thenReturn(null);
+        when(simulationDataService.createAndQueueSimulationRun(anyLong(), any(), any())).thenReturn(null);
     }
 
     @Test

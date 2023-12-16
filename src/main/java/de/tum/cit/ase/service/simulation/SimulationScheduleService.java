@@ -2,8 +2,11 @@ package de.tum.cit.ase.service.simulation;
 
 import static java.time.ZonedDateTime.now;
 
+import de.tum.cit.ase.domain.ScheduleSubscriber;
 import de.tum.cit.ase.domain.SimulationSchedule;
+import de.tum.cit.ase.repository.ScheduleSubscriberRepository;
 import de.tum.cit.ase.repository.SimulationScheduleRepository;
+import de.tum.cit.ase.service.MailService;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
@@ -12,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import tech.jhipster.security.RandomUtil;
 
 @Service
 public class SimulationScheduleService {
@@ -20,13 +24,19 @@ public class SimulationScheduleService {
 
     private final SimulationScheduleRepository simulationScheduleRepository;
     private final SimulationDataService simulationDataService;
+    private final ScheduleSubscriberRepository scheduleSubscriberRepository;
+    private final MailService mailService;
 
     public SimulationScheduleService(
         SimulationScheduleRepository simulationScheduleRepository,
-        SimulationDataService simulationDataService
+        SimulationDataService simulationDataService,
+        ScheduleSubscriberRepository scheduleSubscriberRepository,
+        MailService mailService
     ) {
         this.simulationScheduleRepository = simulationScheduleRepository;
         this.simulationDataService = simulationDataService;
+        this.scheduleSubscriberRepository = scheduleSubscriberRepository;
+        this.mailService = mailService;
     }
 
     public SimulationSchedule createSimulationSchedule(long simulationId, SimulationSchedule simulationSchedule) {
@@ -68,6 +78,28 @@ public class SimulationScheduleService {
         return simulationScheduleRepository.findAllBySimulationId(simulationId);
     }
 
+    public ScheduleSubscriber subscribeToSchedule(long scheduleId, String email) {
+        log.debug("Subscribing {} to schedule {}", email, scheduleId);
+        var schedule = simulationScheduleRepository.findById(scheduleId).orElseThrow();
+        if (schedule.getSubscribers().stream().anyMatch(subscriber -> subscriber.getEmail().equals(email))) {
+            log.debug("Subscriber {} already subscribed to schedule {}", email, scheduleId);
+            return null;
+        }
+        var subscriber = new ScheduleSubscriber();
+        subscriber.setSchedule(schedule);
+        subscriber.setEmail(email.toLowerCase());
+        subscriber.setKey(RandomUtil.generateActivationKey());
+        var savedSubscriber = scheduleSubscriberRepository.save(subscriber);
+        mailService.sendSubscribedMail(savedSubscriber);
+        return savedSubscriber;
+    }
+
+    public void unsubscribeFromSchedule(String key) {
+        log.debug("Unsubscribing from schedule with key {}", key);
+        var subscriber = scheduleSubscriberRepository.findByKey(key).orElseThrow();
+        scheduleSubscriberRepository.delete(subscriber);
+    }
+
     @Scheduled(fixedRate = 1000 * 60, initialDelay = 0)
     void executeScheduledSimulations() {
         log.info("Executing scheduled simulation runs");
@@ -78,7 +110,7 @@ public class SimulationScheduleService {
             .forEach(simulationSchedule -> {
                 log.info("Executing scheduled simulation run for simulation {}", simulationSchedule.getSimulation().getId());
                 var simulation = simulationSchedule.getSimulation();
-                simulationDataService.createAndQueueSimulationRun(simulation.getId(), null);
+                simulationDataService.createAndQueueSimulationRun(simulation.getId(), null, simulationSchedule);
                 updateNextRun(simulationSchedule);
             });
     }

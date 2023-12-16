@@ -72,6 +72,16 @@ export class SimulationsService {
     return this.httpClient.delete(endpoint).pipe(map(() => {}));
   }
 
+  patchSimulationInstructorAccount(simulationId: number, account: ArtemisAccountDTO): Observable<Simulation> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId + '/instructor-account');
+    return this.httpClient.patch(endpoint, account).pipe(map((res: any) => res as Simulation));
+  }
+
+  deleteSimulationInstructorAccount(simulationId: number): Observable<Simulation> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId + '/instructor-account');
+    return this.httpClient.delete(endpoint).pipe(map((res: any) => res as Simulation));
+  }
+
   deleteSimulationRun(runId: number): Observable<void> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/runs/' + runId);
     return this.httpClient.delete(endpoint).pipe(map(() => {}));
@@ -105,6 +115,11 @@ export class SimulationsService {
   getSimulationSchedules(simulationId: number): Observable<SimulationSchedule[]> {
     const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/' + simulationId + '/schedules');
     return this.httpClient.get(endpoint).pipe(map((res: any) => res as SimulationSchedule[]));
+  }
+
+  subscribeToSimulationSchedule(simulationScheduleId: number, email: string): Observable<void> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/simulations/schedules/' + simulationScheduleId + '/subscribe');
+    return this.httpClient.post(endpoint, email).pipe(map(() => {}));
   }
 
   public unsubscribeFromSelectedSimulationRun(run: SimulationRun): void {

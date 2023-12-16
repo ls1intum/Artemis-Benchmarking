@@ -1,0 +1,24 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}" lang="en">
+  <head>
+    <title>Subscribed to Artemis-Benchmarking schedule</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  </head>
+  <body>
+    <p>
+      Hello,<br />
+      You have been subscribed to a schedule for the simulation <br />
+      <strong th:text="${subscriber.getSchedule().getSimulation().getName()}">Simulation</strong>.
+    </p>
+    <p>You will receive a summary of the simulation results after every scheduled run.</p>
+    <p>
+      If you subscribed by mistake,
+      <a th:with="url=(@{|${baseUrl}/unsubscribe?key=${subscriber.getKey()}|})" th:href="${url}">click here to unsubscribe</a>
+    </p>
+    <p>
+      <span>Best regards,</span>
+      <br />
+      <em>The Artemis-Benchmarking Team</em>
+    </p>
+  </body>
+</html>

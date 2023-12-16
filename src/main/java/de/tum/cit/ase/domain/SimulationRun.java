@@ -35,6 +35,9 @@ public class SimulationRun {
     @Transient
     private ArtemisAccountDTO adminAccount;
 
+    @Transient
+    private SimulationSchedule schedule;
+
     public Long getId() {
         return id;
     }
@@ -89,6 +92,14 @@ public class SimulationRun {
 
     public void setAdminAccount(ArtemisAccountDTO adminAccount) {
         this.adminAccount = adminAccount;
+    }
+
+    public SimulationSchedule getSchedule() {
+        return schedule;
+    }
+
+    public void setSchedule(SimulationSchedule schedule) {
+        this.schedule = schedule;
     }
 
     public enum Status {

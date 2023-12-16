@@ -1,6 +1,6 @@
 package de.tum.cit.ase.service;
 
-import de.tum.cit.ase.domain.User;
+import de.tum.cit.ase.domain.*;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +32,10 @@ public class MailService {
     private static final String USER = "user";
 
     private static final String BASE_URL = "baseUrl";
+
+    private static final String SUBSCRIPTION_KEY = "subscriptionKey";
+
+    private static final String SIMULATION_NAME = "simulationName";
 
     private final JHipsterProperties jHipsterProperties;
 
@@ -114,5 +118,58 @@ public class MailService {
     public void sendPasswordResetMail(User user) {
         log.debug("Sending password reset email to '{}'", user.getEmail());
         self.sendEmailFromTemplate(user, "mail/passwordResetEmail", "email.reset.title");
+    }
+
+    @Async
+    public void sendSubscribedMail(ScheduleSubscriber subscriber) {
+        log.debug("Sending subscription confirmation email to '{}'", subscriber.getEmail());
+        Locale locale = Locale.forLanguageTag("en");
+        Context context = new Context(locale);
+        context.setVariable("subscriber", subscriber);
+        context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
+        String content = templateEngine.process("mail/scheduleSubscriptionEmail", context);
+        String subject = "Artemis-Benchmarking - Subscription to simulation schedule";
+        self.sendEmail(subscriber.getEmail(), subject, content, false, true);
+    }
+
+    @Async
+    public void sendRunResultMail(SimulationRun run, SimulationSchedule schedule) {
+        SimulationResultForSummary result = SimulationResultForSummary.from(run);
+        Locale locale = Locale.forLanguageTag("en");
+        Context context = new Context(locale);
+        context.setVariable("run", run);
+        context.setVariable("result", result);
+        context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
+        String subject = "Artemis-Benchmarking - Result for scheduled run";
+        schedule
+            .getSubscribers()
+            .forEach(subscriber -> {
+                context.setVariable("subscriber", subscriber);
+                String content = templateEngine.process("mail/subscriptionResultEmail", context);
+                log.debug("Sending result email to '{}'", subscriber.getEmail());
+                self.sendEmail(subscriber.getEmail(), subject, content, false, true);
+            });
+    }
+
+    @Async
+    public void sendRunFailureMail(SimulationRun run, SimulationSchedule schedule, LogMessage errorLogMessage) {
+        Locale locale = Locale.forLanguageTag("en");
+        Context context = new Context(locale);
+        context.setVariable("run", run);
+        if (errorLogMessage != null) {
+            context.setVariable("error", errorLogMessage.getMessage());
+        } else {
+            context.setVariable("error", "No error message found.");
+        }
+        context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
+        String subject = "Artemis-Benchmarking - Scheduled run failed";
+        schedule
+            .getSubscribers()
+            .forEach(subscriber -> {
+                context.setVariable("subscriber", subscriber);
+                String content = templateEngine.process("mail/subscriptionFailureEmail", context);
+                log.debug("Sending result email to '{}'", subscriber.getEmail());
+                self.sendEmail(subscriber.getEmail(), subject, content, false, true);
+            });
     }
 }

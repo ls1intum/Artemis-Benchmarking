@@ -1,5 +1,6 @@
 package de.tum.cit.ase.service.simulation;
 
+import static de.tum.cit.ase.util.ArtemisServer.PRODUCTION;
 import static de.tum.cit.ase.util.NumberRangeParser.numberRangeRegex;
 import static java.lang.Thread.sleep;
 import static java.time.ZonedDateTime.now;
@@ -52,6 +53,14 @@ public class SimulationDataService {
             var users = NumberRangeParser.parseNumberRange(simulation.getUserRange()).size();
             simulation.setNumberOfUsers(users);
         }
+        if (
+            simulation.getServer() != PRODUCTION ||
+            simulation.getMode() == Simulation.Mode.EXISTING_COURSE_PREPARED_EXAM ||
+            simulation.getMode() == Simulation.Mode.CREATE_COURSE_AND_EXAM
+        ) {
+            simulation.setInstructorUsername(null);
+            simulation.setInstructorPassword(null);
+        }
         return simulationRepository.save(simulation);
     }
 
@@ -85,12 +94,13 @@ public class SimulationDataService {
         simulationRunRepository.deleteById(runId);
     }
 
-    public SimulationRun createAndQueueSimulationRun(long simulationId, ArtemisAccountDTO accountDTO) {
+    public SimulationRun createAndQueueSimulationRun(long simulationId, ArtemisAccountDTO accountDTO, SimulationSchedule schedule) {
         Simulation simulation = simulationRepository.findById(simulationId).orElseThrow();
 
         if (
-            simulation.getServer() == ArtemisServer.PRODUCTION &&
+            simulation.getServer() == PRODUCTION &&
             simulation.getMode() != Simulation.Mode.EXISTING_COURSE_PREPARED_EXAM &&
+            !simulation.instructorCredentialsProvided() &&
             accountDTO == null
         ) {
             throw new IllegalArgumentException("This simulation mode requires an admin / instructor account!");
@@ -105,6 +115,7 @@ public class SimulationDataService {
 
         SimulationRun savedSimulationRun = simulationRunRepository.save(simulationRun);
         savedSimulationRun.setAdminAccount(accountDTO);
+        savedSimulationRun.setSchedule(schedule);
         simulationRunQueueService.queueSimulationRun(savedSimulationRun);
         simulationWebsocketService.sendNewRun(savedSimulationRun);
         return savedSimulationRun;
@@ -183,5 +194,34 @@ public class SimulationDataService {
             }
         }
         return servers;
+    }
+
+    public Simulation updateInstructorAccount(long simulationId, ArtemisAccountDTO account) {
+        var simulation = simulationRepository.findById(simulationId).orElseThrow();
+        if (simulation.getServer() != PRODUCTION) {
+            log.warn("Cannot update instructor account for simulation {} because it is not running on production server", simulationId);
+            return simulation;
+        }
+        if (
+            simulation.getMode() != Simulation.Mode.EXISTING_COURSE_CREATE_EXAM &&
+            simulation.getMode() != Simulation.Mode.EXISTING_COURSE_UNPREPARED_EXAM
+        ) {
+            log.warn(
+                "Cannot update instructor account for simulation {} because it is not in a mode that requires an instructor account",
+                simulationId
+            );
+            return simulation;
+        }
+        simulation.setInstructorUsername(account.getUsername());
+        simulation.setInstructorPassword(account.getPassword());
+        return simulationRepository.save(simulation);
+    }
+
+    public Simulation removeInstructorAccount(long simulationId) {
+        var simulation = simulationRepository.findById(simulationId).orElseThrow();
+
+        simulation.setInstructorUsername(null);
+        simulation.setInstructorPassword(null);
+        return simulationRepository.save(simulation);
     }
 }
