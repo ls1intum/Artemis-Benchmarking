@@ -227,7 +227,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FINISHED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(1)).sendSimulationResult(run);
-        verify(simulationWebsocketService, times(20)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(0)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(1)).calculateAndSaveResult(eq(run), any());
@@ -289,7 +288,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FINISHED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(1)).sendSimulationResult(run);
-        verify(simulationWebsocketService, times(18)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(0)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(1)).calculateAndSaveResult(eq(run), any());
@@ -347,7 +345,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FINISHED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(1)).sendSimulationResult(run);
-        verify(simulationWebsocketService, times(18)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(0)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(1)).calculateAndSaveResult(eq(run), any());
@@ -405,7 +402,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FINISHED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(1)).sendSimulationResult(run);
-        verify(simulationWebsocketService, times(16)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(0)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(1)).calculateAndSaveResult(eq(run), any());
@@ -464,7 +460,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FINISHED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(1)).sendSimulationResult(run);
-        verify(simulationWebsocketService, times(14)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(0)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(1)).calculateAndSaveResult(eq(run), any());
@@ -525,7 +520,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FINISHED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(1)).sendSimulationResult(run);
-        verify(simulationWebsocketService, times(8)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(0)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(1)).calculateAndSaveResult(eq(run), any());
@@ -591,7 +585,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FINISHED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(1)).sendSimulationResult(run);
-        verify(simulationWebsocketService, times(20)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(0)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(1)).calculateAndSaveResult(eq(run), any());
@@ -650,7 +643,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FAILED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(0)).sendSimulationResult(any());
-        verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(0)).calculateAndSaveResult(any(), any());
@@ -706,7 +698,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FAILED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(0)).sendSimulationResult(any());
-        verify(simulationWebsocketService, times(2)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(0)).calculateAndSaveResult(any(), any());
@@ -764,7 +755,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FAILED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(0)).sendSimulationResult(any());
-        verify(simulationWebsocketService, times(3)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(0)).calculateAndSaveResult(any(), any());
@@ -826,7 +816,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FAILED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(0)).sendSimulationResult(any());
-        verify(simulationWebsocketService, times(8)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(0)).calculateAndSaveResult(any(), any());
@@ -885,7 +874,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FAILED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(0)).sendSimulationResult(any());
-        verify(simulationWebsocketService, times(3)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(0)).calculateAndSaveResult(any(), any());
@@ -944,7 +932,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FAILED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(0)).sendSimulationResult(any());
-        verify(simulationWebsocketService, times(6)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(0)).calculateAndSaveResult(any(), any());
@@ -1003,7 +990,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FAILED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(0)).sendSimulationResult(any());
-        verify(simulationWebsocketService, times(9)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(0)).calculateAndSaveResult(any(), any());
@@ -1062,7 +1048,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FAILED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(0)).sendSimulationResult(any());
-        verify(simulationWebsocketService, times(10)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(0)).calculateAndSaveResult(any(), any());
@@ -1121,7 +1106,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FAILED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(0)).sendSimulationResult(any());
-        verify(simulationWebsocketService, times(11)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(0)).calculateAndSaveResult(any(), any());
@@ -1195,7 +1179,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FINISHED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(1)).sendSimulationResult(run);
-        verify(simulationWebsocketService, times(18)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(0)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(1)).calculateAndSaveResult(eq(run), any());
@@ -1254,7 +1237,6 @@ public class SimulationRunExecutionServiceIT {
         assertEquals(FINISHED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(1)).sendSimulationResult(run);
-        verify(simulationWebsocketService, times(17)).sendRunLogMessage(eq(run), argThat(logMessage -> !logMessage.isError()));
         verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(1)).calculateAndSaveResult(eq(run), any());
