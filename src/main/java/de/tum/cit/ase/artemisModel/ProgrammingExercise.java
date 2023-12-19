@@ -10,7 +10,7 @@ public class ProgrammingExercise extends Exercise {
     private boolean allowOfflineIde = true;
     private String programmingLanguage = "JAVA";
     private String projectType = "PLAIN_GRADLE";
-    private boolean staticCodeAnalysisEnabled = true;
+    private boolean staticCodeAnalysisEnabled = false;
 
     public String getShortName() {
         return shortName;
