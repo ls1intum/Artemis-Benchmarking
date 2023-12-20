@@ -102,6 +102,9 @@ artemis:
   staging:
     url:
     cleanup-enabled: false
+  staging2:
+    url:
+    cleanup-enabled: false
   production:
     url:
     cleanup-enabled: false

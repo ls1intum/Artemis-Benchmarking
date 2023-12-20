@@ -5,5 +5,6 @@ public enum ArtemisServer {
     TS1,
     TS3,
     STAGING,
+    STAGING2,
     PRODUCTION,
 }

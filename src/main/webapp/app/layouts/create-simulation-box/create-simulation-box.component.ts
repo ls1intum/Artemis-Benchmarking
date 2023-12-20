@@ -29,7 +29,7 @@ export class CreateSimulationBoxComponent implements OnInit {
   instructorUsername: string = '';
   instructorPassword: string = '';
 
-  availableServers = [ArtemisServer.TS1, ArtemisServer.TS3, ArtemisServer.PRODUCTION, ArtemisServer.STAGING];
+  availableServers = [ArtemisServer.TS1, ArtemisServer.TS3, ArtemisServer.PRODUCTION, ArtemisServer.STAGING, ArtemisServer.STAGING2];
   availableModes = [
     Mode.CREATE_COURSE_AND_EXAM,
     Mode.EXISTING_COURSE_CREATE_EXAM,
