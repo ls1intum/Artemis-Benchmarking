@@ -222,6 +222,9 @@ artemis:
   staging:
     url: https://artemis-staging.artemis.in.tum.de/
     cleanup-enabled: false
+  staging2:
+    url: https://artemis-staging-localci.artemis.cit.tum.de/
+    cleanup-enabled: false
   production:
     url: https://artemis.cit.tum.de/
     cleanup-enabled: false

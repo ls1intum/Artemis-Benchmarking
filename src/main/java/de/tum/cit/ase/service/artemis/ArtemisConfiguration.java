@@ -31,6 +31,12 @@ public class ArtemisConfiguration {
     @Value("${artemis.staging.cleanup-enabled}")
     private boolean stagingCleanup;
 
+    @Value("${artemis.staging2.url}")
+    private String staging2Url;
+
+    @Value("${artemis.staging2.cleanup-enabled}")
+    private boolean staging2Cleanup;
+
     @Value("${artemis.production.url}")
     private String productionUrl;
 
@@ -43,6 +49,7 @@ public class ArtemisConfiguration {
             case TS1 -> test1Url;
             case TS3 -> test3Url;
             case STAGING -> stagingUrl;
+            case STAGING2 -> staging2Url;
             case PRODUCTION -> productionUrl;
         };
     }
@@ -53,6 +60,7 @@ public class ArtemisConfiguration {
             case TS1 -> test1Cleanup;
             case TS3 -> test3Cleanup;
             case STAGING -> stagingCleanup;
+            case STAGING2 -> staging2Cleanup;
             case PRODUCTION -> productionCleanup;
         };
     }
