@@ -1,0 +1,5 @@
+dependencies {
+  implementation "org.springframework.boot:spring-boot-starter-cache"
+  implementation "javax.cache:cache-api"
+  implementation "com.hazelcast:hazelcast-spring:${hazelcastSpringVersion}"
+}
