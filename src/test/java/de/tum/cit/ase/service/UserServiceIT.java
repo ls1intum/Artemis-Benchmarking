@@ -1,6 +1,7 @@
 package de.tum.cit.ase.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 import de.tum.cit.ase.IntegrationTest;
 import de.tum.cit.ase.domain.User;

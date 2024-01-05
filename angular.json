@@ -76,15 +76,15 @@
         "serve": {
           "builder": "@angular-builders/custom-webpack:dev-server",
           "options": {
-            "browserTarget": "artemis-benchmarking:build:development",
+            "buildTarget": "artemis-benchmarking:build:development",
             "port": 4200
           },
           "configurations": {
             "production": {
-              "browserTarget": "artemis-benchmarking:build:production"
+              "buildTarget": "artemis-benchmarking:build:production"
             },
             "development": {
-              "browserTarget": "artemis-benchmarking:build:development"
+              "buildTarget": "artemis-benchmarking:build:development"
             }
           },
           "defaultConfiguration": "development"
