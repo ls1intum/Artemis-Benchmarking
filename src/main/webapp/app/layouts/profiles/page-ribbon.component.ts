@@ -14,7 +14,7 @@ import { map } from 'rxjs/operators';
       </div>
     }
   `,
-  styleUrls: ['./page-ribbon.component.scss'],
+  styleUrl: './page-ribbon.component.scss',
   imports: [SharedModule],
 })
 export default class PageRibbonComponent implements OnInit {

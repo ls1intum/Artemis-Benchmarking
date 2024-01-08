@@ -1,7 +1,6 @@
 import { AccountService } from 'app/core/auth/account.service';
 import { AppPageTitleStrategy } from 'app/app-page-title-strategy';
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'jhi-main',
@@ -9,11 +8,7 @@ import { Router } from '@angular/router';
   providers: [AppPageTitleStrategy],
 })
 export default class MainComponent implements OnInit {
-  constructor(
-    private router: Router,
-    private appPageTitleStrategy: AppPageTitleStrategy,
-    private accountService: AccountService,
-  ) {}
+  constructor(private accountService: AccountService) {}
 
   ngOnInit(): void {
     // try to log in automatically

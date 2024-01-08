@@ -16,7 +16,7 @@ import { faCirclePlay, faHammer } from '@fortawesome/free-solid-svg-icons';
   standalone: true,
   selector: 'jhi-navbar',
   templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.scss'],
+  styleUrl: './navbar.component.scss',
   imports: [RouterModule, SharedModule, HasAnyAuthorityDirective],
 })
 export default class NavbarComponent implements OnInit {
