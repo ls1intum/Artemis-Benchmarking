@@ -296,7 +296,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .getStudentParticipations()
             .iterator()
             .next();
-        var repositoryCloneUrl = programmingParticipation.getRepositoryUrl();
+        var repositoryCloneUrl = programmingParticipation.getRepositoryUri();
         List<RequestStat> requestStats = new ArrayList<>();
 
         try {

@@ -2,17 +2,17 @@ package de.tum.cit.ase.artemisModel;
 
 public class ProgrammingExerciseStudentParticipation extends StudentParticipation {
 
-    private String repositoryUrl;
+    private String repositoryUri;
     private String buildPlanId;
     private String branch;
     private boolean locked;
 
-    public String getRepositoryUrl() {
-        return repositoryUrl;
+    public String getRepositoryUri() {
+        return repositoryUri;
     }
 
-    public void setRepositoryUrl(String repositoryUrl) {
-        this.repositoryUrl = repositoryUrl;
+    public void setRepositoryUri(String repositoryUri) {
+        this.repositoryUri = repositoryUri;
     }
 
     public String getBuildPlanId() {
