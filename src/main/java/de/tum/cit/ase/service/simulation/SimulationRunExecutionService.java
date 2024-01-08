@@ -484,12 +484,14 @@ public class SimulationRunExecutionService {
             mailService.sendRunFailureMail(simulationRun, simulationRun.getSchedule(), errorLogMessage);
         }
         simulationRun.setStatus(SimulationRun.Status.FAILED);
+        simulationRun.setEndDateTime(ZonedDateTime.now());
         SimulationRun savedSimulationRun = simulationRunRepository.save(simulationRun);
         simulationWebsocketService.sendRunStatusUpdate(savedSimulationRun);
     }
 
     private void finishSimulationRun(SimulationRun simulationRun) {
         simulationRun.setStatus(SimulationRun.Status.FINISHED);
+        simulationRun.setEndDateTime(ZonedDateTime.now());
         SimulationRun savedSimulationRun = simulationRunRepository.save(simulationRun);
         simulationWebsocketService.sendRunStatusUpdate(savedSimulationRun);
     }

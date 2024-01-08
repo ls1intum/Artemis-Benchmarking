@@ -165,6 +165,7 @@ public class SimulationDataService {
             run = simulationRunRepository.findById(runId).orElseThrow();
 
             run.setStatus(SimulationRun.Status.CANCELLED);
+            run.setEndDateTime(now());
             simulationWebsocketService.sendRunStatusUpdate(run);
 
             var logMsg = new LogMessage();

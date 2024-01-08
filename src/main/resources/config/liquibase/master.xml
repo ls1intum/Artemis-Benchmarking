@@ -22,6 +22,7 @@
     <include file="config/liquibase/changelog/00000000000011_add_next_scheduled_run.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/00000000000012_add_schedule_subscriber.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/00000000000013_add_instructor_credentials.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/00000000000014_add_run_end_date.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->

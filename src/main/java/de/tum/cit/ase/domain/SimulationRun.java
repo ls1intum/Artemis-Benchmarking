@@ -17,6 +17,9 @@ public class SimulationRun {
     @Column(name = "start_date_time", nullable = false)
     private ZonedDateTime startDateTime;
 
+    @Column(name = "end_date_time")
+    private ZonedDateTime endDateTime;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
@@ -100,6 +103,14 @@ public class SimulationRun {
 
     public void setSchedule(SimulationSchedule schedule) {
         this.schedule = schedule;
+    }
+
+    public ZonedDateTime getEndDateTime() {
+        return endDateTime;
+    }
+
+    public void setEndDateTime(ZonedDateTime endDateTime) {
+        this.endDateTime = endDateTime;
     }
 
     public enum Status {

@@ -214,18 +214,29 @@ artemis:
   local:
     url: http://localhost:8080/
     cleanup-enabled: true
+    prometheus-instance:
   ts3:
     url: https://artemis-test3.artemis.cit.tum.de/
     cleanup-enabled: false
+    prometheus-instance: artemis-test3.artemis.cit.tum.de:9100
   ts1:
     url: https://artemis-test1.artemis.cit.tum.de/
     cleanup-enabled: false
+    prometheus-instance: artemis-test1.artemis.cit.tum.de:9100
   staging:
     url: https://artemis-staging.artemis.in.tum.de/
     cleanup-enabled: false
+    prometheus-instance:
   staging2:
     url: https://artemis-staging-localci.artemis.cit.tum.de/
     cleanup-enabled: false
+    prometheus-instance:
   production:
     url: https://artemis.cit.tum.de/
     cleanup-enabled: false
+    prometheus-instance:
+
+prometheus:
+  api-url: https://artemis-test-prometheus.artemis.cit.tum.de/
+  auth-token: # Base64 encoded token for Prometheus API (Basic auth)
+  resolution: 14 # Resolution in seconds
