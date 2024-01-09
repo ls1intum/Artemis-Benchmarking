@@ -1,4 +1,4 @@
-@if (metricValuesArtemis && metricValuesArtemis.length > 0) {
+@if (metricValuesArtemis.length > 0) {
   <div class="mt-5">
     <ngx-charts-line-chart
       [results]="dataArtemis"
@@ -16,7 +16,7 @@
     </ngx-charts-line-chart>
   </div>
 }
-@if (metricValuesVcs && metricValuesVcs.length > 0) {
+@if (metricValuesVcs.length > 0) {
   <div>
     <ngx-charts-line-chart
       [results]="dataVcs"
@@ -34,7 +34,7 @@
     </ngx-charts-line-chart>
   </div>
 }
-@if (metricValuesCi && metricValuesCi.length > 0) {
+@if (metricValuesCi.length > 0) {
   <div>
     <ngx-charts-line-chart
       [results]="dataCi"
@@ -50,5 +50,10 @@
       style="fill: white"
     >
     </ngx-charts-line-chart>
+  </div>
+}
+@if (metricValuesArtemis.length === 0 && metricValuesVcs.length === 0 && metricValuesCi.length === 0) {
+  <div class="mt-3">
+    <p class="text-center">No data available</p>
   </div>
 }

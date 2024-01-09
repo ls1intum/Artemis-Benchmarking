@@ -93,18 +93,47 @@ artemis:
   local:
     url:
     cleanup-enabled: false
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
   ts3:
     url:
     cleanup-enabled: false
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
   ts1:
     url:
     cleanup-enabled: false
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
   staging:
     url:
     cleanup-enabled: false
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
   staging2:
     url:
     cleanup-enabled: false
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
   production:
     url:
     cleanup-enabled: false
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
+
+prometheus:
+  api-url:
+  auth-token: # Base64 encoded token for Prometheus API (Basic auth)
+  resolution: 14 # Resolution in seconds

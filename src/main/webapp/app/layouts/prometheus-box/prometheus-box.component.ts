@@ -1,7 +1,6 @@
 import { Component, Input, OnChanges, OnInit } from '@angular/core';
 import { SimulationRun } from '../../entities/simulation/simulationRun';
 import { ApplicationConfigService } from '../../core/config/application-config.service';
-import { WebsocketService } from '../../core/websocket/websocket.service';
 import { MetricValue } from '../../entities/metric-value';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
@@ -30,6 +29,7 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
   dataVcs: any[] = [];
   metricValuesCi: MetricValue[] = [];
   dataCi: any[] = [];
+  timeIntervalId: number | undefined;
 
   colorSchemeArtemis = {
     name: 'artemis',
@@ -52,8 +52,14 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
     domain: ['#37FF33'],
   };
 
+  constructor(
+    private applicationConfigService: ApplicationConfigService,
+    private httpClient: HttpClient,
+    private datePipe: DatePipe,
+  ) {}
+
   axisFormatArtemis = (val: any): string => {
-    if (!this.metricValuesArtemis || this.metricValuesArtemis.length === 0) {
+    if (this.metricValuesArtemis.length === 0) {
       return '';
     }
     const index = this.metricValuesArtemis.findIndex(metric => metric.dateTime === val);
@@ -64,7 +70,7 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
   };
 
   axisFormatVcs = (val: any): string => {
-    if (!this.metricValuesVcs || this.metricValuesVcs.length === 0) {
+    if (this.metricValuesVcs.length === 0) {
       return '';
     }
     const index = this.metricValuesVcs.findIndex(metric => metric.dateTime === val);
@@ -75,7 +81,7 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
   };
 
   axisFormatCi = (val: any): string => {
-    if (!this.metricValuesCi || this.metricValuesCi.length === 0) {
+    if (this.metricValuesCi.length === 0) {
       return '';
     }
     const index = this.metricValuesCi.findIndex(metric => metric.dateTime === val);
@@ -85,20 +91,20 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
     return '';
   };
 
-  constructor(
-    private applicationConfigService: ApplicationConfigService,
-    private websocketService: WebsocketService,
-    private httpClient: HttpClient,
-    private datePipe: DatePipe,
-  ) {}
-
   ngOnInit(): void {
     this.updateMetrics();
-    setInterval(() => this.updateMetrics(), 1000 * PrometheusBoxComponent.INTERVAL_SECONDS);
+    // Update metrics every 15 seconds if the run is still running / only recently finished
+    if (!this.run.endDateTime || new Date(this.run.endDateTime).getTime() + 1000 * 60 * 30 >= Date.now()) {
+      this.timeIntervalId = setInterval(() => this.updateMetrics(), 1000 * PrometheusBoxComponent.INTERVAL_SECONDS);
+    }
   }
 
   ngOnChanges(): void {
     this.updateMetrics();
+    // Stop updating metrics if the run is finished for more than 30 minutes
+    if (this.run.endDateTime && new Date(this.run.endDateTime).getTime() + 1000 * 60 * 30 < Date.now()) {
+      clearInterval(this.timeIntervalId);
+    }
   }
 
   updateMetrics(): void {
@@ -107,12 +113,10 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
       this.dataArtemis = [
         {
           name: 'CPU Usage Artemis',
-          series: this.metricValuesArtemis.map(metric => {
-            return {
-              name: metric.dateTime,
-              value: metric.value,
-            };
-          }),
+          series: this.metricValuesArtemis.map(metric => ({
+            name: metric.dateTime,
+            value: metric.value,
+          })),
         },
       ];
       this.dataArtemis = [...this.dataArtemis];
@@ -122,12 +126,10 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
       this.dataVcs = [
         {
           name: 'CPU Usage VCS',
-          series: this.metricValuesVcs.map(metric => {
-            return {
-              name: metric.dateTime,
-              value: metric.value,
-            };
-          }),
+          series: this.metricValuesVcs.map(metric => ({
+            name: metric.dateTime,
+            value: metric.value,
+          })),
         },
       ];
       this.dataVcs = [...this.dataVcs];
@@ -137,12 +139,10 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
       this.dataCi = [
         {
           name: 'CPU Usage CI',
-          series: this.metricValuesCi.map(metric => {
-            return {
-              name: metric.dateTime,
-              value: metric.value,
-            };
-          }),
+          series: this.metricValuesCi.map(metric => ({
+            name: metric.dateTime,
+            value: metric.value,
+          })),
         },
       ];
       this.dataCi = [...this.dataCi];
