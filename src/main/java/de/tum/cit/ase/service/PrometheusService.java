@@ -4,7 +4,6 @@ import de.tum.cit.ase.domain.SimulationRun;
 import de.tum.cit.ase.prometheus.MetricValue;
 import de.tum.cit.ase.prometheus.QueryResponse;
 import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
-import de.tum.cit.ase.util.ArtemisServer;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -42,33 +41,37 @@ public class PrometheusService {
         this.artemisConfiguration = artemisConfiguration;
     }
 
-    public List<MetricValue> getLiveCpuUsage(ArtemisServer server) {
-        log.info("Getting CPU usage for {}", server);
-        var instance = artemisConfiguration.getPrometheusInstance(server);
-        var query = "avg(rate(node_cpu_seconds_total{instance=\"" + instance + "\", mode=\"idle\"}[1m]))";
-        var res = executeQuery(query, nowUTC().minusHours(1), nowUTC());
-        List<MetricValue> values = new LinkedList<>();
-        Arrays
-            .stream(res.getData().getResult())
-            .forEach(r -> {
-                Arrays
-                    .stream(r.getValues())
-                    .forEach(v -> {
-                        values.add(new MetricValue((double) v[0], 1.0 - Double.parseDouble((String) v[1])));
-                    });
-            });
-        // TODO: REMOVE
-        values.forEach(v -> log.info("{}", v));
-        return values;
-    }
-
-    public List<MetricValue> getCpuUsage(SimulationRun run) {
-        log.info("Getting CPU usage for {}", run);
-        var instance = artemisConfiguration.getPrometheusInstance(run.getSimulation().getServer());
+    public List<MetricValue> getCpuUsageArtemis(SimulationRun run) {
+        log.info("Getting Artemis CPU usage for {}", run);
+        var instance = artemisConfiguration.getPrometheusInstanceArtemis(run.getSimulation().getServer());
         if (instance == null || instance.isBlank()) {
-            log.warn("No Prometheus instance configured for {}", run.getSimulation().getServer());
+            log.warn("No Prometheus instance configured for Artemis on {}", run.getSimulation().getServer());
             return List.of();
         }
+        return getCpuUsage(run, instance);
+    }
+
+    public List<MetricValue> getCpuUsageVcs(SimulationRun run) {
+        log.info("Getting VCS CPU usage for {}", run);
+        var instance = artemisConfiguration.getPrometheusInstanceVcs(run.getSimulation().getServer());
+        if (instance == null || instance.isBlank()) {
+            log.warn("No Prometheus instance configured for VCS on {}", run.getSimulation().getServer());
+            return List.of();
+        }
+        return getCpuUsage(run, instance);
+    }
+
+    public List<MetricValue> getCpuUsageCi(SimulationRun run) {
+        log.info("Getting CI CPU usage for {}", run);
+        var instance = artemisConfiguration.getPrometheusInstanceCi(run.getSimulation().getServer());
+        if (instance == null || instance.isBlank()) {
+            log.warn("No Prometheus instance configured for CI on {}", run.getSimulation().getServer());
+            return List.of();
+        }
+        return getCpuUsage(run, instance);
+    }
+
+    private List<MetricValue> getCpuUsage(SimulationRun run, String instance) {
         var query = "avg(rate(node_cpu_seconds_total{instance=\"" + instance + "\", mode=\"idle\"}[1m]))";
         ZonedDateTime end = nowUTC();
         if (run.getStatus() == SimulationRun.Status.FINISHED) {
@@ -99,7 +102,6 @@ public class PrometheusService {
                         }
                     });
             });
-        values.forEach(v -> log.info("{}", v));
         return values;
     }
 

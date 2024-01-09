@@ -1,13 +1,54 @@
-@if (metricValues) {
-  <ngx-charts-line-chart
-    [results]="data"
-    [xAxis]="true"
-    [yAxis]="true"
-    [showGridLines]="false"
-    [autoScale]="true"
-    [timeline]="true"
-    [xAxisTickFormatting]="axisFormat"
-    style="fill: white"
-  >
-  </ngx-charts-line-chart>
+@if (metricValuesArtemis && metricValuesArtemis.length > 0) {
+  <hr />
+  <div>
+    <ngx-charts-line-chart
+      [results]="dataArtemis"
+      [xAxis]="true"
+      [yAxis]="true"
+      yAxisLabel="Artemis CPU Workload"
+      [showYAxisLabel]="true"
+      [showGridLines]="false"
+      [autoScale]="false"
+      [timeline]="true"
+      [xAxisTickFormatting]="axisFormatArtemis"
+      style="fill: white"
+    >
+    </ngx-charts-line-chart>
+  </div>
+}
+@if (metricValuesVcs && metricValuesVcs.length > 0) {
+  <hr />
+  <div>
+    <ngx-charts-line-chart
+      [results]="dataVcs"
+      [xAxis]="true"
+      [yAxis]="true"
+      yAxisLabel="VCS CPU Workload"
+      [showYAxisLabel]="true"
+      [showGridLines]="false"
+      [autoScale]="false"
+      [timeline]="true"
+      [xAxisTickFormatting]="axisFormatVcs"
+      style="fill: white"
+    >
+    </ngx-charts-line-chart>
+  </div>
+}
+@if (metricValuesCi && metricValuesCi.length > 0) {
+  <hr />
+  <div>
+    <ngx-charts-line-chart
+      [results]="dataCi"
+      [xAxis]="true"
+      [yAxis]="true"
+      yAxisLabel="CI CPU Workload"
+      [showYAxisLabel]="true"
+      [showGridLines]="false"
+      [autoScale]="false"
+      [timeline]="true"
+      [xAxisTickFormatting]="axisFormatCi"
+      style="fill: white"
+    >
+    </ngx-charts-line-chart>
+  </div>
 }

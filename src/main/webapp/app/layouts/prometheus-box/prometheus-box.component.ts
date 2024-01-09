@@ -24,18 +24,41 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
 
   @Input()
   run!: SimulationRun;
-  metricValues: MetricValue[] = [];
-  data: any[] = [];
+  metricValuesArtemis: MetricValue[] = [];
+  dataArtemis: any[] = [];
+  metricValuesVcs: MetricValue[] = [];
+  dataVcs: any[] = [];
+  metricValuesCi: MetricValue[] = [];
+  dataCi: any[] = [];
 
-  colorScheme = {
-    domain: ['#5AA454', '#E44D25', '#CFC0BB', '#7aa3e5', '#a8385d', '#aae3f5'],
-  };
-
-  axisFormat = (val: any): string => {
-    if (!this.metricValues || this.metricValues.length === 0) {
+  axisFormatArtemis = (val: any): string => {
+    if (!this.metricValuesArtemis || this.metricValuesArtemis.length === 0) {
       return '';
     }
-    if (this.metricValues.findIndex(metric => metric.dateTime === val) % 10 === 0) {
+    const index = this.metricValuesArtemis.findIndex(metric => metric.dateTime === val);
+    if (index % 10 === 0) {
+      return this.datePipe.transform(val, 'HH:mm') ?? '';
+    }
+    return '';
+  };
+
+  axisFormatVcs = (val: any): string => {
+    if (!this.metricValuesVcs || this.metricValuesVcs.length === 0) {
+      return '';
+    }
+    const index = this.metricValuesVcs.findIndex(metric => metric.dateTime === val);
+    if (index % 10 === 0) {
+      return this.datePipe.transform(val, 'HH:mm') ?? '';
+    }
+    return '';
+  };
+
+  axisFormatCi = (val: any): string => {
+    if (!this.metricValuesCi || this.metricValuesCi.length === 0) {
+      return '';
+    }
+    const index = this.metricValuesCi.findIndex(metric => metric.dateTime === val);
+    if (index % 10 === 0) {
       return this.datePipe.transform(val, 'HH:mm') ?? '';
     }
     return '';
@@ -58,12 +81,12 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
   }
 
   updateMetrics(): void {
-    this.fetchMetrics().subscribe(metrics => {
-      this.metricValues = metrics;
-      this.data = [
+    this.fetchMetricsArtemis().subscribe(metrics => {
+      this.metricValuesArtemis = metrics;
+      this.dataArtemis = [
         {
-          name: 'CPU Usage',
-          series: this.metricValues.map(metric => {
+          name: 'CPU Usage Artemis',
+          series: this.metricValuesArtemis.map(metric => {
             return {
               name: metric.dateTime,
               value: metric.value,
@@ -71,12 +94,52 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
           }),
         },
       ];
-      this.data = [...this.data];
+      this.dataArtemis = [...this.dataArtemis];
+    });
+    this.fetchMetricsVcs().subscribe(metrics => {
+      this.metricValuesVcs = metrics;
+      this.dataVcs = [
+        {
+          name: 'CPU Usage VCS',
+          series: this.metricValuesVcs.map(metric => {
+            return {
+              name: metric.dateTime,
+              value: metric.value,
+            };
+          }),
+        },
+      ];
+      this.dataVcs = [...this.dataVcs];
+    });
+    this.fetchMetricsCi().subscribe(metrics => {
+      this.metricValuesCi = metrics;
+      this.dataCi = [
+        {
+          name: 'CPU Usage CI',
+          series: this.metricValuesCi.map(metric => {
+            return {
+              name: metric.dateTime,
+              value: metric.value,
+            };
+          }),
+        },
+      ];
+      this.dataCi = [...this.dataCi];
     });
   }
 
-  fetchMetrics(): Observable<MetricValue[]> {
-    const endpoint = this.applicationConfigService.getEndpointFor('/api/prometheus/' + this.run.id);
+  fetchMetricsArtemis(): Observable<MetricValue[]> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/prometheus/' + this.run.id + '/artemis');
+    return this.httpClient.get(endpoint).pipe(map((res: any) => res as MetricValue[]));
+  }
+
+  fetchMetricsVcs(): Observable<MetricValue[]> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/prometheus/' + this.run.id + '/vcs');
+    return this.httpClient.get(endpoint).pipe(map((res: any) => res as MetricValue[]));
+  }
+
+  fetchMetricsCi(): Observable<MetricValue[]> {
+    const endpoint = this.applicationConfigService.getEndpointFor('/api/prometheus/' + this.run.id + '/ci');
     return this.httpClient.get(endpoint).pipe(map((res: any) => res as MetricValue[]));
   }
 }

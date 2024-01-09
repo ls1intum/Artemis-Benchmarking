@@ -5,7 +5,6 @@ import de.tum.cit.ase.prometheus.MetricValue;
 import de.tum.cit.ase.security.AuthoritiesConstants;
 import de.tum.cit.ase.service.PrometheusService;
 import de.tum.cit.ase.service.simulation.SimulationDataService;
-import de.tum.cit.ase.util.ArtemisServer;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,17 +26,30 @@ public class PrometheusResource {
         this.prometheusService = prometheusService;
     }
 
-    @GetMapping("/{server}/live")
-    public ResponseEntity<List<MetricValue>> getLiveCpuUsage(@PathVariable("server") ArtemisServer server) {
-        return ResponseEntity.ok(prometheusService.getLiveCpuUsage(server));
-    }
-
-    @GetMapping("/{runId}")
-    public ResponseEntity<List<MetricValue>> getCpuUsage(@PathVariable("runId") long runId) {
+    @GetMapping("/{runId}/artemis")
+    public ResponseEntity<List<MetricValue>> getCpuUsageArtemis(@PathVariable("runId") long runId) {
         var run = simulationDataService.getSimulationRun(runId);
         if (run.getStatus() != SimulationRun.Status.FINISHED && run.getStatus() != SimulationRun.Status.RUNNING) {
             return ResponseEntity.ok(List.of());
         }
-        return ResponseEntity.ok(prometheusService.getCpuUsage(run));
+        return ResponseEntity.ok(prometheusService.getCpuUsageArtemis(run));
+    }
+
+    @GetMapping("/{runId}/vcs")
+    public ResponseEntity<List<MetricValue>> getCpuUsageVcs(@PathVariable("runId") long runId) {
+        var run = simulationDataService.getSimulationRun(runId);
+        if (run.getStatus() != SimulationRun.Status.FINISHED && run.getStatus() != SimulationRun.Status.RUNNING) {
+            return ResponseEntity.ok(List.of());
+        }
+        return ResponseEntity.ok(prometheusService.getCpuUsageVcs(run));
+    }
+
+    @GetMapping("/{runId}/ci")
+    public ResponseEntity<List<MetricValue>> getCpuUsageCi(@PathVariable("runId") long runId) {
+        var run = simulationDataService.getSimulationRun(runId);
+        if (run.getStatus() != SimulationRun.Status.FINISHED && run.getStatus() != SimulationRun.Status.RUNNING) {
+            return ResponseEntity.ok(List.of());
+        }
+        return ResponseEntity.ok(prometheusService.getCpuUsageCi(run));
     }
 }
