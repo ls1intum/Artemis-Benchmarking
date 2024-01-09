@@ -102,7 +102,7 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
   ngOnChanges(): void {
     this.updateMetrics();
     // Stop updating metrics if the run is finished for more than 30 minutes
-    if (this.run.endDateTime && new Date(this.run.endDateTime).getTime() + 1000 * 60 * 30 < Date.now()) {
+    if (!!this.run.endDateTime && new Date(this.run.endDateTime).getTime() + 1000 * 60 * 30 < Date.now()) {
       clearInterval(this.timeIntervalId);
     }
   }

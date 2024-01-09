@@ -26,6 +26,11 @@ public class PrometheusResource {
         this.prometheusService = prometheusService;
     }
 
+    /**
+     * Get the CPU usage of the Artemis instance for the given run.
+     * @param runId The id of the run to get the CPU usage for.
+     * @return A list of CPU usage values. An empty list if no Prometheus instance is configured for Artemis.
+     */
     @GetMapping("/{runId}/artemis")
     public ResponseEntity<List<MetricValue>> getCpuUsageArtemis(@PathVariable("runId") long runId) {
         var run = simulationDataService.getSimulationRun(runId);
@@ -35,6 +40,11 @@ public class PrometheusResource {
         return ResponseEntity.ok(prometheusService.getCpuUsageArtemis(run));
     }
 
+    /**
+     * Get the CPU usage of the VCS for the given run.
+     * @param runId The id of the run to get the CPU usage for.
+     * @return A list of CPU usage values. An empty list if no Prometheus instance is configured for the VCS.
+     */
     @GetMapping("/{runId}/vcs")
     public ResponseEntity<List<MetricValue>> getCpuUsageVcs(@PathVariable("runId") long runId) {
         var run = simulationDataService.getSimulationRun(runId);
@@ -44,6 +54,11 @@ public class PrometheusResource {
         return ResponseEntity.ok(prometheusService.getCpuUsageVcs(run));
     }
 
+    /**
+     * Get the CPU usage of the CI for the given run.
+     * @param runId The id of the run to get the CPU usage for.
+     * @return A list of CPU usage values. An empty list if no Prometheus instance is configured for the CI.
+     */
     @GetMapping("/{runId}/ci")
     public ResponseEntity<List<MetricValue>> getCpuUsageCi(@PathVariable("runId") long runId) {
         var run = simulationDataService.getSimulationRun(runId);
