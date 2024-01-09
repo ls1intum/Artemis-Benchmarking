@@ -76,6 +76,10 @@ public class SimulationDataService {
         return simulationRunRepository.findById(id).orElseThrow();
     }
 
+    public SimulationRun getSimulationRunWithStatsAndLogs(long id) {
+        return simulationRunRepository.findByIdWithStatsAndLogMessages(id);
+    }
+
     public void deleteSimulation(long id) {
         if (simulationRunRepository.findAllBySimulationId(id).stream().anyMatch(run -> run.getStatus() == SimulationRun.Status.RUNNING)) {
             throw new IllegalArgumentException("Cannot delete a simulation with a running simulation run!");

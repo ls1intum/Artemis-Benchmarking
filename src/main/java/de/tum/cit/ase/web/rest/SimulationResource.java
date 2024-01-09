@@ -101,7 +101,7 @@ public class SimulationResource {
      */
     @GetMapping("/runs/{runId}")
     public ResponseEntity<SimulationRun> getSimulationRun(@PathVariable long runId) {
-        return new ResponseEntity<>(simulationDataService.getSimulationRun(runId), HttpStatus.OK);
+        return new ResponseEntity<>(simulationDataService.getSimulationRunWithStatsAndLogs(runId), HttpStatus.OK);
     }
 
     /**
