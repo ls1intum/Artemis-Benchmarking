@@ -9,6 +9,7 @@ import de.tum.cit.ase.util.ArtemisServer;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,12 +27,12 @@ public class PrometheusResource {
         this.prometheusService = prometheusService;
     }
 
-    @RequestMapping("/{server}/live")
+    @GetMapping("/{server}/live")
     public ResponseEntity<List<MetricValue>> getLiveCpuUsage(@PathVariable("server") ArtemisServer server) {
         return ResponseEntity.ok(prometheusService.getLiveCpuUsage(server));
     }
 
-    @RequestMapping("/{runId}")
+    @GetMapping("/{runId}")
     public ResponseEntity<List<MetricValue>> getCpuUsage(@PathVariable("runId") long runId) {
         var run = simulationDataService.getSimulationRun(runId);
         if (run.getStatus() != SimulationRun.Status.FINISHED && run.getStatus() != SimulationRun.Status.RUNNING) {

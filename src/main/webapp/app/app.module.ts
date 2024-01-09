@@ -27,6 +27,7 @@ import { ResultBoxComponent } from './layouts/result-box/result-box.component';
 import { CreateSimulationBoxComponent } from './layouts/create-simulation-box/create-simulation-box.component';
 import { ServerBadgeComponent } from './layouts/server-badge/server-badge.component';
 import { ModeExplanationComponent } from './layouts/mode-explanation/mode-explanation.component';
+import { PrometheusBoxComponent } from './layouts/prometheus-box/prometheus-box.component';
 // jhipster-needle-angular-add-module-import JHipster will add new module here
 
 @NgModule({
@@ -42,6 +43,7 @@ import { ModeExplanationComponent } from './layouts/mode-explanation/mode-explan
     NgbModule,
     FontAwesomeModule,
     NgbAccordionModule,
+    PrometheusBoxComponent,
   ],
   providers: [
     Title,

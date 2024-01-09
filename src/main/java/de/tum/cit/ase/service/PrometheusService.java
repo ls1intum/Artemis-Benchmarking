@@ -65,13 +65,23 @@ public class PrometheusService {
     public List<MetricValue> getCpuUsage(SimulationRun run) {
         log.info("Getting CPU usage for {}", run);
         var instance = artemisConfiguration.getPrometheusInstance(run.getSimulation().getServer());
+        if (instance == null || instance.isBlank()) {
+            log.warn("No Prometheus instance configured for {}", run.getSimulation().getServer());
+            return List.of();
+        }
         var query = "avg(rate(node_cpu_seconds_total{instance=\"" + instance + "\", mode=\"idle\"}[1m]))";
         ZonedDateTime end = nowUTC();
         if (run.getStatus() == SimulationRun.Status.FINISHED) {
             if (run.getEndDateTime() != null) {
                 end = run.getEndDateTime().withZoneSameInstant(ZoneId.of("UTC")).plusMinutes(30);
+                if (end.isAfter(nowUTC())) {
+                    end = nowUTC();
+                }
             } else {
                 end = run.getStartDateTime().withZoneSameInstant(ZoneId.of("UTC")).plusMinutes(30);
+                if (end.isAfter(nowUTC())) {
+                    end = nowUTC();
+                }
             }
         }
         var res = executeQuery(query, run.getStartDateTime().withZoneSameInstant(ZoneId.of("UTC")).minusMinutes(30), end);
@@ -82,9 +92,14 @@ public class PrometheusService {
                 Arrays
                     .stream(r.getValues())
                     .forEach(v -> {
-                        values.add(new MetricValue((double) v[0], 1.0 - Double.parseDouble((String) v[1])));
+                        try {
+                            values.add(new MetricValue((double) v[0], 1.0 - Double.parseDouble((String) v[1])));
+                        } catch (ClassCastException e) {
+                            values.add(new MetricValue((int) v[0], 1.0 - Double.parseDouble((String) v[1])));
+                        }
                     });
             });
+        values.forEach(v -> log.info("{}", v));
         return values;
     }
 

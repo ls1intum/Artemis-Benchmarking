@@ -66,6 +66,9 @@
           </div>
         </div>
       </div>
+      <div class="mb-3">
+        <jhi-prometheus-box [run]="selectedRun"></jhi-prometheus-box>
+      </div>
       <div class="flex-wrapper">
         @for (simulationStats of selectedRun.stats; track simulationStats) {
           <div class="w-50 mb-3 ps-1 pe-1">

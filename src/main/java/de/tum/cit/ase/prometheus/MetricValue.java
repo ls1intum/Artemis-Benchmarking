@@ -1,25 +1,27 @@
 package de.tum.cit.ase.prometheus;
 
-import java.util.Locale;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 public class MetricValue {
 
-    private double timestamp;
+    private ZonedDateTime dateTime;
     private double value;
 
-    public MetricValue() {}
-
     public MetricValue(double timestamp, double value) {
-        this.timestamp = timestamp;
         this.value = value;
+        long millis = (long) (timestamp * 1000);
+        Instant instant = Instant.ofEpochMilli(millis);
+        this.dateTime = ZonedDateTime.ofInstant(instant, ZoneId.of("UTC"));
     }
 
-    public double getTimestamp() {
-        return timestamp;
+    public ZonedDateTime getDateTime() {
+        return dateTime;
     }
 
-    public void setTimestamp(double timestamp) {
-        this.timestamp = timestamp;
+    public void setDateTime(ZonedDateTime dateTime) {
+        this.dateTime = dateTime;
     }
 
     public double getValue() {
@@ -31,6 +33,6 @@ public class MetricValue {
     }
 
     public String toString() {
-        return "Timestamp: " + String.format(Locale.US, "%.3f", timestamp) + ", Value: " + value;
+        return "Timestamp: " + dateTime + ", Value: " + value;
     }
 }

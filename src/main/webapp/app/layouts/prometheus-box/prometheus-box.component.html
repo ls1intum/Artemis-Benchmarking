@@ -1,0 +1,13 @@
+@if (metricValues) {
+  <ngx-charts-line-chart
+    [results]="data"
+    [xAxis]="true"
+    [yAxis]="true"
+    [showGridLines]="false"
+    [autoScale]="true"
+    [timeline]="true"
+    [xAxisTickFormatting]="axisFormat"
+    style="fill: white"
+  >
+  </ngx-charts-line-chart>
+}
