@@ -1,5 +1,6 @@
 package de.tum.cit.ase.web.websocket;
 
+import de.tum.cit.ase.domain.LocalCIStatus;
 import de.tum.cit.ase.domain.LogMessage;
 import de.tum.cit.ase.domain.SimulationRun;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -12,6 +13,7 @@ public class SimulationWebsocketService {
     private static final String TOPIC_RUN_STATUS_UPDATE = "/topic/simulation/runs/%d/status";
     private static final String TOPIC_RUN_LOG_MESSAGE = "/topic/simulation/runs/%d/log";
     private static final String TOPIC_NEW_RUN = "/topic/simulation/%d/runs/new";
+    private static final String TOPIC_RUN_LOCAL_CI_UPDATE = "/topic/simulation/runs/%d/local-ci-status";
 
     private final SimpMessageSendingOperations messagingTemplate;
 
@@ -46,5 +48,9 @@ public class SimulationWebsocketService {
 
     public void sendNewRun(SimulationRun run) {
         messagingTemplate.convertAndSend(String.format(TOPIC_NEW_RUN, run.getSimulation().getId()), run);
+    }
+
+    public void sendRunLocalCIUpdate(long runId, LocalCIStatus status) {
+        messagingTemplate.convertAndSend(String.format(TOPIC_RUN_LOCAL_CI_UPDATE, runId), status);
     }
 }

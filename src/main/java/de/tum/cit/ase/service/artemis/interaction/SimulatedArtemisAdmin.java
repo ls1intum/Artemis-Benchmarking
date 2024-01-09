@@ -10,6 +10,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.LoggerFactory;
@@ -461,6 +462,16 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "exams", String.valueOf(examId)).build())
             .retrieve()
             .toBodilessEntity()
+            .block();
+    }
+
+    public List<DomainObject> getBuildQueue(long courseId) {
+        return webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "build-job-queue", "running", String.valueOf(courseId)).build())
+            .retrieve()
+            .bodyToFlux(DomainObject.class)
+            .collectList()
             .block();
     }
 }

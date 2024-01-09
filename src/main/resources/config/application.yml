@@ -214,6 +214,7 @@ artemis:
   local:
     url: http://localhost:8080/
     cleanup-enabled: true
+    is-local: true
     prometheus-instances:
       artemis:
       vcs:
@@ -221,6 +222,7 @@ artemis:
   ts3:
     url: https://artemis-test3.artemis.cit.tum.de/
     cleanup-enabled: false
+    is-local: true
     prometheus-instances:
       artemis: artemis-test3.artemis.cit.tum.de:9100
       vcs:
@@ -228,6 +230,7 @@ artemis:
   ts1:
     url: https://artemis-test1.artemis.cit.tum.de/
     cleanup-enabled: false
+    is-local: false
     prometheus-instances:
       artemis: artemis-test1.artemis.cit.tum.de:9100
       vcs: bitbucket-prelive-node1.ase.in.tum.de:9100
@@ -235,6 +238,7 @@ artemis:
   staging:
     url: https://artemis-staging.artemis.in.tum.de/
     cleanup-enabled: false
+    is-local: false
     prometheus-instances:
       artemis:
       vcs: bitbucket-prelive-node1.ase.in.tum.de:9100
@@ -242,6 +246,7 @@ artemis:
   staging2:
     url: https://artemis-staging-localci.artemis.cit.tum.de/
     cleanup-enabled: false
+    is-local: true
     prometheus-instances:
       artemis:
       vcs:
@@ -249,6 +254,7 @@ artemis:
   production:
     url: https://artemis.cit.tum.de/
     cleanup-enabled: false
+    is-local: false
     prometheus-instances:
       artemis:
       vcs: bitbucket-node1.ase.in.tum.de:9100
