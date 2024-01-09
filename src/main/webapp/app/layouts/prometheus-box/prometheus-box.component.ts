@@ -7,7 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { DatePipe } from '@angular/common';
-import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { NgxChartsModule, ScaleType } from '@swimlane/ngx-charts';
 import { FormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -30,6 +30,27 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
   dataVcs: any[] = [];
   metricValuesCi: MetricValue[] = [];
   dataCi: any[] = [];
+
+  colorSchemeArtemis = {
+    name: 'artemis',
+    selectable: true,
+    group: ScaleType.Linear,
+    domain: ['#FF4833'],
+  };
+
+  colorSchemeVcs = {
+    name: 'vcs',
+    selectable: true,
+    group: ScaleType.Linear,
+    domain: ['#33ADFF'],
+  };
+
+  colorSchemeCi = {
+    name: 'ci',
+    selectable: true,
+    group: ScaleType.Linear,
+    domain: ['#37FF33'],
+  };
 
   axisFormatArtemis = (val: any): string => {
     if (!this.metricValuesArtemis || this.metricValuesArtemis.length === 0) {

@@ -1,0 +1,9 @@
+/* Customize horizontal grid lines */
+:host ::ng-deep .line-chart .y {
+  stroke-opacity: 0.3; /* Set the desired opacity (0 to 1) */
+}
+
+/* Hide vertical grid lines */
+:host ::ng-deep .line-chart .x {
+  stroke-opacity: 0;
+}

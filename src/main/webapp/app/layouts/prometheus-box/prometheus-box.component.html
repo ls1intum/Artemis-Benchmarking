@@ -1,13 +1,13 @@
 @if (metricValuesArtemis && metricValuesArtemis.length > 0) {
-  <hr />
-  <div>
+  <div class="mt-5">
     <ngx-charts-line-chart
       [results]="dataArtemis"
+      [scheme]="colorSchemeArtemis"
       [xAxis]="true"
       [yAxis]="true"
-      yAxisLabel="Artemis CPU Workload"
+      yAxisLabel="Artemis Workload"
       [showYAxisLabel]="true"
-      [showGridLines]="false"
+      [showGridLines]="true"
       [autoScale]="false"
       [timeline]="true"
       [xAxisTickFormatting]="axisFormatArtemis"
@@ -17,15 +17,15 @@
   </div>
 }
 @if (metricValuesVcs && metricValuesVcs.length > 0) {
-  <hr />
   <div>
     <ngx-charts-line-chart
       [results]="dataVcs"
+      [scheme]="colorSchemeVcs"
       [xAxis]="true"
       [yAxis]="true"
-      yAxisLabel="VCS CPU Workload"
+      yAxisLabel="VCS Workload"
       [showYAxisLabel]="true"
-      [showGridLines]="false"
+      [showGridLines]="true"
       [autoScale]="false"
       [timeline]="true"
       [xAxisTickFormatting]="axisFormatVcs"
@@ -35,15 +35,15 @@
   </div>
 }
 @if (metricValuesCi && metricValuesCi.length > 0) {
-  <hr />
   <div>
     <ngx-charts-line-chart
       [results]="dataCi"
+      [scheme]="colorSchemeCi"
       [xAxis]="true"
       [yAxis]="true"
-      yAxisLabel="CI CPU Workload"
+      yAxisLabel="CI Workload"
       [showYAxisLabel]="true"
-      [showGridLines]="false"
+      [showGridLines]="true"
       [autoScale]="false"
       [timeline]="true"
       [xAxisTickFormatting]="axisFormatCi"
