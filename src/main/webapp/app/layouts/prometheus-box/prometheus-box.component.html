@@ -1,0 +1,59 @@
+@if (metricValuesArtemis.length > 0) {
+  <div class="mt-5">
+    <ngx-charts-line-chart
+      [results]="dataArtemis"
+      [scheme]="colorSchemeArtemis"
+      [xAxis]="true"
+      [yAxis]="true"
+      yAxisLabel="Artemis Workload"
+      [showYAxisLabel]="true"
+      [showGridLines]="true"
+      [autoScale]="false"
+      [timeline]="true"
+      [xAxisTickFormatting]="axisFormatArtemis"
+      style="fill: white"
+    >
+    </ngx-charts-line-chart>
+  </div>
+}
+@if (metricValuesVcs.length > 0) {
+  <div>
+    <ngx-charts-line-chart
+      [results]="dataVcs"
+      [scheme]="colorSchemeVcs"
+      [xAxis]="true"
+      [yAxis]="true"
+      yAxisLabel="VCS Workload"
+      [showYAxisLabel]="true"
+      [showGridLines]="true"
+      [autoScale]="false"
+      [timeline]="true"
+      [xAxisTickFormatting]="axisFormatVcs"
+      style="fill: white"
+    >
+    </ngx-charts-line-chart>
+  </div>
+}
+@if (metricValuesCi.length > 0) {
+  <div>
+    <ngx-charts-line-chart
+      [results]="dataCi"
+      [scheme]="colorSchemeCi"
+      [xAxis]="true"
+      [yAxis]="true"
+      yAxisLabel="CI Workload"
+      [showYAxisLabel]="true"
+      [showGridLines]="true"
+      [autoScale]="false"
+      [timeline]="true"
+      [xAxisTickFormatting]="axisFormatCi"
+      style="fill: white"
+    >
+    </ngx-charts-line-chart>
+  </div>
+}
+@if (metricValuesArtemis.length === 0 && metricValuesVcs.length === 0 && metricValuesCi.length === 0) {
+  <div class="mt-3">
+    <p class="text-center">No data available</p>
+  </div>
+}

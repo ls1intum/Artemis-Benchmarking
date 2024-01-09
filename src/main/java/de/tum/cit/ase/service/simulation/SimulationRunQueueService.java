@@ -3,6 +3,7 @@ package de.tum.cit.ase.service.simulation;
 import de.tum.cit.ase.domain.SimulationRun;
 import de.tum.cit.ase.repository.SimulationRunRepository;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
@@ -18,7 +19,6 @@ public class SimulationRunQueueService {
     private final SimulationRunExecutionService simulationRunExecutionService;
     private final SimulationRunRepository simulationRunRepository;
     private Thread simulatorThread;
-    private long currentRunId;
 
     public SimulationRunQueueService(
         SimulationRunExecutionService simulationRunExecutionService,
@@ -67,7 +67,13 @@ public class SimulationRunQueueService {
     }
 
     public boolean removeSimulationRunFromQueue(SimulationRun simulationRun) {
-        return simulationRunQueue.remove(simulationRun);
+        var result = simulationRunQueue.removeIf(r -> Objects.equals(r.getId(), simulationRun.getId()));
+        if (!result) {
+            log.warn("Could not remove simulation run {} from queue", simulationRun.getId());
+        } else {
+            log.info("Removed simulation run {} from queue", simulationRun.getId());
+        }
+        return result;
     }
 
     /**
@@ -79,7 +85,6 @@ public class SimulationRunQueueService {
             while (true) {
                 var run = simulationRunQueue.take();
                 simulationRunExecutionService.simulateExam(run);
-                currentRunId = run.getId();
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

@@ -14,4 +14,7 @@ public interface SimulationRunRepository extends JpaRepository<SimulationRun, Lo
 
     @Query(value = "select run from SimulationRun run where run.simulation.id = :#{#simulationId}")
     List<SimulationRun> findAllBySimulationId(@Param("simulationId") long simulationId);
+
+    @Query(value = "select run from SimulationRun run left join fetch run.stats s left join fetch run.logMessages l where run.id = :#{#id}")
+    SimulationRun findByIdWithStatsAndLogMessages(long id);
 }

@@ -10,6 +10,7 @@ export class SimulationRun {
     public status: Status,
     public simulation: Simulation,
     public logMessages: LogMessage[],
+    public endDateTime?: Date,
   ) {}
 }
 

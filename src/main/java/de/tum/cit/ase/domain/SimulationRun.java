@@ -17,11 +17,14 @@ public class SimulationRun {
     @Column(name = "start_date_time", nullable = false)
     private ZonedDateTime startDateTime;
 
+    @Column(name = "end_date_time")
+    private ZonedDateTime endDateTime;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
 
-    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "simulationRun", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "simulationRun")
     private Set<SimulationStats> stats;
 
     @ManyToOne
@@ -29,7 +32,7 @@ public class SimulationRun {
     @JsonIgnore
     private Simulation simulation;
 
-    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "simulationRun", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "simulationRun")
     private Set<LogMessage> logMessages;
 
     @Transient
@@ -100,6 +103,14 @@ public class SimulationRun {
 
     public void setSchedule(SimulationSchedule schedule) {
         this.schedule = schedule;
+    }
+
+    public ZonedDateTime getEndDateTime() {
+        return endDateTime;
+    }
+
+    public void setEndDateTime(ZonedDateTime endDateTime) {
+        this.endDateTime = endDateTime;
     }
 
     public enum Status {

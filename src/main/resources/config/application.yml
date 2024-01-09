@@ -214,18 +214,47 @@ artemis:
   local:
     url: http://localhost:8080/
     cleanup-enabled: true
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
   ts3:
     url: https://artemis-test3.artemis.cit.tum.de/
     cleanup-enabled: false
+    prometheus-instances:
+      artemis: artemis-test3.artemis.cit.tum.de:9100
+      vcs:
+      ci:
   ts1:
     url: https://artemis-test1.artemis.cit.tum.de/
     cleanup-enabled: false
+    prometheus-instances:
+      artemis: artemis-test1.artemis.cit.tum.de:9100
+      vcs: bitbucket-prelive-node1.ase.in.tum.de:9100
+      ci: bamboo-prelive-instance.ase.in.tum.de:9100
   staging:
     url: https://artemis-staging.artemis.in.tum.de/
     cleanup-enabled: false
+    prometheus-instances:
+      artemis:
+      vcs: bitbucket-prelive-node1.ase.in.tum.de:9100
+      ci: bamboo-prelive-instance.ase.in.tum.de:9100
   staging2:
     url: https://artemis-staging-localci.artemis.cit.tum.de/
     cleanup-enabled: false
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
   production:
     url: https://artemis.cit.tum.de/
     cleanup-enabled: false
+    prometheus-instances:
+      artemis:
+      vcs: bitbucket-node1.ase.in.tum.de:9100
+      ci: bamboo-instance.ase.in.tum.de:9100
+
+prometheus:
+  api-url: https://artemis-test-prometheus.artemis.cit.tum.de/
+  auth-token: # Base64 encoded token for Prometheus API (Basic auth)
+  resolution: 14 # Resolution in seconds
