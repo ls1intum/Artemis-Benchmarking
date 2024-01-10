@@ -1,0 +1,19 @@
+<div class="card h-100">
+  <div class="card-body">
+    @if (localCIStatus.finished) {
+      <strong>All jobs finished.</strong>
+      <div class="mt-1">
+        <p class="mb-0">Total jobs: {{ localCIStatus.totalJobs }}</p>
+        <p class="mb-0">Executing jobs took {{ localCIStatus.timeInMinutes }} minutes</p>
+      </div>
+    } @else {
+      <strong>Jobs running...</strong>
+      <div class="mt-1">
+        <p class="mb-0">Finished: {{ localCIStatus.totalJobs - localCIStatus.queuedJobs }} / {{ localCIStatus.totalJobs }}</p>
+        <p class="mb-0">Queued: {{ localCIStatus.queuedJobs }}</p>
+        <p class="mb-0">Running for {{ localCIStatus.timeInMinutes }} minutes</p>
+      </div>
+    }
+    <p class="mb-0">Average jobs per minute: {{ localCIStatus.avgJobsPerMinute | number: '1.0-1' }}</p>
+  </div>
+</div>

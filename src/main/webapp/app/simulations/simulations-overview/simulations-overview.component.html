@@ -52,20 +52,53 @@
           }
         </h3>
       </div>
-      <div ngbAccordion class="mb-3">
-        <div ngbAccordionItem [collapsed]="false">
-          <h2 ngbAccordionHeader>
-            <button ngbAccordionButton>Log Messages</button>
-          </h2>
-          <div ngbAccordionCollapse>
-            <div ngbAccordionBody class="p-0">
-              <ng-template>
-                <jhi-log-box [logMessages]="selectedRun.logMessages"></jhi-log-box>
-              </ng-template>
+      @if (!selectedRun.localCIStatus) {
+        <div ngbAccordion class="mb-3">
+          <div ngbAccordionItem [collapsed]="false">
+            <h2 ngbAccordionHeader>
+              <button ngbAccordionButton>Log Messages</button>
+            </h2>
+            <div ngbAccordionCollapse>
+              <div ngbAccordionBody class="p-0">
+                <ng-template>
+                  <jhi-log-box [logMessages]="selectedRun.logMessages"></jhi-log-box>
+                </ng-template>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      } @else {
+        <div class="accordion-wrapper">
+          <div ngbAccordion class="mb-3 log-accordion">
+            <div ngbAccordionItem [collapsed]="false">
+              <h2 ngbAccordionHeader>
+                <button ngbAccordionButton>Log Messages</button>
+              </h2>
+              <div ngbAccordionCollapse>
+                <div ngbAccordionBody class="p-0">
+                  <ng-template>
+                    <jhi-log-box [logMessages]="selectedRun.logMessages"></jhi-log-box>
+                  </ng-template>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div ngbAccordion class="mb-3 status-accordion">
+            <div ngbAccordionItem [collapsed]="false">
+              <h2 ngbAccordionHeader>
+                <button ngbAccordionButton>Local CI Status</button>
+              </h2>
+              <div ngbAccordionCollapse>
+                <div ngbAccordionBody class="p-0">
+                  <ng-template>
+                    <jhi-local-ci-status-card [localCIStatus]="selectedRun.localCIStatus"></jhi-local-ci-status-card>
+                  </ng-template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
       <div ngbAccordion class="mb-3">
         <div ngbAccordionItem [collapsed]="true">
           <h2 ngbAccordionHeader>

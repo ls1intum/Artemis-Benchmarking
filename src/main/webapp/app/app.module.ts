@@ -28,6 +28,7 @@ import { CreateSimulationBoxComponent } from './layouts/create-simulation-box/cr
 import { ServerBadgeComponent } from './layouts/server-badge/server-badge.component';
 import { ModeExplanationComponent } from './layouts/mode-explanation/mode-explanation.component';
 import { PrometheusBoxComponent } from './layouts/prometheus-box/prometheus-box.component';
+import { LocalCiStatusCardComponent } from './layouts/local-ci-status-card/local-ci-status-card.component';
 // jhipster-needle-angular-add-module-import JHipster will add new module here
 
 @NgModule({
@@ -44,6 +45,7 @@ import { PrometheusBoxComponent } from './layouts/prometheus-box/prometheus-box.
     FontAwesomeModule,
     NgbAccordionModule,
     PrometheusBoxComponent,
+    LocalCiStatusCardComponent,
   ],
   providers: [
     Title,

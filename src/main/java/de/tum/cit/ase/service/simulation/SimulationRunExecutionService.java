@@ -7,6 +7,7 @@ import de.tum.cit.ase.artemisModel.Exam;
 import de.tum.cit.ase.domain.*;
 import de.tum.cit.ase.repository.LogMessageRepository;
 import de.tum.cit.ase.repository.SimulationRunRepository;
+import de.tum.cit.ase.service.LocalCIStatusService;
 import de.tum.cit.ase.service.MailService;
 import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
 import de.tum.cit.ase.service.artemis.ArtemisUserService;
@@ -40,6 +41,7 @@ public class SimulationRunExecutionService {
     private final SimulationResultService simulationResultService;
     private final LogMessageRepository logMessageRepository;
     private final MailService mailService;
+    private final LocalCIStatusService localCIStatusService;
     private boolean doNotSleep = false;
 
     public SimulationRunExecutionService(
@@ -49,7 +51,8 @@ public class SimulationRunExecutionService {
         SimulationRunRepository simulationRunRepository,
         SimulationResultService simulationResultService,
         LogMessageRepository logMessageRepository,
-        MailService mailService
+        MailService mailService,
+        LocalCIStatusService localCIStatusService
     ) {
         this.simulationWebsocketService = simulationWebsocketService;
         this.artemisConfiguration = artemisConfiguration;
@@ -58,6 +61,7 @@ public class SimulationRunExecutionService {
         this.logMessageRepository = logMessageRepository;
         this.artemisUserService = artemisUserService;
         this.mailService = mailService;
+        this.localCIStatusService = localCIStatusService;
     }
 
     /**
@@ -146,7 +150,7 @@ public class SimulationRunExecutionService {
                     return;
                 }
 
-                if (!doNotSleep) {
+                if (!doNotSleep && !artemisConfiguration.getIsLocal(simulationRun.getSimulation().getServer())) {
                     // Wait for synchronization of user groups
                     try {
                         logAndSend(false, simulationRun, "Waiting for synchronization of user groups (1 min)...");
@@ -280,6 +284,17 @@ public class SimulationRunExecutionService {
         SimulationRun runWithResult = simulationResultService.calculateAndSaveResult(simulationRun, requestStats);
         finishSimulationRun(runWithResult);
         sendRunResult(runWithResult);
+        if (artemisConfiguration.getIsLocal(simulationRun.getSimulation().getServer())) {
+            if (admin == null) {
+                try {
+                    admin = initializeAdmin(simulationRun.getSimulation().getServer());
+                } catch (Exception e) {
+                    logAndSend(true, simulationRun, "Cannot get local-ci status, no admin account available.");
+                    return;
+                }
+            }
+            localCIStatusService.subscribeToLocalCIStatus(runWithResult, admin, courseId);
+        }
     }
 
     /**

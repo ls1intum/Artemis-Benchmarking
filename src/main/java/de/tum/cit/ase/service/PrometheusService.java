@@ -77,7 +77,7 @@ public class PrometheusService {
      * @return A list of CPU usage values. An empty list if no Prometheus instance is configured for the CI system.
      */
     public List<MetricValue> getCpuUsageCi(SimulationRun run) {
-        log.info("Getting CI CPU usage for {}", run);
+        log.debug("Getting CI CPU usage for {}", run);
         var instance = artemisConfiguration.getPrometheusInstanceCi(run.getSimulation().getServer());
         if (instance == null || instance.isBlank()) {
             log.warn("No Prometheus instance configured for CI on {}", run.getSimulation().getServer());
@@ -94,7 +94,7 @@ public class PrometheusService {
      * @return The response from Prometheus.
      */
     public QueryResponse executeQuery(String query, ZonedDateTime start, ZonedDateTime end) {
-        log.info("Querying Prometheus: {}", query);
+        log.debug("Querying Prometheus: {}", query);
         if (webClient == null) {
             setupWebclient();
         }

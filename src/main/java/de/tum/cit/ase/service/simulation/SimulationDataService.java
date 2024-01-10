@@ -77,7 +77,7 @@ public class SimulationDataService {
     }
 
     public SimulationRun getSimulationRunWithStatsAndLogs(long id) {
-        return simulationRunRepository.findByIdWithStatsAndLogMessages(id);
+        return simulationRunRepository.findByIdWithStatsAndLogMessages(id).orElseThrow();
     }
 
     public void deleteSimulation(long id) {
@@ -166,7 +166,7 @@ public class SimulationDataService {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-            run = simulationRunRepository.findById(runId).orElseThrow();
+            run = simulationRunRepository.findByIdWithStatsAndLogMessages(runId).orElseThrow();
 
             run.setStatus(SimulationRun.Status.CANCELLED);
             run.setEndDateTime(now());

@@ -22,6 +22,9 @@ public class ArtemisConfiguration {
     @Value("${artemis.local.prometheus-instances.ci}")
     private String localPrometheusInstanceCi;
 
+    @Value("${artemis.local.is-local}")
+    private boolean localIsLocal;
+
     @Value("${artemis.ts1.url}")
     private String test1Url;
 
@@ -36,6 +39,9 @@ public class ArtemisConfiguration {
 
     @Value("${artemis.ts1.prometheus-instances.ci}")
     private String test1PrometheusInstanceCi;
+
+    @Value("${artemis.ts1.is-local}")
+    private boolean test1IsLocal;
 
     @Value("${artemis.ts3.url}")
     private String test3Url;
@@ -52,6 +58,9 @@ public class ArtemisConfiguration {
     @Value("${artemis.ts3.prometheus-instances.ci}")
     private String test3PrometheusInstanceCi;
 
+    @Value("${artemis.ts3.is-local}")
+    private boolean test3IsLocal;
+
     @Value("${artemis.staging.url}")
     private String stagingUrl;
 
@@ -66,6 +75,9 @@ public class ArtemisConfiguration {
 
     @Value("${artemis.staging.prometheus-instances.ci}")
     private String stagingPrometheusInstanceCi;
+
+    @Value("${artemis.staging.is-local}")
+    private boolean stagingIsLocal;
 
     @Value("${artemis.staging2.url}")
     private String staging2Url;
@@ -82,6 +94,9 @@ public class ArtemisConfiguration {
     @Value("${artemis.staging2.prometheus-instances.ci}")
     private String staging2PrometheusInstanceCi;
 
+    @Value("${artemis.staging2.is-local}")
+    private boolean staging2IsLocal;
+
     @Value("${artemis.production.url}")
     private String productionUrl;
 
@@ -96,6 +111,9 @@ public class ArtemisConfiguration {
 
     @Value("${artemis.production.prometheus-instances.ci}")
     private String productionPrometheusInstanceCi;
+
+    @Value("${artemis.production.is-local}")
+    private boolean productionIsLocal;
 
     public String getUrl(ArtemisServer server) {
         return switch (server) {
@@ -149,6 +167,17 @@ public class ArtemisConfiguration {
             case STAGING -> stagingPrometheusInstanceCi;
             case STAGING2 -> staging2PrometheusInstanceCi;
             case PRODUCTION -> productionPrometheusInstanceCi;
+        };
+    }
+
+    public boolean getIsLocal(ArtemisServer server) {
+        return switch (server) {
+            case LOCAL -> localIsLocal;
+            case TS1 -> test1IsLocal;
+            case TS3 -> test3IsLocal;
+            case STAGING -> stagingIsLocal;
+            case STAGING2 -> staging2IsLocal;
+            case PRODUCTION -> productionIsLocal;
         };
     }
 }

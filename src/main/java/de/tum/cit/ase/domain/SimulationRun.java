@@ -35,6 +35,9 @@ public class SimulationRun {
     @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "simulationRun")
     private Set<LogMessage> logMessages;
 
+    @OneToOne(cascade = CascadeType.REMOVE, mappedBy = "simulationRun", fetch = FetchType.EAGER)
+    private LocalCIStatus localCIStatus;
+
     @Transient
     private ArtemisAccountDTO adminAccount;
 
@@ -111,6 +114,14 @@ public class SimulationRun {
 
     public void setEndDateTime(ZonedDateTime endDateTime) {
         this.endDateTime = endDateTime;
+    }
+
+    public LocalCIStatus getLocalCIStatus() {
+        return localCIStatus;
+    }
+
+    public void setLocalCIStatus(LocalCIStatus localCIStatus) {
+        this.localCIStatus = localCIStatus;
     }
 
     public enum Status {

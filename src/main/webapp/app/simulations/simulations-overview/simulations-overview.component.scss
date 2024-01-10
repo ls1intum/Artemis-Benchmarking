@@ -1,0 +1,12 @@
+.accordion-wrapper {
+  @media (min-width: 1200px) {
+    display: flex;
+    .log-accordion {
+      width: 75%;
+      margin-right: 10px;
+    }
+    .status-accordion {
+      width: 25%;
+    }
+  }
+}
