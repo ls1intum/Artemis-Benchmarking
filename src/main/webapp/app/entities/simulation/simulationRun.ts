@@ -1,6 +1,7 @@
 import { SimulationStats } from './simulationStats';
 import { Simulation } from './simulation';
 import { LogMessage } from './logMessage';
+import { LocalCIStatus } from './localCIStatus';
 
 export class SimulationRun {
   constructor(
@@ -11,6 +12,7 @@ export class SimulationRun {
     public simulation: Simulation,
     public logMessages: LogMessage[],
     public endDateTime?: Date,
+    public localCIStatus?: LocalCIStatus,
   ) {}
 }
 

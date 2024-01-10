@@ -4,6 +4,7 @@ import de.tum.cit.ase.domain.SimulationRun;
 import de.tum.cit.ase.prometheus.MetricValue;
 import de.tum.cit.ase.security.AuthoritiesConstants;
 import de.tum.cit.ase.service.PrometheusService;
+import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
 import de.tum.cit.ase.service.simulation.SimulationDataService;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +21,16 @@ public class PrometheusResource {
 
     private final PrometheusService prometheusService;
     private final SimulationDataService simulationDataService;
+    private final ArtemisConfiguration artemisConfiguration;
 
-    public PrometheusResource(PrometheusService prometheusService, SimulationDataService simulationDataService) {
+    public PrometheusResource(
+        PrometheusService prometheusService,
+        SimulationDataService simulationDataService,
+        ArtemisConfiguration artemisConfiguration
+    ) {
         this.simulationDataService = simulationDataService;
         this.prometheusService = prometheusService;
+        this.artemisConfiguration = artemisConfiguration;
     }
 
     /**
@@ -51,6 +58,9 @@ public class PrometheusResource {
         if (run.getStatus() != SimulationRun.Status.FINISHED && run.getStatus() != SimulationRun.Status.RUNNING) {
             return ResponseEntity.ok(List.of());
         }
+        if (artemisConfiguration.getIsLocal(run.getSimulation().getServer())) {
+            return ResponseEntity.ok(List.of());
+        }
         return ResponseEntity.ok(prometheusService.getCpuUsageVcs(run));
     }
 
@@ -63,6 +73,9 @@ public class PrometheusResource {
     public ResponseEntity<List<MetricValue>> getCpuUsageCi(@PathVariable("runId") long runId) {
         var run = simulationDataService.getSimulationRun(runId);
         if (run.getStatus() != SimulationRun.Status.FINISHED && run.getStatus() != SimulationRun.Status.RUNNING) {
+            return ResponseEntity.ok(List.of());
+        }
+        if (artemisConfiguration.getIsLocal(run.getSimulation().getServer())) {
             return ResponseEntity.ok(List.of());
         }
         return ResponseEntity.ok(prometheusService.getCpuUsageCi(run));

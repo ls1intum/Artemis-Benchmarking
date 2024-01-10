@@ -416,6 +416,7 @@ public class SimulationDataServiceIT {
         run.setLogMessages(new HashSet<>());
         run.setStatus(SimulationRun.Status.RUNNING);
 
+        when(simulationRunRepository.findByIdWithStatsAndLogMessages(1L)).thenReturn(java.util.Optional.of(run));
         when(simulationRunRepository.findById(1L)).thenReturn(java.util.Optional.of(run));
         doNothing().when(simulationRunQueueService).abortSimulationExecution();
         doNothing().when(simulationWebsocketService).sendRunStatusUpdate(any());

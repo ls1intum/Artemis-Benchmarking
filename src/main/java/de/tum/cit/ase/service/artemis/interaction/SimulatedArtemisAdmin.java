@@ -468,7 +468,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
     public List<DomainObject> getBuildQueue(long courseId) {
         return webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "build-job-queue", "running", String.valueOf(courseId)).build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "build-job-queue", "queued", String.valueOf(courseId)).build())
             .retrieve()
             .bodyToFlux(DomainObject.class)
             .collectList()

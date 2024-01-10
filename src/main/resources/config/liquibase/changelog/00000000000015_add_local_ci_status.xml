@@ -23,7 +23,7 @@
             <column name="time_in_minutes" type="int">
                 <constraints nullable="false"/>
             </column>
-            <column name="avg_jobs_per_minute" type="int">
+            <column name="avg_jobs_per_minute" type="double">
                 <constraints nullable="false"/>
             </column>
             <column name="simulation_run_id" type="bigint">

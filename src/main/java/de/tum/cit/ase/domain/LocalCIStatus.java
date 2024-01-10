@@ -1,5 +1,6 @@
 package de.tum.cit.ase.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -23,10 +24,11 @@ public class LocalCIStatus {
     private int timeInMinutes;
 
     @Column(name = "avg_jobs_per_minute")
-    private int avgJobsPerMinute;
+    private double avgJobsPerMinute;
 
     @OneToOne
     @JoinColumn(name = "simulation_run_id", nullable = false)
+    @JsonIgnore
     private SimulationRun simulationRun;
 
     public Long getId() {
@@ -69,11 +71,11 @@ public class LocalCIStatus {
         this.timeInMinutes = timeInMinutes;
     }
 
-    public int getAvgJobsPerMinute() {
+    public double getAvgJobsPerMinute() {
         return avgJobsPerMinute;
     }
 
-    public void setAvgJobsPerMinute(int avgJobsPerMinute) {
+    public void setAvgJobsPerMinute(double avgJobsPerMinute) {
         this.avgJobsPerMinute = avgJobsPerMinute;
     }
 

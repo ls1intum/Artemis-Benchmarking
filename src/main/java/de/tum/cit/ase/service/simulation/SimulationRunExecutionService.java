@@ -150,7 +150,7 @@ public class SimulationRunExecutionService {
                     return;
                 }
 
-                if (!doNotSleep) {
+                if (!doNotSleep && !artemisConfiguration.getIsLocal(simulationRun.getSimulation().getServer())) {
                     // Wait for synchronization of user groups
                     try {
                         logAndSend(false, simulationRun, "Waiting for synchronization of user groups (1 min)...");

@@ -2,6 +2,7 @@ package de.tum.cit.ase.repository;
 
 import de.tum.cit.ase.domain.SimulationRun;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,5 +17,5 @@ public interface SimulationRunRepository extends JpaRepository<SimulationRun, Lo
     List<SimulationRun> findAllBySimulationId(@Param("simulationId") long simulationId);
 
     @Query(value = "select run from SimulationRun run left join fetch run.stats s left join fetch run.logMessages l where run.id = :#{#id}")
-    SimulationRun findByIdWithStatsAndLogMessages(long id);
+    Optional<SimulationRun> findByIdWithStatsAndLogMessages(long id);
 }
