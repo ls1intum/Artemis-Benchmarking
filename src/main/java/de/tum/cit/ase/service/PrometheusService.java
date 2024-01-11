@@ -47,7 +47,7 @@ public class PrometheusService {
      * @return A list of CPU usage values. An empty list if no Prometheus instance is configured for Artemis.
      */
     public List<MetricValue> getCpuUsageArtemis(SimulationRun run) {
-        log.info("Getting Artemis CPU usage for {}", run);
+        log.debug("Getting Artemis CPU usage for {}", run);
         var instance = artemisConfiguration.getPrometheusInstanceArtemis(run.getSimulation().getServer());
         if (instance == null || instance.isBlank()) {
             log.warn("No Prometheus instance configured for Artemis on {}", run.getSimulation().getServer());
@@ -62,7 +62,7 @@ public class PrometheusService {
      * @return A list of CPU usage values. An empty list if no Prometheus instance is configured for the VCS.
      */
     public List<MetricValue> getCpuUsageVcs(SimulationRun run) {
-        log.info("Getting VCS CPU usage for {}", run);
+        log.debug("Getting VCS CPU usage for {}", run);
         var instance = artemisConfiguration.getPrometheusInstanceVcs(run.getSimulation().getServer());
         if (instance == null || instance.isBlank()) {
             log.warn("No Prometheus instance configured for VCS on {}", run.getSimulation().getServer());
