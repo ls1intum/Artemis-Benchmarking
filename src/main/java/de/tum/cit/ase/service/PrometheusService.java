@@ -1,6 +1,7 @@
 package de.tum.cit.ase.service;
 
 import de.tum.cit.ase.domain.SimulationRun;
+import de.tum.cit.ase.prometheus.Metric;
 import de.tum.cit.ase.prometheus.MetricValue;
 import de.tum.cit.ase.prometheus.QueryResponse;
 import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
@@ -46,14 +47,18 @@ public class PrometheusService {
      * @param run The run to get the CPU usage for.
      * @return A list of CPU usage values. An empty list if no Prometheus instance is configured for Artemis.
      */
-    public List<MetricValue> getCpuUsageArtemis(SimulationRun run) {
+    public List<Metric> getCpuUsageArtemis(SimulationRun run) {
         log.debug("Getting Artemis CPU usage for {}", run);
-        var instance = artemisConfiguration.getPrometheusInstanceArtemis(run.getSimulation().getServer());
-        if (instance == null || instance.isBlank()) {
+        var instances = artemisConfiguration.getPrometheusInstancesArtemis(run.getSimulation().getServer());
+        if (instances == null || instances.length == 0) {
             log.warn("No Prometheus instance configured for Artemis on {}", run.getSimulation().getServer());
             return List.of();
         }
-        return getCpuUsage(run, instance);
+        List<Metric> result = new LinkedList<>();
+        for (String instance : instances) {
+            result.add(new Metric(instance, getCpuUsage(run, instance)));
+        }
+        return result;
     }
 
     /**
@@ -61,14 +66,18 @@ public class PrometheusService {
      * @param run The run to get the CPU usage for.
      * @return A list of CPU usage values. An empty list if no Prometheus instance is configured for the VCS.
      */
-    public List<MetricValue> getCpuUsageVcs(SimulationRun run) {
+    public List<Metric> getCpuUsageVcs(SimulationRun run) {
         log.debug("Getting VCS CPU usage for {}", run);
-        var instance = artemisConfiguration.getPrometheusInstanceVcs(run.getSimulation().getServer());
-        if (instance == null || instance.isBlank()) {
+        var instances = artemisConfiguration.getPrometheusInstancesVcs(run.getSimulation().getServer());
+        if (instances == null || instances.length == 0) {
             log.warn("No Prometheus instance configured for VCS on {}", run.getSimulation().getServer());
             return List.of();
         }
-        return getCpuUsage(run, instance);
+        List<Metric> result = new LinkedList<>();
+        for (String instance : instances) {
+            result.add(new Metric(instance, getCpuUsage(run, instance)));
+        }
+        return result;
     }
 
     /**
@@ -76,14 +85,18 @@ public class PrometheusService {
      * @param run The run to get the CPU usage for.
      * @return A list of CPU usage values. An empty list if no Prometheus instance is configured for the CI system.
      */
-    public List<MetricValue> getCpuUsageCi(SimulationRun run) {
+    public List<Metric> getCpuUsageCi(SimulationRun run) {
         log.debug("Getting CI CPU usage for {}", run);
-        var instance = artemisConfiguration.getPrometheusInstanceCi(run.getSimulation().getServer());
-        if (instance == null || instance.isBlank()) {
+        var instances = artemisConfiguration.getPrometheusInstancesCi(run.getSimulation().getServer());
+        if (instances == null || instances.length == 0) {
             log.warn("No Prometheus instance configured for CI on {}", run.getSimulation().getServer());
             return List.of();
         }
-        return getCpuUsage(run, instance);
+        List<Metric> result = new LinkedList<>();
+        for (String instance : instances) {
+            result.add(new Metric(instance, getCpuUsage(run, instance)));
+        }
+        return result;
     }
 
     /**
