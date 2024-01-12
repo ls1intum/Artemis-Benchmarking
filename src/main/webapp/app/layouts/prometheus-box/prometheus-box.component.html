@@ -1,8 +1,8 @@
-@if (metricValuesArtemis.length > 0) {
+@if (!!metricValuesArtemis && metricValuesArtemis.length > 0) {
   <div class="mt-5">
     <ngx-charts-line-chart
       [results]="dataArtemis"
-      [scheme]="colorSchemeArtemis"
+      [scheme]="colorScheme"
       [xAxis]="true"
       [yAxis]="true"
       yAxisLabel="Artemis Workload"
@@ -20,7 +20,7 @@
   <div>
     <ngx-charts-line-chart
       [results]="dataVcs"
-      [scheme]="colorSchemeVcs"
+      [scheme]="colorScheme"
       [xAxis]="true"
       [yAxis]="true"
       yAxisLabel="VCS Workload"
@@ -38,7 +38,7 @@
   <div>
     <ngx-charts-line-chart
       [results]="dataCi"
-      [scheme]="colorSchemeCi"
+      [scheme]="colorScheme"
       [xAxis]="true"
       [yAxis]="true"
       yAxisLabel="CI Workload"

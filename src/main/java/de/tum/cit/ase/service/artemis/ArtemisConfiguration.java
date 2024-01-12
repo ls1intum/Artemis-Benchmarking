@@ -14,13 +14,13 @@ public class ArtemisConfiguration {
     private boolean localCleanup;
 
     @Value("${artemis.local.prometheus-instances.artemis}")
-    private String localPrometheusInstanceArtemis;
+    private String[] localPrometheusInstanceArtemis;
 
     @Value("${artemis.local.prometheus-instances.vcs}")
-    private String localPrometheusInstanceVcs;
+    private String[] localPrometheusInstanceVcs;
 
     @Value("${artemis.local.prometheus-instances.ci}")
-    private String localPrometheusInstanceCi;
+    private String[] localPrometheusInstanceCi;
 
     @Value("${artemis.local.is-local}")
     private boolean localIsLocal;
@@ -32,13 +32,13 @@ public class ArtemisConfiguration {
     private boolean test1Cleanup;
 
     @Value("${artemis.ts1.prometheus-instances.artemis}")
-    private String test1PrometheusInstanceArtemis;
+    private String[] test1PrometheusInstanceArtemis;
 
     @Value("${artemis.ts1.prometheus-instances.vcs}")
-    private String test1PrometheusInstanceVcs;
+    private String[] test1PrometheusInstanceVcs;
 
     @Value("${artemis.ts1.prometheus-instances.ci}")
-    private String test1PrometheusInstanceCi;
+    private String[] test1PrometheusInstanceCi;
 
     @Value("${artemis.ts1.is-local}")
     private boolean test1IsLocal;
@@ -50,13 +50,13 @@ public class ArtemisConfiguration {
     private boolean test3Cleanup;
 
     @Value("${artemis.ts3.prometheus-instances.artemis}")
-    private String test3PrometheusInstanceArtemis;
+    private String[] test3PrometheusInstanceArtemis;
 
     @Value("${artemis.ts3.prometheus-instances.vcs}")
-    private String test3PrometheusInstanceVcs;
+    private String[] test3PrometheusInstanceVcs;
 
     @Value("${artemis.ts3.prometheus-instances.ci}")
-    private String test3PrometheusInstanceCi;
+    private String[] test3PrometheusInstanceCi;
 
     @Value("${artemis.ts3.is-local}")
     private boolean test3IsLocal;
@@ -68,13 +68,13 @@ public class ArtemisConfiguration {
     private boolean stagingCleanup;
 
     @Value("${artemis.staging.prometheus-instances.artemis}")
-    private String stagingPrometheusInstanceArtemis;
+    private String[] stagingPrometheusInstanceArtemis;
 
     @Value("${artemis.staging.prometheus-instances.vcs}")
-    private String stagingPrometheusInstanceVcs;
+    private String[] stagingPrometheusInstanceVcs;
 
     @Value("${artemis.staging.prometheus-instances.ci}")
-    private String stagingPrometheusInstanceCi;
+    private String[] stagingPrometheusInstanceCi;
 
     @Value("${artemis.staging.is-local}")
     private boolean stagingIsLocal;
@@ -86,13 +86,13 @@ public class ArtemisConfiguration {
     private boolean staging2Cleanup;
 
     @Value("${artemis.staging2.prometheus-instances.artemis}")
-    private String staging2PrometheusInstanceArtemis;
+    private String[] staging2PrometheusInstanceArtemis;
 
     @Value("${artemis.staging2.prometheus-instances.vcs}")
-    private String staging2PrometheusInstanceVcs;
+    private String[] staging2PrometheusInstanceVcs;
 
     @Value("${artemis.staging2.prometheus-instances.ci}")
-    private String staging2PrometheusInstanceCi;
+    private String[] staging2PrometheusInstanceCi;
 
     @Value("${artemis.staging2.is-local}")
     private boolean staging2IsLocal;
@@ -104,13 +104,13 @@ public class ArtemisConfiguration {
     private boolean productionCleanup;
 
     @Value("${artemis.production.prometheus-instances.artemis}")
-    private String productionPrometheusInstanceArtemis;
+    private String[] productionPrometheusInstanceArtemis;
 
     @Value("${artemis.production.prometheus-instances.vcs}")
-    private String productionPrometheusInstanceVcs;
+    private String[] productionPrometheusInstanceVcs;
 
     @Value("${artemis.production.prometheus-instances.ci}")
-    private String productionPrometheusInstanceCi;
+    private String[] productionPrometheusInstanceCi;
 
     @Value("${artemis.production.is-local}")
     private boolean productionIsLocal;
@@ -137,7 +137,7 @@ public class ArtemisConfiguration {
         };
     }
 
-    public String getPrometheusInstanceArtemis(ArtemisServer server) {
+    public String[] getPrometheusInstancesArtemis(ArtemisServer server) {
         return switch (server) {
             case LOCAL -> localPrometheusInstanceArtemis;
             case TS1 -> test1PrometheusInstanceArtemis;
@@ -148,7 +148,7 @@ public class ArtemisConfiguration {
         };
     }
 
-    public String getPrometheusInstanceVcs(ArtemisServer server) {
+    public String[] getPrometheusInstancesVcs(ArtemisServer server) {
         return switch (server) {
             case LOCAL -> localPrometheusInstanceVcs;
             case TS1 -> test1PrometheusInstanceVcs;
@@ -159,7 +159,7 @@ public class ArtemisConfiguration {
         };
     }
 
-    public String getPrometheusInstanceCi(ArtemisServer server) {
+    public String[] getPrometheusInstancesCi(ArtemisServer server) {
         return switch (server) {
             case LOCAL -> localPrometheusInstanceCi;
             case TS1 -> test1PrometheusInstanceCi;

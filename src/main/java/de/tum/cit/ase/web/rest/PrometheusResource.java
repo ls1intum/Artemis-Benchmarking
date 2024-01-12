@@ -1,7 +1,7 @@
 package de.tum.cit.ase.web.rest;
 
 import de.tum.cit.ase.domain.SimulationRun;
-import de.tum.cit.ase.prometheus.MetricValue;
+import de.tum.cit.ase.prometheus.Metric;
 import de.tum.cit.ase.security.AuthoritiesConstants;
 import de.tum.cit.ase.service.PrometheusService;
 import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
@@ -39,7 +39,7 @@ public class PrometheusResource {
      * @return A list of CPU usage values. An empty list if no Prometheus instance is configured for Artemis.
      */
     @GetMapping("/{runId}/artemis")
-    public ResponseEntity<List<MetricValue>> getCpuUsageArtemis(@PathVariable("runId") long runId) {
+    public ResponseEntity<List<Metric>> getCpuUsageArtemis(@PathVariable("runId") long runId) {
         var run = simulationDataService.getSimulationRun(runId);
         if (run.getStatus() != SimulationRun.Status.FINISHED && run.getStatus() != SimulationRun.Status.RUNNING) {
             return ResponseEntity.ok(List.of());
@@ -53,7 +53,7 @@ public class PrometheusResource {
      * @return A list of CPU usage values. An empty list if no Prometheus instance is configured for the VCS.
      */
     @GetMapping("/{runId}/vcs")
-    public ResponseEntity<List<MetricValue>> getCpuUsageVcs(@PathVariable("runId") long runId) {
+    public ResponseEntity<List<Metric>> getCpuUsageVcs(@PathVariable("runId") long runId) {
         var run = simulationDataService.getSimulationRun(runId);
         if (run.getStatus() != SimulationRun.Status.FINISHED && run.getStatus() != SimulationRun.Status.RUNNING) {
             return ResponseEntity.ok(List.of());
@@ -70,7 +70,7 @@ public class PrometheusResource {
      * @return A list of CPU usage values. An empty list if no Prometheus instance is configured for the CI.
      */
     @GetMapping("/{runId}/ci")
-    public ResponseEntity<List<MetricValue>> getCpuUsageCi(@PathVariable("runId") long runId) {
+    public ResponseEntity<List<Metric>> getCpuUsageCi(@PathVariable("runId") long runId) {
         var run = simulationDataService.getSimulationRun(runId);
         if (run.getStatus() != SimulationRun.Status.FINISHED && run.getStatus() != SimulationRun.Status.RUNNING) {
             return ResponseEntity.ok(List.of());
