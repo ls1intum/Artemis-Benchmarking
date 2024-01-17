@@ -24,7 +24,7 @@ public class SimulationStats {
 
     @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
     @JoinColumn(name = "simulation_stats_id")
-    private Set<StatsByTenSec> statsByTenSec;
+    private Set<StatsBySecond> statsBySecond;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "request_type", nullable = false)
@@ -83,12 +83,12 @@ public class SimulationStats {
         this.simulationRun = simulationRun;
     }
 
-    public Set<StatsByTenSec> getStatsByTenSec() {
-        return statsByTenSec;
+    public Set<StatsBySecond> getStatsBySecond() {
+        return statsBySecond;
     }
 
-    public void setStatsByTenSec(Set<StatsByTenSec> statsByTenSec) {
-        this.statsByTenSec = statsByTenSec;
+    public void setStatsBySecond(Set<StatsBySecond> statsBySecond) {
+        this.statsBySecond = statsBySecond;
     }
 
     @Override

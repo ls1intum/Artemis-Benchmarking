@@ -1,7 +1,7 @@
 <div class="card h-100">
   <div class="card-header">
     {{ formatRequestType(simulationStats!.requestType) }}
-    @if (statsByTenSeconds.length >= 3) {
+    @if (statsBySecond.length >= 3) {
       <div class="float-end">
         <button type="button" class="btn btn-link btn-sm p-0" (click)="showChart = !showChart">
           @if (showChart) {
@@ -38,7 +38,7 @@
         </div>
       </div>
     } @else {
-      @if (statsByTenSeconds.length < 3) {
+      @if (statsBySecond.length < 3) {
         <p class="text-center">No data</p>
       } @else {
         <ngx-charts-line-chart
@@ -46,7 +46,7 @@
           [results]="data"
           [xAxis]="true"
           [yAxis]="true"
-          yAxisLabel="Avg. response time"
+          yAxisLabel="Avg. response time (ms)"
           [showYAxisLabel]="true"
           [showGridLines]="true"
           [autoScale]="true"

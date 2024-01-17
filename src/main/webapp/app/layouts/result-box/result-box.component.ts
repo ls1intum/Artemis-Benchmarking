@@ -18,14 +18,15 @@ export class ResultBoxComponent implements OnInit {
   @Input() simulationStats?: SimulationStats;
   data: any[] = [];
   chartDimensions: [number, number] = [600, 400];
-  statsByTenSeconds: StatsByTime[] = [];
+  statsBySecond: StatsByTime[] = [];
   showChart = false;
 
   constructor(private datePipe: DatePipe) {}
 
   ngOnInit(): void {
     this.simulationStats?.statsByMinute.sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
-    this.statsByTenSeconds = this.simulationStats?.statsByMinute ?? [];
+    this.statsBySecond =
+      this.simulationStats?.statsBySecond.sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime()) ?? [];
     this.initChart();
   }
   formatDuration(durationInNanoSeconds: number): string {
@@ -50,7 +51,7 @@ export class ResultBoxComponent implements OnInit {
       this.data = [
         {
           name: this.formatRequestType(this.simulationStats.requestType),
-          series: this.simulationStats.statsByTenSec.map(stats => ({
+          series: this.statsBySecond.map(stats => ({
             name: stats.dateTime,
             value: stats.avgResponseTime / 1_000_000,
           })),
@@ -60,16 +61,9 @@ export class ResultBoxComponent implements OnInit {
   }
 
   axisFormat = (val: any): string => {
-    if (this.statsByTenSeconds.length === 0) {
+    if (this.statsBySecond.length === 0) {
       return '';
     }
-    if (this.statsByTenSeconds.length < 6) {
-      return this.datePipe.transform(val, 'HH:mm:ss') ?? '';
-    }
-    const index = this.statsByTenSeconds.findIndex(metric => metric.dateTime === val);
-    if (!!index && (index % 5 === 0 || index === 0)) {
-      return this.datePipe.transform(val, 'HH:mm') ?? '';
-    }
-    return '';
+    return this.datePipe.transform(val, 'HH:mm:ss') ?? '';
   };
 }

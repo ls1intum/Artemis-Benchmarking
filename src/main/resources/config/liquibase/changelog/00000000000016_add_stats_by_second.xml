@@ -7,7 +7,7 @@
                         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
     <changeSet id="00000000000016" author="valentin-boehm">
-        <createTable tableName="stats_by_ten_sec">
+        <createTable tableName="stats_by_second">
             <column name="id" type="bigint" autoIncrement="true" startWith="0">
                 <constraints primaryKey="true" nullable="false"/>
             </column>

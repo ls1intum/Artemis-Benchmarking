@@ -10,7 +10,7 @@ export class SimulationStats {
     public simulationRun: SimulationRun,
     public requestType: RequestType,
     public statsByMinute: StatsByTime[],
-    public statsByTenSec: StatsByTime[],
+    public statsBySecond: StatsByTime[],
   ) {}
 }
 

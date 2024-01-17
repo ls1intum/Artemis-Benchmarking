@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.time.ZonedDateTime;
 
 @Entity
-public class StatsByTenSec {
+public class StatsBySecond {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
