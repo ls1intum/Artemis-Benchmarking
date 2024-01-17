@@ -1,6 +1,6 @@
 import { SimulationRun } from './simulationRun';
 import { RequestType } from './requestType';
-import { StatsByMinute } from './statsByMinute';
+import { StatsByTime } from './statsByTime';
 
 export class SimulationStats {
   constructor(
@@ -9,7 +9,8 @@ export class SimulationStats {
     public avgResponseTime: number,
     public simulationRun: SimulationRun,
     public requestType: RequestType,
-    public statsByMinute: StatsByMinute[],
+    public statsByMinute: StatsByTime[],
+    public statsByTenSec: StatsByTime[],
   ) {}
 }
 
