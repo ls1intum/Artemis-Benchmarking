@@ -48,10 +48,15 @@ spring:
   liquibase:
     contexts: prod
   mail:
-    host: localhost
-    port: 25
+    host: postout.lrz.de
+    port: 587
+    protocol: smtp
+    tls: true
     username:
     password:
+    properties.mail.smtp:
+      auth: true
+      starttls.enable: true
   thymeleaf:
     cache: true
 

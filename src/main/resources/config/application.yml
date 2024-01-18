@@ -132,16 +132,6 @@ spring:
         implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
   messages:
     basename: i18n/messages
-  mail:
-    host: postout.lrz.de
-    port: 587
-    protocol: smtp
-    tls: true
-    username:
-    password:
-    properties.mail.smtp:
-      auth: true
-      starttls.enable: true
   main:
     allow-bean-definition-overriding: true
   mvc:
