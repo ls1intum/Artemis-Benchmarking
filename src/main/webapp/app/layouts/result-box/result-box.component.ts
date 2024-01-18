@@ -63,7 +63,7 @@ export class ResultBoxComponent implements OnInit {
   }
 
   initChart(): void {
-    if (this.simulationStats && this.simulationStats.requestType) {
+    if (this.simulationStats) {
       this.referenceLine = [
         {
           name: 'Avg. response time',
@@ -91,7 +91,5 @@ export class ResultBoxComponent implements OnInit {
     }
   }
 
-  axisFormat = (val: any): string => {
-    return this.datePipe.transform(val, 'HH:mm:ss') ?? '';
-  };
+  axisFormat = (val: any): string => this.datePipe.transform(val, 'HH:mm:ss') ?? '';
 }

@@ -9,6 +9,7 @@ import de.tum.cit.ase.domain.RequestStat;
 import de.tum.cit.ase.domain.SimulationRun;
 import de.tum.cit.ase.repository.SimulationStatsRepository;
 import de.tum.cit.ase.repository.StatsByMinuteRepository;
+import de.tum.cit.ase.repository.StatsBySecondRepository;
 import de.tum.cit.ase.service.simulation.SimulationResultService;
 import jakarta.transaction.Transactional;
 import java.time.ZonedDateTime;
@@ -31,6 +32,9 @@ public class SimulationResultServiceIT {
 
     @MockBean
     private StatsByMinuteRepository statsByMinuteRepository;
+
+    @MockBean
+    private StatsBySecondRepository statsBySecondRepository;
 
     private List<RequestStat> requestStats;
 
