@@ -4,6 +4,7 @@ import de.tum.cit.ase.domain.*;
 import de.tum.cit.ase.domain.RequestType;
 import de.tum.cit.ase.repository.SimulationStatsRepository;
 import de.tum.cit.ase.repository.StatsByMinuteRepository;
+import de.tum.cit.ase.repository.StatsBySecondRepository;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
@@ -18,10 +19,16 @@ public class SimulationResultService {
 
     private final SimulationStatsRepository simulationStatsRepository;
     private final StatsByMinuteRepository statsByMinuteRepository;
+    private final StatsBySecondRepository statsBySecondRepository;
 
-    public SimulationResultService(SimulationStatsRepository simulationStatsRepository, StatsByMinuteRepository statsByMinuteRepository) {
+    public SimulationResultService(
+        SimulationStatsRepository simulationStatsRepository,
+        StatsByMinuteRepository statsByMinuteRepository,
+        StatsBySecondRepository statsBySecondRepository
+    ) {
         this.simulationStatsRepository = simulationStatsRepository;
         this.statsByMinuteRepository = statsByMinuteRepository;
+        this.statsBySecondRepository = statsBySecondRepository;
     }
 
     /**
@@ -37,11 +44,17 @@ public class SimulationResultService {
         totalStats.setAvgResponseTime(getAverage(requestStats));
         totalStats.setRequestType(RequestType.TOTAL);
         Set<StatsByMinute> totalStatsByMinute = calculateStatsByMinute(requestStats);
+        Set<StatsBySecond> totalStatsBySecond = calculateStatsBySecond(requestStats);
         simulationStatsRepository.save(totalStats);
         totalStats.setStatsByMinute(totalStatsByMinute);
         totalStatsByMinute.forEach(statsByMinute -> {
             statsByMinute.setSimulationStats(totalStats);
             statsByMinuteRepository.save(statsByMinute);
+        });
+        totalStats.setStatsBySecond(totalStatsBySecond);
+        totalStatsBySecond.forEach(statsByTenSec -> {
+            statsByTenSec.setSimulationStats(totalStats);
+            statsBySecondRepository.save(statsByTenSec);
         });
 
         SimulationStats authStats = calculateStatsForRequestType(requestStats, RequestType.AUTHENTICATION, simulationRun);
@@ -90,6 +103,12 @@ public class SimulationResultService {
             statsByMinute.setSimulationStats(simulationStats);
             statsByMinuteRepository.save(statsByMinute);
         });
+        Set<StatsBySecond> statsBySecond = calculateStatsBySecond(filteredRequestStats);
+        simulationStats.setStatsBySecond(statsBySecond);
+        statsBySecond.forEach(statsByTenSec -> {
+            statsByTenSec.setSimulationStats(simulationStats);
+            statsBySecondRepository.save(statsByTenSec);
+        });
         return simulationStats;
     }
 
@@ -117,6 +136,23 @@ public class SimulationResultService {
             .collect(Collectors.toSet());
     }
 
+    private static Set<StatsBySecond> calculateStatsBySecond(Collection<RequestStat> requestStats) {
+        Map<ZonedDateTime, Long> requestsBySecond = calculateRequestsBySecond(requestStats);
+        Map<ZonedDateTime, Double> avgResponseTimeBySecond = calculateAvgResponseTimeBySecond(requestStats);
+
+        return requestsBySecond
+            .keySet()
+            .stream()
+            .map(dateTime -> {
+                StatsBySecond statsBySecond = new StatsBySecond();
+                statsBySecond.setDateTime(dateTime);
+                statsBySecond.setNumberOfRequests(requestsBySecond.get(dateTime));
+                statsBySecond.setAvgResponseTime(avgResponseTimeBySecond.get(dateTime).longValue());
+                return statsBySecond;
+            })
+            .collect(Collectors.toSet());
+    }
+
     private static Map<ZonedDateTime, Long> calculateRequestsByMinute(Collection<RequestStat> requestStats) {
         return requestStats
             .stream()
@@ -129,6 +165,23 @@ public class SimulationResultService {
             .collect(
                 Collectors.groupingBy(
                     stat -> stat.dateTime().truncatedTo(ChronoUnit.MINUTES),
+                    Collectors.averagingLong(RequestStat::duration)
+                )
+            );
+    }
+
+    private static Map<ZonedDateTime, Long> calculateRequestsBySecond(Collection<RequestStat> requestStats) {
+        return requestStats
+            .stream()
+            .collect(Collectors.groupingBy(stat -> stat.dateTime().truncatedTo(ChronoUnit.SECONDS), Collectors.counting()));
+    }
+
+    private static Map<ZonedDateTime, Double> calculateAvgResponseTimeBySecond(Collection<RequestStat> requestStats) {
+        return requestStats
+            .stream()
+            .collect(
+                Collectors.groupingBy(
+                    stat -> stat.dateTime().truncatedTo(ChronoUnit.SECONDS),
                     Collectors.averagingLong(RequestStat::duration)
                 )
             );

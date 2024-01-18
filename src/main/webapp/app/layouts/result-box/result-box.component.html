@@ -1,29 +1,81 @@
 <div class="card h-100">
   <div class="card-header">
     {{ formatRequestType(simulationStats!.requestType) }}
+    @if (statsBySecond.length >= 3) {
+      <div class="float-end">
+        <button type="button" class="btn btn-link btn-sm p-0" (click)="showChart = !showChart">
+          @if (showChart) {
+            <fa-icon [icon]="faTable" class="text-primary"></fa-icon>
+          } @else {
+            <fa-icon [icon]="faChartLine" class="text-primary"></fa-icon>
+          }
+        </button>
+      </div>
+    }
   </div>
   <div class="card-body">
     <div class="flex-wrapper">
       <p class="w-50"><strong>Number of requests:</strong> {{ simulationStats!.numberOfRequests }}</p>
       <p class="w-50"><strong>Average response time:</strong> {{ formatDuration(simulationStats!.avgResponseTime) }}</p>
     </div>
-    <div class="flex-wrapper">
-      <div class="w-50">
-        <strong class="mb-0">Requests per minute:</strong>
-        <div class="ps-5">
-          @for (statsMinute of simulationStats!.statsByMinute; track statsMinute) {
-            <p class="mb-0">{{ statsMinute.dateTime | date: 'HH:mm' }}: {{ statsMinute.numberOfRequests }}</p>
-          }
+    @if (!showChart) {
+      <div class="flex-wrapper">
+        <div class="w-50">
+          <strong class="mb-0">Requests per minute:</strong>
+          <div class="ps-5">
+            @for (statsMinute of simulationStats!.statsByMinute; track statsMinute) {
+              <p class="mb-0">{{ statsMinute.dateTime | date: 'HH:mm' }}: {{ statsMinute.numberOfRequests }}</p>
+            }
+          </div>
+        </div>
+        <div class="w-50">
+          <strong class="mb-0">Avg. response time by minute:</strong>
+          <div class="ps-5">
+            @for (statsMinute of simulationStats!.statsByMinute; track statsMinute) {
+              <p class="mb-0">{{ statsMinute.dateTime | date: 'HH:mm' }}: {{ formatDuration(statsMinute.avgResponseTime) }}</p>
+            }
+          </div>
         </div>
       </div>
-      <div class="w-50">
-        <strong class="mb-0">Avg. response time by minute:</strong>
-        <div class="ps-5">
-          @for (statsMinute of simulationStats!.statsByMinute; track statsMinute) {
-            <p class="mb-0">{{ statsMinute.dateTime | date: 'HH:mm' }}: {{ formatDuration(statsMinute.avgResponseTime) }}</p>
-          }
+    } @else {
+      @if (statsBySecond.length < 3) {
+        <p class="text-center">No data</p>
+      } @else {
+        <div style="height: 300px">
+          <ngx-charts-line-chart
+            [results]="dataResponseTime"
+            [scheme]="colorSchemeResponseTime"
+            [xAxis]="true"
+            [yAxis]="true"
+            yAxisLabel="Avg. response time (ms)"
+            [showYAxisLabel]="true"
+            [showGridLines]="true"
+            [autoScale]="true"
+            [timeline]="true"
+            [xAxisTickFormatting]="axisFormat"
+            [referenceLines]="referenceLine"
+            [showRefLines]="true"
+            style="fill: white"
+          >
+          </ngx-charts-line-chart>
         </div>
-      </div>
-    </div>
+        <div style="height: 300px">
+          <ngx-charts-line-chart
+            [results]="dataNumberOfRequests"
+            [scheme]="colorSchemeNumberOfRequests"
+            [xAxis]="true"
+            [yAxis]="true"
+            yAxisLabel="Number of requests"
+            [showYAxisLabel]="true"
+            [showGridLines]="true"
+            [autoScale]="true"
+            [timeline]="true"
+            [xAxisTickFormatting]="axisFormat"
+            style="fill: white"
+          >
+          </ngx-charts-line-chart>
+        </div>
+      }
+    }
   </div>
 </div>

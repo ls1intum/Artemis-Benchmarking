@@ -29,6 +29,8 @@ import { ServerBadgeComponent } from './layouts/server-badge/server-badge.compon
 import { ModeExplanationComponent } from './layouts/mode-explanation/mode-explanation.component';
 import { PrometheusBoxComponent } from './layouts/prometheus-box/prometheus-box.component';
 import { LocalCiStatusCardComponent } from './layouts/local-ci-status-card/local-ci-status-card.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
 // jhipster-needle-angular-add-module-import JHipster will add new module here
 
 @NgModule({
@@ -46,6 +48,8 @@ import { LocalCiStatusCardComponent } from './layouts/local-ci-status-card/local
     NgbAccordionModule,
     PrometheusBoxComponent,
     LocalCiStatusCardComponent,
+    NgxChartsModule,
+    BrowserAnimationsModule,
   ],
   providers: [
     Title,

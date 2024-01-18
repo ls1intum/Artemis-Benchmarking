@@ -22,6 +22,10 @@ public class SimulationStats {
     @JoinColumn(name = "simulation_stats_id")
     private Set<StatsByMinute> statsByMinute;
 
+    @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    @JoinColumn(name = "simulation_stats_id")
+    private Set<StatsBySecond> statsBySecond;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "request_type", nullable = false)
     private RequestType requestType;
@@ -77,6 +81,14 @@ public class SimulationStats {
 
     public void setSimulationRun(SimulationRun simulationRun) {
         this.simulationRun = simulationRun;
+    }
+
+    public Set<StatsBySecond> getStatsBySecond() {
+        return statsBySecond;
+    }
+
+    public void setStatsBySecond(Set<StatsBySecond> statsBySecond) {
+        this.statsBySecond = statsBySecond;
     }
 
     @Override

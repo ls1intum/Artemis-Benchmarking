@@ -1,6 +1,6 @@
 import { SimulationStats } from './simulationStats';
 
-export class StatsByMinute {
+export class StatsByTime {
   constructor(
     public id: number,
     public dateTime: Date,
