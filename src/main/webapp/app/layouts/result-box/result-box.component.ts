@@ -4,6 +4,7 @@ import { RequestType } from '../../entities/simulation/requestType';
 import { DatePipe } from '@angular/common';
 import { StatsByTime } from 'app/entities/simulation/statsByTime';
 import { faChartLine, faTable } from '@fortawesome/free-solid-svg-icons';
+import { ScaleType } from '@swimlane/ngx-charts';
 
 @Component({
   selector: 'jhi-result-box',
@@ -16,10 +17,25 @@ export class ResultBoxComponent implements OnInit {
   faTable = faTable;
 
   @Input() simulationStats?: SimulationStats;
-  data: any[] = [];
-  chartDimensions: [number, number] = [600, 400];
+  dataResponseTime: any[] = [];
+  dataNumberOfRequests: any[] = [];
   statsBySecond: StatsByTime[] = [];
   showChart = false;
+  referenceLine: any[] = [];
+
+  colorSchemeResponseTime = {
+    name: 'colorTime',
+    selectable: true,
+    group: ScaleType.Linear,
+    domain: ['#EB0505'],
+  };
+
+  colorSchemeNumberOfRequests = {
+    name: 'colorNumber',
+    selectable: true,
+    group: ScaleType.Linear,
+    domain: ['#33ADFF'],
+  };
 
   constructor(private datePipe: DatePipe) {}
 
@@ -48,7 +64,13 @@ export class ResultBoxComponent implements OnInit {
 
   initChart(): void {
     if (this.simulationStats && this.simulationStats.requestType) {
-      this.data = [
+      this.referenceLine = [
+        {
+          name: 'Avg. response time',
+          value: this.simulationStats.avgResponseTime / 1_000_000,
+        },
+      ];
+      this.dataResponseTime = [
         {
           name: this.formatRequestType(this.simulationStats.requestType),
           series: this.statsBySecond.map(stats => ({
@@ -57,13 +79,19 @@ export class ResultBoxComponent implements OnInit {
           })),
         },
       ];
+      this.dataNumberOfRequests = [
+        {
+          name: this.formatRequestType(this.simulationStats.requestType),
+          series: this.statsBySecond.map(stats => ({
+            name: stats.dateTime,
+            value: stats.numberOfRequests,
+          })),
+        },
+      ];
     }
   }
 
   axisFormat = (val: any): string => {
-    if (this.statsBySecond.length === 0) {
-      return '';
-    }
     return this.datePipe.transform(val, 'HH:mm:ss') ?? '';
   };
 }

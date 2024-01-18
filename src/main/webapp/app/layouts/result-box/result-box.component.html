@@ -41,20 +41,40 @@
       @if (statsBySecond.length < 3) {
         <p class="text-center">No data</p>
       } @else {
-        <ngx-charts-line-chart
-          [view]="chartDimensions"
-          [results]="data"
-          [xAxis]="true"
-          [yAxis]="true"
-          yAxisLabel="Avg. response time (ms)"
-          [showYAxisLabel]="true"
-          [showGridLines]="true"
-          [autoScale]="true"
-          [timeline]="true"
-          [xAxisTickFormatting]="axisFormat"
-          style="fill: white"
-        >
-        </ngx-charts-line-chart>
+        <div style="height: 300px">
+          <ngx-charts-line-chart
+            [results]="dataResponseTime"
+            [scheme]="colorSchemeResponseTime"
+            [xAxis]="true"
+            [yAxis]="true"
+            yAxisLabel="Avg. response time (ms)"
+            [showYAxisLabel]="true"
+            [showGridLines]="true"
+            [autoScale]="true"
+            [timeline]="true"
+            [xAxisTickFormatting]="axisFormat"
+            [referenceLines]="referenceLine"
+            [showRefLines]="true"
+            style="fill: white"
+          >
+          </ngx-charts-line-chart>
+        </div>
+        <div style="height: 300px">
+          <ngx-charts-line-chart
+            [results]="dataNumberOfRequests"
+            [scheme]="colorSchemeNumberOfRequests"
+            [xAxis]="true"
+            [yAxis]="true"
+            yAxisLabel="Number of requests"
+            [showYAxisLabel]="true"
+            [showGridLines]="true"
+            [autoScale]="true"
+            [timeline]="true"
+            [xAxisTickFormatting]="axisFormat"
+            style="fill: white"
+          >
+          </ngx-charts-line-chart>
+        </div>
       }
     }
   </div>
