@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 
 public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
+    private static final int MAX_RETRIES = 4; // Maximum number of retries for clone
+    private static final long RETRY_DELAY_MS = 5000; // Delay between clone retries in milliseconds
+
     private String courseIdString;
     private String examIdString;
     private Long studentExamId;
@@ -432,24 +435,40 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         FileUtils.writeStringToFile(bubbleSort.toFile(), newContent, Charset.defaultCharset());
     }
 
-    private RequestStat cloneRepo(String repositoryUrl) throws IOException, GitAPIException {
+    private RequestStat cloneRepo(String repositoryUrl) throws IOException {
         log.debug("Clone " + repositoryUrl);
 
         var localPath = Path.of("repos", username);
         FileUtils.deleteDirectory(localPath.toFile());
 
-        long start = System.nanoTime();
-        var git = Git
-            .cloneRepository()
-            .setURI(repositoryUrl)
-            .setDirectory(localPath.toFile())
-            .setCredentialsProvider(getCredentialsProvider())
-            .call();
-        var duration = System.nanoTime() - start;
+        int attempt = 0;
 
-        git.close();
-        log.debug("Done " + repositoryUrl);
-        return new RequestStat(now(), duration, CLONE);
+        while (attempt < MAX_RETRIES) {
+            try {
+                long start = System.nanoTime();
+                var git = Git
+                    .cloneRepository()
+                    .setURI(repositoryUrl)
+                    .setDirectory(localPath.toFile())
+                    .setCredentialsProvider(getCredentialsProvider())
+                    .call();
+                var duration = System.nanoTime() - start;
+
+                git.close();
+                log.debug("Done " + repositoryUrl);
+                return new RequestStat(now(), duration, CLONE);
+            } catch (Exception e) {
+                log.warn("Error while cloning repository for {{}}: {{}}", username, e.getMessage());
+                attempt++;
+                try {
+                    sleep(RETRY_DELAY_MS);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+        log.error("Failed to clone repository for {{}}", username);
+        throw new RuntimeException("Failed to clone repository for " + username);
     }
 
     private UsernamePasswordCredentialsProvider getCredentialsProvider() {
