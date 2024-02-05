@@ -115,7 +115,7 @@
     "concurrently": "8.2.2",
     "eslint": "8.56.0",
     "eslint-config-prettier": "9.1.0",
-    "husky": "8.0.3",
+    "husky": "9.0.10",
     "jest": "29.7.0",
     "jest-date-mock": "1.0.8",
     "jest-environment-jsdom": "29.7.0",
