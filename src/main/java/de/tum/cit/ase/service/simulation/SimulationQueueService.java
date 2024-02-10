@@ -10,22 +10,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service to manage the queue of simulation runs.
+ */
 @Service
-public class SimulationRunQueueService {
+public class SimulationQueueService {
 
-    private final Logger log = LoggerFactory.getLogger(SimulationRunQueueService.class);
+    private final Logger log = LoggerFactory.getLogger(SimulationQueueService.class);
 
     private final BlockingQueue<SimulationRun> simulationRunQueue;
-    private final SimulationRunExecutionService simulationRunExecutionService;
+    private final SimulationExecutionService simulationExecutionService;
     private final SimulationRunRepository simulationRunRepository;
     private Thread simulatorThread;
 
-    public SimulationRunQueueService(
-        SimulationRunExecutionService simulationRunExecutionService,
-        SimulationRunRepository simulationRunRepository
-    ) {
+    public SimulationQueueService(SimulationExecutionService simulationExecutionService, SimulationRunRepository simulationRunRepository) {
         this.simulationRunQueue = new LinkedBlockingQueue<>();
-        this.simulationRunExecutionService = simulationRunExecutionService;
+        this.simulationExecutionService = simulationExecutionService;
         this.simulationRunRepository = simulationRunRepository;
         initializeSimulationRunQueue();
         restartSimulationExecution();
@@ -84,7 +84,11 @@ public class SimulationRunQueueService {
         try {
             while (true) {
                 var run = simulationRunQueue.take();
-                simulationRunExecutionService.simulateExam(run);
+                try {
+                    simulationExecutionService.simulateExam(run);
+                } catch (Exception e) {
+                    log.error("Error while executing simulation run", e);
+                }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

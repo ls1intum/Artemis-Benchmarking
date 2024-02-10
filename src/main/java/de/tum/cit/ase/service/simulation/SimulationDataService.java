@@ -26,7 +26,7 @@ public class SimulationDataService {
 
     private final SimulationRepository simulationRepository;
     private final SimulationRunRepository simulationRunRepository;
-    private final SimulationRunQueueService simulationRunQueueService;
+    private final SimulationQueueService simulationQueueService;
     private final SimulationWebsocketService simulationWebsocketService;
     private final LogMessageRepository logMessageRepository;
     private final ArtemisConfiguration artemisConfiguration;
@@ -34,14 +34,14 @@ public class SimulationDataService {
     public SimulationDataService(
         SimulationRepository simulationRepository,
         SimulationRunRepository simulationRunRepository,
-        SimulationRunQueueService simulationRunQueueService,
+        SimulationQueueService simulationQueueService,
         SimulationWebsocketService simulationWebsocketService,
         LogMessageRepository logMessageRepository,
         ArtemisConfiguration artemisConfiguration
     ) {
         this.simulationRepository = simulationRepository;
         this.simulationRunRepository = simulationRunRepository;
-        this.simulationRunQueueService = simulationRunQueueService;
+        this.simulationQueueService = simulationQueueService;
         this.simulationWebsocketService = simulationWebsocketService;
         this.logMessageRepository = logMessageRepository;
         this.artemisConfiguration = artemisConfiguration;
@@ -93,7 +93,7 @@ public class SimulationDataService {
             throw new IllegalArgumentException("Cannot delete a running simulation run!");
         }
         if (run.getStatus() == SimulationRun.Status.QUEUED) {
-            simulationRunQueueService.removeSimulationRunFromQueue(run);
+            simulationQueueService.removeSimulationRunFromQueue(run);
         }
         simulationRunRepository.deleteById(runId);
     }
@@ -120,7 +120,7 @@ public class SimulationDataService {
         SimulationRun savedSimulationRun = simulationRunRepository.save(simulationRun);
         savedSimulationRun.setAdminAccount(accountDTO);
         savedSimulationRun.setSchedule(schedule);
-        simulationRunQueueService.queueSimulationRun(savedSimulationRun);
+        simulationQueueService.queueSimulationRun(savedSimulationRun);
         simulationWebsocketService.sendNewRun(savedSimulationRun);
         return savedSimulationRun;
     }
@@ -160,7 +160,7 @@ public class SimulationDataService {
         } else {
             log.info("Cancelling simulation run {}", runId);
 
-            simulationRunQueueService.abortSimulationExecution();
+            simulationQueueService.abortSimulationExecution();
             try {
                 sleep(1000);
             } catch (InterruptedException e) {
@@ -183,7 +183,7 @@ public class SimulationDataService {
             simulationRunRepository.save(run);
             logMessageRepository.save(logMsg);
 
-            simulationRunQueueService.restartSimulationExecution();
+            simulationQueueService.restartSimulationExecution();
         }
     }
 
