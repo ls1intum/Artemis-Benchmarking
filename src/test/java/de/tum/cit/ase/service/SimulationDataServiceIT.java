@@ -63,6 +63,9 @@ public class SimulationDataServiceIT {
         simulation.setServer(TS1);
         simulation.setUserRange("4-17");
         simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
 
         when(simulationRepository.save(any(Simulation.class)))
             .thenAnswer(invocation -> {

@@ -5,6 +5,7 @@ import static de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisUser.*;
 import static de.tum.cit.ase.util.ArtemisServer.PRODUCTION;
 import static de.tum.cit.ase.util.ArtemisServer.TS1;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -23,6 +24,7 @@ import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisAdmin;
 import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisStudent;
 import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisUser;
 import de.tum.cit.ase.service.simulation.SimulationExecutionService;
+import de.tum.cit.ase.service.simulation.SimulationFailedException;
 import de.tum.cit.ase.service.simulation.SimulationResultService;
 import de.tum.cit.ase.util.ArtemisAccountDTO;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
@@ -613,7 +615,7 @@ public class SimulationExecutionServiceIT {
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
         when(artemisUserService.getUsersFromRange(any(), eq("1-3"))).thenThrow(new RuntimeException("Test exception"));
 
-        simulationExecutionService.simulateExam(run);
+        assertThrows(SimulationFailedException.class, () -> simulationExecutionService.simulateExam(run));
 
         verify(simulatedArtemisAdmin, times(0)).login();
         verify(simulatedArtemisAdmin, times(0)).createCourse();
@@ -668,7 +670,7 @@ public class SimulationExecutionServiceIT {
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
         when(artemisUserService.getAdminUser(any())).thenReturn(null);
 
-        simulationExecutionService.simulateExam(run);
+        assertThrows(SimulationFailedException.class, () -> simulationExecutionService.simulateExam(run));
 
         verify(simulatedArtemisAdmin, times(0)).login();
         verify(simulatedArtemisAdmin, times(0)).createCourse();
@@ -725,7 +727,7 @@ public class SimulationExecutionServiceIT {
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
         when(simulatedArtemisAdmin.createCourse()).thenThrow(new RuntimeException("Test exception"));
 
-        simulationExecutionService.simulateExam(run);
+        assertThrows(SimulationFailedException.class, () -> simulationExecutionService.simulateExam(run));
 
         verify(simulatedArtemisAdmin, times(1)).login();
         verify(simulatedArtemisAdmin, times(1)).createCourse();
@@ -782,7 +784,7 @@ public class SimulationExecutionServiceIT {
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
         doThrow(new RuntimeException("Test exception")).when(simulatedArtemisAdmin).registerStudentsForCourse(anyLong(), any());
 
-        simulationExecutionService.simulateExam(run);
+        assertThrows(SimulationFailedException.class, () -> simulationExecutionService.simulateExam(run));
 
         verify(simulatedArtemisAdmin, times(1)).login();
         verify(simulatedArtemisAdmin, times(1)).createCourse();
@@ -844,7 +846,7 @@ public class SimulationExecutionServiceIT {
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
         when(simulatedArtemisAdmin.getCourse(anyLong())).thenThrow(new RuntimeException("Test exception"));
 
-        simulationExecutionService.simulateExam(run);
+        assertThrows(SimulationFailedException.class, () -> simulationExecutionService.simulateExam(run));
 
         verify(simulatedArtemisAdmin, times(1)).login();
         verify(simulatedArtemisAdmin, times(0)).createCourse();
@@ -902,7 +904,7 @@ public class SimulationExecutionServiceIT {
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
         when(simulatedArtemisAdmin.createExam(any())).thenThrow(new RuntimeException("Test exception"));
 
-        simulationExecutionService.simulateExam(run);
+        assertThrows(SimulationFailedException.class, () -> simulationExecutionService.simulateExam(run));
 
         verify(simulatedArtemisAdmin, times(1)).login();
         verify(simulatedArtemisAdmin, times(0)).createCourse();
@@ -960,7 +962,7 @@ public class SimulationExecutionServiceIT {
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
         doThrow(new RuntimeException("Test exception")).when(simulatedArtemisAdmin).createExamExercises(anyLong(), any());
 
-        simulationExecutionService.simulateExam(run);
+        assertThrows(SimulationFailedException.class, () -> simulationExecutionService.simulateExam(run));
 
         verify(simulatedArtemisAdmin, times(1)).login();
         verify(simulatedArtemisAdmin, times(0)).createCourse();
@@ -1018,7 +1020,7 @@ public class SimulationExecutionServiceIT {
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
         doThrow(new RuntimeException("Test exception")).when(simulatedArtemisAdmin).registerStudentsForExam(anyLong(), anyLong());
 
-        simulationExecutionService.simulateExam(run);
+        assertThrows(SimulationFailedException.class, () -> simulationExecutionService.simulateExam(run));
 
         verify(simulatedArtemisAdmin, times(1)).login();
         verify(simulatedArtemisAdmin, times(0)).createCourse();
@@ -1076,7 +1078,7 @@ public class SimulationExecutionServiceIT {
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
         doThrow(new RuntimeException("Test exception")).when(simulatedArtemisAdmin).prepareExam(anyLong(), anyLong());
 
-        simulationExecutionService.simulateExam(run);
+        assertThrows(SimulationFailedException.class, () -> simulationExecutionService.simulateExam(run));
 
         verify(simulatedArtemisAdmin, times(1)).login();
         verify(simulatedArtemisAdmin, times(0)).createCourse();
