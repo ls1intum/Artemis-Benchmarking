@@ -17,6 +17,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
 
+/**
+ * A simulated Artemis admin or instructor user that can be used to interact with the Artemis server.
+ */
 public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
     public SimulatedArtemisAdmin(String artemisUrl, ArtemisUser artemisUser, ArtemisUserService artemisUserService) {
@@ -427,6 +430,11 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .block();
     }
 
+    /**
+     * Get the course with the given ID.
+     * @param courseId the ID of the course
+     * @return the course with the given ID
+     */
     public Course getCourse(long courseId) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
@@ -439,6 +447,10 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .block();
     }
 
+    /**
+     * Delete the course with the given ID.
+     * @param courseId the ID of the course
+     */
     public void deleteCourse(long courseId) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
@@ -452,6 +464,11 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .block();
     }
 
+    /**
+     * Delete the exam with the given ID.
+     * @param courseId the ID of the course to which the exam belongs
+     * @param examId the ID of the exam
+     */
     public void deleteExam(long courseId, long examId) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
@@ -465,6 +482,13 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .block();
     }
 
+    /**
+     * Get the build queue for the given course.
+     * <p>
+     * Note: We do not get the actual build jobs, but only DomainObjects representing them since we only care about the number of jobs.
+     * @param courseId the ID of the course
+     * @return the build queue for the given course as a list of DomainObjects
+     */
     public List<DomainObject> getBuildQueue(long courseId) {
         return webClient
             .get()

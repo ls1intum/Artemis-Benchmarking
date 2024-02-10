@@ -7,7 +7,7 @@ import de.tum.cit.ase.artemisModel.Exam;
 import de.tum.cit.ase.domain.*;
 import de.tum.cit.ase.repository.LogMessageRepository;
 import de.tum.cit.ase.repository.SimulationRunRepository;
-import de.tum.cit.ase.service.LocalCIStatusService;
+import de.tum.cit.ase.service.CiStatusService;
 import de.tum.cit.ase.service.MailService;
 import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
 import de.tum.cit.ase.service.artemis.ArtemisUserService;
@@ -44,7 +44,7 @@ public class SimulationExecutionService {
     private final SimulationResultService simulationResultService;
     private final LogMessageRepository logMessageRepository;
     private final MailService mailService;
-    private final LocalCIStatusService localCIStatusService;
+    private final CiStatusService ciStatusService;
     private boolean doNotSleep = false;
 
     public SimulationExecutionService(
@@ -55,7 +55,7 @@ public class SimulationExecutionService {
         SimulationResultService simulationResultService,
         LogMessageRepository logMessageRepository,
         MailService mailService,
-        LocalCIStatusService localCIStatusService
+        CiStatusService ciStatusService
     ) {
         this.simulationWebsocketService = simulationWebsocketService;
         this.artemisConfiguration = artemisConfiguration;
@@ -64,7 +64,7 @@ public class SimulationExecutionService {
         this.logMessageRepository = logMessageRepository;
         this.artemisUserService = artemisUserService;
         this.mailService = mailService;
-        this.localCIStatusService = localCIStatusService;
+        this.ciStatusService = ciStatusService;
     }
 
     /**
@@ -192,7 +192,7 @@ public class SimulationExecutionService {
                     return;
                 }
             }
-            localCIStatusService.subscribeToLocalCIStatus(runWithResult, admin, courseId);
+            ciStatusService.subscribeToLocalCIStatus(runWithResult, admin, courseId);
         }
     }
 

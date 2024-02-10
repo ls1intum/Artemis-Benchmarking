@@ -10,19 +10,28 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service for managing the Artemis CI status.
+ */
 @Service
-public class LocalCIStatusService {
+public class CiStatusService {
 
-    private final Logger log = LoggerFactory.getLogger(LocalCIStatusService.class);
+    private final Logger log = LoggerFactory.getLogger(CiStatusService.class);
     private final LocalCIStatusRepository localCIStatusRepository;
     private final SimulationWebsocketService websocketService;
 
-    public LocalCIStatusService(LocalCIStatusRepository localCIStatusRepository, SimulationWebsocketService websocketService) {
+    public CiStatusService(LocalCIStatusRepository localCIStatusRepository, SimulationWebsocketService websocketService) {
         this.localCIStatusRepository = localCIStatusRepository;
         this.websocketService = websocketService;
         cleanup();
     }
 
+    /**
+     * Create a new LocalCIStatus for a given SimulationRun.
+     *
+     * @param simulationRun the SimulationRun to create the LocalCIStatus for
+     * @return the created LocalCIStatus
+     */
     public LocalCIStatus createLocalCIStatus(SimulationRun simulationRun) {
         LocalCIStatus status = new LocalCIStatus();
         status.setSimulationRun(simulationRun);
@@ -65,6 +74,9 @@ public class LocalCIStatusService {
         log.info("Finished subscribing to local CI status for simulation run {}", simulationRun.getId());
     }
 
+    /**
+     * Delete all CiIStatus entities that are not finished.
+     */
     private void cleanup() {
         log.info("Cleaning up local CI status");
         localCIStatusRepository.deleteAllNotFinished();

@@ -24,6 +24,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpSslContextSpec;
 
+/**
+ * A simulated Artemis user that can be used to interact with the Artemis server.
+ * This class is abstract
+ * and should be extended by classes that represent specific types of Artemis users (e.g. students, instructors, admins).
+ */
 public abstract class SimulatedArtemisUser {
 
     protected Logger log;
@@ -139,10 +144,24 @@ public abstract class SimulatedArtemisUser {
 
     protected abstract void checkAccess();
 
+    /**
+     * Get the JWT token for this user.
+     * @return the JWT token for this user
+     */
     public AuthToken getAuthToken() {
         return authToken;
     }
 
+    /**
+     * Create a new student.
+     *
+     * @param artemisUrl the URL of the Artemis server
+     * @param artemisUser the ArtemisUser entity to cache the JWT token in and to access the user's credentials
+     * @param artemisUserService the ArtemisUserService to use to update the ArtemisUser entity
+     * @param numberOfCommitsAndPushesFrom the minimum number of commits and pushes to simulate
+     * @param numberOfCommitsAndPushesTo the maximum number of commits and pushes to simulate
+     * @return a new SimulatedArtemisStudent
+     */
     public static SimulatedArtemisStudent createArtemisStudent(
         String artemisUrl,
         ArtemisUser artemisUser,
@@ -159,6 +178,14 @@ public abstract class SimulatedArtemisUser {
         );
     }
 
+    /**
+     * Create a new admin from a given ArtemisUser.
+     *
+     * @param artemisUrl the URL of the Artemis server
+     * @param artemisUser the ArtemisUser entity to cache the JWT token in and to access the user's credentials
+     * @param artemisUserService the ArtemisUserService to use to update the ArtemisUser entity
+     * @return a new SimulatedArtemisInstructor
+     */
     public static SimulatedArtemisAdmin createArtemisAdminFromUser(
         String artemisUrl,
         ArtemisUser artemisUser,
@@ -167,6 +194,14 @@ public abstract class SimulatedArtemisUser {
         return new SimulatedArtemisAdmin(artemisUrl, artemisUser, artemisUserService);
     }
 
+    /**
+     * Create a new admin from a given username and password without persisting credentials.
+     *
+     * @param artemisUrl the URL of the Artemis server
+     * @param username the username to use for logging in
+     * @param password the password to use for logging in
+     * @return a new SimulatedArtemisAdmin
+     */
     public static SimulatedArtemisAdmin createArtemisAdminFromCredentials(String artemisUrl, String username, String password) {
         return new SimulatedArtemisAdmin(artemisUrl, username, password);
     }
