@@ -39,6 +39,14 @@ public class SimulationScheduleService {
         this.mailService = mailService;
     }
 
+    /**
+     * Create a new simulation schedule for a simulation
+     *
+     * @param simulationId the id of the simulation
+     * @param simulationSchedule the schedule to create
+     * @return the created schedule
+     * @throws IllegalArgumentException if the schedule is invalid
+     */
     public SimulationSchedule createSimulationSchedule(long simulationId, SimulationSchedule simulationSchedule) {
         log.debug("Creating simulation schedule for simulation {}", simulationId);
         if (simulationSchedule == null) {
@@ -53,6 +61,14 @@ public class SimulationScheduleService {
         return updateNextRun(simulationSchedule);
     }
 
+    /**
+     * Update an existing simulation schedule
+     *
+     * @param simulationScheduleId the id of the schedule to update
+     * @param simulationSchedule the updated schedule
+     * @return the updated schedule
+     * @throws IllegalArgumentException if the schedule is invalid
+     */
     public SimulationSchedule updateSimulationSchedule(long simulationScheduleId, SimulationSchedule simulationSchedule) {
         log.debug("Updating simulation schedule {}", simulationScheduleId);
         if (simulationSchedule == null) {
@@ -69,15 +85,32 @@ public class SimulationScheduleService {
         return updateNextRun(simulationSchedule);
     }
 
+    /**
+     * Delete a simulation schedule
+     *
+     * @param simulationScheduleId the id of the schedule to delete
+     */
     public void deleteSimulationSchedule(long simulationScheduleId) {
         log.debug("Deleting simulation schedule {}", simulationScheduleId);
         simulationScheduleRepository.deleteById(simulationScheduleId);
     }
 
+    /**
+     * Get all schedules for a simulation
+     *
+     * @param simulationId the id of the simulation
+     * @return the schedules
+     */
     public List<SimulationSchedule> getSimulationSchedules(long simulationId) {
         return simulationScheduleRepository.findAllBySimulationId(simulationId);
     }
 
+    /**
+     * Subscribe to a schedule
+     *
+     * @param scheduleId the id of the schedule to subscribe to
+     * @param email the email of the subscriber
+     */
     public ScheduleSubscriber subscribeToSchedule(long scheduleId, String email) {
         log.debug("Subscribing {} to schedule {}", email, scheduleId);
         var schedule = simulationScheduleRepository.findById(scheduleId).orElseThrow();
@@ -94,12 +127,22 @@ public class SimulationScheduleService {
         return savedSubscriber;
     }
 
+    /**
+     * Unsubscribe from a schedule
+     *
+     * @param key the key of the subscription
+     */
     public void unsubscribeFromSchedule(String key) {
         log.debug("Unsubscribing from schedule with key {}", key);
         var subscriber = scheduleSubscriberRepository.findByKey(key).orElseThrow();
         scheduleSubscriberRepository.delete(subscriber);
     }
 
+    /**
+     * Automatically called every minute.
+     * <p>
+     * Executes all scheduled simulations that are due.
+     */
     @Scheduled(fixedRate = 1000 * 60, initialDelay = 0)
     void executeScheduledSimulations() {
         log.info("Executing scheduled simulation runs");
@@ -115,6 +158,13 @@ public class SimulationScheduleService {
             });
     }
 
+    /**
+     * Update a schedule by calculating the time of its next run.
+     * Deletes the schedule if it has ended.
+     *
+     * @param simulationSchedule the schedule to update
+     * @return the updated schedule or null if the schedule has ended
+     */
     private SimulationSchedule updateNextRun(SimulationSchedule simulationSchedule) {
         var nextRun = calculateNextRun(simulationSchedule);
         if (simulationSchedule.getEndDateTime() != null && nextRun.isAfter(simulationSchedule.getEndDateTime())) {
@@ -126,13 +176,25 @@ public class SimulationScheduleService {
         }
     }
 
+    /**
+     * Calculate the time of the next run of a schedule.
+     *
+     * @param simulationSchedule the schedule
+     * @return the time of the next run
+     */
     private ZonedDateTime calculateNextRun(SimulationSchedule simulationSchedule) {
+        // If the start date is in the future, we start looking from there
+        // Otherwise, we start looking from now
         ZonedDateTime lookFrom;
         if (simulationSchedule.getStartDateTime().isAfter(now(ZoneId.of("UTC")))) {
             lookFrom = simulationSchedule.getStartDateTime();
         } else {
             lookFrom = now(ZoneId.of("UTC"));
         }
+
+        // Set the time to the time of day of the schedule
+        // Set the date to the lookFrom date
+        // This is the earliest possible time for the next run
         ZonedDateTime time = simulationSchedule
             .getTimeOfDay()
             .withYear(lookFrom.getYear())
@@ -140,15 +202,19 @@ public class SimulationScheduleService {
             .withDayOfMonth(lookFrom.getDayOfMonth());
 
         if (simulationSchedule.getCycle() == SimulationSchedule.Cycle.DAILY) {
+            // If the time is before the lookFrom time we have to add a day
+            // This means that the timeOfDay of the schedule is already over for "today"
             if (time.isBefore(lookFrom)) {
                 return time.plusDays(1);
             } else {
                 return time;
             }
         } else {
+            // If the weekday of lookFrom is correct and the time is not over yet, we have found the next run
             if (lookFrom.getDayOfWeek() == simulationSchedule.getDayOfWeek() && !time.isBefore(lookFrom)) {
                 return time;
             }
+            // Otherwise we have to look for the next matching weekday
             return time.with(TemporalAdjusters.next(simulationSchedule.getDayOfWeek()));
         }
     }

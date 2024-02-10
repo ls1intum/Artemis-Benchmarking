@@ -43,6 +43,14 @@ public class CiStatusService {
         return ciStatusRepository.save(status);
     }
 
+    /**
+     * Subscribe to the CI status for a given SimulationRun.
+     * This method will update the status of the SimulationRun in the database and send updates to the clients via WebSockets.
+     *
+     * @param simulationRun the SimulationRun to subscribe to
+     * @param admin the SimulatedArtemisAdmin to use for querying the CI status
+     * @param courseId the ID of the course to use for querying the CI status
+     */
     @Async
     public void subscribeToCiStatus(SimulationRun simulationRun, SimulatedArtemisAdmin admin, long courseId) {
         log.info("Subscribing to CI status for simulation run {}", simulationRun.getId());
