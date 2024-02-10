@@ -11,7 +11,7 @@ import { SimulationStats } from '../entities/simulation/simulationStats';
 import { LogMessage } from '../entities/simulation/logMessage';
 import { ArtemisServer } from '../core/util/artemisServer';
 import { SimulationSchedule } from '../entities/simulation/simulationSchedule';
-import { LocalCIStatus } from '../entities/simulation/localCIStatus';
+import { CiStatus } from '../entities/simulation/ciStatus';
 
 @Injectable({
   providedIn: 'root',
@@ -43,11 +43,11 @@ export class SimulationsService {
     return this.websocketService.receive('/topic/simulation/' + simulation.id + '/runs/new').pipe(map((res: any) => res as SimulationRun));
   }
 
-  receiveLocalCIStatus(simulationRun: SimulationRun): Observable<LocalCIStatus> {
-    this.websocketService.subscribe('/topic/simulation/runs/' + simulationRun.id + '/local-ci-status');
+  receiveCiStatus(simulationRun: SimulationRun): Observable<CiStatus> {
+    this.websocketService.subscribe('/topic/simulation/runs/' + simulationRun.id + '/ci-status');
     return this.websocketService
-      .receive('/topic/simulation/runs/' + simulationRun.id + '/local-ci-status')
-      .pipe(map((res: any) => res as LocalCIStatus));
+      .receive('/topic/simulation/runs/' + simulationRun.id + '/ci-status')
+      .pipe(map((res: any) => res as CiStatus));
   }
 
   createSimulation(simulation: Simulation): Observable<Simulation> {
@@ -133,7 +133,7 @@ export class SimulationsService {
   public unsubscribeFromSelectedSimulationRun(run: SimulationRun): void {
     this.websocketService.unsubscribe('/topic/simulation/runs/' + run.id + '/result');
     this.websocketService.unsubscribe('/topic/simulation/runs/' + run.id + '/log');
-    this.websocketService.unsubscribe('/topic/simulation/runs/' + run.id + '/local-ci-status');
+    this.websocketService.unsubscribe('/topic/simulation/runs/' + run.id + '/ci-status');
   }
 
   public unsubscribeFromSimulationRun(run: SimulationRun): void {

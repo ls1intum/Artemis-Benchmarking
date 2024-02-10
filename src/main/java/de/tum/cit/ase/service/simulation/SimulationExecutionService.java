@@ -192,7 +192,7 @@ public class SimulationExecutionService {
                     return;
                 }
             }
-            ciStatusService.subscribeToLocalCIStatus(runWithResult, admin, courseId);
+            ciStatusService.subscribeToCiStatus(runWithResult, admin, courseId);
         }
     }
 
