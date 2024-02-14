@@ -28,7 +28,7 @@ import { CreateSimulationBoxComponent } from './layouts/create-simulation-box/cr
 import { ServerBadgeComponent } from './layouts/server-badge/server-badge.component';
 import { ModeExplanationComponent } from './layouts/mode-explanation/mode-explanation.component';
 import { PrometheusBoxComponent } from './layouts/prometheus-box/prometheus-box.component';
-import { LocalCiStatusCardComponent } from './layouts/local-ci-status-card/local-ci-status-card.component';
+import { CiStatusCardComponent } from './layouts/ci-status-card/ci-status-card.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 // jhipster-needle-angular-add-module-import JHipster will add new module here
@@ -47,7 +47,7 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
     FontAwesomeModule,
     NgbAccordionModule,
     PrometheusBoxComponent,
-    LocalCiStatusCardComponent,
+    CiStatusCardComponent,
     NgxChartsModule,
     BrowserAnimationsModule,
   ],

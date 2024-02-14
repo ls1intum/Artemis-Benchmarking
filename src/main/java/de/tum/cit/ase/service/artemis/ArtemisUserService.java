@@ -10,15 +10,15 @@ import de.tum.cit.ase.util.ArtemisServer;
 import de.tum.cit.ase.util.NumberRangeParser;
 import de.tum.cit.ase.web.rest.errors.BadRequestAlertException;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Service for managing ArtemisUsers.
+ */
 @Service
 public class ArtemisUserService {
 
@@ -91,18 +91,41 @@ public class ArtemisUserService {
         return saveArtemisUser(artemisUser);
     }
 
+    /**
+     * Get an ArtemisUser by its ID.
+     *
+     * @param id the ID of the ArtemisUser to get
+     * @return the ArtemisUser
+     * @throws NoSuchElementException if the user does not exist
+     */
     public ArtemisUser getArtemisUser(long id) {
         return artemisUserRepository.findById(id).orElseThrow();
     }
 
+    /**
+     * Get all ArtemisUsers for a given ArtemisServer.
+     *
+     * @param server the ArtemisServer to get the users for
+     * @return a list of all ArtemisUsers
+     */
     public List<ArtemisUser> getArtemisUsersByServer(ArtemisServer server) {
         return artemisUserRepository.findAllByServer(server);
     }
 
+    /**
+     * Deletes an ArtemisUser by its ID.
+     *
+     * @param id the ID of the ArtemisUser to delete
+     */
     public void deleteArtemisUser(long id) {
         artemisUserRepository.deleteById(id);
     }
 
+    /**
+     * Deletes all ArtemisUsers for a given ArtemisServer.
+     *
+     * @param server the ArtemisServer to delete the users for
+     */
     public void deleteByServer(ArtemisServer server) {
         log.info("Deleting all ArtemisUsers for {}", server);
         artemisUserRepository.deleteByServer(server);
@@ -143,6 +166,13 @@ public class ArtemisUserService {
         return result;
     }
 
+    /**
+     * Validates and saves an ArtemisUser.
+     *
+     * @param artemisUser the ArtemisUser to save
+     * @return the saved ArtemisUser
+     * @throws BadRequestAlertException if the server-wide ID is already taken, negative or the username or password is invalid
+     */
     private ArtemisUser saveArtemisUser(ArtemisUser artemisUser) {
         if (
             artemisUserRepository
@@ -202,6 +232,13 @@ public class ArtemisUserService {
         return artemisUserRepository.save(artemisUser);
     }
 
+    /**
+     * Get a list of ArtemisUsers from a range of server-wide IDs.
+     *
+     * @param server the ArtemisServer to get the users for
+     * @param range the range of server-wide IDs to get the users for
+     * @return a list of the ArtemisUsers
+     */
     public List<ArtemisUser> getUsersFromRange(ArtemisServer server, String range) {
         List<ArtemisUser> users = new ArrayList<>();
         List<Integer> serverWideIds = NumberRangeParser.parseNumberRange(range);
@@ -214,6 +251,12 @@ public class ArtemisUserService {
         return users;
     }
 
+    /**
+     * Get the admin user for a given ArtemisServer.
+     *
+     * @param server the ArtemisServer to get the admin user for
+     * @return the admin user
+     */
     public ArtemisUser getAdminUser(ArtemisServer server) {
         if (server == ArtemisServer.PRODUCTION) {
             throw new IllegalArgumentException("Cannot get admin user for production server!");
@@ -221,6 +264,12 @@ public class ArtemisUserService {
         return artemisUserRepository.findByServerAndServerWideId(server, 0);
     }
 
+    /**
+     * Finds the lowest free server-wide ID for a given ArtemisServer.
+     *
+     * @param server the ArtemisServer to find the lowest free server-wide ID for
+     * @return the lowest free server-wide ID
+     */
     private int findLowestFreeServerWideId(ArtemisServer server) {
         List<ArtemisUser> artemisUsers = artemisUserRepository.findAllByServer(server);
         return findLowestMissingPositive(artemisUsers.stream().map(ArtemisUser::getServerWideId).toList());

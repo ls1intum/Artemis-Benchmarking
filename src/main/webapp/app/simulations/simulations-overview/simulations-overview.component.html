@@ -52,7 +52,7 @@
           }
         </h3>
       </div>
-      @if (!selectedRun.localCIStatus) {
+      @if (!selectedRun.ciStatus) {
         <div ngbAccordion class="mb-3">
           <div ngbAccordionItem [collapsed]="false">
             <h2 ngbAccordionHeader>
@@ -86,12 +86,12 @@
           <div ngbAccordion class="mb-3 status-accordion">
             <div ngbAccordionItem [collapsed]="false">
               <h2 ngbAccordionHeader>
-                <button ngbAccordionButton>Integrated CI Status</button>
+                <button ngbAccordionButton>CI Status</button>
               </h2>
               <div ngbAccordionCollapse>
                 <div ngbAccordionBody class="p-0">
                   <ng-template>
-                    <jhi-local-ci-status-card [localCIStatus]="selectedRun.localCIStatus"></jhi-local-ci-status-card>
+                    <jhi-ci-status-card [ciStatus]="selectedRun.ciStatus"></jhi-ci-status-card>
                   </ng-template>
                 </div>
               </div>

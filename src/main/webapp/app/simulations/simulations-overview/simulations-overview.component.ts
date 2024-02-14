@@ -127,8 +127,8 @@ export class SimulationsOverviewComponent implements OnInit {
     this.simulationsService.receiveSimulationResult(run).subscribe(stats => {
       run.stats = stats.sort((a, b) => getOrder(a) - getOrder(b));
     });
-    this.simulationsService.receiveLocalCIStatus(run).subscribe(localCIStatus => {
-      run.localCIStatus = localCIStatus;
+    this.simulationsService.receiveCiStatus(run).subscribe(ciStatus => {
+      run.ciStatus = ciStatus;
     });
   }
 }

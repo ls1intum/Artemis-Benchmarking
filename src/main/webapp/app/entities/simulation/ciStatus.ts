@@ -1,6 +1,6 @@
 import { SimulationRun } from './simulationRun';
 
-export class LocalCIStatus {
+export class CiStatus {
   constructor(
     public id: number,
     public finished: boolean,

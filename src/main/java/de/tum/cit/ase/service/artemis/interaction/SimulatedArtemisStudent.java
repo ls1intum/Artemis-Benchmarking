@@ -24,6 +24,9 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.slf4j.LoggerFactory;
 
+/**
+ * A simulated Artemis student that can be used to interact with the Artemis server.
+ */
 public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private static final int MAX_RETRIES = 4; // Maximum number of retries for clone

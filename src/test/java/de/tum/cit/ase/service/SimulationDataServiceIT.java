@@ -15,7 +15,7 @@ import de.tum.cit.ase.repository.SimulationRepository;
 import de.tum.cit.ase.repository.SimulationRunRepository;
 import de.tum.cit.ase.service.artemis.ArtemisConfiguration;
 import de.tum.cit.ase.service.simulation.SimulationDataService;
-import de.tum.cit.ase.service.simulation.SimulationRunQueueService;
+import de.tum.cit.ase.service.simulation.SimulationQueueService;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import jakarta.transaction.Transactional;
 import java.util.HashSet;
@@ -36,7 +36,7 @@ public class SimulationDataServiceIT {
     private SimulationDataService simulationDataService;
 
     @MockBean
-    private SimulationRunQueueService simulationRunQueueService;
+    private SimulationQueueService simulationQueueService;
 
     @MockBean
     private SimulationWebsocketService simulationWebsocketService;
@@ -63,6 +63,9 @@ public class SimulationDataServiceIT {
         simulation.setServer(TS1);
         simulation.setUserRange("4-17");
         simulation.setCustomizeUserRange(false);
+        simulation.setName("Test");
+        simulation.setNumberOfCommitsAndPushesFrom(1);
+        simulation.setNumberOfCommitsAndPushesTo(4);
 
         when(simulationRepository.save(any(Simulation.class)))
             .thenAnswer(invocation -> {
@@ -78,7 +81,7 @@ public class SimulationDataServiceIT {
                 return runArg;
             });
 
-        doNothing().when(simulationRunQueueService).queueSimulationRun(any());
+        doNothing().when(simulationQueueService).queueSimulationRun(any());
         doNothing().when(simulationWebsocketService).sendRunStatusUpdate(any());
     }
 
@@ -165,7 +168,7 @@ public class SimulationDataServiceIT {
 
         assertEquals(1L, queuedRun.getId());
         verify(simulationRunRepository).save(queuedRun);
-        verify(simulationRunQueueService).queueSimulationRun(queuedRun);
+        verify(simulationQueueService).queueSimulationRun(queuedRun);
         verify(simulationWebsocketService).sendNewRun(queuedRun);
     }
 
@@ -184,7 +187,7 @@ public class SimulationDataServiceIT {
         assertThrows(IllegalArgumentException.class, () -> simulationDataService.createAndQueueSimulationRun(1L, null, null));
 
         verify(simulationRunRepository, times(0)).save(any());
-        verify(simulationRunQueueService, times(0)).queueSimulationRun(any());
+        verify(simulationQueueService, times(0)).queueSimulationRun(any());
         verify(simulationWebsocketService, times(0)).sendRunStatusUpdate(any());
     }
 
@@ -418,18 +421,18 @@ public class SimulationDataServiceIT {
 
         when(simulationRunRepository.findByIdWithStatsAndLogMessages(1L)).thenReturn(java.util.Optional.of(run));
         when(simulationRunRepository.findById(1L)).thenReturn(java.util.Optional.of(run));
-        doNothing().when(simulationRunQueueService).abortSimulationExecution();
+        doNothing().when(simulationQueueService).abortSimulationExecution();
         doNothing().when(simulationWebsocketService).sendRunStatusUpdate(any());
         doNothing().when(simulationWebsocketService).sendRunLogMessage(any(), any());
 
         simulationDataService.cancelActiveRun(1L);
 
-        verify(simulationRunQueueService).abortSimulationExecution();
+        verify(simulationQueueService).abortSimulationExecution();
         verify(simulationWebsocketService).sendRunStatusUpdate(run);
         verify(simulationWebsocketService).sendRunLogMessage(eq(run), any());
         verify(simulationRunRepository).save(run);
         verify(logMessageRepository).save(any());
-        verify(simulationRunQueueService).restartSimulationExecution();
+        verify(simulationQueueService).restartSimulationExecution();
         assertEquals(SimulationRun.Status.CANCELLED, run.getStatus());
     }
 
