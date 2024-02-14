@@ -498,4 +498,50 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .collectList()
             .block();
     }
+
+    /**
+     * Get the participations for the given exercise.
+     *
+     * @param exerciseId the ID of the exercise
+     * @return the participations for the given exercise
+     */
+    public List<Participation> getParticipations(long exerciseId) {
+        return webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exercises", String.valueOf(exerciseId), "participations").build())
+            .retrieve()
+            .bodyToFlux(Participation.class)
+            .collectList()
+            .block();
+    }
+
+    /**
+     * Get the submissions for the given participation.
+     *
+     * @param participationId the ID of the participation
+     * @return the submissions for the given participation
+     */
+    public List<Submission> getSubmissions(long participationId) {
+        return webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "participations", String.valueOf(participationId), "submissions").build())
+            .retrieve()
+            .bodyToFlux(Submission.class)
+            .collectList()
+            .block();
+    }
+
+    /**
+     * Get the exam with exercises for the given exam ID.
+     * @param examId the ID of the exam
+     * @return the exam with exercises for the given exam ID
+     */
+    public Exam getExamWithExercises(long examId) {
+        return webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exams", String.valueOf(examId)).build())
+            .retrieve()
+            .bodyToMono(Exam.class)
+            .block();
+    }
 }
