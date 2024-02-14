@@ -121,7 +121,7 @@ public class CiStatusService {
             submissions.addAll(admin.getSubmissions(participation.getId()));
         }
 
-        int numberOfQueuedJobs = getNumberOfSubmissionsWithoutResult(submissions);
+        int numberOfQueuedJobs = submissions.size() - getNumberOfResults(submissions);
         status.setTotalJobs(numberOfQueuedJobs);
         status.setQueuedJobs(numberOfQueuedJobs);
         status = ciStatusRepository.save(status);
@@ -138,7 +138,7 @@ public class CiStatusService {
             for (var participation : participations) {
                 submissions.addAll(admin.getSubmissions(participation.getId()));
             }
-            numberOfQueuedJobs = getNumberOfSubmissionsWithoutResult(submissions);
+            numberOfQueuedJobs = submissions.size() - getNumberOfResults(submissions);
             status.setQueuedJobs(numberOfQueuedJobs);
             status.setTimeInMinutes(status.getTimeInMinutes() + 1);
             status.setAvgJobsPerMinute((double) (status.getTotalJobs() - status.getQueuedJobs()) / status.getTimeInMinutes());
@@ -151,10 +151,11 @@ public class CiStatusService {
         log.info("Finished subscribing to CI status for simulation run {}", simulationRun.getId());
     }
 
-    private int getNumberOfSubmissionsWithoutResult(List<Submission> submissions) {
+    private int getNumberOfResults(List<Submission> submissions) {
         return submissions
             .stream()
-            .filter(submission -> submission.getResults() == null || submission.getResults().isEmpty())
+            .filter(submission -> submission.getResults() != null)
+            .flatMap(submission -> submission.getResults().stream())
             .toList()
             .size();
     }

@@ -228,13 +228,13 @@ artemis:
       vcs:
       ci:
   ts1:
-    url: https://artemis-test1.artemis.cit.tum.de/
+    url: https://artemis-test7.artemis.cit.tum.de/
     cleanup-enabled: false
-    is-local: false
+    is-local: true
     prometheus-instances:
-      artemis: artemis-test1.artemis.cit.tum.de:9100
-      vcs: bitbucket-prelive-node1.ase.in.tum.de:9100
-      ci: bamboo-prelive-instance.ase.in.tum.de:9100
+      artemis: artemis-test7.artemis.cit.tum.de:9100
+      vcs:
+      ci:
   staging:
     url: https://artemis-staging.artemis.in.tum.de/
     cleanup-enabled: false
