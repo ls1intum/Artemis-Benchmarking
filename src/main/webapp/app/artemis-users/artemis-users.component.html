@@ -100,6 +100,7 @@
   <jhi-create-user-box
     [actionInProgress]="actionInProgress"
     [loading]="loadingCreate"
+    [adminAvailable]="!!adminUser"
     (createUser)="createUser($event)"
     (createUserPattern)="createUserPattern($event)"
     (createUserCsv)="createUserCsv($event)"

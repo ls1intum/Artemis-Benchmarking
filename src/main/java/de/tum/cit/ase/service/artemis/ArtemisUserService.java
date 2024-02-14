@@ -4,6 +4,8 @@ import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import de.tum.cit.ase.domain.ArtemisUser;
 import de.tum.cit.ase.repository.ArtemisUserRepository;
+import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisAdmin;
+import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisUser;
 import de.tum.cit.ase.service.dto.ArtemisUserForCreationDTO;
 import de.tum.cit.ase.service.dto.ArtemisUserPatternDTO;
 import de.tum.cit.ase.util.ArtemisServer;
@@ -24,13 +26,16 @@ public class ArtemisUserService {
 
     private final Logger log = LoggerFactory.getLogger(ArtemisUserService.class);
     private final ArtemisUserRepository artemisUserRepository;
+    private final ArtemisConfiguration artemisConfiguration;
 
-    public ArtemisUserService(ArtemisUserRepository artemisUserRepository) {
+    public ArtemisUserService(ArtemisUserRepository artemisUserRepository, ArtemisConfiguration artemisConfiguration) {
         this.artemisUserRepository = artemisUserRepository;
+        this.artemisConfiguration = artemisConfiguration;
     }
 
     /**
      * Creates a list of ArtemisUsers from a pattern.
+     * If createOnArtemis is true, the users will also be created on the Artemis server.
      *
      * @param server the ArtemisServer to create the users for
      * @param pattern the pattern to use for the usernames and passwords
@@ -50,15 +55,41 @@ public class ArtemisUserService {
             throw new BadRequestAlertException("server must not be null", "artemisUser", "missingServer");
         }
 
+        SimulatedArtemisAdmin simulatedArtemisAdmin = null;
+        if (pattern.isCreateOnArtemis()) {
+            ArtemisUser admin = getAdminUser(server);
+            if (admin == null) {
+                throw new BadRequestAlertException("No admin user found for server", "artemisUser", "missingAdmin");
+            }
+            simulatedArtemisAdmin =
+                SimulatedArtemisUser.createArtemisAdminFromCredentials(
+                    artemisConfiguration.getUrl(server),
+                    admin.getUsername(),
+                    admin.getPassword()
+                );
+            simulatedArtemisAdmin.login();
+        }
+
         List<ArtemisUser> createdUsers = new ArrayList<>();
         for (int i = pattern.getFrom(); i < pattern.getTo(); i++) {
             ArtemisUser artemisUser = new ArtemisUser();
             artemisUser.setServer(server);
             artemisUser.setServerWideId(i);
-            artemisUser.setUsername(pattern.getUsernamePattern().replace("{i}", String.valueOf(i)));
-            artemisUser.setPassword(pattern.getPasswordPattern().replace("{i}", String.valueOf(i)));
+            var username = pattern.getUsernamePattern().replace("{i}", String.valueOf(i));
+            var password = pattern.getPasswordPattern().replace("{i}", String.valueOf(i));
+            artemisUser.setUsername(username);
+            artemisUser.setPassword(password);
             try {
-                createdUsers.add(saveArtemisUser(artemisUser));
+                ArtemisUser createdUser = saveArtemisUser(artemisUser);
+                // Create user on Artemis if necessary
+                if (pattern.isCreateOnArtemis() && simulatedArtemisAdmin != null) {
+                    var firstName = pattern.getFirstNamePattern().replace("{i}", String.valueOf(i));
+                    var lastName = pattern.getLastNamePattern().replace("{i}", String.valueOf(i));
+                    var email = pattern.getEmailPattern().replace("{i}", String.valueOf(i));
+                    simulatedArtemisAdmin.createUser(username, password, firstName, lastName, email);
+                }
+                // The order of operations is important here, as the user might not be created on Artemis if an exception is thrown
+                createdUsers.add(createdUser);
             } catch (BadRequestAlertException e) {
                 log.debug(e.getMessage() + ". Skipping user.");
             }

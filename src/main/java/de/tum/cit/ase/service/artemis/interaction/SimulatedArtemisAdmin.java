@@ -6,6 +6,7 @@ import static java.time.ZonedDateTime.now;
 import de.tum.cit.ase.artemisModel.*;
 import de.tum.cit.ase.domain.ArtemisUser;
 import de.tum.cit.ase.service.artemis.ArtemisUserService;
+import de.tum.cit.ase.service.artemis.util.ArtemisUserDTO;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -480,6 +481,28 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .retrieve()
             .toBodilessEntity()
             .block();
+    }
+
+    /**
+     * Create a new student on Artemis.
+     *
+     * @param username the username of the student
+     * @param password the password of the student
+     * @param firstName the first name of the student
+     * @param lastName the last name of the student
+     * @param email the email of the student
+     */
+    public void createUser(String username, String password, String firstName, String lastName, String email) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
+        }
+        var user = new ArtemisUserDTO();
+        user.setLogin(username);
+        user.setPassword(password);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setEmail(email);
+        webClient.post().uri("api/admin/users").bodyValue(user).retrieve().toBodilessEntity().block();
     }
 
     /**

@@ -6,8 +6,13 @@ public class ArtemisUserPatternDTO implements Serializable {
 
     private String usernamePattern;
     private String passwordPattern;
+
+    private String firstNamePattern;
+    private String lastNamePattern;
+    private String emailPattern;
     private int from;
     private int to;
+    private boolean createOnArtemis;
 
     public String getUsernamePattern() {
         return usernamePattern;
@@ -39,5 +44,37 @@ public class ArtemisUserPatternDTO implements Serializable {
 
     public void setTo(int to) {
         this.to = to;
+    }
+
+    public String getFirstNamePattern() {
+        return firstNamePattern;
+    }
+
+    public void setFirstNamePattern(String firstNamePattern) {
+        this.firstNamePattern = firstNamePattern;
+    }
+
+    public String getLastNamePattern() {
+        return lastNamePattern;
+    }
+
+    public void setLastNamePattern(String lastNamePattern) {
+        this.lastNamePattern = lastNamePattern;
+    }
+
+    public String getEmailPattern() {
+        return emailPattern;
+    }
+
+    public void setEmailPattern(String emailPattern) {
+        this.emailPattern = emailPattern;
+    }
+
+    public boolean isCreateOnArtemis() {
+        return createOnArtemis;
+    }
+
+    public void setCreateOnArtemis(boolean createOnArtemis) {
+        this.createOnArtemis = createOnArtemis;
     }
 }
