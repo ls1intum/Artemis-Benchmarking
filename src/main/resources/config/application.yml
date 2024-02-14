@@ -240,9 +240,25 @@ artemis:
   ts1:
     url: https://artemis-test7.artemis.cit.tum.de/
     cleanup-enabled: false
+    is-local: false
+    prometheus-instances:
+      artemis: artemis-test1.artemis.cit.tum.de:9100
+      vcs: bitbucket-prelive-node1.ase.in.tum.de:9100
+      ci: bamboo-prelive-instance.ase.in.tum.de:9100
+  ts7:
+    url: https://artemis-test7.artemis.cit.tum.de/
+    cleanup-enabled: false
     is-local: true
     prometheus-instances:
       artemis: artemis-test7.artemis.cit.tum.de:9100
+      vcs:
+      ci:
+  ts8:
+    url: https://artemis-test8.artemis.cit.tum.de/
+    cleanup-enabled: false
+    is-local: true
+    prometheus-instances:
+      artemis: artemis-test8.artemis.cit.tum.de:9100
       vcs:
       ci:
   staging:

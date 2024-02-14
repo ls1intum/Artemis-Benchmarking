@@ -29,7 +29,7 @@ export default class NavbarComponent implements OnInit {
   version = '';
   account: Account | null = null;
   entitiesNavbarItems: NavbarItem[] = [];
-  availableServers = [ArtemisServer.TS1, ArtemisServer.TS3, ArtemisServer.PRODUCTION, ArtemisServer.STAGING, ArtemisServer.STAGING2];
+  availableServers = Object.values(ArtemisServer);
 
   constructor(
     private loginService: LoginService,
