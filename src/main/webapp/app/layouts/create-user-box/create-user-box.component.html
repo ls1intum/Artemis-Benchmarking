@@ -54,7 +54,21 @@
       </ngb-alert>
       <div class="flex-container">
         <form class="mb-3">
-          <div class="flex-wrapper">
+          @if (adminAvailable) {
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="create-on-artemis-check"
+              [(ngModel)]="isCreateOnArtemis"
+              [ngModelOptions]="{ standalone: true }"
+            />
+            <label class="form-check-label ms-2 me-2" for="create-on-artemis-check"> Create Users on Artemis </label>
+            <fa-icon
+              [icon]="faCircleInfo"
+              ngbTooltip="If checked, you can additionally provide patterns for firstname, lastname and email. The tool will then try to create the respective users on Artemis."
+            ></fa-icon>
+          }
+          <div class="flex-wrapper mt-3">
             <div class="me-3 mb-3 w-40">
               <label for="username-pattern-input" class="form-label">Username Pattern</label>
               <input
@@ -87,6 +101,49 @@
               </div>
             </div>
           </div>
+          @if (isCreateOnArtemis) {
+            <div class="flex-wrapper">
+              <div class="me-3 mb-3 w-40">
+                <label for="firstname-pattern-input" class="form-label">Firstname Pattern</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="firstname-pattern-input"
+                  [(ngModel)]="firstNamePattern"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+                <div class="form-text">
+                  e.g. <samp>Test User {{ '{' }}i{{ '}' }}</samp>
+                </div>
+              </div>
+              <div class="me-3 mb-3 w-40">
+                <label for="lastname-pattern-input" class="form-label">Lastname Pattern</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="lastname-pattern-input"
+                  [(ngModel)]="lastNamePattern"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+                <div class="form-text">
+                  e.g. <samp>Artemis {{ '{' }}i{{ '}' }}</samp>
+                </div>
+              </div>
+              <div class="me-3 mb-3 w-40">
+                <label for="email-pattern-input" class="form-label">Email Pattern</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="email-pattern-input"
+                  [(ngModel)]="emailPattern"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+                <div class="form-text">
+                  e.g. <samp>test_user_{{ '{' }}i{{ '}' }}{{ '@' }}tum.de</samp>
+                </div>
+              </div>
+            </div>
+          }
           <div class="flex-wrapper">
             <div class="me-3 mb-3 w-40">
               <label for="from-input" class="form-label">From</label>

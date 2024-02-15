@@ -114,6 +114,22 @@ artemis:
       artemis:
       vcs:
       ci:
+  ts7:
+    url:
+    cleanup-enabled: false
+    is-local: true
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
+  ts8:
+    url:
+    cleanup-enabled: false
+    is-local: true
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
   staging:
     url:
     cleanup-enabled: false

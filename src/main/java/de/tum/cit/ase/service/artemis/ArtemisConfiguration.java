@@ -61,6 +61,42 @@ public class ArtemisConfiguration {
     @Value("${artemis.ts3.is-local}")
     private boolean test3IsLocal;
 
+    @Value("${artemis.ts7.url}")
+    private String test7Url;
+
+    @Value("${artemis.ts7.cleanup-enabled}")
+    private boolean test7Cleanup;
+
+    @Value("${artemis.ts7.prometheus-instances.artemis}")
+    private String[] test7PrometheusInstanceArtemis;
+
+    @Value("${artemis.ts7.prometheus-instances.vcs}")
+    private String[] test7PrometheusInstanceVcs;
+
+    @Value("${artemis.ts7.prometheus-instances.ci}")
+    private String[] test7PrometheusInstanceCi;
+
+    @Value("${artemis.ts7.is-local}")
+    private boolean test7IsLocal;
+
+    @Value("${artemis.ts8.url}")
+    private String test8Url;
+
+    @Value("${artemis.ts8.cleanup-enabled}")
+    private boolean test8Cleanup;
+
+    @Value("${artemis.ts8.prometheus-instances.artemis}")
+    private String[] test8PrometheusInstanceArtemis;
+
+    @Value("${artemis.ts8.prometheus-instances.vcs}")
+    private String[] test8PrometheusInstanceVcs;
+
+    @Value("${artemis.ts8.prometheus-instances.ci}")
+    private String[] test8PrometheusInstanceCi;
+
+    @Value("${artemis.ts8.is-local}")
+    private boolean test8IsLocal;
+
     @Value("${artemis.staging.url}")
     private String stagingUrl;
 
@@ -120,6 +156,8 @@ public class ArtemisConfiguration {
             case LOCAL -> localUrl;
             case TS1 -> test1Url;
             case TS3 -> test3Url;
+            case TS7 -> test7Url;
+            case TS8 -> test8Url;
             case STAGING -> stagingUrl;
             case STAGING2 -> staging2Url;
             case PRODUCTION -> productionUrl;
@@ -131,6 +169,8 @@ public class ArtemisConfiguration {
             case LOCAL -> localCleanup;
             case TS1 -> test1Cleanup;
             case TS3 -> test3Cleanup;
+            case TS7 -> test7Cleanup;
+            case TS8 -> test8Cleanup;
             case STAGING -> stagingCleanup;
             case STAGING2 -> staging2Cleanup;
             case PRODUCTION -> productionCleanup;
@@ -142,6 +182,8 @@ public class ArtemisConfiguration {
             case LOCAL -> localPrometheusInstanceArtemis;
             case TS1 -> test1PrometheusInstanceArtemis;
             case TS3 -> test3PrometheusInstanceArtemis;
+            case TS7 -> test7PrometheusInstanceArtemis;
+            case TS8 -> test8PrometheusInstanceArtemis;
             case STAGING -> stagingPrometheusInstanceArtemis;
             case STAGING2 -> staging2PrometheusInstanceArtemis;
             case PRODUCTION -> productionPrometheusInstanceArtemis;
@@ -153,6 +195,8 @@ public class ArtemisConfiguration {
             case LOCAL -> localPrometheusInstanceVcs;
             case TS1 -> test1PrometheusInstanceVcs;
             case TS3 -> test3PrometheusInstanceVcs;
+            case TS7 -> test7PrometheusInstanceVcs;
+            case TS8 -> test8PrometheusInstanceVcs;
             case STAGING -> stagingPrometheusInstanceVcs;
             case STAGING2 -> staging2PrometheusInstanceVcs;
             case PRODUCTION -> productionPrometheusInstanceVcs;
@@ -164,6 +208,8 @@ public class ArtemisConfiguration {
             case LOCAL -> localPrometheusInstanceCi;
             case TS1 -> test1PrometheusInstanceCi;
             case TS3 -> test3PrometheusInstanceCi;
+            case TS7 -> test7PrometheusInstanceCi;
+            case TS8 -> test8PrometheusInstanceCi;
             case STAGING -> stagingPrometheusInstanceCi;
             case STAGING2 -> staging2PrometheusInstanceCi;
             case PRODUCTION -> productionPrometheusInstanceCi;
@@ -175,6 +221,8 @@ public class ArtemisConfiguration {
             case LOCAL -> localIsLocal;
             case TS1 -> test1IsLocal;
             case TS3 -> test3IsLocal;
+            case TS7 -> test7IsLocal;
+            case TS8 -> test8IsLocal;
             case STAGING -> stagingIsLocal;
             case STAGING2 -> staging2IsLocal;
             case PRODUCTION -> productionIsLocal;

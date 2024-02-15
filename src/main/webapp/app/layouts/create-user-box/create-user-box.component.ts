@@ -22,6 +22,7 @@ export class CreateUserBoxComponent {
 
   @Input() actionInProgress = false;
   @Input() loading = false;
+  @Input() adminAvailable = false;
 
   username: string = '';
   password: string = '';
@@ -29,6 +30,10 @@ export class CreateUserBoxComponent {
 
   usernamePattern: string = '';
   passwordPattern: string = '';
+  firstNamePattern: string = '';
+  lastNamePattern: string = '';
+  emailPattern: string = '';
+  isCreateOnArtemis: boolean = false;
   from: number = 1;
   to: number = 2;
 
@@ -52,12 +57,25 @@ export class CreateUserBoxComponent {
   }
 
   onCreatePattern(): void {
-    const userPattern: ArtemisUserPatternDTO = new ArtemisUserPatternDTO(this.usernamePattern, this.passwordPattern, this.from, this.to);
+    const userPattern: ArtemisUserPatternDTO = new ArtemisUserPatternDTO(
+      this.usernamePattern,
+      this.passwordPattern,
+      this.from,
+      this.to,
+      this.isCreateOnArtemis,
+      this.firstNamePattern,
+      this.lastNamePattern,
+      this.emailPattern,
+    );
     this.createUserPattern.emit(userPattern);
   }
 
   isValidPattern(): boolean {
-    return this.usernamePattern.length > 0 && this.passwordPattern.length > 0 && this.from > 0 && this.from < this.to;
+    const validForCreateOnArtemis =
+      !this.isCreateOnArtemis || (this.firstNamePattern.length > 0 && this.lastNamePattern.length > 0 && this.emailPattern.length > 0);
+    return (
+      this.usernamePattern.length > 0 && this.passwordPattern.length > 0 && this.from > 0 && this.from < this.to && validForCreateOnArtemis
+    );
   }
 
   onFileSelect(event: any): void {
