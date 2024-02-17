@@ -78,9 +78,9 @@ After executing the JAR or WAR file, the application will be available on http:/
 For development, the recommended way to run the application is to use the provided IntelliJ run configurations.
 They all use the `local` profile, which is configured to use the `application-local.yml` file for configuration.
 
-- Benchmarking (Server): Starts the application with the `dev` profile.
-- Benchmarking (Server-Profiles): Starts the application with the `prod` profile.
-- Benchmarking (Client): Starts the client separately. This allows to use Angular's live-reload feature.
+- `Benchmarking (Server)`: Starts the application with the `dev` profile.
+- `Benchmarking (Server-Prod)`: Starts the application with the `prod` profile.
+- `Benchmarking (Client)`: Starts the client separately. This allows to use Angular's live-reload feature.
 
 We recommend running the server and client separately during development by running `Benchmarking (Server)` (or Server-Prod) and `Benchmarking (Client)`.
 The application will be available on http://localhost:9000 with Angular's live-reload feature enabled.
@@ -105,10 +105,22 @@ This will create a Docker image named `artemis-benchmarking` in the production p
 To run the Docker image, you can use the docker-compose file `src/main/docker/app.yml`.
 This will also start a MySQL server.
 
-After starting the containers with `docker compose -f src/main/docker/app.yml up -d`, the application will be available on http://localhost:8080.
+After starting the containers with
+
+```
+docker compose -f src/main/docker/app.yml up -d
+```
+
+the application will be available on http://localhost:8080.
 
 Instead of creating a Docker image, you can use the [latest published Docker image](https://github.com/ls1intum/Artemis-Benchmarking/pkgs/container/artemis-benchmarking) from the GitHub Container Registry.
-To start a container with that image, you can use the docker-compose file `docker-compose.yml` by running `docker compose up -d`. This will also start a MySQL server.
+To start a container with that image, you can use the docker-compose file `docker-compose.yml` by running
+
+```
+docker compose up -d
+```
+
+This will also start a MySQL server.
 The application will be available on http://localhost:8080.
 When using this docker-compose file, you can set the environment variables in the files `config/benchmarking.env` and `config/mysql.env`.
 The published Docker image is not compatible with arm64 processors and will not work on Mac with the M1 processor family.
@@ -124,7 +136,7 @@ Administrators can create new users in the `Administration > User Management` se
 
 ## Development
 
-Please read the Setup section to learn how to configure and run the application for development.
+Please read the [Setup section](#setup) to learn how to configure and run the application for development.
 
 The application consists of a Spring Boot server and an Angular client. The server is located in the `src/main/java` directory and the client in the `src/main/webapp` directory.
 
@@ -206,7 +218,7 @@ Each push to the `main` branch triggers the `deploy.yml` workflow. This workflow
 
 To add a new Artemis Server to the Benchmarking Tool, changes in four places are necessary. The changes are trivial and should not cause any problems.
 
-1. In the configuration (e.g., `application.yml`), add a new section for the new server. Orientate yourself on the existing servers. See the section "Configuration" for more information.
+1. In the configuration (e.g., `application.yml`), add a new section for the new server. Orientate yourself on the existing servers. See the [Configuration](#configuration) for more information.
 2. In the server-side enum `ArtemisServer` (`src/main/java/de/tum/cit/ase/util/ArtemisServer.java`), add a new value for the new server.
 3. In the `ArtemisConfiguration` class (`src/main/java/de/tum/cit/ase/service/artemis/ArtemisConfiguration.java`), add new fields for the new server. Orientate yourself on the existing servers.
 4. In the client-side enum `ArtemisServer` (`src/main/webapp/app/core/util/artemisServer.ts`), add a new value for the new server. It must have the same name as the value in the server-side enum.
@@ -219,6 +231,60 @@ Please note that `TS1` is used as the default server in some places and for test
 Please follow the coding and design guidelines of the Artemis project. The guidelines are documented in the [Artemis Docs](https://docs.artemis.cit.tum.de/dev/guidelines.html).
 
 ## Usage
+
+### Artemis User Management
+
+The Benchmarking Tool needs to interact with Artemis to perform the simulation. Therefore, it needs the credentials of Artemis users (students and admins / instructors) to log in and perform actions on Artemis.
+
+The management of the Artemis users is done in the "Artemis Users" section of the application. Here, you can create new Artemis users, edit their credentials, and delete them.
+
+For each Artemis server you can:
+
+- Specify the credentials of an admin user. This user is used for the preparation of the exam and the creation of the course and exam on Artemis.
+- Add student users. These users are used to simulate the students that participate in the exam. There are three ways to add student users:
+  - Manually add a user by specifying its credentials.
+  - Add users by specifying patterns for the username and password. The tool will create users with the specified patterns.
+  - Add users by specifying a CSV file with user data. The tool will read the user data from the file and create the users.
+- Edit or delete users.
+
+Each user has an ID. The ID is used to specify the users that will participate in a simulation:
+
+- If you specify the number of users in the simulation form, the tool will use the users with IDs 1 to n.
+- If you specify the exact users that will participate in the simulation, you need to specify the IDs of the users.
+- See [Creating a Simulation](#creating-a-simulation) for more information.
+
+When you add users with patterns, you can additionally check the box `Create users on Artemis`. You will then be able to specify patterns for first name, last name, and email. The tool will try to create the users on Artemis with the specified patterns.
+This is useful if your Artemis instance does not yet have the necessary amount of test users registered. This feature is only available if an Admin user is specified for the Artemis server.
+Please note that editing and deleting users in the Benchmarking Tool does not affect the users on Artemis.
+
+When you add users through a CSV file, the file must have the following format:
+
+```
+username,password
+user1,password1
+user2,password2
+user3,password3
+```
+
+Optionally, you can specify the ID of the user in the file. If you do not specify the ID, the tool will assign the lowest free ID to each user.
+
+```
+id,username,password
+1,user1,password1
+2,user2,password2
+```
+
+**IMPORTANT**  
+The Benchmarking Tool stores the credentials of the Artemis users in the database. Therefore, it is important to keep the database secure. The credentials are stored in plain text and can be accessed by anyone who has access to the database. The Benchmarking Tool should only be used in a secure environment.
+**The database must only be accessible for people who are authorized to see the Artemis users' credentials. Only credentials of test users should be stored in the Benchmarking Tool.**
+
+**Particularities for the Artemis production instance**  
+For security reasons, it is not possible to store the credentials of an admin user of the Artemis production instance in the Benchmarking Tool.
+Instead, those credentials can be entered when starting a simulation run. They will not be stored in the database and will only be used for the respective simulation run.
+
+If you want to create [schedules](#scheduling-simulations) for a simulation against the Artemis production instance, that is only possible for simulation modes that do not require admin rights.
+The credentials of an _Instructor_ (e.g. for the mode `Existing course, create exam`) can be specified when creating the simulation (or later). **They will be stored in the database!**
+Make sure to use an account that only has Instructor rights in the course that you want to use for the simulation.
 
 ### Creating a Simulation
 
@@ -244,6 +310,7 @@ Explanation of the form fields:
 
 To run a simulation, find the simulation in the list of simulations and click the "Start Run" button. The new run will be added to the list of runs of the simulation.
 Click on the run to see the details.
+If the simulation is configured to run against production, you will need to confirm your choice and - depending on the mode - specify admin credentials through a dialog (see [Artemis User Management](#artemis-user-management) for more information).
 
 The icon next to the run indicates the status of the run:
 
@@ -282,6 +349,35 @@ The results are displayed in the detail view of the run. The metrics are also av
 
 If the simulation is running against an Artemis instance that uses the Integrated Code Lifecycle setup, the tool will fetch the CI status after the simulation. The CI status is displayed in the detail view of the run.
 It includes the number of builds and the average builds per minute.
+
+### Scheduling Simulations
+
+The Benchmarking Tool can be used to schedule simulations. This is useful if you want to run simulations at a specific time or at regular intervals.
+
+To schedule a simulation, click on the calendar icon of the respective simulation.
+In the dialog that opens, you will see a list of existing schedules for the simulation.
+Click on "Create Schedule" to create a new schedule.
+In the form that opens, you can specify the following fields:
+
+- `Cycle`: The repetition cycle of the schedule. The cycle can be `Daily` or `Weekly`.
+- `From`: The start date of the time period in which the schedule will be active.
+- `To`: The end date of the time period in which the schedule will be active. When reached, the schedule will be automatically deleted. If omitted, the schedule will be active indefinitely.
+- `Time of Day`: The time of day at which the simulation will be started.
+- `Day of Week`: The day of the week on which the simulation will be started. This field is only available if the cycle is `Weekly`.
+
+After creating the schedule, it will be added to the list of schedules for the simulation.
+You can edit or delete the schedule by clicking on the respective icons.
+
+**Subscribing to a Schedule**  
+Click on the Bell icon of the respective schedule to subscribe to the schedule. You can specify your email address here.
+After subscribing, you will receive an email notification containing a summary of the simulation results after every scheduled run.
+To unsubscribe, click on the respective link in the email.
+
+**Particularities for the Artemis production instance:**
+
+- Simulations against production that require admin rights cannot be scheduled.
+- For simulations that require instructor right, the credentials need to be specified before creating the schedule.
+- See [Artemis User Management](#artemis-user-management) for more information.
 
 [JHipster Homepage and latest documentation]: https://www.jhipster.tech
 [JHipster 8.1.0 archive]: https://www.jhipster.tech/documentation-archive/v8.1.0
