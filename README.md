@@ -124,7 +124,7 @@ Administrators can create new users in the `Administration > User Management` se
 
 ## Development
 
-Please read the Setup section to learn how to configure and run the application for development.
+Please read the [Setup section](#setup) to learn how to configure and run the application for development.
 
 The application consists of a Spring Boot server and an Angular client. The server is located in the `src/main/java` directory and the client in the `src/main/webapp` directory.
 
@@ -219,6 +219,59 @@ Please note that `TS1` is used as the default server in some places and for test
 Please follow the coding and design guidelines of the Artemis project. The guidelines are documented in the [Artemis Docs](https://docs.artemis.cit.tum.de/dev/guidelines.html).
 
 ## Usage
+
+### Artemis User Management
+
+The Benchmarking Tool needs to interact with Artemis to perform the simulation. Therefore, it needs the credentials of Artemis users (students and admins / instructors) to log in and perform actions on Artemis.
+
+The management of the Artemis users is done in the "Artemis Users" section of the application. Here, you can create new Artemis users, edit their credentials, and delete them.
+
+For each Artemis server you can:
+
+- Specify the credentials of an admin user. This user is used for the preparation of the exam and the creation of the course and exam on Artemis.
+- Add student users. These users are used to simulate the students that participate in the exam. There are three ways to add student users:
+  - Manually add a user by specifying its credentials.
+  - Add users by specifying patterns for the username and password. The tool will create users with the specified patterns.
+  - Add users by specifying a CSV file with user data. The tool will read the user data from the file and create the users.
+- Edit or delete users.
+
+Each user has an ID. The ID is used to specify the users that will participate in a simulation:
+
+- If you specify the number of users in the simulation form, the tool will use the users with IDs 1 to n.
+- If you specify the exact users that will participate in the simulation, you need to specify the IDs of the users.
+
+When you add users with patterns, you can additionally check the box `Create users on Artemis`. You will then be able to specify patterns for first name, last name, and email. The tool will try to create the users on Artemis with the specified patterns.
+This is useful if your Artemis instance does not yet have the necessary amount of test users registered. This feature is only available if an Admin user is specified for the Artemis server.
+Please note that editing and deleting users in the Benchmarking Tool does not affect the users on Artemis.
+
+When you add users through a CSV file, the file must have the following format:
+
+```
+username,password
+user1,password1
+user2,password2
+user3,password3
+```
+
+Optionally, you can specify the ID of the user in the file. If you do not specify the ID, the tool will assign the lowest free ID to each user.
+
+```
+id,username,password
+1,user1,password1
+2,user2,password2
+```
+
+**IMPORTANT**  
+The Benchmarking Tool stores the credentials of the Artemis users in the database. Therefore, it is important to keep the database secure. The credentials are stored in plain text and can be accessed by anyone who has access to the database. The Benchmarking Tool should only be used in a secure environment.
+**The database must only be accessible for people who are authorized to see the Artemis users' credentials. Only credentials of test users should be stored in the Benchmarking Tool.**
+
+**Particularities for the Artemis production instance**  
+For security reasons, it is not possible to store the credentials of an admin user of the Artemis production instance in the Benchmarking Tool.
+Instead, those credentials can be entered when starting a simulation run. They will not be stored in the database and will only be used for the respective simulation run.
+
+If you want to create schedules for a simulation against the Artemis production instance, that is only possible for simulation modes that do not require admin rights.
+The credentials of an _Instructor_ (e.g. for the mode `Existing course, create exam`) can be specified when creating the simulation (or later). **They will be stored in the database!**
+Make sure to use an account that only has Instructor rights in the course that you want to use for the simulation.
 
 ### Creating a Simulation
 
