@@ -350,6 +350,7 @@ The results consist of the number of requests and average response times for the
 The results are displayed in the detail view of the run. The metrics are also available in a per-minute resolution. If enough data is available, you can see the metrics in line-charts over time.
 
 <a id="ci-status"/>
+
 If the simulation is running against an Artemis instance that uses the Integrated Code Lifecycle setup, the tool will fetch the CI status after the simulation. The CI status is displayed in the detail view of the run.
 It includes the number of builds and the average builds per minute.
 
