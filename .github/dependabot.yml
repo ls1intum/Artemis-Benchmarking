@@ -10,6 +10,10 @@ updates:
     schedule:
       interval: 'weekly'
     target-branch: 'develop'
+    groups:
+      angular:
+        patterns:
+          - '@angular/*'
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
