@@ -213,6 +213,7 @@ The application uses GitHub Actions for CI/CD. The workflows are located in the 
 Each pull request to the `main` branch triggers the `ci.yml` workflow. This workflow builds the application and runs the tests. The results are visible in the pull request.
 
 Each push to the `main` branch triggers the `deploy.yml` workflow. This workflow builds a Docker image of the application and pushes it to the GitHub Container Registry. A container with the new image is deployed to and started on the production server.
+To manually trigger the deployment, simply re-run the workflow `Build and deploy to Prod` in the GitHub Actions tab. To rollback to a previous version, run the workflow for the respective commit.
 
 ### Adding new Artemis Servers
 
