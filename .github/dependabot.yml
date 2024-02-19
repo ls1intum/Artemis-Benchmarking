@@ -5,6 +5,7 @@ updates:
     schedule:
       interval: 'weekly'
     target-branch: 'develop'
+    open-pull-requests-limit: 10
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
@@ -14,6 +15,7 @@ updates:
       angular:
         patterns:
           - '@angular/*'
+    open-pull-requests-limit: 10
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
