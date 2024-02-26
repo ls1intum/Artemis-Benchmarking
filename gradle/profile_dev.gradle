@@ -45,7 +45,7 @@ task webapp(type: NpmTask) {
     inputs.dir("src/main/webapp/")
         .withPropertyName("webapp-source-dir")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.dir("build/resources/main/static/")
+    outputs.dir("build/resources/main/static/browser/")
         .withPropertyName("webapp-build-dir")
 
     dependsOn npmInstall
