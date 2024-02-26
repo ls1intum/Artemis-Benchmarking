@@ -18,12 +18,12 @@
       "prefix": "jhi",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser-esbuild",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
             "allowedCommonJsDependencies": ["sockjs-client", "webstomp-client"],
             "outputPath": "build/resources/main/static/",
             "index": "src/main/webapp/index.html",
-            "main": "src/main/webapp/main.ts",
+            "browser": "src/main/webapp/main.ts",
             "polyfills": ["./src/main/webapp/sockjs-client.polyfill", "zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
@@ -43,8 +43,7 @@
               "sourceMap": false,
               "namedChunks": true,
               "extractLicenses": true,
-              "serviceWorker": true,
-              "ngswConfigPath": "ngsw-config.json",
+              "serviceWorker": "ngsw-config.json",
               "budgets": [
                 {
                   "type": "initial",
