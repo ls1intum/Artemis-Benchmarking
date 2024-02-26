@@ -59,7 +59,7 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
         if (server instanceof ConfigurableServletWebServerFactory servletWebServer) {
             File root;
             String prefixPath = resolvePathPrefix();
-            root = new File(prefixPath + "build/resources/main/static/browser/");
+            root = new File(prefixPath + "build/resources/main/static/");
             if (root.exists() && root.isDirectory()) {
                 servletWebServer.setDocumentRoot(root);
             }

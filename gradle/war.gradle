@@ -7,7 +7,7 @@ bootWar {
 }
 
 war {
-    webAppDirName = "build/resources/main/static/browser/"
+    webAppDirName = "build/resources/main/static/"
     webXml = file("${project.rootDir}/src/main/webapp/WEB-INF/web.xml")
     enabled = true
     archiveExtension = "war.original"
