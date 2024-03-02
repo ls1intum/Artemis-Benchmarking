@@ -283,6 +283,10 @@ id,username,password
 2,user2,password2
 ```
 
+This video explains the User Management in more detail:
+
+https://github.com/ls1intum/Artemis-Benchmarking/assets/129070641/ace00d70-3c3a-490a-83c0-44e1eb46f321
+
 **IMPORTANT**  
 The Benchmarking Tool stores the credentials of the Artemis users in the database. Therefore, it is important to keep the database secure. The credentials are stored in plain text and can be accessed by anyone who has access to the database. The Benchmarking Tool should only be used in a secure environment.
 **The database must only be accessible for people who are authorized to see the Artemis users' credentials. Only credentials of test users should be stored in the Benchmarking Tool.**
@@ -380,6 +384,10 @@ The following image shows the CI status:
 
 ![CI-Status](docs/ci-status.png)
 
+The following video shows the process of creating, executing and evaluating simulations:
+
+https://github.com/ls1intum/Artemis-Benchmarking/assets/129070641/aa694de3-1c7b-4815-a3e6-45e55ceaa0f8
+
 ### Scheduling Simulations
 
 The Benchmarking Tool can be used to schedule simulations. This is useful if you want to run simulations at a specific time or at regular intervals.
@@ -401,6 +409,10 @@ You can edit or delete the schedule by clicking on the respective icons.
 The schedule dialog looks like this:
 
 ![Schedule-Dialog](docs/schedule-dialog.png)
+
+This video shows how to create schedules:
+
+https://github.com/ls1intum/Artemis-Benchmarking/assets/129070641/cd0e62dd-a8c3-4fb2-8482-262fc5d9b1a8
 
 **Subscribing to a Schedule**  
 Click on the Bell icon of the respective schedule to subscribe to it. You can specify your email address here.
