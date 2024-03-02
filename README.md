@@ -254,9 +254,17 @@ Each user has an ID. The ID is used to determine which users will participate in
 - If you specify the exact users that should participate in the simulation, you need to enter the IDs of the users.
 - See [Creating a Simulation](#creating-a-simulation) for more information.
 
+The following image shows the form for adding users with patterns:
+
+![Create-Users](docs/create-pattern.png)
+
 When you add users with patterns, you can additionally check the box `Create users on Artemis`. You will then be able to provide patterns for first name, last name, and email. The tool will try to create the users on Artemis with the specified patterns.
 This is useful if your Artemis instance does not yet have the necessary amount of test users registered. This feature is only available if an Admin user is available for the respective Artemis server.
 Please note that editing and deleting users in the Benchmarking Tool does not affect the users on Artemis.
+
+The following image shows the form for creating users in Artemis via a pattern:
+
+![Create-Users-Artemis](docs/create-on-artemis.png)
 
 When you add users through a CSV file, the file must have the following format:
 
@@ -307,6 +315,10 @@ Explanation of the form fields:
 - If you want to simulate against the Artemis Production instance and chose a mode that requires Instructor rights, you can optionally specify the necessary credentials. _They will be stored in the database!_ Please refer to the [Artemis User Management](#artemis-user-management) section for more information. This step is optional and can be done later.
 - `Number of commits and pushes`: The range of pushes that users will perform per programming exercise. The tool will randomly choose a number of pushes for each user in the range.
 
+The following image shows the form for creating a simulation:
+
+![Create-Simulation](docs/create-form.png)
+
 ### Running a Simulation
 
 To run a simulation, find the simulation in the list of simulations and click the "Start Run" button. The new run will be added to the list of runs of the simulation.
@@ -327,6 +339,10 @@ During the simulation, the tool will perform the following steps for each studen
 
 While the simulation is running, you can see some log messages indicating the progress of the simulation. They will also show if something went wrong.
 If the tool is connected to Prometheus, you can see the workload data of the configured Prometheus targets during the simulation.
+
+The log message for a successful run will look similar to this:
+
+![Log messages](docs/logs.png)
 
 If a fatal error occurs, the run will be stopped and marked as failed. You will be able to see the cause of the error in the log messages. If an error occurs for a single student, the simulation will continue for the other students.
 
@@ -350,9 +366,19 @@ The results consist of the number of requests and average response times for the
 
 The results are displayed in the detail view of the run. The metrics are also available in a per-minute resolution. If enough data is available, you can see the metrics in line-charts over time.
 
+The following image shows the simulation results in the category `Push`, first as a table and then as a line-chart:
+
+![Push-Table](docs/push-table.png)
+
+![Push-Chart](docs/push-chart.png)
+
 <a id="ci-status"></a>
 If the simulation is running against an Artemis instance that uses the Integrated Code Lifecycle setup, the tool will fetch the CI status after the simulation. The CI status is displayed in the detail view of the run.
 It includes the number of builds and the average builds per minute.
+
+The following image shows the CI status:
+
+![CI-Status](docs/ci-status.png)
 
 ### Scheduling Simulations
 
@@ -371,6 +397,10 @@ In the form that opens, you can specify the following fields:
 
 After creating the schedule, it will be added to the list of schedules for the simulation.
 You can edit or delete the schedule by clicking on the respective icons.
+
+The schedule dialog looks like this:
+
+![Schedule-Dialog](docs/schedule-dialog.png)
 
 **Subscribing to a Schedule**  
 Click on the Bell icon of the respective schedule to subscribe to it. You can specify your email address here.
