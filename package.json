@@ -96,7 +96,7 @@
     "sockjs-client": "1.6.1",
     "tslib": "2.6.2",
     "webstomp-client": "1.2.6",
-    "zone.js": "0.14.4"
+    "zone.js": "0.14.5"
   },
   "devDependencies": {
     "@angular-builders/jest": "17.0.3",
