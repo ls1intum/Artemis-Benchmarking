@@ -1,19 +1,21 @@
 plugins {
+    id "checkstyle"
     id "java"
     id "maven-publish"
     id "idea"
     id "eclipse"
     id "jacoco"
     id "org.springframework.boot"
-    id "com.google.cloud.tools.jib"
-    id "com.gorylenko.gradle-git-properties"
-    id "org.openapi.generator"
-    id "com.github.node-gradle.node"
-    id "org.sonarqube"
-    id "com.diffplug.spotless"
-    id "io.spring.nohttp"
-    id "com.github.andygoossens.gradle-modernizer-plugin"
-    id "org.liquibase.gradle"
+    id "com.google.cloud.tools.jib" version "3.4.2"
+    id "com.gorylenko.gradle-git-properties" version "2.4.2"
+    id "org.openapi.generator" version "7.6.0"
+    id "com.github.node-gradle.node" version "7.0.2"
+    id "org.sonarqube" version "5.0.0.4638"
+    id "com.diffplug.spotless" version "6.25.0"
+    id "com.github.andygoossens.gradle-modernizer-plugin" version "1.9.2"
+    id "org.liquibase.gradle" version "2.2.2"
+    // this allows us to find outdated dependencies via ./gradlew dependencyUpdates
+    id "com.github.ben-manes.versions" version "0.51.0"
     // jhipster-needle-gradle-plugins - JHipster will add additional gradle plugins here
 }
 
@@ -142,14 +144,11 @@ checkstyle {
     toolVersion "${checkstyleVersion}"
     configFile file("checkstyle.xml")
     checkstyleTest.enabled = false
-}
-nohttp {
-    source.include "build.gradle", "README.md"
+    maxErrors = 0
 }
 
 configurations {
     providedRuntime
-    implementation.exclude module: "spring-boot-starter-tomcat"
 }
 
 repositories {
@@ -168,13 +167,13 @@ dependencies {
     // Use ", version: jhipsterDependenciesVersion, changing: true" if you want
     // to use a SNAPSHOT release instead of a stable release
     implementation "tech.jhipster:jhipster-framework"
-    implementation "jakarta.annotation:jakarta.annotation-api"
+    implementation "jakarta.annotation:jakarta.annotation-api:3.0.0"
     implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-    testImplementation "org.testcontainers:junit-jupiter"
-    testImplementation "org.testcontainers:testcontainers"
+    testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
+    testImplementation "org.testcontainers:testcontainers:${testcontainersVersion}"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-api"
     implementation "com.zaxxer:HikariCP"
     implementation "org.apache.commons:commons-lang3"
@@ -188,36 +187,40 @@ dependencies {
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-loader-tools"
-    implementation "org.springframework.boot:spring-boot-starter-actuator"
-    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
-    testImplementation "org.testcontainers:jdbc"
-    implementation "org.springframework.boot:spring-boot-starter-logging"
-    implementation "org.springframework.boot:spring-boot-starter-mail"
-    implementation "org.springframework.boot:spring-boot-starter-security"
-    implementation "org.springframework.boot:spring-boot-starter-thymeleaf"
-    implementation "org.springframework.boot:spring-boot-starter-web"
-    testImplementation "org.springframework.boot:spring-boot-starter-test"
-    testImplementation "org.springframework.boot:spring-boot-test"
-    testImplementation "org.springframework.security:spring-security-test"
+    implementation "org.springframework.boot:spring-boot-loader-tools:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-cache:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
+    testImplementation "org.testcontainers:jdbc:${testcontainersVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-logging:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-mail:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-security:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    testImplementation "org.springframework.boot:spring-boot-test:${springBootVersion}"
+    testImplementation "org.springframework.security:spring-security-test:${springSecurityVersion}"
     testImplementation("com.tngtech.archunit:archunit-junit5-api:${archunitJunit5Version}") {
         exclude group: "org.slf4j", module: "slf4j-api"
     }
     testRuntimeOnly("com.tngtech.archunit:archunit-junit5-engine:${archunitJunit5Version}") {
         exclude group: "org.slf4j", module: "slf4j-api"
     }
-    implementation "org.springframework.boot:spring-boot-starter-undertow"
-    implementation "org.springframework.boot:spring-boot-starter-websocket"
-    implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server"
-    implementation "org.springframework.security:spring-security-data"
-    implementation "io.micrometer:micrometer-registry-prometheus"
+    implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}") {
+        exclude module: "spring-boot-starter-undertow"
+    }
+    implementation "org.springframework.boot:spring-boot-starter-tomcat:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-websocket:${springBootVersion}"
+    implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server:${springBootVersion}"
+    implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
+    
+    implementation "io.micrometer:micrometer-registry-prometheus:1.13.0"
     implementation "io.dropwizard.metrics:metrics-core"
-    implementation "org.springframework.security:spring-security-messaging"
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
-    implementation("commons-io:commons-io:2.16.1")
-    implementation("com.thedeanda:lorem:2.2")
-    implementation("org.eclipse.jgit:org.eclipse.jgit:6.9.0.202403050737-r")
-    implementation("io.reactivex.rxjava3:rxjava:3.1.8")
+    implementation "org.springframework.security:spring-security-messaging:${springSecurityVersion}"
+    implementation "commons-io:commons-io:2.16.1"
+    implementation "com.thedeanda:lorem:2.2"
+    implementation "org.eclipse.jgit:org.eclipse.jgit:6.9.0.202403050737-r"
+    implementation "io.reactivex.rxjava3:rxjava:3.1.8"
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.100.Final:osx-aarch_64'
     implementation 'com.opencsv:opencsv:5.9'
 }
@@ -239,7 +242,7 @@ task cleanResources(type: Delete) {
 }
 
 wrapper {
-    gradleVersion = "8.5"
+    gradleVersion = "8.7"
 }
 
 task webapp_test(type: NpmTask) {
@@ -273,7 +276,7 @@ task webapp_test(type: NpmTask) {
 
 if (project.hasProperty("nodeInstall")) {
     node {
-        version = "18.18.2"
+        version = "20.10.0"
         npmVersion = "10.2.4"
         download = true
     }
@@ -295,3 +298,23 @@ if (project.hasProperty("nodeInstall")) {
 test.dependsOn webapp_test
 compileJava.dependsOn processResources
 processResources.dependsOn bootBuildInfo
+
+def isNonStable = { String version ->
+    def stableKeyword = ["RELEASE", "FINAL", "GA"].any { it -> version.toUpperCase().contains(it) }
+    def regex = /^[0-9,.v-]+(-r)?$/
+    return !stableKeyword && !(version ==~ regex)
+}
+
+tasks.named("dependencyUpdates").configure {
+    rejectVersionIf {
+        isNonStable(it.candidate.version)
+    }
+
+    rejectVersionIf {
+        isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)
+    }
+}
+
+// Available commands:
+//
+// 1) Find dependency updates:                      ./gradlew dependencyUpdates -Drevision=release

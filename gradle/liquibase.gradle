@@ -3,13 +3,13 @@ configurations {
 }
 
 dependencies {
-  implementation "org.liquibase:liquibase-core"
-  liquibaseRuntime "org.liquibase:liquibase-core"
+  implementation "org.liquibase:liquibase-core:${liquibaseVersion}"
+  liquibaseRuntime "org.liquibase:liquibase-core:${liquibaseVersion}"
   // Dependency required to parse options. Refer to https://github.com/liquibase/liquibase-gradle-plugin/tree/Release_2.2.0#news.
-  liquibaseRuntime "info.picocli:picocli:4.7.5"
+  liquibaseRuntime "info.picocli:picocli:4.7.6"
 
-  liquibaseRuntime "org.liquibase.ext:liquibase-hibernate6:${liquibaseHibernate6Version}"
-  liquibaseRuntime "com.mysql:mysql-connector-j"
+  liquibaseRuntime "org.liquibase.ext:liquibase-hibernate6:${liquibaseVersion}"
+  liquibaseRuntime "com.mysql:mysql-connector-j:${mysqlVersion}"
 }
 
 project.ext.diffChangelogFile = "src/main/resources/config/liquibase/changelog/" + new Date().format("yyyyMMddHHmmss") + "_changelog.xml"

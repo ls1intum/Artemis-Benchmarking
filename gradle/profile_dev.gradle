@@ -10,8 +10,8 @@ configurations {
 
 dependencies {
     developmentOnly "org.springframework.boot:spring-boot-devtools:${springBootVersion}"
-    implementation "com.mysql:mysql-connector-j"
-    testImplementation "org.testcontainers:mysql"
+    implementation "com.mysql:mysql-connector-j:${mysqlVersion}"
+    testImplementation "org.testcontainers:mysql:${testcontainersVersion}"
 }
 
 ext {
