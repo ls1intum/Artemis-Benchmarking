@@ -12,11 +12,9 @@ import de.tum.cit.ase.web.rest.vm.KeyAndPasswordVM;
 import de.tum.cit.ase.web.rest.vm.ManagedUserVM;
 import jakarta.validation.Valid;
 import java.util.*;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -48,18 +46,6 @@ public class AccountResource {
     }
 
     /**
-     * {@code POST  /register} : register the user.
-     *
-     * @param managedUserVM the managed user View Model.
-     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
-     * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
-     * @throws LoginAlreadyUsedException {@code 400 (Bad Request)} if the login is already used.
-     */
-    @PostMapping("/register")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM) {}
-
-    /**
      * {@code GET  /activate} : activate the registered user.
      *
      * @param key the activation key.
@@ -68,7 +54,7 @@ public class AccountResource {
     @GetMapping("/activate")
     public void activateAccount(@RequestParam(value = "key") String key) {
         Optional<User> user = userService.activateRegistration(key);
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             throw new AccountResourceException("No user was found for this activation key");
         }
     }
@@ -96,15 +82,14 @@ public class AccountResource {
      */
     @PostMapping("/account")
     public void saveAccount(@Valid @RequestBody AdminUserDTO userDTO) {
-        String userLogin = SecurityUtils
-            .getCurrentUserLogin()
+        String userLogin = SecurityUtils.getCurrentUserLogin()
             .orElseThrow(() -> new AccountResourceException("Current user login not found"));
         Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(userDTO.getEmail());
         if (existingUser.isPresent() && (!existingUser.orElseThrow().getLogin().equalsIgnoreCase(userLogin))) {
             throw new EmailAlreadyUsedException();
         }
         Optional<User> user = userRepository.findOneByLogin(userLogin);
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             throw new AccountResourceException("User could not be found");
         }
         userService.updateUser(
@@ -161,7 +146,7 @@ public class AccountResource {
         }
         Optional<User> user = userService.completePasswordReset(keyAndPassword.getNewPassword(), keyAndPassword.getKey());
 
-        if (!user.isPresent()) {
+        if (user.isEmpty()) {
             throw new AccountResourceException("No user was found for this reset key");
         }
     }
