@@ -18,13 +18,14 @@ plugins {
 }
 
 group = "de.tum.cit.ase"
-version = "0.1.0"
+version = "0.1.1"
 
 description = ""
 
-sourceCompatibility=17
-targetCompatibility=17
-assert System.properties["java.specification.version"] == "17" || "18" || "19" || "20" || "21"
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 ext {
     springProfiles = ""
