@@ -120,7 +120,7 @@
     "jest-junit": "16.0.0",
     "jest-preset-angular": "14.1.0",
     "jest-sonar": "0.2.16",
-    "lint-staged": "15.2.4",
+    "lint-staged": "15.2.5",
     "prettier": "3.2.5",
     "prettier-plugin-java": "2.6.0",
     "prettier-plugin-packagejson": "2.5.0",
