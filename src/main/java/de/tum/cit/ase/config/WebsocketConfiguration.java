@@ -22,12 +22,6 @@ public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
     public static final String IP_ADDRESS = "IP_ADDRESS";
 
-    private final JHipsterProperties jHipsterProperties;
-
-    public WebsocketConfiguration(JHipsterProperties jHipsterProperties) {
-        this.jHipsterProperties = jHipsterProperties;
-    }
-
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic");

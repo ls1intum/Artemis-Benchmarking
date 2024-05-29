@@ -8,7 +8,7 @@ on:
   push:
     branches: [main]
   pull_request:
-   branches: [main]
+    branches: [main]
 
 jobs:
   test:
@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           cache: 'gradle'
       - name: Setup Node
         uses: actions/setup-node@v4
