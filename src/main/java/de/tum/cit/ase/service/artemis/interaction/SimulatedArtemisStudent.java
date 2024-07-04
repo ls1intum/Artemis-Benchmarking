@@ -508,13 +508,13 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .retrieve()
             .toBodilessEntity()
             .block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
+        return new RequestStat(now(), System.nanoTime() - start, PROGRAMMING_EXERCISE_RESULT);
     }
 
     private RequestStat fetchRepository(Long participationId) {
         long start = System.nanoTime();
         webClient.get().uri("api/repository/" + participationId).retrieve().toBodilessEntity().block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
+        return new RequestStat(now(), System.nanoTime() - start, REPOSITORY_INFO);
     }
 
     private RequestStat fetchFile(Long participationId, String fileName) {
@@ -526,13 +526,13 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .retrieve()
             .toBodilessEntity()
             .block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
+        return new RequestStat(now(), System.nanoTime() - start, REPOSITORY_FILE);
     }
 
     private RequestStat fetchFiles(Long participationId) {
         long start = System.nanoTime();
         webClient.get().uri("api/repository/" + participationId + "/files").retrieve().toBodilessEntity().block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
+        return new RequestStat(now(), System.nanoTime() - start, REPOSITORY_FILES);
     }
 
     private RequestStat fetchPlantUml() {
@@ -540,7 +540,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         String plantUmlString =
             "%40startuml%0A%0Aclass%20Client%20%7B%0A%7D%0A%0Aclass%20Policy%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2Bconfigure()%3C%2Fcolor%3E%0A%7D%0A%0Aclass%20Context%20%7B%0A%20%20%3Ccolor%3Agrey%3E-dates%3A%20List%3CDate%3E%3C%2Fcolor%3E%0A%20%20%3Ccolor%3Agrey%3E%2Bsort()%3C%2Fcolor%3E%0A%7D%0A%0Ainterface%20SortStrategy%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2BperformSort(List%3CDate%3E)%3C%2Fcolor%3E%0A%7D%0A%0Aclass%20BubbleSort%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2BperformSort(List%3CDate%3E)%3C%2Fcolor%3E%0A%7D%0A%0Aclass%20MergeSort%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2BperformSort(List%3CDate%3E)%3C%2Fcolor%3E%0A%7D%0A%0AMergeSort%20-up-%7C%3E%20SortStrategy%20%23grey%0ABubbleSort%20-up-%7C%3E%20SortStrategy%20%23grey%0APolicy%20-right-%3E%20Context%20%23grey%3A%20context%0AContext%20-right-%3E%20SortStrategy%20%23grey%3A%20sortAlgorithm%0AClient%20.down.%3E%20Policy%0AClient%20.down.%3E%20Context%0A%0Ahide%20empty%20fields%0Ahide%20empty%20methods%0A%0A%40enduml&useDarkTheme=true";
         webClient.get().uri("api/plantuml/svg?plantuml=" + plantUmlString).retrieve().toBodilessEntity().block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
+        return new RequestStat(now(), System.nanoTime() - start, REPOSITORY_FILES);
     }
 
     private RequestStat cloneRepo(String repositoryUrl) throws IOException {
