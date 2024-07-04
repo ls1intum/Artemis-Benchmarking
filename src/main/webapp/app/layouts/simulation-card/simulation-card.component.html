@@ -41,6 +41,7 @@
             Users: {{ simulation.numberOfUsers }}
           }
         </p>
+        <p class="mb-1">IDE Type: {{ getTextRepresentationIdeType(simulation.ideType) }}</p>
         <p class="mb-1">Commits: {{ simulation.numberOfCommitsAndPushesFrom }} - {{ simulation.numberOfCommitsAndPushesTo }}</p>
         @if (simulation.mode != Mode.CREATE_COURSE_AND_EXAM) {
           <div class="flex-wrapper">

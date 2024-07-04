@@ -1,5 +1,5 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { getTextRepresentation, Mode, Simulation } from '../../entities/simulation/simulation';
+import { getTextRepresentation, getTextRepresentationIdeType, IdeType, Mode, Simulation } from '../../entities/simulation/simulation';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ProfileService } from '../profiles/profile.service';
 import { SimulationsService } from '../../simulations/simulations.service';
@@ -24,6 +24,7 @@ export class CreateSimulationBoxComponent implements OnInit {
   mode: Mode = Mode.CREATE_COURSE_AND_EXAM;
   customizeUserRange: boolean = false;
   userRange: string = '';
+  ideType: IdeType = IdeType.OFFLINE;
   numberOfCommitsAndPushesFrom: number = 8;
   numberOfCommitsAndPushesTo: number = 15;
   instructorUsername: string = '';
@@ -36,12 +37,14 @@ export class CreateSimulationBoxComponent implements OnInit {
     Mode.EXISTING_COURSE_PREPARED_EXAM,
     Mode.EXISTING_COURSE_UNPREPARED_EXAM,
   ];
+  availableIdeTypes = [IdeType.OFFLINE, IdeType.ONLINE];
   serversWithCleanupEnabled: ArtemisServer[] = [];
   showPassword: boolean = false;
 
   protected readonly Mode = Mode;
   protected readonly ArtemisServer = ArtemisServer;
   protected readonly getTextRepresentation = getTextRepresentation;
+  protected readonly getTextRepresentationIdeType = getTextRepresentationIdeType;
 
   constructor(
     private profileService: ProfileService,
@@ -75,6 +78,7 @@ export class CreateSimulationBoxComponent implements OnInit {
         [],
         new Date(),
         this.customizeUserRange,
+        this.ideType,
         this.numberOfCommitsAndPushesFrom,
         this.numberOfCommitsAndPushesTo,
         this.userRange,

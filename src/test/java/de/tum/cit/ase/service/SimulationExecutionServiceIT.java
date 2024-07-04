@@ -144,9 +144,9 @@ public class SimulationExecutionServiceIT {
         when(simulatedArtemisStudent2.startExamParticipation(1, 1)).thenReturn(List.of());
         when(simulatedArtemisStudent3.startExamParticipation(1, 1)).thenReturn(List.of());
 
-        when((simulatedArtemisStudent1.participateInExam(1, 1))).thenReturn(List.of());
-        when((simulatedArtemisStudent2.participateInExam(1, 1))).thenReturn(List.of());
-        when((simulatedArtemisStudent3.participateInExam(1, 1))).thenReturn(List.of());
+        when((simulatedArtemisStudent1.participateInExam(1, 1, false))).thenReturn(List.of());
+        when((simulatedArtemisStudent2.participateInExam(1, 1, false))).thenReturn(List.of());
+        when((simulatedArtemisStudent3.participateInExam(1, 1, false))).thenReturn(List.of());
 
         when(simulatedArtemisStudent1.startExamParticipation(1, 1)).thenReturn(List.of());
         when(simulatedArtemisStudent2.startExamParticipation(1, 1)).thenReturn(List.of());
@@ -168,9 +168,9 @@ public class SimulationExecutionServiceIT {
 
         statusesOnWebsocketUpdate = new LinkedList<>();
         doAnswer(invocation -> {
-                statusesOnWebsocketUpdate.add(invocation.getArgument(0, SimulationRun.class).getStatus());
-                return null;
-            })
+            statusesOnWebsocketUpdate.add(invocation.getArgument(0, SimulationRun.class).getStatus());
+            return null;
+        })
             .when(simulationWebsocketService)
             .sendRunStatusUpdate(any());
     }
@@ -202,11 +202,10 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
         verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
-        verify(simulatedArtemisAdmin, times(1))
-            .registerStudentsForCourse(
-                1,
-                new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
-            );
+        verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(
+            1,
+            new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
+        );
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
         verify(simulatedArtemisAdmin, timeout(1000).times(1)).deleteCourse(1);
@@ -220,7 +219,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -263,11 +262,10 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
         verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
-        verify(simulatedArtemisAdmin, times(1))
-            .registerStudentsForCourse(
-                1,
-                new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
-            );
+        verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(
+            1,
+            new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
+        );
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
         verify(simulatedArtemisAdmin, timeout(1000).times(0)).deleteCourse(anyLong());
@@ -281,7 +279,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -338,7 +336,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -395,7 +393,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -453,7 +451,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -513,7 +511,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -560,11 +558,10 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
         verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
-        verify(simulatedArtemisAdmin, times(1))
-            .registerStudentsForCourse(
-                1,
-                new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
-            );
+        verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(
+            1,
+            new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
+        );
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
         verify(simulatedArtemisAdmin, timeout(1000).times(1)).deleteCourse(1);
@@ -578,7 +575,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -636,7 +633,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), false);
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -691,7 +688,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), false);
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -748,7 +745,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), false);
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -791,11 +788,10 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(0)).createExam(any());
         verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any());
-        verify(simulatedArtemisAdmin, times(1))
-            .registerStudentsForCourse(
-                1,
-                new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
-            );
+        verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(
+            1,
+            new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
+        );
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForExam(anyLong(), anyLong());
         verify(simulatedArtemisAdmin, times(0)).prepareExam(anyLong(), anyLong());
         verify(simulatedArtemisAdmin, timeout(1000).times(1)).deleteCourse(1);
@@ -809,7 +805,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), false);
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -867,7 +863,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), false);
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -925,7 +921,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), false);
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -983,7 +979,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), false);
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -1041,7 +1037,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), false);
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -1099,7 +1095,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), false);
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -1144,9 +1140,9 @@ public class SimulationExecutionServiceIT {
         when(simulatedArtemisStudent1.startExamParticipation(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
         when(simulatedArtemisStudent2.startExamParticipation(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
         when(simulatedArtemisStudent3.startExamParticipation(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
-        when(simulatedArtemisStudent1.participateInExam(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
-        when(simulatedArtemisStudent2.participateInExam(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
-        when(simulatedArtemisStudent3.participateInExam(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
+        when(simulatedArtemisStudent1.participateInExam(anyLong(), anyLong(), false)).thenThrow(new RuntimeException("Test exception"));
+        when(simulatedArtemisStudent2.participateInExam(anyLong(), anyLong(), false)).thenThrow(new RuntimeException("Test exception"));
+        when(simulatedArtemisStudent3.participateInExam(anyLong(), anyLong(), false)).thenThrow(new RuntimeException("Test exception"));
         when(simulatedArtemisStudent1.submitAndEndExam(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
         when(simulatedArtemisStudent2.submitAndEndExam(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
         when(simulatedArtemisStudent3.submitAndEndExam(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
@@ -1172,7 +1168,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -1230,7 +1226,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 

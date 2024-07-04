@@ -238,7 +238,11 @@ public class SimulationExecutionService {
                 performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].startExamParticipation(courseId, examId))
             );
             requestStats.addAll(
-                performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].participateInExam(courseId, examId))
+                performActionWithAll(
+                    threadCount,
+                    simulation.getNumberOfUsers(),
+                    i -> students[i].participateInExam(courseId, examId, simulation.getIdeType() == Simulation.IDEType.ONLINE)
+                )
             );
             requestStats.addAll(
                 performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].submitAndEndExam(courseId, examId))
@@ -491,14 +495,13 @@ public class SimulationExecutionService {
 
             SimulatedArtemisStudent[] users = new SimulatedArtemisStudent[artemisUsers.size()];
             for (int i = 0; i < artemisUsers.size(); i++) {
-                users[i] =
-                    SimulatedArtemisUser.createArtemisStudent(
-                        artemisConfiguration.getUrl(simulation.getServer()),
-                        artemisUsers.get(i),
-                        artemisUserService,
-                        simulation.getNumberOfCommitsAndPushesFrom(),
-                        simulation.getNumberOfCommitsAndPushesTo()
-                    );
+                users[i] = SimulatedArtemisUser.createArtemisStudent(
+                    artemisConfiguration.getUrl(simulation.getServer()),
+                    artemisUsers.get(i),
+                    artemisUserService,
+                    simulation.getNumberOfCommitsAndPushesFrom(),
+                    simulation.getNumberOfCommitsAndPushesTo()
+                );
             }
             return users;
         } catch (Exception e) {
@@ -526,8 +529,7 @@ public class SimulationExecutionService {
         List<RequestStat> requestStats = Collections.synchronizedList(new ArrayList<>());
 
         try {
-            Flowable
-                .range(0, numberOfUsers)
+            Flowable.range(0, numberOfUsers)
                 .parallel(threadCount)
                 .runOn(scheduler)
                 .doOnNext(i -> {

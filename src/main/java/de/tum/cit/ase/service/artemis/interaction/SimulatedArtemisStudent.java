@@ -8,6 +8,7 @@ import static java.time.ZonedDateTime.now;
 import com.thedeanda.lorem.LoremIpsum;
 import de.tum.cit.ase.artemisModel.*;
 import de.tum.cit.ase.domain.ArtemisUser;
+import de.tum.cit.ase.domain.OnlineIdeFileSubmission;
 import de.tum.cit.ase.domain.RequestStat;
 import de.tum.cit.ase.service.artemis.ArtemisUserService;
 import de.tum.cit.ase.util.UMLClassDiagrams;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import org.apache.commons.io.FileUtils;
@@ -23,6 +25,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 
 /**
  * A simulated Artemis student that can be used to interact with the Artemis server.
@@ -76,7 +79,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
      * @param examId the ID of the exam
      * @return the list of request stats
      */
-    public List<RequestStat> participateInExam(long courseId, long examId) {
+    public List<RequestStat> participateInExam(long courseId, long examId, boolean onlineIde) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
         }
@@ -86,7 +89,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         List<RequestStat> requestStats = new ArrayList<>();
 
         requestStats.add(fetchLiveEvents());
-        requestStats.addAll(handleExercises());
+        requestStats.addAll(handleExercises(onlineIde));
 
         return requestStats;
     }
@@ -181,10 +184,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat startExam() {
         long start = System.nanoTime();
-        studentExam =
-            webClient
-                .get()
-                .uri(uriBuilder ->
+        studentExam = webClient
+            .get()
+            .uri(
+                uriBuilder ->
                     uriBuilder
                         .pathSegment(
                             "api",
@@ -197,10 +200,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                             "conduction"
                         )
                         .build()
-                )
-                .retrieve()
-                .bodyToMono(StudentExam.class)
-                .block();
+            )
+            .retrieve()
+            .bodyToMono(StudentExam.class)
+            .block();
         return new RequestStat(now(), System.nanoTime() - start, START_STUDENT_EXAM);
     }
 
@@ -208,8 +211,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri(uriBuilder ->
-                uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "live-events").build()
+            .uri(
+                uriBuilder ->
+                    uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "live-events").build()
             )
             .retrieve()
             .toBodilessEntity()
@@ -217,7 +221,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
-    private List<RequestStat> handleExercises() {
+    private List<RequestStat> handleExercises(boolean onlineIde) {
         List<RequestStat> requestStats = new ArrayList<>();
         for (var exercise : studentExam.getExercises()) {
             if (exercise instanceof ModelingExercise) {
@@ -227,7 +231,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             } else if (exercise instanceof QuizExercise) {
                 requestStats.add(solveAndSubmitQuizExercise((QuizExercise) exercise));
             } else if (exercise instanceof ProgrammingExercise) {
-                requestStats.addAll(solveAndSubmitProgrammingExercise((ProgrammingExercise) exercise));
+                requestStats.addAll(solveAndSubmitProgrammingExercise((ProgrammingExercise) exercise, onlineIde));
             }
         }
         return requestStats;
@@ -247,8 +251,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             long start = System.nanoTime();
             webClient
                 .put()
-                .uri(uriBuilder ->
-                    uriBuilder.pathSegment("api", "exercises", modelingExercise.getId().toString(), "modeling-submissions").build()
+                .uri(
+                    uriBuilder ->
+                        uriBuilder.pathSegment("api", "exercises", modelingExercise.getId().toString(), "modeling-submissions").build()
                 )
                 .bodyValue(modelingSubmission)
                 .retrieve()
@@ -285,8 +290,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             long start = System.nanoTime();
             webClient
                 .put()
-                .uri(uriBuilder ->
-                    uriBuilder.pathSegment("api", "exercises", quizExercise.getId().toString(), "submissions", "exam").build()
+                .uri(
+                    uriBuilder -> uriBuilder.pathSegment("api", "exercises", quizExercise.getId().toString(), "submissions", "exam").build()
                 )
                 .bodyValue(quizSubmission)
                 .retrieve()
@@ -297,28 +302,46 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return null;
     }
 
-    private List<RequestStat> solveAndSubmitProgrammingExercise(ProgrammingExercise programmingExercise) {
+    private void commitAndPush(List<RequestStat> requestStats, boolean onlineIde, Long participationId, String changedFileContent)
+        throws IOException, GitAPIException {
+        if (onlineIde) {
+            makeOnlineIDECommitAndPush(requestStats, participationId, changedFileContent);
+        } else {
+            makeOfflineIDECommitAndPush(requestStats);
+        }
+    }
+
+    private List<RequestStat> solveAndSubmitProgrammingExercise(ProgrammingExercise programmingExercise, boolean onlineIDE) {
         var programmingParticipation = (ProgrammingExerciseStudentParticipation) programmingExercise
             .getStudentParticipations()
             .iterator()
             .next();
-        var repositoryCloneUrl = programmingParticipation.getRepositoryUri();
         List<RequestStat> requestStats = new ArrayList<>();
+        var repositoryCloneUrl = programmingParticipation.getRepositoryUri();
+        var participationId = programmingParticipation.getId();
 
         try {
             long start = System.nanoTime();
-            requestStats.add(cloneRepo(repositoryCloneUrl));
+
+            if (onlineIDE) {
+                makeInitialProgrammingExerciseOnlineIDECalls(requestStats, participationId);
+            } else {
+                requestStats.add(cloneRepo(repositoryCloneUrl));
+            }
 
             int n = new Random().nextInt(numberOfCommitsAndPushesFrom, numberOfCommitsAndPushesTo); // we do a random number of commits and pushes to make some noise
             log.info("Commit and push {}x for {}", n, username);
             for (int j = 0; j < n; j++) {
                 sleep(100);
-                changeFiles();
-                requestStats.add(commitAndPushRepo());
+                var makeInvalidChange = new Random().nextBoolean();
+                var changedFileContent = changeFiles(makeInvalidChange, false);
+
+                commitAndPush(requestStats, onlineIDE, participationId, changedFileContent);
             }
             log.debug("    Clone and commit+push done in " + formatDurationFrom(start));
         } catch (Exception e) {
             log.error("Error while handling programming exercise for {{}}: {{}}", username, e.getMessage());
+            log.error(Arrays.toString(e.getStackTrace()));
         }
         return requestStats;
     }
@@ -327,8 +350,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .post()
-            .uri(uriBuilder ->
-                uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "submit").build()
+            .uri(
+                uriBuilder ->
+                    uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "submit").build()
             )
             .bodyValue(studentExam)
             .retrieve()
@@ -341,19 +365,20 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri(uriBuilder ->
-                uriBuilder
-                    .pathSegment(
-                        "api",
-                        "courses",
-                        courseIdString,
-                        "exams",
-                        examIdString,
-                        "student-exams",
-                        studentExamId.toString(),
-                        "summary"
-                    )
-                    .build()
+            .uri(
+                uriBuilder ->
+                    uriBuilder
+                        .pathSegment(
+                            "api",
+                            "courses",
+                            courseIdString,
+                            "exams",
+                            examIdString,
+                            "student-exams",
+                            studentExamId.toString(),
+                            "summary"
+                        )
+                        .build()
             )
             .retrieve()
             .toBodilessEntity()
@@ -406,7 +431,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return new RequestStat(now(), duration, PUSH);
     }
 
-    private void changeFiles() throws IOException {
+    private String changeFiles(boolean invalidChange, boolean writeToFile) throws IOException {
         // TODO: produce larger and more realistic commits
         var bubbleSort = Path.of("repos", username, "src", "de", "tum", "in", "ase", "BubbleSort.java");
         log.debug("Change file  " + bubbleSort);
@@ -434,8 +459,88 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                 }
             }
             """;
+        if (invalidChange) {
+            newContent += "}";
+        }
+
         newContent = newContent.replace("$$1", String.valueOf(new Random().nextInt(100)));
-        FileUtils.writeStringToFile(bubbleSort.toFile(), newContent, Charset.defaultCharset());
+        if (writeToFile) {
+            FileUtils.writeStringToFile(bubbleSort.toFile(), newContent, Charset.defaultCharset());
+        }
+        return newContent;
+    }
+
+    private void makeInitialProgrammingExerciseOnlineIDECalls(List<RequestStat> requestStats, Long participationId) {
+        requestStats.add(getLatestResultWithFeedback(participationId));
+        requestStats.add(fetchRepository(participationId));
+        requestStats.add(fetchPlantUml());
+        requestStats.add(fetchFiles(participationId));
+    }
+
+    private void makeOfflineIDECommitAndPush(List<RequestStat> requestStats) throws IOException, GitAPIException {
+        requestStats.add(commitAndPushRepo());
+    }
+
+    private void makeOnlineIDECommitAndPush(List<RequestStat> requestStats, Long participationId, String changedFileContent) {
+        requestStats.add(fetchRepository(participationId));
+
+        var fileName = String.join("/", "src", "progforbenchtemp", "BubbleSort.java");
+        requestStats.add(fetchFile(participationId, fileName));
+
+        log.debug("Commit and push to " + fileName);
+        long start = System.nanoTime();
+        webClient
+            .put()
+            .uri("api/repository/" + participationId + "/files?commit=yes")
+            .bodyValue(List.of(new OnlineIdeFileSubmission(fileName, changedFileContent)))
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        long duration = System.nanoTime() - start;
+        requestStats.add(new RequestStat(now(), duration, PUSH));
+    }
+
+    private RequestStat getLatestResultWithFeedback(Long participationId) {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri("api/programming-exercise-participations/" + participationId + "/latest-result-with-feedbacks?withSubmission=true")
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat fetchRepository(Long participationId) {
+        long start = System.nanoTime();
+        webClient.get().uri("api/repository/" + participationId).retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat fetchFile(Long participationId, String fileName) {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri("api/repository/" + participationId + "/file?file=" + fileName)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat fetchFiles(Long participationId) {
+        long start = System.nanoTime();
+        webClient.get().uri("api/repository/" + participationId + "/files").retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat fetchPlantUml() {
+        long start = System.nanoTime();
+        String plantUmlString =
+            "%40startuml%0A%0Aclass%20Client%20%7B%0A%7D%0A%0Aclass%20Policy%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2Bconfigure()%3C%2Fcolor%3E%0A%7D%0A%0Aclass%20Context%20%7B%0A%20%20%3Ccolor%3Agrey%3E-dates%3A%20List%3CDate%3E%3C%2Fcolor%3E%0A%20%20%3Ccolor%3Agrey%3E%2Bsort()%3C%2Fcolor%3E%0A%7D%0A%0Ainterface%20SortStrategy%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2BperformSort(List%3CDate%3E)%3C%2Fcolor%3E%0A%7D%0A%0Aclass%20BubbleSort%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2BperformSort(List%3CDate%3E)%3C%2Fcolor%3E%0A%7D%0A%0Aclass%20MergeSort%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2BperformSort(List%3CDate%3E)%3C%2Fcolor%3E%0A%7D%0A%0AMergeSort%20-up-%7C%3E%20SortStrategy%20%23grey%0ABubbleSort%20-up-%7C%3E%20SortStrategy%20%23grey%0APolicy%20-right-%3E%20Context%20%23grey%3A%20context%0AContext%20-right-%3E%20SortStrategy%20%23grey%3A%20sortAlgorithm%0AClient%20.down.%3E%20Policy%0AClient%20.down.%3E%20Context%0A%0Ahide%20empty%20fields%0Ahide%20empty%20methods%0A%0A%40enduml&useDarkTheme=true";
+        webClient.get().uri("api/plantuml/svg?plantuml=" + plantUmlString).retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private RequestStat cloneRepo(String repositoryUrl) throws IOException {
@@ -449,8 +554,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         while (attempt < MAX_RETRIES) {
             try {
                 long start = System.nanoTime();
-                var git = Git
-                    .cloneRepository()
+                var git = Git.cloneRepository()
                     .setURI(repositoryUrl)
                     .setDirectory(localPath.toFile())
                     .setCredentialsProvider(getCredentialsProvider())
