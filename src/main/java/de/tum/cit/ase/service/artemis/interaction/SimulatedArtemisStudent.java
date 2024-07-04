@@ -341,7 +341,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             log.debug("    Clone and commit+push done in " + formatDurationFrom(start));
         } catch (Exception e) {
             log.error("Error while handling programming exercise for {{}}: {{}}", username, e.getMessage());
-            log.error(Arrays.toString(e.getStackTrace()));
         }
         return requestStats;
     }
