@@ -10,6 +10,9 @@ import de.tum.cit.ase.artemisModel.*;
 import de.tum.cit.ase.domain.ArtemisUser;
 import de.tum.cit.ase.domain.RequestStat;
 import de.tum.cit.ase.service.artemis.ArtemisUserService;
+import de.tum.cit.ase.service.artemis.util.ArtemisServerInfo;
+import de.tum.cit.ase.service.artemis.util.CourseDashboardDTO;
+import de.tum.cit.ase.service.artemis.util.ScienceEventDTO;
 import de.tum.cit.ase.util.UMLClassDiagrams;
 import jakarta.annotation.Nullable;
 import java.io.IOException;
@@ -17,12 +20,14 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.ParameterizedTypeReference;
 
 /**
  * A simulated Artemis student that can be used to interact with the Artemis server.
@@ -38,6 +43,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private StudentExam studentExam;
     private final int numberOfCommitsAndPushesFrom;
     private final int numberOfCommitsAndPushesTo;
+
+    private boolean isScienceFeatureEnabled = false;
 
     public SimulatedArtemisStudent(
         String artemisUrl,
@@ -67,7 +74,15 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
         }
 
-        return List.of(getInfo(), getSystemNotifications(), getAccount(), getNotificationSettings(), getCourses());
+        return List.of(
+            getInfo(),
+            getSystemNotifications(),
+            getAccount(),
+            getNotificationSettings(),
+            getCourses(),
+            getMutedConversations(),
+            getNotifications()
+        );
     }
 
     /**
@@ -98,6 +113,16 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
      * @return the list of request stats
      */
     public List<RequestStat> startExamParticipation(long courseId, long examId) {
+        return startExamParticipation(courseId, examId, 0);
+    }
+
+    /**
+     * Start participating in an exam, i.e. navigate into the exam and start the exam.
+     * @param courseId the ID of the course
+     * @param examId the ID of the exam
+     * @return the list of request stats
+     */
+    public List<RequestStat> startExamParticipation(long courseId, long examId, long courseProgrammingExerciseId) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
         }
@@ -106,7 +131,17 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
         List<RequestStat> requestStats = new ArrayList<>();
 
+        requestStats.add(getCourseDashboard(courseProgrammingExerciseId));
+        requestStats.add(getCoursesDropdown());
+        requestStats.add(getScienceSettings());
+        if (courseProgrammingExerciseId > 0) {
+            if (isScienceFeatureEnabled) {
+                requestStats.add(putScienceEvent(courseProgrammingExerciseId));
+            }
+            requestStats.add(getExerciseDetails(courseProgrammingExerciseId));
+        }
         requestStats.add(navigateIntoExam());
+        requestStats.add(getTestExams());
         requestStats.add(startExam());
 
         return requestStats;
@@ -135,7 +170,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat getInfo() {
         long start = System.nanoTime();
-        webClient.get().uri("management/info").retrieve().toBodilessEntity().block();
+        ArtemisServerInfo response = webClient.get().uri("management/info").retrieve().bodyToMono(ArtemisServerInfo.class).block();
+        if (response != null) {
+            isScienceFeatureEnabled = response.features().contains("science");
+        }
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -157,9 +195,171 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
+    private RequestStat getNotifications() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(
+                uriBuilder ->
+                    uriBuilder
+                        .path("api/notifications")
+                        .queryParam("page", 0)
+                        .queryParam("size", 25)
+                        .queryParam("sort", "notificationDate,desc")
+                        .build()
+            )
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
     private RequestStat getCourses() {
         long start = System.nanoTime();
         webClient.get().uri("api/courses/for-dashboard").retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat getMutedConversations() {
+        long start = System.nanoTime();
+        webClient.get().uri("api/muted-conversations").retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat getCourseDashboard(long exerciseId) {
+        long start = System.nanoTime();
+        CourseDashboardDTO courseDashboard = webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", courseIdString, "for-dashboard").build())
+            .retrieve()
+            .bodyToMono(CourseDashboardDTO.class)
+            .block();
+
+        if (courseDashboard == null) {
+            return new RequestStat(now(), System.nanoTime() - start, MISC);
+        }
+
+        try {
+            if (!courseDashboard.course().getCourseInformationSharingConfiguration().equals("DISABLED")) {
+                getUnreadMessages();
+                getExerciseChannelAndMessages(exerciseId);
+            }
+
+            if (courseDashboard.participationResults() != null) {
+                for (CourseDashboardDTO.ParticipationResultDTO result : courseDashboard.participationResults()) {
+                    long participationId = result.participationId();
+                    getLatestResult(participationId);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error while getting course dashboard for {{}}: {{}}", username, e.getMessage());
+        }
+
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private void getUnreadMessages() {
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", courseIdString, "unread-messages").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+    }
+
+    private void getExerciseChannelAndMessages(long exerciseId) {
+        Map<String, Object> channelResponse = webClient
+            .get()
+            .uri(
+                uriBuilder ->
+                    uriBuilder.pathSegment("api", "courses", courseIdString, "exercises", String.valueOf(exerciseId), "channel").build()
+            )
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+            .block();
+        final long channelId;
+        if (channelResponse != null) {
+            channelId = ((Number) channelResponse.get("id")).longValue();
+            if (channelId == 0) {
+                return;
+            }
+
+            webClient
+                .get()
+                .uri(
+                    uriBuilder ->
+                        uriBuilder
+                            .pathSegment("api", "courses", courseIdString, "messages")
+                            .queryParam("conversationId", channelId)
+                            .queryParam("PostSortCriterion", "CREATION_DATE")
+                            .queryParam("SortingOrder", "DESCENDING")
+                            .queryParam("pagingEnabled", true)
+                            .queryParam("page", 0)
+                            .queryParam("size", 50)
+                            .build()
+                )
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+        }
+    }
+
+    private void getLatestResult(long participationId) {
+        webClient
+            .get()
+            .uri(
+                uriBuilder ->
+                    uriBuilder
+                        .pathSegment(
+                            "api",
+                            "programming-exercise-participations",
+                            String.valueOf(participationId),
+                            "latest-pending-submission"
+                        )
+                        .build()
+            )
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+    }
+
+    private RequestStat getCoursesDropdown() {
+        long start = System.nanoTime();
+        webClient.get().uri("api/courses/for-dropdown").retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat getScienceSettings() {
+        long start = System.nanoTime();
+        webClient.get().uri("api/science-settings").retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat putScienceEvent(long exerciseId) {
+        long start = System.nanoTime();
+        try {
+            webClient
+                .put()
+                .uri("api/science")
+                .bodyValue(new ScienceEventDTO(ScienceEventDTO.ScienceEventType.EXERCISE__OPEN, exerciseId))
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+        } catch (Exception e) {
+            log.error("Error while putting science event for {{}}: {{}}", username, e.getMessage());
+        }
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat getExerciseDetails(long exerciseId) {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exercises", String.valueOf(exerciseId), "details").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -179,12 +379,23 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return new RequestStat(now(), duration, GET_STUDENT_EXAM);
     }
 
+    private RequestStat getTestExams() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", courseIdString, "test-exams-per-user").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
     private RequestStat startExam() {
         long start = System.nanoTime();
-        studentExam =
-            webClient
-                .get()
-                .uri(uriBuilder ->
+        studentExam = webClient
+            .get()
+            .uri(
+                uriBuilder ->
                     uriBuilder
                         .pathSegment(
                             "api",
@@ -197,10 +408,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                             "conduction"
                         )
                         .build()
-                )
-                .retrieve()
-                .bodyToMono(StudentExam.class)
-                .block();
+            )
+            .retrieve()
+            .bodyToMono(StudentExam.class)
+            .block();
         return new RequestStat(now(), System.nanoTime() - start, START_STUDENT_EXAM);
     }
 
@@ -208,8 +419,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri(uriBuilder ->
-                uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "live-events").build()
+            .uri(
+                uriBuilder ->
+                    uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "live-events").build()
             )
             .retrieve()
             .toBodilessEntity()
@@ -247,8 +459,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             long start = System.nanoTime();
             webClient
                 .put()
-                .uri(uriBuilder ->
-                    uriBuilder.pathSegment("api", "exercises", modelingExercise.getId().toString(), "modeling-submissions").build()
+                .uri(
+                    uriBuilder ->
+                        uriBuilder.pathSegment("api", "exercises", modelingExercise.getId().toString(), "modeling-submissions").build()
                 )
                 .bodyValue(modelingSubmission)
                 .retrieve()
@@ -285,8 +498,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             long start = System.nanoTime();
             webClient
                 .put()
-                .uri(uriBuilder ->
-                    uriBuilder.pathSegment("api", "exercises", quizExercise.getId().toString(), "submissions", "exam").build()
+                .uri(
+                    uriBuilder -> uriBuilder.pathSegment("api", "exercises", quizExercise.getId().toString(), "submissions", "exam").build()
                 )
                 .bodyValue(quizSubmission)
                 .retrieve()
@@ -327,8 +540,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .post()
-            .uri(uriBuilder ->
-                uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "submit").build()
+            .uri(
+                uriBuilder ->
+                    uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "submit").build()
             )
             .bodyValue(studentExam)
             .retrieve()
@@ -341,19 +555,20 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri(uriBuilder ->
-                uriBuilder
-                    .pathSegment(
-                        "api",
-                        "courses",
-                        courseIdString,
-                        "exams",
-                        examIdString,
-                        "student-exams",
-                        studentExamId.toString(),
-                        "summary"
-                    )
-                    .build()
+            .uri(
+                uriBuilder ->
+                    uriBuilder
+                        .pathSegment(
+                            "api",
+                            "courses",
+                            courseIdString,
+                            "exams",
+                            examIdString,
+                            "student-exams",
+                            studentExamId.toString(),
+                            "summary"
+                        )
+                        .build()
             )
             .retrieve()
             .toBodilessEntity()
@@ -449,8 +664,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         while (attempt < MAX_RETRIES) {
             try {
                 long start = System.nanoTime();
-                var git = Git
-                    .cloneRepository()
+                var git = Git.cloneRepository()
                     .setURI(repositoryUrl)
                     .setDirectory(localPath.toFile())
                     .setCredentialsProvider(getCredentialsProvider())

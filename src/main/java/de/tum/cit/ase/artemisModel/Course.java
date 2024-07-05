@@ -4,6 +4,7 @@ public class Course extends DomainObject {
 
     private String title;
     private String shortName;
+    private String courseInformationSharingConfiguration;
 
     public Course(String title, String shortName) {
         this.title = title;
@@ -26,5 +27,13 @@ public class Course extends DomainObject {
 
     public void setShortName(String shortName) {
         this.shortName = shortName;
+    }
+
+    public String getCourseInformationSharingConfiguration() {
+        return courseInformationSharingConfiguration;
+    }
+
+    public void setCourseInformationSharingConfiguration(String courseInformationSharingConfiguration) {
+        this.courseInformationSharingConfiguration = courseInformationSharingConfiguration;
     }
 }
