@@ -99,7 +99,6 @@ public class CiStatusService {
      * @param admin the SimulatedArtemisAdmin to use for querying the CI status
      * @param examId the ID of the exam to use for querying the CI status
      */
-    @Async
     public CompletableFuture<Void> subscribeToCiStatusViaResults(SimulationRun simulationRun, SimulatedArtemisAdmin admin, long examId) {
         return CompletableFuture.supplyAsync(() -> {
             log.info("Subscribing to CI status for simulation run {}", simulationRun.getId());
