@@ -22,6 +22,7 @@ import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -175,25 +176,28 @@ public class SimulationExecutionService {
         List<RequestStat> requestStats = simulateExamParticipations(simulationRun, students, admin, courseId, examId);
 
         logAndSend(false, simulationRun, "Simulation finished.");
-        cleanupAsync(admin, simulationRun, courseId, examId);
 
         // Calculate, save and send result
         SimulationRun runWithResult = simulationResultService.calculateAndSaveResult(simulationRun, requestStats);
         finishSimulationRun(runWithResult);
         sendRunResult(runWithResult);
 
-        // Subscribe to CI status if necessary / possible
-        if (artemisConfiguration.getIsLocal(simulationRun.getSimulation().getServer())) {
-            if (admin == null) {
-                try {
-                    admin = initializeAdminFromUserManagement(simulationRun.getSimulation().getServer());
-                } catch (Exception e) {
-                    logAndSend(true, simulationRun, "Cannot get CI status, no admin account available.");
-                    return;
-                }
+        if (admin == null) {
+            try {
+                admin = initializeAdminFromUserManagement(simulationRun.getSimulation().getServer());
+            } catch (Exception e) {
+                logAndSend(true, simulationRun, "Cannot get CI status, no admin account available.");
+                return;
             }
-            ciStatusService.subscribeToCiStatusViaResults(runWithResult, admin, examId);
         }
+
+        // Subscribe to CI status, as we can only safely delete the course after all CI jobs have finished
+        try {
+            ciStatusService.subscribeToCiStatusViaResults(runWithResult, admin, examId).get();
+        } catch (ExecutionException | InterruptedException e) {
+            logAndSend(true, simulationRun, "Error while subscribing to CI status: %s", e.getMessage());
+        }
+        cleanupAsync(admin, simulationRun, courseId, examId);
     }
 
     /**

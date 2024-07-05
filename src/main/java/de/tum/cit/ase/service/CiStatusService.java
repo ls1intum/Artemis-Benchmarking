@@ -11,6 +11,7 @@ import de.tum.cit.ase.service.artemis.interaction.SimulatedArtemisAdmin;
 import de.tum.cit.ase.web.websocket.SimulationWebsocketService;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -99,56 +100,60 @@ public class CiStatusService {
      * @param examId the ID of the exam to use for querying the CI status
      */
     @Async
-    public void subscribeToCiStatusViaResults(SimulationRun simulationRun, SimulatedArtemisAdmin admin, long examId) {
-        log.info("Subscribing to CI status for simulation run {}", simulationRun.getId());
-        CiStatus status = createCiStatus(simulationRun);
+    public CompletableFuture<Void> subscribeToCiStatusViaResults(SimulationRun simulationRun, SimulatedArtemisAdmin admin, long examId) {
+        return CompletableFuture.supplyAsync(() -> {
+            log.info("Subscribing to CI status for simulation run {}", simulationRun.getId());
+            CiStatus status = createCiStatus(simulationRun);
 
-        List<Long> programmingExerciseIds = admin
-            .getExamWithExercises(examId)
-            .getExerciseGroups()
-            .stream()
-            .flatMap(exerciseGroup -> exerciseGroup.getExercises().stream())
-            .filter(exercise -> exercise instanceof ProgrammingExercise)
-            .map(DomainObject::getId)
-            .toList();
+            List<Long> programmingExerciseIds = admin
+                .getExamWithExercises(examId)
+                .getExerciseGroups()
+                .stream()
+                .flatMap(exerciseGroup -> exerciseGroup.getExercises().stream())
+                .filter(exercise -> exercise instanceof ProgrammingExercise)
+                .map(DomainObject::getId)
+                .toList();
 
-        List<Submission> submissions = new ArrayList<>();
-        List<Participation> participations = new ArrayList<>();
-        for (Long programmingExerciseId : programmingExerciseIds) {
-            participations.addAll(admin.getParticipations(programmingExerciseId));
-        }
-        for (var participation : participations) {
-            submissions.addAll(admin.getSubmissions(participation.getId()));
-        }
-
-        int numberOfQueuedJobs = submissions.size() - getNumberOfResults(submissions);
-        status.setTotalJobs(numberOfQueuedJobs);
-        status.setQueuedJobs(numberOfQueuedJobs);
-        status = ciStatusRepository.save(status);
-        websocketService.sendRunCiUpdate(simulationRun.getId(), status);
-
-        do {
-            try {
-                Thread.sleep(1000 * 60);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+            List<Submission> submissions = new ArrayList<>();
+            List<Participation> participations = new ArrayList<>();
+            for (Long programmingExerciseId : programmingExerciseIds) {
+                participations.addAll(admin.getParticipations(programmingExerciseId));
             }
-            log.debug("Updating CI status for simulation run {}", simulationRun.getId());
-            submissions = new ArrayList<>();
             for (var participation : participations) {
                 submissions.addAll(admin.getSubmissions(participation.getId()));
             }
-            numberOfQueuedJobs = submissions.size() - getNumberOfResults(submissions);
+
+            int numberOfQueuedJobs = submissions.size() - getNumberOfResults(submissions);
+            status.setTotalJobs(numberOfQueuedJobs);
             status.setQueuedJobs(numberOfQueuedJobs);
-            status.setTimeInMinutes(status.getTimeInMinutes() + 1);
-            status.setAvgJobsPerMinute((double) (status.getTotalJobs() - status.getQueuedJobs()) / status.getTimeInMinutes());
             status = ciStatusRepository.save(status);
             websocketService.sendRunCiUpdate(simulationRun.getId(), status);
-        } while (numberOfQueuedJobs > 0);
-        status.setFinished(true);
-        status = ciStatusRepository.save(status);
-        websocketService.sendRunCiUpdate(simulationRun.getId(), status);
-        log.info("Finished subscribing to CI status for simulation run {}", simulationRun.getId());
+
+            do {
+                try {
+                    Thread.sleep(1000 * 60);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                log.debug("Updating CI status for simulation run {}", simulationRun.getId());
+                submissions = new ArrayList<>();
+                for (var participation : participations) {
+                    submissions.addAll(admin.getSubmissions(participation.getId()));
+                }
+                numberOfQueuedJobs = submissions.size() - getNumberOfResults(submissions);
+                status.setQueuedJobs(numberOfQueuedJobs);
+                status.setTimeInMinutes(status.getTimeInMinutes() + 1);
+                status.setAvgJobsPerMinute((double) (status.getTotalJobs() - status.getQueuedJobs()) / status.getTimeInMinutes());
+                status = ciStatusRepository.save(status);
+                websocketService.sendRunCiUpdate(simulationRun.getId(), status);
+            } while (numberOfQueuedJobs > 0);
+            status.setFinished(true);
+            status = ciStatusRepository.save(status);
+            websocketService.sendRunCiUpdate(simulationRun.getId(), status);
+            log.info("Finished subscribing to CI status for simulation run {}", simulationRun.getId());
+
+            return null;
+        });
     }
 
     private int getNumberOfResults(List<Submission> submissions) {
