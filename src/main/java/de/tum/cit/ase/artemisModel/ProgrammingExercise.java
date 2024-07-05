@@ -9,7 +9,7 @@ public class ProgrammingExercise extends Exercise {
     private String packageName;
     private boolean allowOfflineIde = true;
     private String programmingLanguage = "JAVA";
-    private String projectType = "PLAIN_MAVEN";
+    private String projectType = "PLAIN_GRADLE";
     private boolean staticCodeAnalysisEnabled = false;
     // Required for creating course ProgrammingExercise
     private Course course;
