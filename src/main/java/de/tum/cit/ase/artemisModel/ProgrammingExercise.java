@@ -9,8 +9,10 @@ public class ProgrammingExercise extends Exercise {
     private String packageName;
     private boolean allowOfflineIde = true;
     private String programmingLanguage = "JAVA";
-    private String projectType = "PLAIN_GRADLE";
+    private String projectType = "PLAIN_MAVEN";
     private boolean staticCodeAnalysisEnabled = false;
+    // Required for creating course ProgrammingExercise
+    private Course course;
 
     public String getShortName() {
         return shortName;
@@ -58,5 +60,13 @@ public class ProgrammingExercise extends Exercise {
 
     public void setStaticCodeAnalysisEnabled(boolean staticCodeAnalysisEnabled) {
         this.staticCodeAnalysisEnabled = staticCodeAnalysisEnabled;
+    }
+
+    public Course getCourse() {
+        return course;
+    }
+
+    public void setCourse(Course course) {
+        this.course = course;
     }
 }

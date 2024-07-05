@@ -4,6 +4,7 @@ import static java.lang.Thread.sleep;
 
 import de.tum.cit.ase.artemisModel.Course;
 import de.tum.cit.ase.artemisModel.Exam;
+import de.tum.cit.ase.artemisModel.ProgrammingExercise;
 import de.tum.cit.ase.domain.*;
 import de.tum.cit.ase.repository.LogMessageRepository;
 import de.tum.cit.ase.repository.SimulationRunRepository;
@@ -116,6 +117,8 @@ public class SimulationExecutionService {
 
         students = initializeStudents(simulationRun);
 
+        ProgrammingExercise courseProgrammingExercise = null;
+
         // Initialize admin if necessary
         if (simulation.getMode() != Simulation.Mode.EXISTING_COURSE_PREPARED_EXAM) {
             admin = initializeAdmin(simulationRun, accountDTO);
@@ -143,6 +146,9 @@ public class SimulationExecutionService {
                 logAndSend(false, simulationRun, "Using existing course.");
                 course = getCourse(admin, simulationRun, courseId);
             }
+
+            // Create programming exercise for course, this is needed to simulate some side requests
+            courseProgrammingExercise = createCourseProgrammingExercise(admin, simulationRun, course);
 
             // Create exam if necessary
             if (simulation.getMode() != Simulation.Mode.EXISTING_COURSE_UNPREPARED_EXAM) {
@@ -173,7 +179,14 @@ public class SimulationExecutionService {
         }
 
         // Perform simulation of exam participations
-        List<RequestStat> requestStats = simulateExamParticipations(simulationRun, students, admin, courseId, examId);
+        List<RequestStat> requestStats = simulateExamParticipations(
+            simulationRun,
+            students,
+            admin,
+            courseId,
+            examId,
+            courseProgrammingExercise != null ? courseProgrammingExercise.getId() : 0
+        );
 
         logAndSend(false, simulationRun, "Simulation finished.");
 
@@ -220,7 +233,8 @@ public class SimulationExecutionService {
         SimulatedArtemisStudent[] students,
         SimulatedArtemisAdmin admin,
         long courseId,
-        long examId
+        long examId,
+        long programmingExerciseId
     ) {
         logAndSend(false, simulationRun, "Starting simulation...");
         Simulation simulation = simulationRun.getSimulation();
@@ -239,7 +253,11 @@ public class SimulationExecutionService {
 
             logAndSend(false, simulationRun, "Participating in exam...");
             requestStats.addAll(
-                performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].startExamParticipation(courseId, examId))
+                performActionWithAll(
+                    threadCount,
+                    simulation.getNumberOfUsers(),
+                    i -> students[i].startExamParticipation(courseId, examId, programmingExerciseId)
+                )
             );
             requestStats.addAll(
                 performActionWithAll(
@@ -387,6 +405,17 @@ public class SimulationExecutionService {
             logAndSend(true, simulationRun, "Error while fetching course: %s", e.getMessage());
             failSimulationRun(simulationRun);
             throw new SimulationFailedException("Error while fetching course", e);
+        }
+    }
+
+    private ProgrammingExercise createCourseProgrammingExercise(SimulatedArtemisAdmin admin, SimulationRun simulationRun, Course course) {
+        logAndSend(false, simulationRun, "Creating course programming exercise...");
+        try {
+            return admin.createCourseProgrammingExercise(course);
+        } catch (Exception e) {
+            logAndSend(true, simulationRun, "Error while creating course programming exercise: %s", e.getMessage());
+            failSimulationRun(simulationRun);
+            throw new SimulationFailedException("Error while creating course programming exercise", e);
         }
     }
 
