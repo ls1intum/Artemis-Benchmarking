@@ -11,8 +11,6 @@ public enum RequestType {
     PUSH,
     PROGRAMMING_EXERCISE_RESULT,
     REPOSITORY_INFO,
-    REPOSITORY_FILE,
     REPOSITORY_FILES,
-    PLANT_UML,
     MISC,
 }
