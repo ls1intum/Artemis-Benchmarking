@@ -48,6 +48,7 @@ export class SimulationCardComponent implements OnInit {
   protected readonly Mode = Mode;
   protected readonly Status = Status;
   protected readonly getTextRepresentation = getTextRepresentation;
+  protected readonly getTextRepresentationIdeType = getTextRepresentationIdeType;
   protected readonly ArtemisServer = ArtemisServer;
   protected readonly instructorCredentialsProvided = instructorCredentialsProvided;
 
@@ -209,6 +210,4 @@ export class SimulationCardComponent implements OnInit {
       this.simulation.mode !== Mode.EXISTING_COURSE_PREPARED_EXAM &&
       !instructorCredentialsProvided(this.simulation);
   }
-
-  protected readonly getTextRepresentationIdeType = getTextRepresentationIdeType;
 }
