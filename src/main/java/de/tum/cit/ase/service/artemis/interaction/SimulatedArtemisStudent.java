@@ -114,16 +114,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
      * @param examId the ID of the exam
      * @return the list of request stats
      */
-    public List<RequestStat> startExamParticipation(long courseId, long examId) {
-        return startExamParticipation(courseId, examId, 0);
-    }
-
-    /**
-     * Start participating in an exam, i.e. navigate into the exam and start the exam.
-     * @param courseId the ID of the course
-     * @param examId the ID of the exam
-     * @return the list of request stats
-     */
     public List<RequestStat> startExamParticipation(long courseId, long examId, long courseProgrammingExerciseId) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
