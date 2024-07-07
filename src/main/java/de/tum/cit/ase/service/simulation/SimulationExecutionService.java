@@ -195,20 +195,21 @@ public class SimulationExecutionService {
         finishSimulationRun(runWithResult);
         sendRunResult(runWithResult);
 
-        if (admin == null) {
-            try {
-                admin = initializeAdminFromUserManagement(simulationRun.getSimulation().getServer());
-            } catch (Exception e) {
-                logAndSend(true, simulationRun, "Cannot get CI status, no admin account available.");
-                return;
+        if (artemisConfiguration.getIsLocal(simulationRun.getSimulation().getServer())) {
+            if (admin == null) {
+                try {
+                    admin = initializeAdminFromUserManagement(simulationRun.getSimulation().getServer());
+                } catch (Exception e) {
+                    logAndSend(true, simulationRun, "Cannot get CI status, no admin account available.");
+                    return;
+                }
             }
-        }
-
-        // Subscribe to CI status, as we can only safely delete the course after all CI jobs have finished
-        try {
-            ciStatusService.subscribeToCiStatusViaResults(runWithResult, admin, examId).get();
-        } catch (ExecutionException | InterruptedException e) {
-            logAndSend(true, simulationRun, "Error while subscribing to CI status: %s", e.getMessage());
+            // Subscribe to CI status, as we can only safely delete the course after all CI jobs have finished
+            try {
+                ciStatusService.subscribeToCiStatusViaResults(runWithResult, admin, examId).get();
+            } catch (ExecutionException | InterruptedException e) {
+                logAndSend(true, simulationRun, "Error while subscribing to CI status: %s", e.getMessage());
+            }
         }
         cleanupAsync(admin, simulationRun, courseId, examId);
     }
