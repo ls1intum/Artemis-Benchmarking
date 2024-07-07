@@ -9,5 +9,8 @@ public enum RequestType {
     SUBMIT_STUDENT_EXAM,
     CLONE,
     PUSH,
+    PROGRAMMING_EXERCISE_RESULT,
+    REPOSITORY_INFO,
+    REPOSITORY_FILES,
     MISC,
 }

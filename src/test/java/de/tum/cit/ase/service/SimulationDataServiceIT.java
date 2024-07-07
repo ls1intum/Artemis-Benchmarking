@@ -66,20 +66,19 @@ public class SimulationDataServiceIT {
         simulation.setName("Test");
         simulation.setNumberOfCommitsAndPushesFrom(1);
         simulation.setNumberOfCommitsAndPushesTo(4);
+        simulation.setIdeType(Simulation.IDEType.OFFLINE);
 
-        when(simulationRepository.save(any(Simulation.class)))
-            .thenAnswer(invocation -> {
-                var simulation = invocation.getArgument(0, Simulation.class);
-                simulation.setId(1L);
-                return simulation;
-            });
+        when(simulationRepository.save(any(Simulation.class))).thenAnswer(invocation -> {
+            var simulation = invocation.getArgument(0, Simulation.class);
+            simulation.setId(1L);
+            return simulation;
+        });
 
-        when(simulationRunRepository.save(any(SimulationRun.class)))
-            .thenAnswer(invocation -> {
-                var runArg = invocation.getArgument(0, SimulationRun.class);
-                runArg.setId(1L);
-                return runArg;
-            });
+        when(simulationRunRepository.save(any(SimulationRun.class))).thenAnswer(invocation -> {
+            var runArg = invocation.getArgument(0, SimulationRun.class);
+            runArg.setId(1L);
+            return runArg;
+        });
 
         doNothing().when(simulationQueueService).queueSimulationRun(any());
         doNothing().when(simulationWebsocketService).sendRunStatusUpdate(any());
@@ -157,12 +156,11 @@ public class SimulationDataServiceIT {
         simulation.setId(1L);
         when(simulationRepository.findById(1L)).thenReturn(java.util.Optional.of(simulation));
 
-        when(simulationRunRepository.save(any(SimulationRun.class)))
-            .thenAnswer(invocation -> {
-                var runArg = invocation.getArgument(0, SimulationRun.class);
-                runArg.setId(1L);
-                return runArg;
-            });
+        when(simulationRunRepository.save(any(SimulationRun.class))).thenAnswer(invocation -> {
+            var runArg = invocation.getArgument(0, SimulationRun.class);
+            runArg.setId(1L);
+            return runArg;
+        });
 
         var queuedRun = simulationDataService.createAndQueueSimulationRun(1L, null, null);
 
@@ -178,12 +176,11 @@ public class SimulationDataServiceIT {
         simulation.setServer(PRODUCTION);
         when(simulationRepository.findById(1L)).thenReturn(java.util.Optional.of(simulation));
 
-        when(simulationRunRepository.save(any(SimulationRun.class)))
-            .thenAnswer(invocation -> {
-                var runArg = invocation.getArgument(0, SimulationRun.class);
-                runArg.setId(1L);
-                return runArg;
-            });
+        when(simulationRunRepository.save(any(SimulationRun.class))).thenAnswer(invocation -> {
+            var runArg = invocation.getArgument(0, SimulationRun.class);
+            runArg.setId(1L);
+            return runArg;
+        });
         assertThrows(IllegalArgumentException.class, () -> simulationDataService.createAndQueueSimulationRun(1L, null, null));
 
         verify(simulationRunRepository, times(0)).save(any());

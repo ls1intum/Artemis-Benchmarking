@@ -70,6 +70,9 @@ public class SimulationDataService {
         if (!validateSimulation(simulation)) {
             throw new IllegalArgumentException("Invalid simulation");
         }
+        if (simulation.getIdeType() == null) {
+            throw new IllegalArgumentException("IDE type must not be null");
+        }
         // If only one of the instructor credentials is set, remove both
         if ((simulation.getInstructorUsername() != null) ^ (simulation.getInstructorPassword() != null)) {
             simulation.setInstructorUsername(null);

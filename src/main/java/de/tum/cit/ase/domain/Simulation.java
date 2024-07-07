@@ -45,6 +45,10 @@ public class Simulation {
     @Column(name = "user_range")
     private String userRange;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ide_type", nullable = false)
+    private IDEType ideType;
+
     @Column(name = "number_of_commits_and_pushes_from")
     private int numberOfCommitsAndPushesFrom;
 
@@ -152,6 +156,14 @@ public class Simulation {
         this.userRange = userRange;
     }
 
+    public IDEType getIdeType() {
+        return ideType;
+    }
+
+    public void setIdeType(IDEType ideType) {
+        this.ideType = ideType;
+    }
+
     public int getNumberOfCommitsAndPushesFrom() {
         return numberOfCommitsAndPushesFrom;
     }
@@ -224,5 +236,17 @@ public class Simulation {
          * Required rights: INSTRUCTOR
          */
         EXISTING_COURSE_CREATE_EXAM,
+    }
+
+    public enum IDEType {
+        /**
+         * Programming exercises will be solved using the Artemis Online IDE.
+         */
+        ONLINE,
+
+        /**
+         * Programming exercises will be solved using an offline IDE.
+         */
+        OFFLINE,
     }
 }

@@ -1,5 +1,11 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { getTextRepresentation, instructorCredentialsProvided, Mode, Simulation } from '../../entities/simulation/simulation';
+import {
+  getTextRepresentation,
+  getTextRepresentationIdeType,
+  instructorCredentialsProvided,
+  Mode,
+  Simulation,
+} from '../../entities/simulation/simulation';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
 import { SimulationsService } from '../../simulations/simulations.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -42,6 +48,7 @@ export class SimulationCardComponent implements OnInit {
   protected readonly Mode = Mode;
   protected readonly Status = Status;
   protected readonly getTextRepresentation = getTextRepresentation;
+  protected readonly getTextRepresentationIdeType = getTextRepresentationIdeType;
   protected readonly ArtemisServer = ArtemisServer;
   protected readonly instructorCredentialsProvided = instructorCredentialsProvided;
 

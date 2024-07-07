@@ -32,7 +32,13 @@ export function getOrder(simulationStats: SimulationStats): number {
       return 6;
     case RequestType.PUSH:
       return 7;
-    case RequestType.MISC:
+    case RequestType.PROGRAMMING_EXERCISE_RESULT:
       return 8;
+    case RequestType.REPOSITORY_INFO:
+      return 9;
+    case RequestType.REPOSITORY_FILES:
+      return 10;
+    case RequestType.MISC:
+      return 11;
   }
 }

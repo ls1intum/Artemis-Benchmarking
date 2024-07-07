@@ -71,6 +71,16 @@ public class SimulationResultService {
 
         SimulationStats pushStats = calculateStatsForRequestType(requestStats, RequestType.PUSH, simulationRun);
 
+        SimulationStats programmingExerciseResultStats = calculateStatsForRequestType(
+            requestStats,
+            RequestType.PROGRAMMING_EXERCISE_RESULT,
+            simulationRun
+        );
+
+        SimulationStats repositoryInfoStats = calculateStatsForRequestType(requestStats, RequestType.REPOSITORY_INFO, simulationRun);
+
+        SimulationStats repositoryFileStats = calculateStatsForRequestType(requestStats, RequestType.REPOSITORY_FILES, simulationRun);
+
         SimulationStats miscStats = calculateStatsForRequestType(requestStats, RequestType.MISC, simulationRun);
 
         simulationRun.setStats(
@@ -83,6 +93,9 @@ public class SimulationResultService {
                 submitStudentExamStats,
                 cloneStats,
                 pushStats,
+                programmingExerciseResultStats,
+                repositoryInfoStats,
+                repositoryFileStats,
                 miscStats
             )
         );
