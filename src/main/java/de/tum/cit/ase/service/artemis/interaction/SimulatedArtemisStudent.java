@@ -534,7 +534,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             for (int j = 0; j < n; j++) {
                 sleep(100);
                 var makeInvalidChange = new Random().nextBoolean();
-                var changedFileContent = changeFiles(makeInvalidChange, false);
+                var writeToFile = !onlineIDE;
+                var changedFileContent = changeFiles(makeInvalidChange, writeToFile);
 
                 commitAndPush(requestStats, onlineIDE, participationId, changedFileContent);
             }
