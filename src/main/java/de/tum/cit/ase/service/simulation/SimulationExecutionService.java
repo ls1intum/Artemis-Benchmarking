@@ -189,6 +189,8 @@ public class SimulationExecutionService {
         );
 
         logAndSend(false, simulationRun, "Simulation finished.");
+        // TODO: Cleanup deletes running build jobs. Need to find another approach to cleanup
+        cleanupAsync(admin, simulationRun, courseId, examId);
 
         // Calculate, save and send result
         SimulationRun runWithResult = simulationResultService.calculateAndSaveResult(simulationRun, requestStats);
@@ -211,7 +213,6 @@ public class SimulationExecutionService {
                 logAndSend(true, simulationRun, "Error while subscribing to CI status: %s", e.getMessage());
             }
         }
-        cleanupAsync(admin, simulationRun, courseId, examId);
     }
 
     /**
