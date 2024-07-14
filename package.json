@@ -1,6 +1,6 @@
 {
   "name": "artemis-benchmarking",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Artemis Benchmarking",
   "license": "MIT",
@@ -31,6 +31,7 @@
     "cleanup": "rimraf build/",
     "docker:db:down": "docker compose -f src/main/docker/mysql.yml down -v",
     "docker:db:up": "docker compose -f src/main/docker/mysql.yml up --wait",
+    "postinstall": "husky",
     "java:docker": "./gradlew bootJar -Pprod jibDockerBuild",
     "java:docker:arm64": "npm run java:docker -- -PjibArchitecture=arm64",
     "java:docker:dev": "npm run java:docker -- -Pdev,webapp",
@@ -44,7 +45,6 @@
     "jest": "npm run prebuild && jest --coverage --logHeapUsage --maxWorkers=2 --config jest.conf.js",
     "lint": "eslint . --ext .js,.ts",
     "lint:fix": "npm run lint -- --fix",
-    "prepare": "husky install",
     "prettier:check": "prettier --check \"{,src/**/,.blueprint/**/}*.{md,json,yml,html,cjs,mjs,js,ts,tsx,css,scss,java}\"",
     "prettier:format": "prettier --write \"{,src/**/,.blueprint/**/}*.{md,json,yml,html,cjs,mjs,js,ts,tsx,css,scss,java}\"",
     "serve": "npm run start --",
@@ -71,43 +71,43 @@
     "packaging": "jar"
   },
   "dependencies": {
-    "@angular/common": "18.0.1",
-    "@angular/compiler": "18.0.1",
-    "@angular/core": "18.0.1",
-    "@angular/forms": "18.0.1",
-    "@angular/localize": "18.0.1",
-    "@angular/platform-browser": "18.0.1",
-    "@angular/platform-browser-dynamic": "18.0.1",
-    "@angular/router": "18.0.1",
+    "@angular/common": "18.1.0",
+    "@angular/compiler": "18.1.0",
+    "@angular/core": "18.1.0",
+    "@angular/forms": "18.1.0",
+    "@angular/localize": "18.1.0",
+    "@angular/platform-browser": "18.1.0",
+    "@angular/platform-browser-dynamic": "18.1.0",
+    "@angular/router": "18.1.0",
     "@fortawesome/angular-fontawesome": "0.15.0",
     "@fortawesome/fontawesome-svg-core": "6.5.2",
     "@fortawesome/free-solid-svg-icons": "6.5.2",
-    "@ng-bootstrap/ng-bootstrap": "^16.0.0",
+    "@ng-bootstrap/ng-bootstrap": "^17.0.0",
     "@swimlane/ngx-charts": "20.5.0",
     "bootstrap": "5.3.3",
     "d3": "7.9.0",
     "dayjs": "1.11.11",
     "rxjs": "7.8.1",
     "sockjs-client": "1.6.1",
-    "tslib": "2.6.2",
+    "tslib": "2.6.3",
     "webstomp-client": "1.2.6",
-    "zone.js": "0.14.6"
+    "zone.js": "0.14.7"
   },
   "devDependencies": {
-    "@angular-builders/jest": "17.0.3",
-    "@angular-eslint/eslint-plugin": "18.0.0",
-    "@angular/build": "18.0.2",
-    "@angular/cli": "18.0.2",
-    "@angular/compiler-cli": "18.0.1",
-    "@angular/service-worker": "18.0.1",
+    "@angular-builders/jest": "18.0.0",
+    "@angular-eslint/eslint-plugin": "18.1.0",
+    "@angular/build": "18.1.0",
+    "@angular/cli": "18.1.0",
+    "@angular/compiler-cli": "18.1.0",
+    "@angular/service-worker": "18.1.0",
     "@types/d3-scale": "4.0.8",
     "@types/d3-selection": "3.0.10",
     "@types/d3-shape": "3.1.6",
     "@types/jest": "29.5.12",
-    "@types/node": "20.12.13",
+    "@types/node": "20.14.10",
     "@types/sockjs-client": "1.5.4",
-    "@typescript-eslint/eslint-plugin": "7.11.0",
-    "@typescript-eslint/parser": "7.11.0",
+    "@typescript-eslint/eslint-plugin": "7.16.0",
+    "@typescript-eslint/parser": "7.16.0",
     "browser-sync": "3.0.2",
     "buffer": "6.0.3",
     "concurrently": "8.2.2",
@@ -118,51 +118,21 @@
     "jest-date-mock": "1.0.10",
     "jest-environment-jsdom": "29.7.0",
     "jest-junit": "16.0.0",
-    "jest-preset-angular": "14.1.0",
+    "jest-preset-angular": "14.1.1",
     "jest-sonar": "0.2.16",
-    "lint-staged": "15.2.5",
-    "prettier": "3.2.5",
-    "prettier-plugin-java": "2.6.0",
+    "lint-staged": "15.2.7",
+    "prettier": "3.3.3",
+    "prettier-plugin-java": "2.6.4",
     "prettier-plugin-packagejson": "2.5.0",
-    "rimraf": "5.0.7",
+    "rimraf": "6.0.1",
     "swagger-ui-dist": "5.17.14",
-    "ts-jest": "29.1.4",
-    "typescript": "5.4.5"
+    "ts-jest": "29.2.2",
+    "typescript": "5.5.3"
   },
   "engines": {
-    "node": ">=20.10.0"
+    "node": ">=20.14.0"
   },
   "cacheDirectories": [
     "node_modules"
-  ],
-  "overrides": {
-    "@ng-bootstrap/ng-bootstrap": {
-      "@angular/cdk": "^18.0.0",
-      "@angular/common": "^18.0.0",
-      "@angular/core": "^18.0.0",
-      "@angular/localize": "^18.0.0",
-      "@angular/forms": "^18.0.0"
-    },
-    "@angular-builders/jest": {
-      "@angular/cdk": "^18.0.0",
-      "@angular/common": "^18.0.0",
-      "@angular/core": "^18.0.0",
-      "@angular-devkit/build-angular": "^18.0.0",
-      "@angular/compiler-cli": "^18.0.0",
-      "@angular/platform-browser-dynamic": "^18.0.0",
-      "@angular/localize": "^18.0.0",
-      "@angular/forms": "^18.0.0",
-      "@angular/platform-browser": "^18.0.0",
-      "@angular/router": "^18.0.0"
-    },
-    "@swimlane/ngx-charts": {
-      "@angular/animations": "^18.0.0",
-      "@angular/cdk": "^18.0.0",
-      "@angular/common": "^18.0.0",
-      "@angular/core": "^18.0.0",
-      "@angular/forms": "^18.0.0",
-      "@angular/platform-browser": "^18.0.0",
-      "@angular/platform-browser-dynamic": "^18.0.0"
-    }
-  }
+  ]
 }

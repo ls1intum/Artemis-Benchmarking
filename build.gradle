@@ -20,7 +20,7 @@ plugins {
 }
 
 group = "de.tum.cit.ase"
-version = "0.1.1"
+version = "0.1.2"
 
 description = ""
 
@@ -213,7 +213,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-websocket:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server:${springBootVersion}"
     implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
-    
+
     implementation "io.micrometer:micrometer-registry-prometheus:1.13.0"
     implementation "io.dropwizard.metrics:metrics-core"
     implementation "org.springframework.security:spring-security-messaging:${springSecurityVersion}"
