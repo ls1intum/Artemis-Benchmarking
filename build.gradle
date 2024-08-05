@@ -13,7 +13,7 @@ plugins {
     id "org.sonarqube" version "5.0.0.4638"
     id "com.diffplug.spotless" version "6.25.0"
     id "com.github.andygoossens.gradle-modernizer-plugin" version "1.9.2"
-    id "org.liquibase.gradle" version "2.2.2"
+    id "org.liquibase.gradle" version "3.0.0"
     // this allows us to find outdated dependencies via ./gradlew dependencyUpdates
     id "com.github.ben-manes.versions" version "0.51.0"
     // jhipster-needle-gradle-plugins - JHipster will add additional gradle plugins here
