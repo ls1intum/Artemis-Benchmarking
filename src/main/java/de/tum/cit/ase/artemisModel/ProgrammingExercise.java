@@ -13,6 +13,7 @@ public class ProgrammingExercise extends Exercise {
     private boolean staticCodeAnalysisEnabled = false;
     // Required for creating course ProgrammingExercise
     private Course course;
+    private ProgrammingExerciseBuildConfig buildConfig = new ProgrammingExerciseBuildConfig();
 
     public String getShortName() {
         return shortName;
@@ -68,5 +69,13 @@ public class ProgrammingExercise extends Exercise {
 
     public void setCourse(Course course) {
         this.course = course;
+    }
+
+    public ProgrammingExerciseBuildConfig getBuildConfig() {
+        return buildConfig;
+    }
+
+    public void setBuildConfig(ProgrammingExerciseBuildConfig buildConfig) {
+        this.buildConfig = buildConfig;
     }
 }
