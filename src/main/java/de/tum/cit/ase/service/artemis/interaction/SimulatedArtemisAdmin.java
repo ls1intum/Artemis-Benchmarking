@@ -56,12 +56,11 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         // Get exam
         Exam exam = webClient
             .get()
-            .uri(
-                uriBuilder ->
-                    uriBuilder
-                        .pathSegment("api", "courses", courseIdString, "exams", examIdString)
-                        .query("withStudents=false&withExerciseGroups=false")
-                        .build()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .pathSegment("api", "courses", courseIdString, "exams", examIdString)
+                    .query("withStudents=false&withExerciseGroups=false")
+                    .build()
             )
             .retrieve()
             .bodyToMono(Exam.class)
@@ -90,9 +89,8 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         // Generate student exams
         webClient
             .post()
-            .uri(
-                uriBuilder ->
-                    uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "generate-student-exams").build()
+            .uri(uriBuilder ->
+                uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "generate-student-exams").build()
             )
             .retrieve()
             .toBodilessEntity()
@@ -102,11 +100,8 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         // Prepare exercise start
         webClient
             .post()
-            .uri(
-                uriBuilder ->
-                    uriBuilder
-                        .pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "start-exercises")
-                        .build()
+            .uri(uriBuilder ->
+                uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "start-exercises").build()
             )
             .retrieve()
             .toBodilessEntity()
@@ -124,20 +119,10 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
             status = webClient
                 .get()
-                .uri(
-                    uriBuilder ->
-                        uriBuilder
-                            .pathSegment(
-                                "api",
-                                "courses",
-                                courseIdString,
-                                "exams",
-                                examIdString,
-                                "student-exams",
-                                "start-exercises",
-                                "status"
-                            )
-                            .build()
+                .uri(uriBuilder ->
+                    uriBuilder
+                        .pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "start-exercises", "status")
+                        .build()
                 )
                 .retrieve()
                 .bodyToMono(ExamExerciseStartPreparationStatus.class)
@@ -240,11 +225,10 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
         textExerciseGroup = webClient
             .post()
-            .uri(
-                uriBuilder ->
-                    uriBuilder
-                        .pathSegment("api", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exerciseGroups")
-                        .build()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .pathSegment("api", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exercise-groups")
+                    .build()
             )
             .bodyValue(textExerciseGroup)
             .retrieve()
@@ -271,11 +255,10 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
         modelingExerciseGroup = webClient
             .post()
-            .uri(
-                uriBuilder ->
-                    uriBuilder
-                        .pathSegment("api", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exerciseGroups")
-                        .build()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .pathSegment("api", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exercise-groups")
+                    .build()
             )
             .bodyValue(modelingExerciseGroup)
             .retrieve()
@@ -302,11 +285,10 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
         programmingExerciseGroup = webClient
             .post()
-            .uri(
-                uriBuilder ->
-                    uriBuilder
-                        .pathSegment("api", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exerciseGroups")
-                        .build()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .pathSegment("api", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exercise-groups")
+                    .build()
             )
             .bodyValue(programmingExerciseGroup)
             .retrieve()
@@ -335,11 +317,10 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
         quizExerciseGroup = webClient
             .post()
-            .uri(
-                uriBuilder ->
-                    uriBuilder
-                        .pathSegment("api", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exerciseGroups")
-                        .build()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .pathSegment("api", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exercise-groups")
+                    .build()
             )
             .bodyValue(quizExerciseGroup)
             .retrieve()
@@ -417,11 +398,8 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
                     try {
                         webClient
                             .post()
-                            .uri(
-                                uriBuilder ->
-                                    uriBuilder
-                                        .pathSegment("api", "courses", String.valueOf(courseId), "students", students[i].username)
-                                        .build()
+                            .uri(uriBuilder ->
+                                uriBuilder.pathSegment("api", "courses", String.valueOf(courseId), "students", students[i].username).build()
                             )
                             .retrieve()
                             .toBodilessEntity()
@@ -450,18 +428,10 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
         webClient
             .post()
-            .uri(
-                uriBuilder ->
-                    uriBuilder
-                        .pathSegment(
-                            "api",
-                            "courses",
-                            String.valueOf(courseId),
-                            "exams",
-                            String.valueOf(examId),
-                            "register-course-students"
-                        )
-                        .build()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .pathSegment("api", "courses", String.valueOf(courseId), "exams", String.valueOf(examId), "register-course-students")
+                    .build()
             )
             .retrieve()
             .toBodilessEntity()
