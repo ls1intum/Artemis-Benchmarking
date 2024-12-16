@@ -68,8 +68,14 @@ public class SimulationResultService {
         SimulationStats submitStudentExamStats = calculateStatsForRequestType(requestStats, RequestType.SUBMIT_STUDENT_EXAM, simulationRun);
 
         SimulationStats cloneStats = calculateStatsForRequestType(requestStats, RequestType.CLONE, simulationRun);
+        SimulationStats cloneStatsSSH = calculateStatsForRequestType(requestStats, RequestType.CLONE_SSH, simulationRun);
+        SimulationStats cloneStatsPassword = calculateStatsForRequestType(requestStats, RequestType.CLONE_PASSWORD, simulationRun);
+        SimulationStats cloneStatsToken = calculateStatsForRequestType(requestStats, RequestType.CLONE_TOKEN, simulationRun);
 
         SimulationStats pushStats = calculateStatsForRequestType(requestStats, RequestType.PUSH, simulationRun);
+        SimulationStats pushStatsSSH = calculateStatsForRequestType(requestStats, RequestType.PUSH_SSH, simulationRun);
+        SimulationStats pushStatsPassword = calculateStatsForRequestType(requestStats, RequestType.PUSH_PASSWORD, simulationRun);
+        SimulationStats pushStatsToken = calculateStatsForRequestType(requestStats, RequestType.PUSH_TOKEN, simulationRun);
 
         SimulationStats programmingExerciseResultStats = calculateStatsForRequestType(
             requestStats,
@@ -96,7 +102,13 @@ public class SimulationResultService {
                 programmingExerciseResultStats,
                 repositoryInfoStats,
                 repositoryFileStats,
-                miscStats
+                miscStats,
+                cloneStatsSSH,
+                pushStatsSSH,
+                cloneStatsToken,
+                pushStatsToken,
+                cloneStatsPassword,
+                pushStatsPassword
             )
         );
         return simulationRun;

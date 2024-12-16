@@ -3,6 +3,7 @@ package de.tum.cit.ase.service.artemis.interaction;
 import static de.tum.cit.ase.domain.RequestType.AUTHENTICATION;
 import static java.time.ZonedDateTime.now;
 
+import de.tum.cit.ase.artemisModel.ArtemisAuthMechanism;
 import de.tum.cit.ase.domain.ArtemisUser;
 import de.tum.cit.ase.domain.RequestStat;
 import de.tum.cit.ase.service.artemis.ArtemisUserService;
@@ -35,6 +36,8 @@ public abstract class SimulatedArtemisUser {
 
     protected final String username;
     protected final String password;
+    protected String privateKeyString;
+    protected String publicKeyString;
     protected final String artemisUrl;
     protected WebClient webClient;
     protected AuthToken authToken;
@@ -56,6 +59,8 @@ public abstract class SimulatedArtemisUser {
         this.artemisUrl = artemisUrl;
         this.artemisUser = artemisUser;
         this.artemisUserService = artemisUserService;
+        this.privateKeyString = artemisUser.getPrivateKey();
+        this.publicKeyString = artemisUser.getPublicKey();
     }
 
     /**
@@ -82,15 +87,13 @@ public abstract class SimulatedArtemisUser {
         if (artemisUser != null && artemisUser.getJwtToken() != null && artemisUser.getTokenExpirationDate().isAfter(now())) {
             log.debug("Using cached token for user {}", username);
             authToken = new AuthToken(artemisUser.getJwtToken(), null, null, artemisUser.getTokenExpirationDate());
-            webClient =
-                WebClient
-                    .builder()
-                    .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
-                    .baseUrl(artemisUrl)
-                    .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                    .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                    .defaultHeader("Cookie", authToken.jwtToken())
-                    .build();
+            webClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
+                .baseUrl(artemisUrl)
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .defaultHeader("Cookie", authToken.jwtToken())
+                .build();
             checkAccess();
             if (authenticated) {
                 return List.of();
@@ -100,8 +103,7 @@ public abstract class SimulatedArtemisUser {
 
         log.info("Logging in as {{}}", username);
         List<RequestStat> requestStats = new ArrayList<>();
-        WebClient webClient = WebClient
-            .builder()
+        WebClient webClient = WebClient.builder()
             .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
             .baseUrl(artemisUrl)
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
@@ -128,15 +130,13 @@ public abstract class SimulatedArtemisUser {
             artemisUser.setTokenExpirationDate(authToken.expireDate());
             artemisUser = artemisUserService.updateArtemisUser(artemisUser.getId(), artemisUser);
         }
-        this.webClient =
-            WebClient
-                .builder()
-                .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
-                .baseUrl(artemisUrl)
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader("Cookie", authToken.jwtToken())
-                .build();
+        this.webClient = WebClient.builder()
+            .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
+            .baseUrl(artemisUrl)
+            .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .defaultHeader("Cookie", authToken.jwtToken())
+            .build();
         checkAccess();
         log.debug("Logged in as {}", username);
         return requestStats;
@@ -167,14 +167,16 @@ public abstract class SimulatedArtemisUser {
         ArtemisUser artemisUser,
         ArtemisUserService artemisUserService,
         int numberOfCommitsAndPushesFrom,
-        int numberOfCommitsAndPushesTo
+        int numberOfCommitsAndPushesTo,
+        ArtemisAuthMechanism authMechanism
     ) {
         return new SimulatedArtemisStudent(
             artemisUrl,
             artemisUser,
             artemisUserService,
             numberOfCommitsAndPushesFrom,
-            numberOfCommitsAndPushesTo
+            numberOfCommitsAndPushesTo,
+            authMechanism
         );
     }
 
@@ -207,8 +209,7 @@ public abstract class SimulatedArtemisUser {
     }
 
     private static HttpClient createHttpClient() {
-        return HttpClient
-            .create()
+        return HttpClient.create()
             .doOnConnected(conn ->
                 conn.addHandlerFirst(new ReadTimeoutHandler(20, TimeUnit.MINUTES)).addHandlerFirst(new WriteTimeoutHandler(30))
             )
