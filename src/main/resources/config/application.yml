@@ -254,6 +254,7 @@ artemis:
       artemis: artemis-test8.artemis.cit.tum.de:9100
       vcs:
       ci:
+    default-project-type: PLAIN_GRADLE
   staging:
     url: https://artemis-staging.artemis.in.tum.de/
     cleanup-enabled: false
