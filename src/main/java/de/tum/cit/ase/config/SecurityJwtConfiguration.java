@@ -33,13 +33,13 @@ public class SecurityJwtConfiguration {
             try {
                 return jwtDecoder.decode(token);
             } catch (Exception e) {
-                if (e.getMessage().contains("Invalid signature")) {
+                if (exceptionCauseContains(e, "Invalid signature")) {
                     metersService.trackTokenInvalidSignature();
                 } else if (e.getMessage().contains("Jwt expired at")) {
                     metersService.trackTokenExpired();
-                } else if (e.getMessage().contains("Invalid JWT serialization")) {
+                } else if (exceptionCauseContains(e, "Invalid JWT serialization")) {
                     metersService.trackTokenMalformed();
-                } else if (e.getMessage().contains("Invalid unsecured/JWS/JWE")) {
+                } else if (exceptionCauseContains(e, "Invalid unsecured/JWS/JWE")) {
                     metersService.trackTokenMalformed();
                 }
                 throw e;
@@ -73,5 +73,9 @@ public class SecurityJwtConfiguration {
     private SecretKey getSecretKey() {
         byte[] keyBytes = Base64.from(jwtKey).decode();
         return new SecretKeySpec(keyBytes, 0, keyBytes.length, JWT_ALGORITHM.getName());
+    }
+
+    private boolean exceptionCauseContains(Throwable exception, String substring) {
+        return exception.getCause() != null && exception.getCause().getMessage().contains(substring);
     }
 }
