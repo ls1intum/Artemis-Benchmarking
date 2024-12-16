@@ -25,6 +25,9 @@ public class ArtemisConfiguration {
     @Value("${artemis.local.is-local}")
     private boolean localIsLocal;
 
+    @Value("${artemis.local.default-project-type}")
+    private String localDefaultProjectType;
+
     @Value("${artemis.ts1.url}")
     private String test1Url;
 
@@ -42,6 +45,9 @@ public class ArtemisConfiguration {
 
     @Value("${artemis.ts1.is-local}")
     private boolean test1IsLocal;
+
+    @Value("${artemis.ts1.default-project-type}")
+    private String test1DefaultProjectType;
 
     @Value("${artemis.ts3.url}")
     private String test3Url;
@@ -61,6 +67,9 @@ public class ArtemisConfiguration {
     @Value("${artemis.ts3.is-local}")
     private boolean test3IsLocal;
 
+    @Value("${artemis.ts3.default-project-type}")
+    private String test3DefaultProjectType;
+
     @Value("${artemis.ts7.url}")
     private String test7Url;
 
@@ -78,6 +87,9 @@ public class ArtemisConfiguration {
 
     @Value("${artemis.ts7.is-local}")
     private boolean test7IsLocal;
+
+    @Value("${artemis.ts7.default-project-type}")
+    private String test7DefaultProjectType;
 
     @Value("${artemis.ts8.url}")
     private String test8Url;
@@ -97,6 +109,9 @@ public class ArtemisConfiguration {
     @Value("${artemis.ts8.is-local}")
     private boolean test8IsLocal;
 
+    @Value("${artemis.ts8.default-project-type}")
+    private String test8DefaultProjectType;
+
     @Value("${artemis.staging.url}")
     private String stagingUrl;
 
@@ -114,6 +129,9 @@ public class ArtemisConfiguration {
 
     @Value("${artemis.staging.is-local}")
     private boolean stagingIsLocal;
+
+    @Value("${artemis.staging.default-project-type}")
+    private String stagingDefaultProjectType;
 
     @Value("${artemis.staging2.url}")
     private String staging2Url;
@@ -133,6 +151,9 @@ public class ArtemisConfiguration {
     @Value("${artemis.staging2.is-local}")
     private boolean staging2IsLocal;
 
+    @Value("${artemis.staging2.default-project-type}")
+    private String staging2DefaultProjectType;
+
     @Value("${artemis.production.url}")
     private String productionUrl;
 
@@ -150,6 +171,9 @@ public class ArtemisConfiguration {
 
     @Value("${artemis.production.is-local}")
     private boolean productionIsLocal;
+
+    @Value("${artemis.production.default-project-type}")
+    private String productionDefaultProjectType;
 
     public String getUrl(ArtemisServer server) {
         return switch (server) {
@@ -226,6 +250,19 @@ public class ArtemisConfiguration {
             case STAGING -> stagingIsLocal;
             case STAGING2 -> staging2IsLocal;
             case PRODUCTION -> productionIsLocal;
+        };
+    }
+
+    public String getDefaultProjectType(ArtemisServer server) {
+        return switch (server) {
+            case LOCAL -> localDefaultProjectType;
+            case TS1 -> test1DefaultProjectType;
+            case TS3 -> test3DefaultProjectType;
+            case TS7 -> test7DefaultProjectType;
+            case TS8 -> test8DefaultProjectType;
+            case STAGING -> stagingDefaultProjectType;
+            case STAGING2 -> staging2DefaultProjectType;
+            case PRODUCTION -> productionDefaultProjectType;
         };
     }
 }

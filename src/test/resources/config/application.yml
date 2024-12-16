@@ -98,6 +98,7 @@ artemis:
       artemis:
       vcs:
       ci:
+    default-project-type: PLAIN_GRADLE
   ts3:
     url:
     cleanup-enabled: false
@@ -106,6 +107,7 @@ artemis:
       artemis:
       vcs:
       ci:
+    default-project-type: PLAIN_GRADLE
   ts1:
     url:
     cleanup-enabled: false
@@ -114,6 +116,7 @@ artemis:
       artemis:
       vcs:
       ci:
+    default-project-type: PLAIN_GRADLE
   ts7:
     url:
     cleanup-enabled: false
@@ -122,6 +125,7 @@ artemis:
       artemis:
       vcs:
       ci:
+    default-project-type: PLAIN_GRADLE
   ts8:
     url:
     cleanup-enabled: false
@@ -130,6 +134,7 @@ artemis:
       artemis:
       vcs:
       ci:
+    default-project-type: PLAIN_GRADLE
   staging:
     url:
     cleanup-enabled: false
@@ -138,6 +143,7 @@ artemis:
       artemis:
       vcs:
       ci:
+    default-project-type: PLAIN_GRADLE
   staging2:
     url:
     cleanup-enabled: false
@@ -146,6 +152,7 @@ artemis:
       artemis:
       vcs:
       ci:
+    default-project-type: PLAIN_GRADLE
   production:
     url:
     cleanup-enabled: false
@@ -154,7 +161,7 @@ artemis:
       artemis:
       vcs:
       ci:
-
+    default-project-type: PLAIN_GRADLE
 prometheus:
   api-url:
   auth-token: # Base64 encoded token for Prometheus API (Basic auth)

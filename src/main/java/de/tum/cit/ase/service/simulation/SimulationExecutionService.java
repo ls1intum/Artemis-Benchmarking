@@ -255,17 +255,13 @@ public class SimulationExecutionService {
 
             logAndSend(false, simulationRun, "Participating in exam...");
             requestStats.addAll(
-                performActionWithAll(
-                    threadCount,
-                    simulation.getNumberOfUsers(),
-                    i -> students[i].startExamParticipation(courseId, examId, programmingExerciseId)
+                performActionWithAll(threadCount, simulation.getNumberOfUsers(), i ->
+                    students[i].startExamParticipation(courseId, examId, programmingExerciseId)
                 )
             );
             requestStats.addAll(
-                performActionWithAll(
-                    threadCount,
-                    simulation.getNumberOfUsers(),
-                    i -> students[i].participateInExam(courseId, examId, simulation.getIdeType() == Simulation.IDEType.ONLINE)
+                performActionWithAll(threadCount, simulation.getNumberOfUsers(), i ->
+                    students[i].participateInExam(courseId, examId, simulation.getIdeType() == Simulation.IDEType.ONLINE)
                 )
             );
             requestStats.addAll(
@@ -413,7 +409,8 @@ public class SimulationExecutionService {
     private ProgrammingExercise createCourseProgrammingExercise(SimulatedArtemisAdmin admin, SimulationRun simulationRun, Course course) {
         logAndSend(false, simulationRun, "Creating course programming exercise...");
         try {
-            return admin.createCourseProgrammingExercise(course);
+            ArtemisServer server = simulationRun.getSimulation().getServer();
+            return admin.createCourseProgrammingExercise(course, artemisConfiguration.getDefaultProjectType(server));
         } catch (Exception e) {
             logAndSend(true, simulationRun, "Error while creating course programming exercise: %s", e.getMessage());
             failSimulationRun(simulationRun);
@@ -454,7 +451,8 @@ public class SimulationExecutionService {
     private void createExamExercises(SimulatedArtemisAdmin admin, SimulationRun simulationRun, long courseId, Exam exam) {
         logAndSend(false, simulationRun, "Creating exam exercises...");
         try {
-            admin.createExamExercises(courseId, exam);
+            ArtemisServer server = simulationRun.getSimulation().getServer();
+            admin.createExamExercises(courseId, exam, artemisConfiguration.getDefaultProjectType(server));
         } catch (Exception e) {
             logAndSend(true, simulationRun, "Error while creating exam exercises: %s", e.getMessage());
             failSimulationRun(simulationRun);

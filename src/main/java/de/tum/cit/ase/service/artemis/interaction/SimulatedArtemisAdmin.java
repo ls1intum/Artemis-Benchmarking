@@ -213,7 +213,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
      * @param courseId the ID of the course to which the exam belongs
      * @param exam the exam for which to create the exercises
      */
-    public void createExamExercises(long courseId, Exam exam) {
+    public void createExamExercises(long courseId, Exam exam, String programmingExerciseProjectType) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
@@ -301,6 +301,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         programmingExercise.setMaxPoints(1.0);
         programmingExercise.setShortName("progForBenchTemp" + exam.getId());
         programmingExercise.setPackageName("progforbenchtemp");
+        programmingExercise.setProjectType(programmingExerciseProjectType);
 
         webClient
             .post()
@@ -354,7 +355,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .block();
     }
 
-    public ProgrammingExercise createCourseProgrammingExercise(Course course) {
+    public ProgrammingExercise createCourseProgrammingExercise(Course course, String programmingExerciseProjectType) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
@@ -366,6 +367,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         programmingExercise.setMaxPoints(5.0);
         programmingExercise.setShortName("course" + course.getId() + "prog" + randomInt);
         programmingExercise.setPackageName("progForBenchTemp");
+        programmingExercise.setProjectType(programmingExerciseProjectType);
 
         return webClient
             .post()

@@ -218,6 +218,7 @@ artemis:
       artemis:
       vcs:
       ci:
+    default-project-type: PLAIN_GRADLE # alternatively set to PLAIN_MAVEN, MAVEN_MAVEN etc.
   ts3:
     url: https://artemis-test3.artemis.cit.tum.de/
     cleanup-enabled: false
@@ -226,6 +227,7 @@ artemis:
       artemis: artemis-test3.artemis.cit.tum.de:9100
       vcs:
       ci:
+    default-project-type: PLAIN_GRADLE
   ts1:
     url: https://artemis-test7.artemis.cit.tum.de/
     cleanup-enabled: false
@@ -234,6 +236,7 @@ artemis:
       artemis: artemis-test1.artemis.cit.tum.de:9100
       vcs: bitbucket-prelive-node1.ase.in.tum.de:9100
       ci: bamboo-prelive-instance.ase.in.tum.de:9100
+    default-project-type: PLAIN_GRADLE
   ts7:
     url: https://artemis-test7.artemis.cit.tum.de/
     cleanup-enabled: false
@@ -242,6 +245,7 @@ artemis:
       artemis: artemis-test7.artemis.cit.tum.de:9100
       vcs:
       ci:
+    default-project-type: PLAIN_GRADLE
   ts8:
     url: https://artemis-test8.artemis.cit.tum.de/
     cleanup-enabled: false
@@ -258,6 +262,7 @@ artemis:
       artemis:
       vcs: bitbucket-prelive-node1.ase.in.tum.de:9100
       ci: bamboo-prelive-instance.ase.in.tum.de:9100
+    default-project-type: PLAIN_GRADLE
   staging2:
     url: https://artemis-staging-localci.artemis.cit.tum.de/
     cleanup-enabled: false
@@ -266,6 +271,7 @@ artemis:
       artemis:
       vcs:
       ci:
+    default-project-type: PLAIN_GRADLE
   production:
     url: https://artemis.cit.tum.de/
     cleanup-enabled: false
@@ -274,7 +280,7 @@ artemis:
       artemis:
       vcs: bitbucket-node1.ase.in.tum.de:9100
       ci: bamboo-instance.ase.in.tum.de:9100
-
+    default-project-type: PLAIN_GRADLE
 prometheus:
   api-url: https://artemis-test-prometheus.artemis.cit.tum.de/
   auth-token: # Base64 encoded token for Prometheus API (Basic auth)
