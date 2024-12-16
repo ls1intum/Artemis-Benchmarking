@@ -85,6 +85,8 @@ public class SimulationExecutionServiceIT {
     private MockedStatic<SimulatedArtemisUser> mockedSimulatedArtemisUser;
     private List<SimulationRun.Status> statusesOnWebsocketUpdate;
 
+    private final String DEFAULT_PROJECT_TYPE = "PLAIN_GRADLE";
+
     @BeforeEach
     public void init() {
         simulationExecutionService.setDoNotSleep(true);
@@ -194,6 +196,7 @@ public class SimulationExecutionServiceIT {
         run.setSimulation(simulation);
 
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
+        when(artemisConfiguration.getDefaultProjectType(TS1)).thenReturn(DEFAULT_PROJECT_TYPE);
 
         simulationExecutionService.simulateExam(run);
 
@@ -201,7 +204,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(1)).createCourse();
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
-        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
+        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam, DEFAULT_PROJECT_TYPE);
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(
             1,
             new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
@@ -254,6 +257,7 @@ public class SimulationExecutionServiceIT {
         run.setStatus(QUEUED);
 
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(false);
+        when(artemisConfiguration.getDefaultProjectType(TS1)).thenReturn(DEFAULT_PROJECT_TYPE);
 
         simulationExecutionService.simulateExam(run);
 
@@ -261,7 +265,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(1)).createCourse();
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
-        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
+        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam, DEFAULT_PROJECT_TYPE);
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(
             1,
             new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
@@ -314,6 +318,7 @@ public class SimulationExecutionServiceIT {
         run.setSimulation(simulation);
 
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
+        when(artemisConfiguration.getDefaultProjectType(TS1)).thenReturn(DEFAULT_PROJECT_TYPE);
 
         simulationExecutionService.simulateExam(run);
 
@@ -321,7 +326,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(1)).getCourse(1);
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
-        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
+        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam, DEFAULT_PROJECT_TYPE);
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
@@ -371,6 +376,7 @@ public class SimulationExecutionServiceIT {
         run.setSimulation(simulation);
 
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(false);
+        when(artemisConfiguration.getDefaultProjectType(TS1)).thenReturn(DEFAULT_PROJECT_TYPE);
 
         simulationExecutionService.simulateExam(run);
 
@@ -378,7 +384,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(1)).getCourse(1);
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
-        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
+        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam, DEFAULT_PROJECT_TYPE);
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
@@ -429,14 +435,13 @@ public class SimulationExecutionServiceIT {
         run.setSimulation(simulation);
 
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
-
         simulationExecutionService.simulateExam(run);
 
         verify(simulatedArtemisAdmin, times(1)).login();
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(1)).getCourse(1);
         verify(simulatedArtemisAdmin, times(0)).createExam(any());
-        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any());
+        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any(), anyString());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForExam(anyLong(), anyLong());
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
@@ -496,7 +501,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(0)).getCourse(1);
         verify(simulatedArtemisAdmin, times(0)).createExam(any());
-        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any());
+        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any(), anyString());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForExam(anyLong(), anyLong());
         verify(simulatedArtemisAdmin, times(0)).prepareExam(1, 1);
@@ -550,6 +555,7 @@ public class SimulationExecutionServiceIT {
         run.setAdminAccount(accountDTO);
 
         when(artemisConfiguration.getCleanup(PRODUCTION)).thenReturn(true);
+        when(artemisConfiguration.getDefaultProjectType(TS1)).thenReturn(DEFAULT_PROJECT_TYPE);
 
         simulationExecutionService.simulateExam(run);
 
@@ -557,7 +563,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(1)).createCourse();
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
-        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
+        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam, DEFAULT_PROJECT_TYPE);
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(
             1,
             new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
@@ -618,7 +624,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(0)).createExam(any());
-        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any());
+        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any(), anyString());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForExam(anyLong(), anyLong());
         verify(simulatedArtemisAdmin, times(0)).prepareExam(anyLong(), anyLong());
@@ -673,7 +679,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(0)).createExam(any());
-        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any());
+        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any(), anyString());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForExam(anyLong(), anyLong());
         verify(simulatedArtemisAdmin, times(0)).prepareExam(anyLong(), anyLong());
@@ -730,7 +736,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(1)).createCourse();
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(0)).createExam(any());
-        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any());
+        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any(), anyString());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForExam(anyLong(), anyLong());
         verify(simulatedArtemisAdmin, times(0)).prepareExam(anyLong(), anyLong());
@@ -787,7 +793,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(1)).createCourse();
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(0)).createExam(any());
-        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any());
+        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any(), anyString());
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(
             1,
             new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
@@ -848,7 +854,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(1)).getCourse(1);
         verify(simulatedArtemisAdmin, times(0)).createExam(any());
-        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any());
+        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any(), anyString());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForExam(anyLong(), anyLong());
         verify(simulatedArtemisAdmin, times(0)).prepareExam(anyLong(), anyLong());
@@ -906,7 +912,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(1)).getCourse(1);
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
-        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any());
+        verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any(), anyString());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForExam(anyLong(), anyLong());
         verify(simulatedArtemisAdmin, times(0)).prepareExam(anyLong(), anyLong());
@@ -956,7 +962,9 @@ public class SimulationExecutionServiceIT {
         run.setSimulation(simulation);
 
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
-        doThrow(new RuntimeException("Test exception")).when(simulatedArtemisAdmin).createExamExercises(anyLong(), any());
+        when(artemisConfiguration.getDefaultProjectType(TS1)).thenReturn(DEFAULT_PROJECT_TYPE);
+
+        doThrow(new RuntimeException("Test exception")).when(simulatedArtemisAdmin).createExamExercises(anyLong(), any(), anyString());
 
         assertThrows(SimulationFailedException.class, () -> simulationExecutionService.simulateExam(run));
 
@@ -964,7 +972,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(1)).getCourse(1);
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
-        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
+        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam, DEFAULT_PROJECT_TYPE);
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForExam(anyLong(), anyLong());
         verify(simulatedArtemisAdmin, times(0)).prepareExam(anyLong(), anyLong());
@@ -1014,6 +1022,8 @@ public class SimulationExecutionServiceIT {
         run.setSimulation(simulation);
 
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
+        when(artemisConfiguration.getDefaultProjectType(TS1)).thenReturn(DEFAULT_PROJECT_TYPE);
+
         doThrow(new RuntimeException("Test exception")).when(simulatedArtemisAdmin).registerStudentsForExam(anyLong(), anyLong());
 
         assertThrows(SimulationFailedException.class, () -> simulationExecutionService.simulateExam(run));
@@ -1022,7 +1032,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(1)).getCourse(1);
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
-        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
+        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam, DEFAULT_PROJECT_TYPE);
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(0)).prepareExam(anyLong(), anyLong());
@@ -1072,6 +1082,8 @@ public class SimulationExecutionServiceIT {
         run.setSimulation(simulation);
 
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
+        when(artemisConfiguration.getDefaultProjectType(TS1)).thenReturn(DEFAULT_PROJECT_TYPE);
+
         doThrow(new RuntimeException("Test exception")).when(simulatedArtemisAdmin).prepareExam(anyLong(), anyLong());
 
         assertThrows(SimulationFailedException.class, () -> simulationExecutionService.simulateExam(run));
@@ -1080,7 +1092,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(1)).getCourse(1);
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
-        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
+        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam, DEFAULT_PROJECT_TYPE);
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
@@ -1130,6 +1142,7 @@ public class SimulationExecutionServiceIT {
         run.setSimulation(simulation);
 
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
+        when(artemisConfiguration.getDefaultProjectType(TS1)).thenReturn(DEFAULT_PROJECT_TYPE);
 
         when(simulatedArtemisStudent1.login()).thenThrow(new RuntimeException("Test exception"));
         when(simulatedArtemisStudent2.login()).thenThrow(new RuntimeException("Test exception"));
@@ -1165,7 +1178,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(1)).getCourse(1);
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
-        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
+        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam, DEFAULT_PROJECT_TYPE);
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
@@ -1215,6 +1228,8 @@ public class SimulationExecutionServiceIT {
         run.setSimulation(simulation);
 
         when(artemisConfiguration.getCleanup(TS1)).thenReturn(true);
+        when(artemisConfiguration.getDefaultProjectType(TS1)).thenReturn(DEFAULT_PROJECT_TYPE);
+
         doThrow(new RuntimeException("Test exception")).when(simulatedArtemisAdmin).deleteExam(anyLong(), anyLong());
 
         simulationExecutionService.simulateExam(run);
@@ -1223,7 +1238,7 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).createCourse();
         verify(simulatedArtemisAdmin, times(1)).getCourse(1);
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
-        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
+        verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam, DEFAULT_PROJECT_TYPE);
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForCourse(anyLong(), any());
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
