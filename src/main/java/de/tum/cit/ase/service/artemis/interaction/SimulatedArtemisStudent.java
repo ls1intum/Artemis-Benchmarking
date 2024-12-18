@@ -855,12 +855,13 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                     default -> throw new IllegalStateException("Not implemented");
                 }
 
-                var duration = System.nanoTime() - start;
                 var git = Git.cloneRepository()
                     .setURI(repositoryUrl)
                     .setDirectory(localPath.toFile())
                     .setCredentialsProvider(credentialsProvider)
                     .call();
+
+                var duration = System.nanoTime() - start;
                 git.close();
                 log.debug("Done " + repositoryUrl);
                 return switch (authenticationMechanism) {
