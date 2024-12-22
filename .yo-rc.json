@@ -24,7 +24,7 @@
     "microfrontend": null,
     "microfrontends": [],
     "nativeLanguage": "en",
-    "packageName": "de.tum.cit.ase",
+    "packageName": "de.tum.cit.aet",
     "prodDatabaseType": "mysql",
     "reactive": false,
     "searchEngine": false,

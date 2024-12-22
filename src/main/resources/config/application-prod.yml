@@ -17,7 +17,7 @@ logging:
   level:
     ROOT: INFO
     tech.jhipster: INFO
-    de.tum.cit.ase: INFO
+    de.tum.cit.aet: INFO
 
 management:
   prometheus:

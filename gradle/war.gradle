@@ -1,7 +1,7 @@
 apply plugin: "war"
 
 bootWar {
-    mainClass = "de.tum.cit.ase.ArtemisBenchmarkingApp"
+    mainClass = "de.tum.cit.aet.ArtemisBenchmarkingApp"
     includes = ["WEB-INF/**", "META-INF/**"]
     webXml = file("${project.rootDir}/src/main/webapp/WEB-INF/web.xml")
 }
