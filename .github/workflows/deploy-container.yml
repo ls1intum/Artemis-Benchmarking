@@ -5,7 +5,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     environment:
       name: artemis-performance-test0.artemis.cit.tum.de
       url: https://artemis-performance-test0.artemis.cit.tum.de
