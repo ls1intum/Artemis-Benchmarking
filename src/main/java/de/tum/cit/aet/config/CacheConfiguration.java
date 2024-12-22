@@ -103,7 +103,7 @@ public class CacheConfiguration {
     }
 
     private MapConfig initializeDomainMapConfig(JHipsterProperties jHipsterProperties) {
-        MapConfig mapConfig = new MapConfig("de.tum.cit.ase.domain.*");
+        MapConfig mapConfig = new MapConfig("de.tum.cit.aet.domain.*");
         mapConfig.setTimeToLiveSeconds(jHipsterProperties.getCache().getHazelcast().getTimeToLiveSeconds());
         return mapConfig;
     }

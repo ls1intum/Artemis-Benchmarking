@@ -85,7 +85,7 @@ eclipse {
 defaultTasks "bootRun"
 
 springBoot {
-    mainClass = "de.tum.cit.ase.ArtemisBenchmarkingApp"
+    mainClass = "de.tum.cit.aet.ArtemisBenchmarkingApp"
 }
 
 test {

@@ -13,7 +13,7 @@ import tech.jhipster.config.apidoc.customizer.JHipsterOpenApiCustomizer;
 @Profile(JHipsterConstants.SPRING_PROFILE_API_DOCS)
 public class OpenApiConfiguration {
 
-    public static final String API_FIRST_PACKAGE = "de.tum.cit.ase.web.api";
+    public static final String API_FIRST_PACKAGE = "de.tum.cit.aet.web.api";
 
     @Bean
     @ConditionalOnMissingBean(name = "apiFirstGroupedOpenAPI")
