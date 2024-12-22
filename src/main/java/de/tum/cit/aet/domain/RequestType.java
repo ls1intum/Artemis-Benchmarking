@@ -1,0 +1,16 @@
+package de.tum.cit.aet.domain;
+
+public enum RequestType {
+    TOTAL,
+    AUTHENTICATION,
+    GET_STUDENT_EXAM,
+    START_STUDENT_EXAM,
+    SUBMIT_EXERCISE,
+    SUBMIT_STUDENT_EXAM,
+    CLONE,
+    PUSH,
+    PROGRAMMING_EXERCISE_RESULT,
+    REPOSITORY_INFO,
+    REPOSITORY_FILES,
+    MISC,
+}

@@ -2,7 +2,7 @@
   <configuration default="false" name="Benchmarking (Server-Prod)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ACTIVE_PROFILES" value="prod,local" />
     <module name="Artemis-Benchmarking.main" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="de.tum.cit.ase.ArtemisBenchmarkingApp" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="de.tum.cit.aet.ArtemisBenchmarkingApp" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
