@@ -3,6 +3,7 @@ package de.tum.cit.aet.web.rest.vm;
 /**
  * View Model object for storing the user's key and password.
  */
+// TODO: convert to record
 public class KeyAndPasswordVM {
 
     private String key;

@@ -53,6 +53,7 @@ public class AccountResource {
      */
     @GetMapping("/activate")
     public void activateAccount(@RequestParam(value = "key") String key) {
+        log.info("Activate account with key {}", key);
         Optional<User> user = userService.activateRegistration(key);
         if (user.isEmpty()) {
             throw new AccountResourceException("No user was found for this activation key");
@@ -109,10 +110,11 @@ public class AccountResource {
      */
     @PostMapping(path = "/account/change-password")
     public void changePassword(@RequestBody PasswordChangeDTO passwordChangeDto) {
-        if (isPasswordLengthInvalid(passwordChangeDto.getNewPassword())) {
+        log.info("REST request to change password for {}", SecurityUtils.getCurrentUserLogin());
+        if (isPasswordLengthInvalid(passwordChangeDto.newPassword())) {
             throw new InvalidPasswordException();
         }
-        userService.changePassword(passwordChangeDto.getCurrentPassword(), passwordChangeDto.getNewPassword());
+        userService.changePassword(passwordChangeDto.currentPassword(), passwordChangeDto.newPassword());
     }
 
     /**
@@ -122,6 +124,7 @@ public class AccountResource {
      */
     @PostMapping(path = "/account/reset-password/init")
     public void requestPasswordReset(@RequestBody String mail) {
+        log.info("REST request to reset password for {}", mail);
         Optional<User> user = userService.requestPasswordReset(mail);
         if (user.isPresent()) {
             mailService.sendPasswordResetMail(user.orElseThrow());
@@ -141,6 +144,7 @@ public class AccountResource {
      */
     @PostMapping(path = "/account/reset-password/finish")
     public void finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword) {
+        log.info("REST request to finish password for {}", keyAndPassword.getKey());
         if (isPasswordLengthInvalid(keyAndPassword.getNewPassword())) {
             throw new InvalidPasswordException();
         }

@@ -3,7 +3,8 @@ package de.tum.cit.aet.service.dto;
 import com.opencsv.bean.CsvBindByName;
 import java.io.Serializable;
 
-public class ArtemisUserForCreationDTO implements Serializable {
+// TODO: convert to record
+public class ArtemisUserForCreationDTO {
 
     @CsvBindByName(column = "username")
     private String username;

@@ -6,9 +6,8 @@ import java.io.Serializable;
 /**
  * A DTO representing a user, with only the public attributes.
  */
-public class UserDTO implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+// TODO: convert to record
+public class UserDTO {
 
     private Long id;
 

@@ -7,7 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import de.tum.cit.aet.IntegrationTest;
 import de.tum.cit.aet.config.Constants;
 import de.tum.cit.aet.domain.User;
-import de.tum.cit.aet.repository.AuthorityRepository;
 import de.tum.cit.aet.repository.UserRepository;
 import de.tum.cit.aet.security.AuthoritiesConstants;
 import de.tum.cit.aet.service.UserService;

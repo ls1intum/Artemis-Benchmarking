@@ -53,6 +53,7 @@ public class AuthenticateController {
 
     @PostMapping("/authenticate")
     public ResponseEntity<JWTToken> authenticate(@Valid @RequestBody LoginVM loginVM) {
+        log.info("Request to authenticate user {}", loginVM.getUsername());
         final var authenticationToken = new UsernamePasswordAuthenticationToken(loginVM.getUsername(), loginVM.getPassword());
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -97,6 +98,6 @@ public class AuthenticateController {
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
     }
 
-    public record JWTToken(@JsonProperty("id_token")String idToken) {
+    public record JWTToken(@JsonProperty("id_token") String idToken) {
     }
 }

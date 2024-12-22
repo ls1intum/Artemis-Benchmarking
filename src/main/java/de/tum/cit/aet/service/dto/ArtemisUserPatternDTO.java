@@ -1,8 +1,7 @@
 package de.tum.cit.aet.service.dto;
 
-import java.io.Serializable;
-
-public class ArtemisUserPatternDTO implements Serializable {
+// TODO: convert to record
+public class ArtemisUserPatternDTO {
 
     private String usernamePattern;
     private String passwordPattern;

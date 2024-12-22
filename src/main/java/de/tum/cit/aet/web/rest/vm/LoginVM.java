@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 /**
  * View Model object for storing a user's credentials.
  */
+// TODO: convert to record
 public class LoginVM {
 
     @NotNull
