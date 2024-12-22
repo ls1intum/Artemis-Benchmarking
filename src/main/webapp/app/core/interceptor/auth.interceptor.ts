@@ -14,7 +14,13 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const serverApiUrl = this.applicationConfigService.getEndpointFor('');
+
     if (!request.url || (request.url.startsWith('http') && !(serverApiUrl && request.url.startsWith(serverApiUrl)))) {
+      return next.handle(request);
+    }
+    // NOTE: do not add the token to requests that do not expect it (e.g. authenticate or forget password)
+    const allowedUrls = ['/authenticate', '/account/reset-password/init', '/account/reset-password/finish'];
+    if (allowedUrls.some(url => request.url.endsWith(url))) {
       return next.handle(request);
     }
 

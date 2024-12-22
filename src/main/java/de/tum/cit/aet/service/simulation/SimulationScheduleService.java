@@ -145,8 +145,8 @@ public class SimulationScheduleService {
      */
     @Scheduled(fixedRate = 1000 * 60, initialDelay = 0)
     void executeScheduledSimulations() {
-        log.info("Executing scheduled simulation runs");
-        var simulationSchedules = simulationScheduleRepository.findAll();
+        final var simulationSchedules = simulationScheduleRepository.findAll();
+        log.info("Executing {} scheduled simulation runs", simulationSchedules.size());
         simulationSchedules
             .stream()
             .filter(simulationSchedule -> simulationSchedule.getNextRun().isBefore(now()))
