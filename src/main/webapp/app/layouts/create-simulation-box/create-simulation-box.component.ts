@@ -97,15 +97,13 @@ export class CreateSimulationBoxComponent implements OnInit {
   }
 
   inputValid(): boolean {
-    console.log('sss');
     const basicRequirements: boolean =
       this.name.length > 0 &&
       ((!this.customizeUserRange && this.numberOfUsers > 0) || (this.customizeUserRange && this.userRange.length > 0)) &&
       this.numberOfCommitsAndPushesFrom > 0 &&
       this.numberOfCommitsAndPushesTo > this.numberOfCommitsAndPushesFrom &&
-      this.sshPercentage + this.tokenPercentage + this.passwordPercentage + this.onlineIdePercentage == 100;
+      this.sshPercentage + this.tokenPercentage + this.passwordPercentage + this.onlineIdePercentage === 100;
 
-    console.log(this.onlineIdePercentage, this.sshPercentage, this.passwordPercentage, this.tokenPercentage, basicRequirements);
     if (this.mode === Mode.CREATE_COURSE_AND_EXAM) {
       return basicRequirements;
     }
