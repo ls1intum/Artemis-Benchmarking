@@ -191,7 +191,8 @@ public class SimulationExecutionService {
         );
 
         logAndSend(false, simulationRun, "Simulation finished.");
-        // TODO: Cleanup deletes running build jobs. Need to find another approach to cleanup
+
+        // Cleanup deletes running build jobs. When it is enabled subscribing to CI status is disabled
         cleanupAsync(admin, simulationRun, courseId, examId);
 
         // Calculate, save and send result
@@ -208,14 +209,15 @@ public class SimulationExecutionService {
                     return;
                 }
             }
-            logAndSend(false, simulationRun, "Trying to cancel all build jobs...");
-            cancelAllQueuedBuildJobs(admin);
-            // Subscribe to CI status, as we can only safely delete the course after all CI jobs have finished
-            //            try {
-            //                ciStatusService.subscribeToCiStatusViaResults(runWithResult, admin, examId).get();
-            //            } catch (ExecutionException | InterruptedException e) {
-            //                logAndSend(true, simulationRun, "Error while subscribing to CI status: %s", e.getMessage());
-            //            }
+
+            // Subscribe to CI status, as we can only safely delete the course after all CI jobs have finished.
+            if (!artemisConfiguration.getCleanup(simulationRun.getSimulation().getServer())) {
+                try {
+                    ciStatusService.subscribeToCiStatusViaResults(runWithResult, admin, examId).get();
+                } catch (ExecutionException | InterruptedException e) {
+                    logAndSend(true, simulationRun, "Error while subscribing to CI status: %s", e.getMessage());
+                }
+            }
         }
     }
 
@@ -367,8 +369,9 @@ public class SimulationExecutionService {
         }
     }
 
-    private void cancelAllQueuedBuildJobs(SimulatedArtemisAdmin admin) {
+    private void cancelAllBuildJobs(SimulatedArtemisAdmin admin) {
         admin.cancelAllQueuedBuildJobs();
+        admin.cancelAllRunningBuildJobs();
     }
 
     /**
@@ -663,6 +666,15 @@ public class SimulationExecutionService {
             logAndSend(false, simulationRun, "Cleanup is currently disabled for this Artemis instance.");
             return;
         }
+
+        logAndSend(false, simulationRun, "Trying to cancel all build jobs...");
+        cancelAllBuildJobs(admin);
+        try {
+            sleep(1_000 * 15);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        logAndSend(false, simulationRun, "Done cancelling all build jobs");
 
         logAndSend(false, simulationRun, "Cleaning up... This may take a while.");
         try {

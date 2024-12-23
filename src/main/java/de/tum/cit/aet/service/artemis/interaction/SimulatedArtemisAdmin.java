@@ -191,6 +191,19 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .block();
     }
 
+    public void cancelAllRunningBuildJobs() {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
+        }
+
+        webClient
+            .delete()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "admin", "cancel-all-running-jobs").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+    }
+
     /**
      * Create an exam for benchmarking.
      * @param course the course for which to create the exam
