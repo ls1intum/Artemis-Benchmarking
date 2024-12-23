@@ -3,6 +3,7 @@ package de.tum.cit.aet.service.artemis.interaction;
 import static de.tum.cit.aet.domain.RequestType.AUTHENTICATION;
 import static java.time.ZonedDateTime.now;
 
+import de.tum.cit.aet.artemisModel.ArtemisAuthMechanism;
 import de.tum.cit.aet.domain.ArtemisUser;
 import de.tum.cit.aet.domain.RequestStat;
 import de.tum.cit.aet.service.artemis.ArtemisUserService;
@@ -35,6 +36,8 @@ public abstract class SimulatedArtemisUser {
 
     protected final String username;
     protected final String password;
+    protected String privateKeyString;
+    protected String publicKeyString;
     protected final String artemisUrl;
     protected WebClient webClient;
     protected AuthToken authToken;
@@ -56,6 +59,8 @@ public abstract class SimulatedArtemisUser {
         this.artemisUrl = artemisUrl;
         this.artemisUser = artemisUser;
         this.artemisUserService = artemisUserService;
+        this.privateKeyString = artemisUser.getPrivateKey();
+        this.publicKeyString = artemisUser.getPublicKey();
     }
 
     /**
@@ -162,14 +167,16 @@ public abstract class SimulatedArtemisUser {
         ArtemisUser artemisUser,
         ArtemisUserService artemisUserService,
         int numberOfCommitsAndPushesFrom,
-        int numberOfCommitsAndPushesTo
+        int numberOfCommitsAndPushesTo,
+        ArtemisAuthMechanism authMechanism
     ) {
         return new SimulatedArtemisStudent(
             artemisUrl,
             artemisUser,
             artemisUserService,
             numberOfCommitsAndPushesFrom,
-            numberOfCommitsAndPushesTo
+            numberOfCommitsAndPushesTo,
+            authMechanism
         );
     }
 

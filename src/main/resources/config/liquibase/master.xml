@@ -27,6 +27,9 @@
     <include file="/config/liquibase/changelog/00000000000016_add_stats_by_second.xml" relativeToChangelogFile="false"/>
     <include file="/config/liquibase/changelog/00000000000017_rename_ci_status.xml" relativeToChangelogFile="false"/>
     <include file="/config/liquibase/changelog/00000000000018_add_ide_type.xml" relativeToChangelogFile="false"/>
+    <include file="/config/liquibase/changelog/00000000000019_add_token_SSH_key_to_user.xml" relativeToChangelogFile="false"/>
+    <include file="/config/liquibase/changelog/00000000000020_add_participation_mode_percentages.xml" relativeToChangelogFile="false"/>
+
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->

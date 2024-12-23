@@ -134,18 +134,22 @@ public class CiStatusService {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
-                log.debug("Updating CI status for simulation run {}", simulationRun.getId());
+                log.info("Updating CI status for simulation run {}", simulationRun.getId());
+
                 submissions = new ArrayList<>();
                 for (var participation : participations) {
                     submissions.addAll(admin.getSubmissions(participation.getId()));
                 }
                 numberOfQueuedJobs = submissions.size() - getNumberOfResults(submissions);
+                log.info("Currently queued buildjobs: {}", numberOfQueuedJobs);
+
                 status.setQueuedJobs(numberOfQueuedJobs);
                 status.setTimeInMinutes(status.getTimeInMinutes() + 1);
                 status.setAvgJobsPerMinute((double) (status.getTotalJobs() - status.getQueuedJobs()) / status.getTimeInMinutes());
                 status = ciStatusRepository.save(status);
                 websocketService.sendRunCiUpdate(simulationRun.getId(), status);
             } while (numberOfQueuedJobs > 0);
+
             status.setFinished(true);
             status = ciStatusRepository.save(status);
             websocketService.sendRunCiUpdate(simulationRun.getId(), status);
