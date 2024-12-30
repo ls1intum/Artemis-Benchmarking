@@ -31,7 +31,7 @@ import { MetricsSystemComponent } from './blocks/metrics-system/metrics-system.c
 })
 export default class MetricsComponent implements OnInit {
   metrics = signal<Metrics | undefined>(undefined);
-  threads = signal<Thread[] | undefined>(undefined);
+  threads = signal<Thread[] | []>([]);
   updatingMetrics = signal(true);
 
   private readonly metricsService = inject(MetricsService);

@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, Renderer2, inject } from '@angular/core';
+import { Component, ElementRef, Renderer2, inject, input, computed, OnChanges, SimpleChanges } from '@angular/core';
 
 import SharedModule from 'app/shared/shared.module';
 
@@ -8,11 +8,18 @@ import SharedModule from 'app/shared/shared.module';
   templateUrl: './password-strength-bar.component.html',
   styleUrl: './password-strength-bar.component.scss',
 })
-export default class PasswordStrengthBarComponent {
-  colors = ['#F00', '#F90', '#FF0', '#9F0', '#0F0'];
+export default class PasswordStrengthBarComponent implements OnChanges {
+  readonly colors = ['#F00', '#F90', '#FF0', '#9F0', '#0F0'];
+
+  readonly passwordToCheck = input<string | undefined>();
+  readonly strength = computed(() => this.measureStrength(this.passwordToCheck() ?? ''));
 
   private readonly renderer = inject(Renderer2);
   private readonly elementRef = inject(ElementRef);
+
+  ngOnChanges(): void {
+    this.updateStrengthBar();
+  }
 
   measureStrength(p: string): number {
     let force = 0;
@@ -55,17 +62,14 @@ export default class PasswordStrengthBarComponent {
     return { idx: idx + 1, color: this.colors[idx] };
   }
 
-  // TODO: Skipped for migration because:
-  //  Accessor inputs cannot be migrated as they are too complex.
-  @Input()
-  set passwordToCheck(password: string) {
+  private updateStrengthBar(): void {
+    const password = this.passwordToCheck();
     if (password) {
-      const c = this.getColor(this.measureStrength(password));
+      const strength = this.strength();
+      const c = this.getColor(strength);
       const element = this.elementRef.nativeElement;
-      if (element.className) {
-        this.renderer.removeClass(element, element.className);
-      }
       const lis = element.getElementsByTagName('li');
+
       for (let i = 0; i < lis.length; i++) {
         if (i < c.idx) {
           this.renderer.setStyle(lis[i], 'backgroundColor', c.color);

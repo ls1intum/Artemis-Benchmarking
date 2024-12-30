@@ -1,33 +1,36 @@
-import { Component, Input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 /**
  * A component that will take care of item count statistics of a pagination.
  */
 @Component({
   selector: 'jhi-item-count',
-  template: ` <div>Showing {{ first }} - {{ second }} of {{ total }} items.</div> `,
+  template: ` <div>Showing {{ first() }} - {{ second() }} of {{ total() }} items.</div> `,
 })
 export default class ItemCountComponent {
-  /**
-   * @param params  Contains parameters for component:
-   *                    page          Current page number
-   *                    totalItems    Total number of items
-   *                    itemsPerPage  Number of items per page
-   */
-  // TODO: Skipped for migration because:
-  //  Accessor inputs cannot be migrated as they are too complex.
-  @Input() set params(params: { page?: number; totalItems?: number; itemsPerPage?: number }) {
-    if (params.page && params.totalItems !== undefined && params.itemsPerPage) {
-      this.first = (params.page - 1) * params.itemsPerPage + 1;
-      this.second = params.page * params.itemsPerPage < params.totalItems ? params.page * params.itemsPerPage : params.totalItems;
-    } else {
-      this.first = undefined;
-      this.second = undefined;
-    }
-    this.total = params.totalItems;
-  }
+  page = input<number | undefined>();
+  totalItems = input<number | undefined>();
+  itemsPerPage = input<number | undefined>();
 
-  first?: number;
-  second?: number;
-  total?: number;
+  // Automatically computed signals for `first`, `second`, and `total`
+  readonly first = computed(() => {
+    const page = this.page();
+    const itemsPerPage = this.itemsPerPage();
+    if (page && itemsPerPage) {
+      return (page - 1) * itemsPerPage + 1;
+    }
+    return undefined;
+  });
+
+  readonly second = computed(() => {
+    const page = this.page();
+    const totalItems = this.totalItems();
+    const itemsPerPage = this.itemsPerPage();
+    if (page && totalItems !== undefined && itemsPerPage) {
+      return page * itemsPerPage < totalItems ? page * itemsPerPage : totalItems;
+    }
+    return undefined;
+  });
+
+  readonly total = computed(() => this.totalItems());
 }

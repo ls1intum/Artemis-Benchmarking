@@ -1,5 +1,4 @@
 import { Component, ElementRef, input, output, viewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ArtemisUserForCreationDTO } from '../../artemis-users/artemisUserForCreationDTO';
 import { FormsModule } from '@angular/forms';
 import { NgbAlertModule, NgbNavModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
