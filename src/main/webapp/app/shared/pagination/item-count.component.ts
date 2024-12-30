@@ -14,6 +14,8 @@ export default class ItemCountComponent {
    *                    totalItems    Total number of items
    *                    itemsPerPage  Number of items per page
    */
+  // TODO: Skipped for migration because:
+  //  Accessor inputs cannot be migrated as they are too complex.
   @Input() set params(params: { page?: number; totalItems?: number; itemsPerPage?: number }) {
     if (params.page && params.totalItems !== undefined && params.itemsPerPage) {
       this.first = (params.page - 1) * params.itemsPerPage + 1;

@@ -19,6 +19,8 @@ export class JvmThreadsComponent {
     threadDumpBlocked: 0,
   };
 
+  // TODO: Skipped for migration because:
+  //  Accessor inputs cannot be migrated as they are too complex.
   @Input()
   set threads(threads: Thread[] | undefined) {
     this._threads = threads;

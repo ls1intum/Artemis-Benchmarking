@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, input } from '@angular/core';
 import { SimulationStats } from '../../entities/simulation/simulationStats';
 import { RequestType } from '../../entities/simulation/requestType';
 import { DatePipe } from '@angular/common';
@@ -18,7 +18,7 @@ export class ResultBoxComponent implements OnInit {
   faChartLine = faChartLine;
   faTable = faTable;
 
-  @Input() simulationStats?: SimulationStats;
+  readonly simulationStats = input<SimulationStats>();
   dataResponseTime: any[] = [];
   dataNumberOfRequests: any[] = [];
   statsBySecond: StatsByTime[] = [];
@@ -42,9 +42,9 @@ export class ResultBoxComponent implements OnInit {
   private datePipe = inject(DatePipe);
 
   ngOnInit(): void {
-    this.simulationStats?.statsByMinute.sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
+    this.simulationStats()?.statsByMinute.sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
     this.statsBySecond =
-      this.simulationStats?.statsBySecond.sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime()) ?? [];
+      this.simulationStats()?.statsBySecond.sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime()) ?? [];
     this.initChart();
   }
   formatDuration(durationInNanoSeconds: number): string {
@@ -65,16 +65,17 @@ export class ResultBoxComponent implements OnInit {
   }
 
   initChart(): void {
-    if (this.simulationStats) {
+    const simulationStats = this.simulationStats();
+    if (simulationStats) {
       this.referenceLine = [
         {
           name: 'Avg. response time',
-          value: this.simulationStats.avgResponseTime / 1_000_000,
+          value: simulationStats.avgResponseTime / 1_000_000,
         },
       ];
       this.dataResponseTime = [
         {
-          name: this.formatRequestType(this.simulationStats.requestType),
+          name: this.formatRequestType(simulationStats.requestType),
           series: this.statsBySecond.map(stats => ({
             name: stats.dateTime,
             value: stats.avgResponseTime / 1_000_000,
@@ -83,7 +84,7 @@ export class ResultBoxComponent implements OnInit {
       ];
       this.dataNumberOfRequests = [
         {
-          name: this.formatRequestType(this.simulationStats.requestType),
+          name: this.formatRequestType(simulationStats.requestType),
           series: this.statsBySecond.map(stats => ({
             name: stats.dateTime,
             value: stats.numberOfRequests,

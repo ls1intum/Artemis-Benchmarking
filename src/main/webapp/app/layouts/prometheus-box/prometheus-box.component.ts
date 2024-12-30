@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, inject } from '@angular/core';
+import { Component, OnChanges, OnInit, inject, input } from '@angular/core';
 import { SimulationRun } from '../../entities/simulation/simulationRun';
 import { ApplicationConfigService } from '../../core/config/application-config.service';
 import { MetricValue } from '../../entities/metric-value';
@@ -19,7 +19,7 @@ import { Metric } from '../../entities/metric';
 export class PrometheusBoxComponent implements OnInit, OnChanges {
   private static readonly INTERVAL_SECONDS = 15;
 
-  @Input() run!: SimulationRun;
+  readonly run = input.required<SimulationRun>();
 
   metricValuesArtemis: MetricValue[] = [];
   dataArtemis: any[] = [];
@@ -76,7 +76,8 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     this.updateMetrics();
     // Update metrics every 15 seconds if the run is still running / only recently finished
-    if (!this.run.endDateTime || new Date(this.run.endDateTime).getTime() + 1000 * 60 * 30 >= Date.now()) {
+    const run = this.run();
+    if (!run.endDateTime || new Date(run.endDateTime).getTime() + 1000 * 60 * 30 >= Date.now()) {
       this.timeInterval = setInterval(() => this.updateMetrics(), 1000 * PrometheusBoxComponent.INTERVAL_SECONDS);
     }
   }
@@ -84,7 +85,8 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
   ngOnChanges(): void {
     this.updateMetrics();
     // Stop updating metrics if the run is finished for more than 30 minutes
-    if (!!this.run.endDateTime && new Date(this.run.endDateTime).getTime() + 1000 * 60 * 30 < Date.now()) {
+    const run = this.run();
+    if (!!run.endDateTime && new Date(run.endDateTime).getTime() + 1000 * 60 * 30 < Date.now()) {
       clearInterval(this.timeInterval);
     }
   }
@@ -135,17 +137,17 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
   }
 
   fetchMetricsArtemis(): Observable<Metric[]> {
-    const endpoint = this.applicationConfigService.getEndpointFor(`/api/prometheus/${this.run.id}/artemis`);
+    const endpoint = this.applicationConfigService.getEndpointFor(`/api/prometheus/${this.run().id}/artemis`);
     return this.httpClient.get(endpoint).pipe(map((res: any) => res as Metric[]));
   }
 
   fetchMetricsVcs(): Observable<Metric[]> {
-    const endpoint = this.applicationConfigService.getEndpointFor(`/api/prometheus/${this.run.id}/vcs`);
+    const endpoint = this.applicationConfigService.getEndpointFor(`/api/prometheus/${this.run().id}/vcs`);
     return this.httpClient.get(endpoint).pipe(map((res: any) => res as Metric[]));
   }
 
   fetchMetricsCi(): Observable<Metric[]> {
-    const endpoint = this.applicationConfigService.getEndpointFor(`/api/prometheus/${this.run.id}/ci`);
+    const endpoint = this.applicationConfigService.getEndpointFor(`/api/prometheus/${this.run().id}/ci`);
     return this.httpClient.get(endpoint).pipe(map((res: any) => res as Metric[]));
   }
 }

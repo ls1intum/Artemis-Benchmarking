@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, OnInit, inject, input, output } from '@angular/core';
 import {
   getTextRepresentation,
   getTextRepresentationIdeType,
@@ -34,8 +34,8 @@ export class SimulationCardComponent implements OnInit {
   faEye = faEye;
   faEyeSlash = faEyeSlash;
 
-  @Input() simulation!: Simulation;
-  @Input() selectedRun?: SimulationRun;
+  readonly simulation = input.required<Simulation>();
+  readonly selectedRun = input<SimulationRun>();
   displayedRuns: SimulationRun[] = [];
   numberOfDisplayedRuns = 3;
   numberOfActiveSchedules = 0;
@@ -46,8 +46,8 @@ export class SimulationCardComponent implements OnInit {
   adminUsername = '';
   showAdminPassword = false;
 
-  @Output() clickedRunEvent = new EventEmitter<SimulationRun>();
-  @Output() delete = new EventEmitter<void>();
+  readonly clickedRunEvent = output<SimulationRun>();
+  readonly delete = output();
 
   protected readonly Mode = Mode;
   protected readonly Status = Status;
@@ -62,23 +62,25 @@ export class SimulationCardComponent implements OnInit {
   ngOnInit(): void {
     this.sortRuns();
     this.updateDisplayRuns();
-    this.simulationService.getSimulationSchedules(this.simulation.id!).subscribe(numberOfActiveSchedules => {
+    this.simulationService.getSimulationSchedules(this.simulation().id!).subscribe(numberOfActiveSchedules => {
       this.numberOfActiveSchedules = numberOfActiveSchedules.length;
     });
     this.subscribeToNewSimulationRun();
     this.updateCredentialsRequired();
-    this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);
+    this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation());
   }
 
   startRun(content: any): void {
-    if (this.simulation.server === ArtemisServer.PRODUCTION) {
+    const simulation = this.simulation();
+    if (simulation.server === ArtemisServer.PRODUCTION) {
       this.modalService.open(content, { ariaLabelledBy: 'account-modal-title' }).result.then(
         () => {
           let account = undefined;
-          if (this.simulation.mode !== Mode.EXISTING_COURSE_PREPARED_EXAM) {
+          const simulationValue = this.simulation();
+          if (simulationValue.mode !== Mode.EXISTING_COURSE_PREPARED_EXAM) {
             account = new ArtemisAccountDTO(this.adminUsername, this.adminPassword);
           }
-          this.simulationService.runSimulation(this.simulation.id!, account).subscribe(newRun => {
+          this.simulationService.runSimulation(simulationValue.id!, account).subscribe(newRun => {
             this.addNewRun(newRun);
           });
           this.adminPassword = '';
@@ -92,7 +94,7 @@ export class SimulationCardComponent implements OnInit {
         },
       );
     } else {
-      this.simulationService.runSimulation(this.simulation.id!).subscribe(newRun => {
+      this.simulationService.runSimulation(simulation.id!).subscribe(newRun => {
         this.addNewRun(newRun);
       });
     }
@@ -119,12 +121,12 @@ export class SimulationCardComponent implements OnInit {
   }
 
   sortRuns(): void {
-    this.simulation.runs.sort((a, b) => new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime());
-    this.displayedRuns = this.simulation.runs.slice(0, 3);
+    this.simulation().runs.sort((a, b) => new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime());
+    this.displayedRuns = this.simulation().runs.slice(0, 3);
   }
 
   updateDisplayRuns(): void {
-    this.displayedRuns = this.simulation.runs.slice(0, this.numberOfDisplayedRuns);
+    this.displayedRuns = this.simulation().runs.slice(0, this.numberOfDisplayedRuns);
   }
 
   increaseNumberOfDisplayedRuns(): void {
@@ -151,30 +153,31 @@ export class SimulationCardComponent implements OnInit {
   }
 
   hasActiveRun(): boolean {
-    return this.simulation.runs.some(run => run.status === Status.RUNNING);
+    return this.simulation().runs.some(run => run.status === Status.RUNNING);
   }
 
   openScheduleDialog(): void {
     const modalRef = this.modalService.open(SimulationScheduleDialogComponent, { size: 'xl' });
-    modalRef.componentInstance.simulation = this.simulation;
+    modalRef.componentInstance.simulation = this.simulation();
     modalRef.hidden.subscribe(() => {
-      this.simulationService.getSimulationSchedules(this.simulation.id!).subscribe(numberOfActiveSchedules => {
+      this.simulationService.getSimulationSchedules(this.simulation().id!).subscribe(numberOfActiveSchedules => {
         this.numberOfActiveSchedules = numberOfActiveSchedules.length;
       });
     });
   }
 
   subscribeToNewSimulationRun(): void {
-    this.simulationService.receiveNewSimulationRun(this.simulation).subscribe(newRun => {
+    this.simulationService.receiveNewSimulationRun(this.simulation()).subscribe(newRun => {
       this.addNewRun(newRun);
     });
   }
 
   addNewRun(newRun: SimulationRun): void {
-    if (this.simulation.runs.some(run => run.id === newRun.id)) {
+    const simulation = this.simulation();
+    if (simulation.runs.some(run => run.id === newRun.id)) {
       return;
     }
-    this.simulation.runs.push(newRun);
+    simulation.runs.push(newRun);
 
     this.simulationService.receiveSimulationStatus(newRun).subscribe(status => {
       newRun.status = status;
@@ -186,27 +189,30 @@ export class SimulationCardComponent implements OnInit {
 
   patchSimulationInstructorAccount(): void {
     const account = new ArtemisAccountDTO(this.adminUsername, this.adminPassword);
-    this.simulationService.patchSimulationInstructorAccount(this.simulation.id!, account).subscribe(updatedSimulation => {
-      this.simulation.instructorUsername = updatedSimulation.instructorUsername;
-      this.simulation.instructorPassword = updatedSimulation.instructorPassword;
-      this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);
+    this.simulationService.patchSimulationInstructorAccount(this.simulation().id!, account).subscribe(updatedSimulation => {
+      const simulation = this.simulation();
+      simulation.instructorUsername = updatedSimulation.instructorUsername;
+      simulation.instructorPassword = updatedSimulation.instructorPassword;
+      this.instructorAccountAvailable = instructorCredentialsProvided(simulation);
       this.updateCredentialsRequired();
     });
   }
 
   deleteSimulationInstructorAccount(): void {
-    this.simulationService.deleteSimulationInstructorAccount(this.simulation.id!).subscribe(updatedSimulation => {
-      this.simulation.instructorUsername = updatedSimulation.instructorUsername;
-      this.simulation.instructorPassword = updatedSimulation.instructorPassword;
-      this.instructorAccountAvailable = instructorCredentialsProvided(this.simulation);
+    this.simulationService.deleteSimulationInstructorAccount(this.simulation().id!).subscribe(updatedSimulation => {
+      const simulation = this.simulation();
+      simulation.instructorUsername = updatedSimulation.instructorUsername;
+      simulation.instructorPassword = updatedSimulation.instructorPassword;
+      this.instructorAccountAvailable = instructorCredentialsProvided(simulation);
       this.updateCredentialsRequired();
     });
   }
 
   updateCredentialsRequired(): void {
+    const simulation = this.simulation();
     this.credentialsRequired =
-      this.simulation.server === ArtemisServer.PRODUCTION &&
-      this.simulation.mode !== Mode.EXISTING_COURSE_PREPARED_EXAM &&
-      !instructorCredentialsProvided(this.simulation);
+      simulation.server === ArtemisServer.PRODUCTION &&
+      simulation.mode !== Mode.EXISTING_COURSE_PREPARED_EXAM &&
+      !instructorCredentialsProvided(simulation);
   }
 }

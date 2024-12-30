@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { Status } from '../../entities/simulation/simulationRun';
 import { faCircle, faCircleCheck, faCircleNotch, faCircleXmark, faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
@@ -16,7 +16,7 @@ export class StatusIconComponent {
   faCircleNotch = faCircleNotch;
   faCircleExclamation = faCircleExclamation;
 
-  @Input() status?: Status;
+  readonly status = input<Status>();
 
   protected readonly Status = Status;
 }

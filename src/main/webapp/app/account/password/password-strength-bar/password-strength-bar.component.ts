@@ -55,6 +55,8 @@ export default class PasswordStrengthBarComponent {
     return { idx: idx + 1, color: this.colors[idx] };
   }
 
+  // TODO: Skipped for migration because:
+  //  Accessor inputs cannot be migrated as they are too complex.
   @Input()
   set passwordToCheck(password: string) {
     if (password) {

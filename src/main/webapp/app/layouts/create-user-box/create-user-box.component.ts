@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, input, output, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ArtemisUserForCreationDTO } from '../../artemis-users/artemisUserForCreationDTO';
 import { FormsModule } from '@angular/forms';
@@ -20,9 +20,9 @@ export class CreateUserBoxComponent {
   faEye = faEye;
   faEyeSlash = faEyeSlash;
 
-  @Input() actionInProgress = false;
-  @Input() loading = false;
-  @Input() adminAvailable = false;
+  readonly actionInProgress = input(false);
+  readonly loading = input(false);
+  readonly adminAvailable = input(false);
 
   username = '';
   password = '';
@@ -38,13 +38,13 @@ export class CreateUserBoxComponent {
   to = 2;
 
   file?: File;
-  @ViewChild('fileInput') fileInput?: ElementRef;
+  readonly fileInput = viewChild<ElementRef>('fileInput');
 
   showPassword = false;
 
-  @Output() createUser = new EventEmitter<ArtemisUserForCreationDTO>();
-  @Output() createUserPattern = new EventEmitter<ArtemisUserPatternDTO>();
-  @Output() createUserCsv = new EventEmitter<File>();
+  readonly createUser = output<ArtemisUserForCreationDTO>();
+  readonly createUserPattern = output<ArtemisUserPatternDTO>();
+  readonly createUserCsv = output<File>();
 
   onCreate(): void {
     const user: ArtemisUserForCreationDTO = new ArtemisUserForCreationDTO(this.username, this.password, this.id);
@@ -91,8 +91,9 @@ export class CreateUserBoxComponent {
     if (this.file) {
       this.createUserCsv.emit(this.file);
       this.file = undefined;
-      if (this.fileInput) {
-        this.fileInput.nativeElement.value = '';
+      const fileInput = this.fileInput();
+      if (fileInput) {
+        fileInput.nativeElement.value = '';
       }
     }
   }

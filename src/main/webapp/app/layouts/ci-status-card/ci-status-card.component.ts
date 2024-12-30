@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { CiStatus } from '../../entities/simulation/ciStatus';
 import { DecimalPipe } from '@angular/common';
 
@@ -9,5 +9,5 @@ import { DecimalPipe } from '@angular/common';
   styleUrl: './ci-status-card.component.scss',
 })
 export class CiStatusCardComponent {
-  @Input() ciStatus!: CiStatus;
+  readonly ciStatus = input.required<CiStatus>();
 }

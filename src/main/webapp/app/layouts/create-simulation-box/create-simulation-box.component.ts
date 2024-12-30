@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
+import { Component, OnInit, inject, output } from '@angular/core';
 import { getTextRepresentation, getTextRepresentationIdeType, IdeType, Mode, Simulation } from '../../entities/simulation/simulation';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ProfileService } from '../profiles/profile.service';
@@ -19,7 +19,7 @@ export class CreateSimulationBoxComponent implements OnInit {
   faEye = faEye;
   faEyeSlash = faEyeSlash;
 
-  @Output() simulationToCreate = new EventEmitter<Simulation>();
+  readonly simulationToCreate = output<Simulation>();
 
   name = '';
   numberOfUsers = 0;

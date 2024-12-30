@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { Mode } from '../../entities/simulation/simulation';
 import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
 
@@ -9,8 +9,8 @@ import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
   imports: [NgbAlert],
 })
 export class ModeExplanationComponent {
-  @Input() mode?: Mode;
-  @Input() cleanupEnabled = false;
+  readonly mode = input<Mode>();
+  readonly cleanupEnabled = input(false);
 
   protected readonly Mode = Mode;
 }

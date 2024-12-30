@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { Component, inject, OnInit, input } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import {
   NgbActiveModal,
@@ -43,7 +43,7 @@ export class SimulationScheduleDialogComponent implements OnInit {
   faTrash = faTrash;
   faPen = faPen;
 
-  @Input() simulation?: Simulation;
+  readonly simulation = input<Simulation>();
 
   timezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -85,8 +85,9 @@ export class SimulationScheduleDialogComponent implements OnInit {
   private modalService = inject(NgbModal);
 
   ngOnInit(): void {
-    if (this.simulation?.id) {
-      this.simulationService.getSimulationSchedules(this.simulation.id).subscribe(schedules => {
+    const simulation = this.simulation();
+    if (simulation?.id) {
+      this.simulationService.getSimulationSchedules(simulation.id).subscribe(schedules => {
         this.existingSchedules = schedules;
       });
     }
@@ -105,7 +106,7 @@ export class SimulationScheduleDialogComponent implements OnInit {
       this.weekday,
     );
     this.isCollapsed = true;
-    this.simulationService.createSimulationSchedule(this.simulation!.id!, schedule).subscribe(newSchedule => {
+    this.simulationService.createSimulationSchedule(this.simulation()!.id!, schedule).subscribe(newSchedule => {
       if (newSchedule) {
         this.existingSchedules.push(newSchedule);
       }

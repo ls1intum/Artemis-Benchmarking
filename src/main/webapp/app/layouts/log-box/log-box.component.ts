@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { LogMessage } from '../../entities/simulation/logMessage';
 import { DatePipe, NgClass } from '@angular/common';
 
@@ -9,5 +9,5 @@ import { DatePipe, NgClass } from '@angular/common';
   imports: [NgClass, DatePipe],
 })
 export class LogBoxComponent {
-  @Input() logMessages?: LogMessage[];
+  readonly logMessages = input<LogMessage[]>();
 }

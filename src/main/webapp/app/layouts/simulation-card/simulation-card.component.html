@@ -1,6 +1,6 @@
 <div class="card mb-3">
   <div class="card-header space-between-wrapper">
-    {{ simulation.name }}
+    {{ simulation().name }}
     <div>
       <button
         type="button"
@@ -32,23 +32,23 @@
           </div>
         }
         <p>
-          <strong>{{ getTextRepresentation(simulation.mode) }}</strong>
+          <strong>{{ getTextRepresentation(simulation().mode) }}</strong>
         </p>
         <p class="mb-1">
-          @if (simulation.customizeUserRange) {
-            Users: {{ simulation.userRange }} (Total: {{ simulation.numberOfUsers }})
+          @if (simulation().customizeUserRange) {
+            Users: {{ simulation().userRange }} (Total: {{ simulation().numberOfUsers }})
           } @else {
-            Users: {{ simulation.numberOfUsers }}
+            Users: {{ simulation().numberOfUsers }}
           }
         </p>
-        <p class="mb-1">IDE Type: {{ getTextRepresentationIdeType(simulation.ideType) }}</p>
-        <p class="mb-1">Commits: {{ simulation.numberOfCommitsAndPushesFrom }} - {{ simulation.numberOfCommitsAndPushesTo }}</p>
-        @if (simulation.mode != Mode.CREATE_COURSE_AND_EXAM) {
+        <p class="mb-1">IDE Type: {{ getTextRepresentationIdeType(simulation().ideType) }}</p>
+        <p class="mb-1">Commits: {{ simulation().numberOfCommitsAndPushesFrom }} - {{ simulation().numberOfCommitsAndPushesTo }}</p>
+        @if (simulation().mode != Mode.CREATE_COURSE_AND_EXAM) {
           <div class="flex-wrapper">
-            <p class="mb-1">Course-ID: {{ simulation.courseId }}</p>
+            <p class="mb-1">Course-ID: {{ simulation().courseId }}</p>
             @if (
-              simulation.server === ArtemisServer.PRODUCTION &&
-              (simulation.mode === Mode.EXISTING_COURSE_CREATE_EXAM || simulation.mode === Mode.EXISTING_COURSE_UNPREPARED_EXAM)
+              simulation().server === ArtemisServer.PRODUCTION &&
+              (simulation().mode === Mode.EXISTING_COURSE_CREATE_EXAM || simulation().mode === Mode.EXISTING_COURSE_UNPREPARED_EXAM)
             ) {
               <button
                 type="button"
@@ -67,11 +67,11 @@
             }
           </div>
         }
-        @if (simulation.mode == Mode.EXISTING_COURSE_PREPARED_EXAM || simulation.mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM) {
-          <p class="mb-1">Exam-ID: {{ simulation.examId }}</p>
+        @if (simulation().mode == Mode.EXISTING_COURSE_PREPARED_EXAM || simulation().mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM) {
+          <p class="mb-1">Exam-ID: {{ simulation().examId }}</p>
         }
       </div>
-      <jhi-server-badge class="mb-5 position-absolute top-10 end-10" [server]="simulation.server"></jhi-server-badge>
+      <jhi-server-badge class="mb-5 position-absolute top-10 end-10" [server]="simulation().server"></jhi-server-badge>
       <button type="button" class="btn btn-primary position-absolute bottom-10 end-10" (click)="startRun(accountModal)">Start run</button>
     </div>
   </div>
@@ -81,7 +81,7 @@
         type="button"
         class="shadow btn btn-outline-secondary w-100 mb-2"
         (click)="clickedRun(run)"
-        [ngClass]="{ active: selectedRun == run }"
+        [ngClass]="{ active: selectedRun() == run }"
       >
         <div class="space-between-wrapper text-white">
           <div class="flex-container">
@@ -93,9 +93,9 @@
       </button>
     }
   </div>
-  @if (simulation.runs.length > 3) {
+  @if (simulation().runs.length > 3) {
     <div class="card-footer">
-      @if (numberOfDisplayedRuns < simulation.runs.length) {
+      @if (numberOfDisplayedRuns < simulation().runs.length) {
         <button type="button" class="btn btn-secondary btn-sm" (click)="increaseNumberOfDisplayedRuns()">Show more</button>
       }
       @if (numberOfDisplayedRuns > 3) {
@@ -111,17 +111,17 @@
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
   </div>
   <div class="modal-body">
-    @if (simulation.mode == Mode.CREATE_COURSE_AND_EXAM) {
+    @if (simulation().mode == Mode.CREATE_COURSE_AND_EXAM) {
       <p>To perform a run of this simulation, you need to specify an Artemis Admin Account.</p>
     }
     @if (
-      (simulation.mode == Mode.EXISTING_COURSE_CREATE_EXAM || simulation.mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM) &&
-      !instructorCredentialsProvided(simulation)
+      (simulation().mode == Mode.EXISTING_COURSE_CREATE_EXAM || simulation().mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM) &&
+      !instructorCredentialsProvided(simulation())
     ) {
       <p>
         To perform a run of this simulation, you need to specify an Artemis Account that has at least Instructor rights for the course with
         the ID
-        {{ simulation.courseId }}.
+        {{ simulation().courseId }}.
       </p>
     }
     @if (credentialsRequired) {
@@ -182,7 +182,7 @@
   </div>
   <div class="modal-body">
     <p>
-      Are you sure that you want to delete the simulation <strong class="text-info">{{ simulation.name }}</strong
+      Are you sure that you want to delete the simulation <strong class="text-info">{{ simulation().name }}</strong
       >?<br />
       <span class="text-warning">All associated runs and results will be deleted as well.</span>
     </p>
@@ -202,7 +202,7 @@
   <div class="modal-body">
     <p>
       You can specify an Artemis Account that has at least Instructor rights for the course with the ID
-      {{ simulation.courseId }}. <span class="text-warning">The credentials will be stored in the database!</span>
+      {{ simulation().courseId }}. <span class="text-warning">The credentials will be stored in the database!</span>
     </p>
     <p>If you only want to run this simulation manually, this step is not necessary. For scheduled runs, the credentials are required.</p>
     @if (instructorAccountAvailable) {

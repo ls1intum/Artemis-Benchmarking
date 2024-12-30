@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { NgClass } from '@angular/common';
 
@@ -9,6 +9,6 @@ import { NgClass } from '@angular/common';
   imports: [NgClass],
 })
 export class ServerBadgeComponent {
-  @Input() server?: ArtemisServer;
+  readonly server = input<ArtemisServer>();
   protected readonly ArtemisServer = ArtemisServer;
 }
