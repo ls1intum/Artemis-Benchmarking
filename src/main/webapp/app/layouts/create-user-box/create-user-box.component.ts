@@ -6,11 +6,11 @@ import { NgbAlertModule, NgbNavModule, NgbTooltipModule } from '@ng-bootstrap/ng
 import { ArtemisUserPatternDTO } from '../../artemis-users/artemisUserPatternDTO';
 import { faCircleInfo, faEye, faEyeSlash, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import SharedModule from '../../shared/shared.module';
 
 @Component({
   selector: 'jhi-create-user-box',
-  standalone: true,
-  imports: [CommonModule, FormsModule, NgbNavModule, FontAwesomeModule, NgbTooltipModule, NgbAlertModule],
+  imports: [SharedModule, FormsModule, NgbNavModule, FontAwesomeModule, NgbTooltipModule, NgbAlertModule],
   templateUrl: './create-user-box.component.html',
   styleUrl: './create-user-box.component.scss',
 })
@@ -24,18 +24,18 @@ export class CreateUserBoxComponent {
   @Input() loading = false;
   @Input() adminAvailable = false;
 
-  username: string = '';
-  password: string = '';
+  username = '';
+  password = '';
   id?: number;
 
-  usernamePattern: string = '';
-  passwordPattern: string = '';
-  firstNamePattern: string = '';
-  lastNamePattern: string = '';
-  emailPattern: string = '';
-  isCreateOnArtemis: boolean = false;
-  from: number = 1;
-  to: number = 2;
+  usernamePattern = '';
+  passwordPattern = '';
+  firstNamePattern = '';
+  lastNamePattern = '';
+  emailPattern = '';
+  isCreateOnArtemis = false;
+  from = 1;
+  to = 2;
 
   file?: File;
   @ViewChild('fileInput') fileInput?: ElementRef;

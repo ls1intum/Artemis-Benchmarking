@@ -104,7 +104,7 @@
     <div class="flex-wrapper">
       <div class="me-3 mb-3">
         <label class="form-label">Time of Day</label>
-        <ngb-timepicker id="time-picker" [spinners]="false" [(ngModel)]="timeOfDay"></ngb-timepicker>
+        <ngb-timepicker id="time-picker-time" [spinners]="false" [(ngModel)]="timeOfDay"></ngb-timepicker>
       </div>
       @if (cycle === Cycle.WEEKLY) {
         <div class="me-3 mb-3 w-60">
@@ -191,7 +191,7 @@
               </select>
             </td>
             <td class="col-2">
-              <ngb-timepicker id="time-picker" [spinners]="false" [(ngModel)]="editTimeOfDay"></ngb-timepicker>
+              <ngb-timepicker id="time-picker-end" [spinners]="false" [(ngModel)]="editTimeOfDay"></ngb-timepicker>
             </td>
             @if (editCycle === Cycle.WEEKLY) {
               <td class="col-2">

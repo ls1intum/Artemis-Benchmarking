@@ -4,11 +4,16 @@ import { ArtemisServer } from '../../core/util/artemisServer';
 import { ProfileService } from '../profiles/profile.service';
 import { SimulationsService } from '../../simulations/simulations.service';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { ModeExplanationComponent } from '../mode-explanation/mode-explanation.component';
 
 @Component({
   selector: 'jhi-create-simulation-box',
   templateUrl: './create-simulation-box.component.html',
   styleUrls: ['./create-simulation-box.component.scss'],
+  imports: [FormsModule, RouterLink, FaIconComponent, ModeExplanationComponent],
 })
 export class CreateSimulationBoxComponent implements OnInit {
   faEye = faEye;
@@ -16,19 +21,19 @@ export class CreateSimulationBoxComponent implements OnInit {
 
   @Output() simulationToCreate = new EventEmitter<Simulation>();
 
-  name: string = '';
-  numberOfUsers: number = 0;
-  courseId: number = 0;
-  examId: number = 0;
+  name = '';
+  numberOfUsers = 0;
+  courseId = 0;
+  examId = 0;
   server: ArtemisServer = ArtemisServer.TS1;
   mode: Mode = Mode.CREATE_COURSE_AND_EXAM;
-  customizeUserRange: boolean = false;
-  userRange: string = '';
+  customizeUserRange = false;
+  userRange = '';
   ideType: IdeType = IdeType.OFFLINE;
-  numberOfCommitsAndPushesFrom: number = 8;
-  numberOfCommitsAndPushesTo: number = 15;
-  instructorUsername: string = '';
-  instructorPassword: string = '';
+  numberOfCommitsAndPushesFrom = 8;
+  numberOfCommitsAndPushesTo = 15;
+  instructorUsername = '';
+  instructorPassword = '';
 
   availableServers = Object.values(ArtemisServer);
   availableModes = [
@@ -39,7 +44,7 @@ export class CreateSimulationBoxComponent implements OnInit {
   ];
   availableIdeTypes = [IdeType.OFFLINE, IdeType.ONLINE];
   serversWithCleanupEnabled: ArtemisServer[] = [];
-  showPassword: boolean = false;
+  showPassword = false;
 
   protected readonly Mode = Mode;
   protected readonly ArtemisServer = ArtemisServer;

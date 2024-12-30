@@ -3,16 +3,38 @@ import { Simulation } from '../../entities/simulation/simulation';
 import { SimulationsService } from '../simulations.service';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
 import { getOrder } from '../../entities/simulation/simulationStats';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbAccordionModule, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CreateSimulationBoxComponent } from '../../layouts/create-simulation-box/create-simulation-box.component';
+import { SimulationCardComponent } from '../../layouts/simulation-card/simulation-card.component';
+import { StatusIconComponent } from '../../layouts/status-icon/status-icon.component';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { LogBoxComponent } from '../../layouts/log-box/log-box.component';
+import { CiStatusCardComponent } from '../../layouts/ci-status-card/ci-status-card.component';
+import { PrometheusBoxComponent } from '../../layouts/prometheus-box/prometheus-box.component';
+import { ResultBoxComponent } from '../../layouts/result-box/result-box.component';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'jhi-simulations-overview',
   templateUrl: './simulations-overview.component.html',
   styleUrls: ['./simulations-overview.component.scss'],
+  imports: [
+    NgbModule,
+    NgbAccordionModule,
+    CreateSimulationBoxComponent,
+    SimulationCardComponent,
+    StatusIconComponent,
+    FaIconComponent,
+    LogBoxComponent,
+    CiStatusCardComponent,
+    PrometheusBoxComponent,
+    ResultBoxComponent,
+    DatePipe,
+  ],
 })
-export class SimulationsOverviewComponent implements OnInit {
+export default class SimulationsOverviewComponent implements OnInit {
   faSpinner = faSpinner;
 
   simulations: Simulation[] = [];
@@ -74,24 +96,21 @@ export class SimulationsOverviewComponent implements OnInit {
   }
 
   deleteSelectedRun(content: any): void {
-    this.modalService.open(content, { ariaLabelledBy: 'delete-modal-title' }).result.then(
-      () => {
-        if (!this.selectedRun) {
-          return;
+    this.modalService.open(content, { ariaLabelledBy: 'delete-modal-title' }).result.then(() => {
+      if (!this.selectedRun) {
+        return;
+      }
+      this.simulationsService.deleteSimulationRun(this.selectedRun.id).subscribe(() => {
+        if (this.selectedRun) {
+          this.simulationsService.unsubscribeFromSimulationRun(this.selectedRun);
         }
-        this.simulationsService.deleteSimulationRun(this.selectedRun.id).subscribe(() => {
-          if (this.selectedRun) {
-            this.simulationsService.unsubscribeFromSimulationRun(this.selectedRun);
-          }
 
-          this.selectedRun = undefined;
-          this.simulationsService.getSimulations().subscribe(simulations => {
-            this.simulations = simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
-          });
+        this.selectedRun = undefined;
+        this.simulationsService.getSimulations().subscribe(simulations => {
+          this.simulations = simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
         });
-      },
-      () => {},
-    );
+      });
+    });
   }
 
   cancelSelectedRun(): void {

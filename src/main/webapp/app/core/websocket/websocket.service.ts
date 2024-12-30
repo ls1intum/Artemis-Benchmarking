@@ -113,8 +113,9 @@ export class WebsocketService implements OnDestroy {
     };
     this.stompClient = Stomp.over(this.socket, options);
     // Note: at the moment, debugging is deactivated to prevent console log statements
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     this.stompClient.debug = () => {};
-    const headers = <ConnectionHeaders>{};
+    const headers = {} as ConnectionHeaders;
 
     this.stompClient.connect(
       headers,
@@ -211,7 +212,7 @@ export class WebsocketService implements OnDestroy {
    * Subscribe to a channel: add the channel to the observables and create a STOMP subscription for the channel if this has not been done before
    * @param channel
    */
-  subscribe(channel: string): WebsocketService {
+  subscribe(channel: string): this {
     const subscription = this.connectionState.pipe(first(connectionState => connectionState.connected)).subscribe(() => {
       if (!this.observables.has(channel)) {
         this.observables.set(channel, this.createObservable(channel));
@@ -256,7 +257,7 @@ export class WebsocketService implements OnDestroy {
         }
       },
       {
-        id: this.getSessionId() + '-' + this.subscriptionCounter++,
+        id: this.getSessionId() + '-' + String(this.subscriptionCounter++),
       },
     );
     this.stompSubscriptions.set(channel, subscription);

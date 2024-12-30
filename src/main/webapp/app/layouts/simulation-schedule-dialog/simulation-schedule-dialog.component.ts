@@ -15,12 +15,12 @@ import { Cycle, DayOfWeek, SimulationSchedule } from '../../entities/simulation/
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { faBell, faCalendarDays, faCircleInfo, faLightbulb, faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import SharedModule from '../../shared/shared.module';
 
 @Component({
   selector: 'jhi-simulation-schedule-dialog',
-  standalone: true,
   imports: [
-    CommonModule,
+    SharedModule,
     NgbCollapseModule,
     FormsModule,
     NgbDatepickerModule,

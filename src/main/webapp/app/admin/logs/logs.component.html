@@ -1,23 +1,22 @@
-@if (loggers) {
+@defer (when loggers() && !isLoading()) {
   <div class="table-responsive">
     <h2 id="logs-page-heading" data-cy="logsPageHeading">Logs</h2>
-    @if (isLoading) {
-      <div class="float-end me-3">
-        <div class="spinner-border"></div>
-      </div>
-    }
-    <p>There are {{ loggers.length }} loggers.</p>
+
+    <p>There are {{ loggers()?.length }} loggers.</p>
+
     <span>Filter</span>
-    <input type="text" [(ngModel)]="filter" (ngModelChange)="filterAndSort()" class="form-control" />
+    <input type="text" [ngModel]="filter()" (ngModelChange)="filter.set($event)" class="form-control" />
+
     <table class="table table-sm table-striped table-bordered" aria-describedby="logs-page-heading">
       <thead>
-        <tr jhiSort [(predicate)]="orderProp" [(ascending)]="ascending" (sortChange)="filterAndSort()">
+        <tr jhiSort [(sortState)]="sortState">
           <th jhiSortBy="name" scope="col"><span>Name</span> <fa-icon icon="sort"></fa-icon></th>
           <th jhiSortBy="level" scope="col"><span>Level</span> <fa-icon icon="sort"></fa-icon></th>
         </tr>
       </thead>
+
       <tbody>
-        @for (logger of filteredAndOrderedLoggers; track logger) {
+        @for (logger of filteredAndOrderedLoggers(); track $index) {
           <tr>
             <td>
               <small>{{ logger.name | slice: 0 : 140 }}</small>
@@ -30,6 +29,7 @@
               >
                 TRACE
               </button>
+
               <button
                 (click)="changeLevel(logger.name, 'DEBUG')"
                 [ngClass]="logger.level === 'DEBUG' ? 'btn-success' : 'btn-light'"
@@ -37,6 +37,7 @@
               >
                 DEBUG
               </button>
+
               <button
                 (click)="changeLevel(logger.name, 'INFO')"
                 [ngClass]="logger.level === 'INFO' ? 'btn-info' : 'btn-light'"
@@ -44,6 +45,7 @@
               >
                 INFO
               </button>
+
               <button
                 (click)="changeLevel(logger.name, 'WARN')"
                 [ngClass]="logger.level === 'WARN' ? 'btn-warning' : 'btn-light'"
@@ -51,6 +53,7 @@
               >
                 WARN
               </button>
+
               <button
                 (click)="changeLevel(logger.name, 'ERROR')"
                 [ngClass]="logger.level === 'ERROR' ? 'btn-danger' : 'btn-light'"
@@ -58,6 +61,7 @@
               >
                 ERROR
               </button>
+
               <button
                 (click)="changeLevel(logger.name, 'OFF')"
                 [ngClass]="logger.level === 'OFF' ? 'btn-secondary' : 'btn-light'"
@@ -70,5 +74,9 @@
         }
       </tbody>
     </table>
+  </div>
+} @loading {
+  <div class="d-flex justify-content-center me-3">
+    <div class="spinner-border"></div>
   </div>
 }

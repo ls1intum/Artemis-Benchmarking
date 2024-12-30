@@ -1,9 +1,9 @@
+import { Component, input } from '@angular/core';
+
 import SharedModule from 'app/shared/shared.module';
 import { Services } from 'app/admin/metrics/metrics.model';
-import { Component, Input } from '@angular/core';
 
 @Component({
-  standalone: true,
   selector: 'jhi-metrics-endpoints-requests',
   templateUrl: './metrics-endpoints-requests.component.html',
   imports: [SharedModule],
@@ -12,10 +12,10 @@ export class MetricsEndpointsRequestsComponent {
   /**
    * object containing service related metrics
    */
-  @Input() endpointsRequestsMetrics?: Services;
+  endpointsRequestsMetrics = input<Services>();
 
   /**
    * boolean field saying if the metrics are in the process of being updated
    */
-  @Input() updating?: boolean;
+  updating = input<boolean>();
 }

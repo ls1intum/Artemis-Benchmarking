@@ -36,15 +36,21 @@
               "src/main/webapp/manifest.webapp",
               "src/main/webapp/robots.txt"
             ],
-            "styles": ["src/main/webapp/content/scss/vendor.scss", "src/main/webapp/content/scss/global.scss"],
+            "styles": ["src/main/webapp/content/scss/global.scss"],
             "scripts": []
           },
           "configurations": {
             "production": {
               "optimization": true,
               "outputHashing": "all",
-              "sourceMap": false,
+              "sourceMap": {
+                "scripts": true,
+                "styles": false,
+                "hidden": false,
+                "vendor": false
+              },
               "namedChunks": true,
+              "aot": true,
               "extractLicenses": true,
               "serviceWorker": "ngsw-config.json",
               "budgets": [
@@ -109,12 +115,13 @@
     }
   },
   "cli": {
+    "analytics": false,
+    "packageManager": "npm",
     "cache": {
       "enabled": true,
       "path": "./build/angular/",
       "environment": "all"
     },
-    "packageManager": "npm",
-    "analytics": false
+    "schematicCollections": ["@angular-eslint/schematics"]
   }
 }

@@ -8,16 +8,22 @@ import {
 } from '../../entities/simulation/simulation';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
 import { SimulationsService } from '../../simulations/simulations.service';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ArtemisAccountDTO } from '../../simulations/artemisAccountDTO';
 import { faCalendarDays, faChevronRight, faClock, faEye, faEyeSlash, faTrashCan, faUserTie } from '@fortawesome/free-solid-svg-icons';
 import { SimulationScheduleDialogComponent } from '../simulation-schedule-dialog/simulation-schedule-dialog.component';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { DatePipe, NgClass } from '@angular/common';
+import { ServerBadgeComponent } from '../server-badge/server-badge.component';
+import { StatusIconComponent } from '../status-icon/status-icon.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'jhi-simulation-card',
   templateUrl: './simulation-card.component.html',
   styleUrls: ['./simulation-card.component.scss'],
+  imports: [FaIconComponent, NgbTooltip, NgClass, ServerBadgeComponent, StatusIconComponent, DatePipe, FormsModule],
 })
 export class SimulationCardComponent implements OnInit {
   faTrashCan = faTrashCan;
@@ -143,12 +149,9 @@ export class SimulationCardComponent implements OnInit {
   }
 
   deleteSimulation(content: any): void {
-    this.modalService.open(content, { ariaLabelledBy: 'delete-modal-title' }).result.then(
-      () => {
-        this.delete.emit();
-      },
-      () => {},
-    );
+    this.modalService.open(content, { ariaLabelledBy: 'delete-modal-title' }).result.then(() => {
+      this.delete.emit();
+    });
   }
 
   hasActiveRun(): boolean {

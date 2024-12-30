@@ -4,13 +4,15 @@ import { RequestType } from '../../entities/simulation/requestType';
 import { DatePipe } from '@angular/common';
 import { StatsByTime } from 'app/entities/simulation/statsByTime';
 import { faChartLine, faTable } from '@fortawesome/free-solid-svg-icons';
-import { ScaleType } from '@swimlane/ngx-charts';
+import { NgxChartsModule, ScaleType } from '@swimlane/ngx-charts';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 @Component({
   selector: 'jhi-result-box',
   templateUrl: './result-box.component.html',
   providers: [DatePipe],
   styleUrls: ['./result-box.component.scss'],
+  imports: [FaIconComponent, NgxChartsModule],
 })
 export class ResultBoxComponent implements OnInit {
   faChartLine = faChartLine;

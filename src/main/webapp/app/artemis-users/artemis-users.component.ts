@@ -12,15 +12,15 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ArtemisUserPatternDTO } from './artemisUserPatternDTO';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Observable, Subject, map, merge, startWith } from 'rxjs';
+import SharedModule from '../shared/shared.module';
 
 @Component({
   selector: 'jhi-artemis-users',
-  standalone: true,
-  imports: [CommonModule, NgbCollapse, CreateUserBoxComponent, FontAwesomeModule, NgbTooltipModule, FormsModule, ReactiveFormsModule],
+  imports: [SharedModule, NgbCollapse, CreateUserBoxComponent, FontAwesomeModule, NgbTooltipModule, FormsModule, ReactiveFormsModule],
   templateUrl: './artemis-users.component.html',
   styleUrl: './artemis-users.component.scss',
 })
-export class ArtemisUsersComponent implements OnInit {
+export default class ArtemisUsersComponent implements OnInit {
   faEye = faEye;
   faEyeSlash = faEyeSlash;
   faCircleInfo = faCircleInfo;

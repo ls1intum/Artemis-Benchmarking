@@ -1,11 +1,11 @@
+import { Component, Input, inject } from '@angular/core';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+
 import SharedModule from 'app/shared/shared.module';
 import { Thread, ThreadState } from 'app/admin/metrics/metrics.model';
 import { MetricsModalThreadsComponent } from '../metrics-modal-threads/metrics-modal-threads.component';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Component, Input } from '@angular/core';
 
 @Component({
-  standalone: true,
   selector: 'jhi-jvm-threads',
   templateUrl: './jvm-threads.component.html',
   imports: [SharedModule],
@@ -48,7 +48,7 @@ export class JvmThreadsComponent {
 
   private _threads: Thread[] | undefined;
 
-  constructor(private modalService: NgbModal) {}
+  private readonly modalService = inject(NgbModal);
 
   open(): void {
     const modalRef = this.modalService.open(MetricsModalThreadsComponent);

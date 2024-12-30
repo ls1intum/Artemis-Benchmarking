@@ -4,7 +4,7 @@ export class ArtemisUserPatternDTO {
     public passwordPattern: string,
     public from: number,
     public to: number,
-    public createOnArtemis: boolean = false,
+    public createOnArtemis = false,
     public firstNamePattern: string,
     public lastNamePattern: string,
     public emailPattern: string,

@@ -6,11 +6,10 @@ import { ApplicationConfigService } from '../core/config/application-config.serv
 
 @Component({
   selector: 'jhi-unsubscribe-schedule',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './unsubscribe-schedule.component.html',
 })
-export class UnsubscribeScheduleComponent implements OnInit {
+export default class UnsubscribeScheduleComponent implements OnInit {
   state = 'PENDING';
 
   constructor(

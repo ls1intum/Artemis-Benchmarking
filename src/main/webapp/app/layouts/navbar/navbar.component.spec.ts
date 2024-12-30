@@ -1,8 +1,9 @@
 jest.mock('app/login/login.service');
 
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { of } from 'rxjs';
 
 import { ProfileInfo } from 'app/layouts/profiles/profile-info.model';
 import { Account } from 'app/core/auth/account.model';
@@ -11,7 +12,6 @@ import { ProfileService } from 'app/layouts/profiles/profile.service';
 import { LoginService } from 'app/login/login.service';
 
 import NavbarComponent from './navbar.component';
-import { of } from 'rxjs';
 
 describe('Navbar Component', () => {
   let comp: NavbarComponent;
@@ -31,8 +31,8 @@ describe('Navbar Component', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [NavbarComponent, HttpClientTestingModule, RouterTestingModule.withRoutes([])],
-      providers: [LoginService],
+      imports: [NavbarComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), LoginService],
     })
       .overrideTemplate(NavbarComponent, '')
       .compileComponents();
@@ -61,19 +61,19 @@ describe('Navbar Component', () => {
     comp.ngOnInit();
 
     // THEN
-    expect(comp.account).toBeNull();
+    expect(comp.account()).toBeNull();
 
     // WHEN
     accountService.authenticate(account);
 
     // THEN
-    expect(comp.account).toEqual(account);
+    expect(comp.account()).toEqual(account);
 
     // WHEN
     accountService.authenticate(null);
 
     // THEN
-    expect(comp.account).toBeNull();
+    expect(comp.account()).toBeNull();
   });
 
   it('Should hold current authenticated user in variable account if user is authenticated before page load', () => {
@@ -84,12 +84,12 @@ describe('Navbar Component', () => {
     comp.ngOnInit();
 
     // THEN
-    expect(comp.account).toEqual(account);
+    expect(comp.account()).toEqual(account);
 
     // WHEN
     accountService.authenticate(null);
 
     // THEN
-    expect(comp.account).toBeNull();
+    expect(comp.account()).toBeNull();
   });
 });
