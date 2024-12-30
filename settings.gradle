@@ -1,6 +1,8 @@
-
 pluginManagement {
     repositories {
+        mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
         // jhipster-needle-gradle-plugin-management-repositories - JHipster will add additional entries here
     }
     plugins {
