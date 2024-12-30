@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import {
   getTextRepresentation,
   getTextRepresentationIdeType,
@@ -34,10 +34,8 @@ export class SimulationCardComponent implements OnInit {
   faEye = faEye;
   faEyeSlash = faEyeSlash;
 
-  @Input()
-  simulation!: Simulation;
-  @Input()
-  selectedRun?: SimulationRun;
+  @Input() simulation!: Simulation;
+  @Input() selectedRun?: SimulationRun;
   displayedRuns: SimulationRun[] = [];
   numberOfDisplayedRuns = 3;
   numberOfActiveSchedules = 0;
@@ -58,10 +56,8 @@ export class SimulationCardComponent implements OnInit {
   protected readonly ArtemisServer = ArtemisServer;
   protected readonly instructorCredentialsProvided = instructorCredentialsProvided;
 
-  constructor(
-    private simulationService: SimulationsService,
-    private modalService: NgbModal,
-  ) {}
+  private simulationService = inject(SimulationsService);
+  private modalService = inject(NgbModal);
 
   ngOnInit(): void {
     this.sortRuns();

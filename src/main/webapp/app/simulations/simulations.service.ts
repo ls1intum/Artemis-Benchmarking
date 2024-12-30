@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ApplicationConfigService } from '../core/config/application-config.service';
 import { Observable } from 'rxjs/internal/Observable';
@@ -17,11 +17,9 @@ import { CiStatus } from '../entities/simulation/ciStatus';
   providedIn: 'root',
 })
 export class SimulationsService {
-  constructor(
-    private httpClient: HttpClient,
-    private applicationConfigService: ApplicationConfigService,
-    private websocketService: WebsocketService,
-  ) {}
+  private httpClient = inject(HttpClient);
+  private applicationConfigService = inject(ApplicationConfigService);
+  private websocketService = inject(WebsocketService);
 
   receiveSimulationResult(run: SimulationRun): Observable<SimulationStats[]> {
     this.websocketService.subscribe(`/topic/simulation/runs/${run.id}/result`);

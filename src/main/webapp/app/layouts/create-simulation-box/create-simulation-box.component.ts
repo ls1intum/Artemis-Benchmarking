@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
 import { getTextRepresentation, getTextRepresentationIdeType, IdeType, Mode, Simulation } from '../../entities/simulation/simulation';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ProfileService } from '../profiles/profile.service';
@@ -51,10 +51,8 @@ export class CreateSimulationBoxComponent implements OnInit {
   protected readonly getTextRepresentation = getTextRepresentation;
   protected readonly getTextRepresentationIdeType = getTextRepresentationIdeType;
 
-  constructor(
-    private profileService: ProfileService,
-    private simulationService: SimulationsService,
-  ) {}
+  private profileService = inject(ProfileService);
+  private simulationService = inject(SimulationsService);
 
   ngOnInit(): void {
     this.profileService.getProfileInfo().subscribe(profileInfo => {

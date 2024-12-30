@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { ArtemisServer } from '../core/util/artemisServer';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ArtemisUser } from '../entities/artemis-user/artemisUser';
@@ -48,12 +47,12 @@ export default class ArtemisUsersComponent implements OnInit {
 
   protected readonly ArtemisServer = ArtemisServer;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private artemisUsersService: ArtemisUsersService,
-    private modalService: NgbModal,
-  ) {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private artemisUsersService = inject(ArtemisUsersService);
+  private modalService = inject(NgbModal);
+
+  constructor() {
     this.users$ = merge(
       this.filter.valueChanges.pipe(
         startWith(''),

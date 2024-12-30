@@ -43,8 +43,7 @@ export class SimulationScheduleDialogComponent implements OnInit {
   faTrash = faTrash;
   faPen = faPen;
 
-  @Input()
-  simulation?: Simulation;
+  @Input() simulation?: Simulation;
 
   timezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -82,10 +81,8 @@ export class SimulationScheduleDialogComponent implements OnInit {
   protected readonly Cycle = Cycle;
   protected readonly Mode = Mode;
 
-  constructor(
-    private simulationService: SimulationsService,
-    private modalService: NgbModal,
-  ) {}
+  private simulationService = inject(SimulationsService);
+  private modalService = inject(NgbModal);
 
   ngOnInit(): void {
     if (this.simulation?.id) {

@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, inject } from '@angular/core';
 import { SimulationRun } from '../../entities/simulation/simulationRun';
 import { ApplicationConfigService } from '../../core/config/application-config.service';
 import { MetricValue } from '../../entities/metric-value';
@@ -36,11 +36,9 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
     domain: ['#FF4833', '#A10A28', '#33ADFF', '#37FF33', '#FF33FC'],
   };
 
-  constructor(
-    private applicationConfigService: ApplicationConfigService,
-    private httpClient: HttpClient,
-    private datePipe: DatePipe,
-  ) {}
+  private applicationConfigService = inject(ApplicationConfigService);
+  private httpClient = inject(HttpClient);
+  private datePipe = inject(DatePipe);
 
   axisFormatArtemis = (val: any): string => {
     if (this.metricValuesArtemis.length === 0) {

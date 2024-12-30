@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Simulation } from '../../entities/simulation/simulation';
 import { SimulationsService } from '../simulations.service';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
@@ -44,12 +44,10 @@ export default class SimulationsOverviewComponent implements OnInit {
 
   protected readonly Status = Status;
 
-  constructor(
-    private simulationsService: SimulationsService,
-    private modalService: NgbModal,
-    private route: ActivatedRoute,
-    private router: Router,
-  ) {}
+  private simulationsService = inject(SimulationsService);
+  private modalService = inject(NgbModal);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   ngOnInit(): void {
     const selectedRunString = this.route.snapshot.queryParamMap.get('runId');

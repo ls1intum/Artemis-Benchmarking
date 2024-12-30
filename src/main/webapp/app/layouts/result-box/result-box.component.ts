@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { SimulationStats } from '../../entities/simulation/simulationStats';
 import { RequestType } from '../../entities/simulation/requestType';
 import { DatePipe } from '@angular/common';
@@ -39,7 +39,7 @@ export class ResultBoxComponent implements OnInit {
     domain: ['#33ADFF'],
   };
 
-  constructor(private datePipe: DatePipe) {}
+  private datePipe = inject(DatePipe);
 
   ngOnInit(): void {
     this.simulationStats?.statsByMinute.sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
