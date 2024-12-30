@@ -109,14 +109,14 @@ public class SimulationScheduleService {
      * Subscribe to a schedule
      *
      * @param scheduleId the id of the schedule to subscribe to
-     * @param email the email of the subscriber
+     * @param email      the email of the subscriber
      */
-    public ScheduleSubscriber subscribeToSchedule(long scheduleId, String email) {
+    public void subscribeToSchedule(long scheduleId, String email) {
         log.debug("Subscribing {} to schedule {}", email, scheduleId);
         var schedule = simulationScheduleRepository.findById(scheduleId).orElseThrow();
         if (schedule.getSubscribers().stream().anyMatch(subscriber -> subscriber.getEmail().equals(email))) {
             log.debug("Subscriber {} already subscribed to schedule {}", email, scheduleId);
-            return null;
+            return;
         }
         var subscriber = new ScheduleSubscriber();
         subscriber.setSchedule(schedule);
@@ -124,7 +124,6 @@ public class SimulationScheduleService {
         subscriber.setKey(RandomUtil.generateActivationKey());
         var savedSubscriber = scheduleSubscriberRepository.save(subscriber);
         mailService.sendSubscribedMail(savedSubscriber);
-        return savedSubscriber;
     }
 
     /**

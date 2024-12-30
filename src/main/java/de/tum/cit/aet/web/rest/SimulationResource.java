@@ -97,6 +97,7 @@ public class SimulationResource {
      * POST /api/simulations/{simulationId}/run : Create and queue a new run for the given simulation.
      *
      * @param simulationId the ID of the simulation to run
+     * @param accountDTO the account to use for running the simulation
      * @return the ResponseEntity with status 200 (OK) and with body the queued simulation run, or with status 404 (Not Found) if the simulation does not exist
      */
     @PostMapping("/{simulationId}/run")

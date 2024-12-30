@@ -46,6 +46,12 @@ public class CacheConfiguration {
         return new com.hazelcast.spring.cache.HazelcastCacheManager(hazelcastInstance);
     }
 
+    /**
+     * Create a Hazelcast instance.
+     *
+     * @param jHipsterProperties the JHipster properties
+     * @return the Hazelcast instance
+     */
     @Bean
     public HazelcastInstance hazelcastInstance(JHipsterProperties jHipsterProperties) {
         log.debug("Configuring Hazelcast");

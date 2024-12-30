@@ -40,6 +40,10 @@ public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer 
             .setInterceptors(httpSessionHandshakeInterceptor());
     }
 
+    /**
+     * This interceptor is used to add the IP address of the client to the websocket session attributes.
+     * @return the interceptor for the http handshake
+     */
     @Bean
     public HandshakeInterceptor httpSessionHandshakeInterceptor() {
         return new HandshakeInterceptor() {

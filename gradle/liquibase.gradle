@@ -1,5 +1,5 @@
 configurations {
-    liquibaseRuntime.extendsFrom sourceSets.main.compileClasspath
+  liquibaseRuntime.extendsFrom sourceSets.main.compileClasspath
 }
 
 dependencies {
@@ -14,27 +14,27 @@ dependencies {
 
 project.ext.diffChangelogFile = "src/main/resources/config/liquibase/changelog/" + new Date().format("yyyyMMddHHmmss") + "_changelog.xml"
 if (!project.hasProperty("runList")) {
- project.ext.runList = "main"
+  project.ext.runList = "main"
 }
 
 liquibase {
   activities {
-    main {
-      driver "com.mysql.cj.jdbc.Driver"
-      url "jdbc:mysql://localhost:3306/artemis-benchmarking"
-      username "root"
-      changelogFile "src/main/resources/config/liquibase/master.xml"
-      logLevel "debug"
-      classpath "src/main/resources/"
+    register('main') {
+      driver = "com.mysql.cj.jdbc.Driver"
+      url = "jdbc:mysql://localhost:3306/artemis-benchmarking"
+      username = "root"
+      changelogFile = "src/main/resources/config/liquibase/master.xml"
+      logLevel = "debug"
+      classpath = "src/main/resources/"
     }
-    diffLog {
-      driver "com.mysql.cj.jdbc.Driver"
-      url "jdbc:mysql://localhost:3306/artemis-benchmarking"
-      username "root"
-      changelogFile project.ext.diffChangelogFile
-      referenceUrl "hibernate:spring:de.tum.cit.aet.domain?dialect=org.hibernate.dialect.MySQL8Dialect&hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
-      logLevel "debug"
-      classpath "$buildDir/classes/java/main"
+    register('diffLog') {
+      driver = "com.mysql.cj.jdbc.Driver"
+      url = "jdbc:mysql://localhost:3306/artemis-benchmarking"
+      username = "root"
+      changelogFile = project.ext.diffChangelogFile
+      referenceUrl = "hibernate:spring:de.tum.cit.aet.domain?dialect=org.hibernate.dialect.MySQL8Dialect&hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
+      logLevel = "debug"
+      classpath = "${layout.buildDirectory.dir('classes/java/main')}"
     }
   }
 
@@ -43,19 +43,3 @@ liquibase {
 
 liquibaseDiff.dependsOn compileJava
 liquibaseDiffChangelog.dependsOn compileJava
-
-configurations {
-  all {
-    resolutionStrategy {
-      // Inherited version from Spring Boot can't be used because of regressions:
-      // To be removed as soon as spring-boot use the same version
-      force "org.liquibase:liquibase-core:${liquibaseVersion}"
-    }
-  }
-}
-
-ext {
-  if (project.hasProperty("no-liquibase")) {
-    springProfiles += ",no-liquibase"
-  }
-}

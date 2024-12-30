@@ -66,14 +66,17 @@ public class SimulationQueueService {
         simulatorThread.start();
     }
 
-    public boolean removeSimulationRunFromQueue(SimulationRun simulationRun) {
+    /**
+     * Remove a simulation run from the queue.
+     * @param simulationRun the simulation run to remove
+     */
+    public void removeSimulationRunFromQueue(SimulationRun simulationRun) {
         var result = simulationRunQueue.removeIf(r -> Objects.equals(r.getId(), simulationRun.getId()));
         if (!result) {
             log.warn("Could not remove simulation run {} from queue", simulationRun.getId());
         } else {
             log.info("Removed simulation run {} from queue", simulationRun.getId());
         }
-        return result;
     }
 
     /**

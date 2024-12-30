@@ -91,6 +91,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
      * Participate in an exam, i.e. solve and submit the exercises and fetch live events.
      * @param courseId the ID of the course
      * @param examId the ID of the exam
+     * @param onlineIde whether to use the online IDE for programming exercises
      * @return the list of request stats
      */
     public List<RequestStat> participateInExam(long courseId, long examId, boolean onlineIde) {
@@ -112,6 +113,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
      * Start participating in an exam, i.e. navigate into the exam and start the exam.
      * @param courseId the ID of the course
      * @param examId the ID of the exam
+     * @param courseProgrammingExerciseId the ID of the course programming exercise
      * @return the list of request stats
      */
     public List<RequestStat> startExamParticipation(long courseId, long examId, long courseProgrammingExerciseId) {

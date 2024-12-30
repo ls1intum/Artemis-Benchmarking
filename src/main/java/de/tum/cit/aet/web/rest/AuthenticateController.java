@@ -51,6 +51,12 @@ public class AuthenticateController {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
     }
 
+    /**
+     * {@code POST /authenticate} : authenticate the user.
+     *
+     * @param loginVM the login view model.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the JWT token in the body.
+     */
     @PostMapping("/authenticate")
     public ResponseEntity<JWTToken> authenticate(@Valid @RequestBody LoginVM loginVM) {
         log.info("Request to authenticate user {}", loginVM.getUsername());
@@ -75,6 +81,13 @@ public class AuthenticateController {
         return request.getRemoteUser();
     }
 
+    /**
+     * Create a JWT token.
+     *
+     * @param authentication the authentication.
+     * @param rememberMe if the user should be remembered.
+     * @return the JWT token.
+     */
     public String createToken(Authentication authentication, boolean rememberMe) {
         String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
 

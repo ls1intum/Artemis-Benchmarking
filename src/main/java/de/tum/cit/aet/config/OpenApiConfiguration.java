@@ -15,6 +15,13 @@ public class OpenApiConfiguration {
 
     public static final String API_FIRST_PACKAGE = "de.tum.cit.aet.web.api";
 
+    /**
+     * Springfox configuration for the API first approach.
+     *
+     * @param jhipsterOpenApiCustomizer the customizer for the OpenAPI configuration
+     * @param jHipsterProperties the JHipster properties
+     * @return the Springfox configuration
+     */
     @Bean
     @ConditionalOnMissingBean(name = "apiFirstGroupedOpenAPI")
     public GroupedOpenApi apiFirstGroupedOpenAPI(

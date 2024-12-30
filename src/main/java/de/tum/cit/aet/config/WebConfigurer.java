@@ -80,6 +80,10 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
         return extractedPath.substring(0, extractionEndIndex);
     }
 
+    /**
+     * Allows the application to be accessed from another origin. By default, it allows all origins.
+     * @return the CorsFilter with the configuration for all patterns
+     */
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

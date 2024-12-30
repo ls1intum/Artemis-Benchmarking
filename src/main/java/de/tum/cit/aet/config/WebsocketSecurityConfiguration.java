@@ -5,6 +5,10 @@ import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.security.config.annotation.web.messaging.MessageSecurityMetadataSourceRegistry;
 import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
 
+// NOTE: due to an issue in Spring Security, we had to use the old "deprecated" way with extending AbstractSecurityWebSocketMessageBrokerConfigurer
+// https://github.com/spring-projects/spring-security/issues/16299
+// As soon as this issue was addressed in a future Spring Framework / Spring Security, we can switch to the new way by using @EnableWebSocketSecurity again
+// @EnableWebSocketSecurity
 @Configuration
 public class WebsocketSecurityConfiguration extends AbstractSecurityWebSocketMessageBrokerConfigurer {
 

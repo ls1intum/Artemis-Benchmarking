@@ -26,6 +26,12 @@ public class SecurityJwtConfiguration {
     @Value("${jhipster.security.authentication.jwt.base64-secret}")
     private String jwtKey;
 
+    /**
+     * Create a {@link JwtDecoder} bean.
+     *
+     * @param metersService the {@link SecurityMetersService} to track invalid tokens
+     * @return the {@link JwtDecoder} bean
+     */
     @Bean
     public JwtDecoder jwtDecoder(SecurityMetersService metersService) {
         NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(getSecretKey()).macAlgorithm(JWT_ALGORITHM).build();
@@ -52,6 +58,11 @@ public class SecurityJwtConfiguration {
         return new NimbusJwtEncoder(new ImmutableSecret<>(getSecretKey()));
     }
 
+    /**
+     * Create a {@link JwtAuthenticationConverter} bean.
+     *
+     * @return the {@link JwtAuthenticationConverter} bean
+     */
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();

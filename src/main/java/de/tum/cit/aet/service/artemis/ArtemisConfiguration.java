@@ -151,6 +151,12 @@ public class ArtemisConfiguration {
     @Value("${artemis.production.is-local}")
     private boolean productionIsLocal;
 
+    /**
+     * Get the URL of the Artemis server.
+     *
+     * @param server the Artemis server.
+     * @return the URL of the Artemis server.
+     */
     public String getUrl(ArtemisServer server) {
         return switch (server) {
             case LOCAL -> localUrl;
@@ -164,6 +170,12 @@ public class ArtemisConfiguration {
         };
     }
 
+    /**
+     * Get the cleanup flag of the Artemis server.
+     *
+     * @param server the Artemis server.
+     * @return the cleanup flag of the Artemis server.
+     */
     public boolean getCleanup(ArtemisServer server) {
         return switch (server) {
             case LOCAL -> localCleanup;
@@ -177,6 +189,12 @@ public class ArtemisConfiguration {
         };
     }
 
+    /**
+     * Get the Prometheus instances of the Artemis server.
+     *
+     * @param server the Artemis server.
+     * @return the Prometheus instances of the Artemis server.
+     */
     public String[] getPrometheusInstancesArtemis(ArtemisServer server) {
         return switch (server) {
             case LOCAL -> localPrometheusInstanceArtemis;
@@ -190,6 +208,12 @@ public class ArtemisConfiguration {
         };
     }
 
+    /**
+     * Get the Prometheus instances of the VCS of the Artemis server.
+     *
+     * @param server the Artemis server.
+     * @return the Prometheus instances of the VCS of the Artemis server.
+     */
     public String[] getPrometheusInstancesVcs(ArtemisServer server) {
         return switch (server) {
             case LOCAL -> localPrometheusInstanceVcs;
@@ -203,6 +227,12 @@ public class ArtemisConfiguration {
         };
     }
 
+    /**
+     * Get the Prometheus instances of the CI of the Artemis server.
+     *
+     * @param server the Artemis server.
+     * @return the Prometheus instances of the CI of the Artemis server.
+     */
     public String[] getPrometheusInstancesCi(ArtemisServer server) {
         return switch (server) {
             case LOCAL -> localPrometheusInstanceCi;
@@ -216,6 +246,12 @@ public class ArtemisConfiguration {
         };
     }
 
+    /**
+     * Get the is-local flag of the Artemis server.
+     *
+     * @param server the Artemis server.
+     * @return the is-local flag of the Artemis server.
+     */
     public boolean getIsLocal(ArtemisServer server) {
         return switch (server) {
             case LOCAL -> localIsLocal;

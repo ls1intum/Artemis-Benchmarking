@@ -53,6 +53,12 @@ public class UserService {
         this.cacheManager = cacheManager;
     }
 
+    /**
+     * Activate the registration of the user.
+     *
+     * @param key the activation key.
+     * @return the activated user.
+     */
     public Optional<User> activateRegistration(String key) {
         log.debug("Activating user for activation key {}", key);
         return userRepository
@@ -67,6 +73,13 @@ public class UserService {
             });
     }
 
+    /**
+     * Complete the password reset.
+     *
+     * @param newPassword the new password.
+     * @param key the reset key.
+     * @return the user with the new password.
+     */
     public Optional<User> completePasswordReset(String newPassword, String key) {
         log.debug("Reset user password for reset key {}", key);
         return userRepository
@@ -81,6 +94,12 @@ public class UserService {
             });
     }
 
+    /**
+     * Request a password reset.
+     *
+     * @param mail the email of the user.
+     * @return the user with the reset key.
+     */
     public Optional<User> requestPasswordReset(String mail) {
         return userRepository
             .findOneByEmailIgnoreCase(mail)
@@ -93,58 +112,12 @@ public class UserService {
             });
     }
 
-    public User registerUser(AdminUserDTO userDTO, String password) {
-        userRepository
-            .findOneByLogin(userDTO.getLogin().toLowerCase())
-            .ifPresent(existingUser -> {
-                boolean removed = removeNonActivatedUser(existingUser);
-                if (!removed) {
-                    throw new UsernameAlreadyUsedException();
-                }
-            });
-        userRepository
-            .findOneByEmailIgnoreCase(userDTO.getEmail())
-            .ifPresent(existingUser -> {
-                boolean removed = removeNonActivatedUser(existingUser);
-                if (!removed) {
-                    throw new EmailAlreadyUsedException();
-                }
-            });
-        User newUser = new User();
-        String encryptedPassword = passwordEncoder.encode(password);
-        newUser.setLogin(userDTO.getLogin().toLowerCase());
-        // new user gets initially a generated password
-        newUser.setPassword(encryptedPassword);
-        newUser.setFirstName(userDTO.getFirstName());
-        newUser.setLastName(userDTO.getLastName());
-        if (userDTO.getEmail() != null) {
-            newUser.setEmail(userDTO.getEmail().toLowerCase());
-        }
-        newUser.setImageUrl(userDTO.getImageUrl());
-        newUser.setLangKey(userDTO.getLangKey());
-        // new user is not active
-        newUser.setActivated(false);
-        // new user gets registration key
-        newUser.setActivationKey(RandomUtil.generateActivationKey());
-        Set<Authority> authorities = new HashSet<>();
-        authorityRepository.findById(AuthoritiesConstants.USER).ifPresent(authorities::add);
-        newUser.setAuthorities(authorities);
-        userRepository.save(newUser);
-        this.clearUserCaches(newUser);
-        log.debug("Created Information for User: {}", newUser);
-        return newUser;
-    }
-
-    private boolean removeNonActivatedUser(User existingUser) {
-        if (existingUser.isActivated()) {
-            return false;
-        }
-        userRepository.delete(existingUser);
-        userRepository.flush();
-        this.clearUserCaches(existingUser);
-        return true;
-    }
-
+    /**
+     * Create a new (admin) user.
+     *
+     * @param userDTO the (admin) user to create (data retrieved from the client).
+     * @return the newly created (admin) user which was stored in the database.
+     */
     public User createUser(AdminUserDTO userDTO) {
         User user = new User();
         user.setLogin(userDTO.getLogin().toLowerCase());
@@ -218,6 +191,11 @@ public class UserService {
             .map(AdminUserDTO::new);
     }
 
+    /**
+     * Delete a user.
+     *
+     * @param login the login of the user to delete.
+     */
     public void deleteUser(String login) {
         userRepository
             .findOneByLogin(login)
@@ -254,6 +232,12 @@ public class UserService {
             });
     }
 
+    /**
+     * Change the password of the current user.
+     *
+     * @param currentClearTextPassword the current password of the user.
+     * @param newPassword the new password of the user.
+     */
     @Transactional
     public void changePassword(String currentClearTextPassword, String newPassword) {
         SecurityUtils.getCurrentUserLogin()
@@ -270,6 +254,12 @@ public class UserService {
             });
     }
 
+    /**
+     * Get a list of all the users.
+     * @param pageable the pagination information.
+     *
+     * @return a list of all the users.
+     */
     @Transactional(readOnly = true)
     public Page<AdminUserDTO> getAllManagedUsers(Pageable pageable) {
         return userRepository.findAll(pageable).map(AdminUserDTO::new);
