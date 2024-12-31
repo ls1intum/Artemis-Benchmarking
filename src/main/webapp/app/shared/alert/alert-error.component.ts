@@ -1,4 +1,4 @@
-import { Component, OnDestroy, inject, signal } from '@angular/core';
+import { Component, inject, OnDestroy, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -23,8 +23,7 @@ export class AlertErrorComponent implements OnDestroy {
 
   constructor() {
     this.errorListener = this.eventManager.subscribe('jhipsterRegistryApp.error', (response: EventWithContent<unknown> | string) => {
-      const errorResponse = (response as EventWithContent<AlertError>).content;
-      this.addErrorAlert(errorResponse.message);
+      this.addErrorAlert((response as EventWithContent<AlertError>).content.message);
     });
 
     this.httpErrorListener = this.eventManager.subscribe(

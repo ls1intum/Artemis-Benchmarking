@@ -9,5 +9,5 @@ import { DecimalPipe } from '@angular/common';
   styleUrl: './ci-status-card.component.scss',
 })
 export class CiStatusCardComponent {
-  readonly ciStatus = input.required<CiStatus>();
+  ciStatus = input.required<CiStatus>();
 }

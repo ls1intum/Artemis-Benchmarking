@@ -30,7 +30,7 @@ export class JvmThreadsComponent {
   }
 
   open(): void {
-    const modalRef = this.modalService.open(MetricsModalThreadsComponent);
+    const modalRef = this.modalService.open(MetricsModalThreadsComponent, { size: 'xl' });
     modalRef.componentInstance.threads = this.threads();
   }
 

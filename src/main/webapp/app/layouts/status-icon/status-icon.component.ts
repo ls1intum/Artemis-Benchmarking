@@ -16,7 +16,7 @@ export class StatusIconComponent {
   faCircleNotch = faCircleNotch;
   faCircleExclamation = faCircleExclamation;
 
-  readonly status = input<Status>();
+  status = input<Status>();
 
   protected readonly Status = Status;
 }

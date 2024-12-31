@@ -1,8 +1,10 @@
-@use 'bootstrap/scss/bootstrap' as bs;
+// NOTE: we only need these two variables from bootstrap and do not want to import the whole bootstrap library here, it is already part of global.scss
+$white: #fff !default;
+$navbar-dark-color: rgba($white, 0.55) !default;
 
 .navbar-version {
   font-size: 0.65em;
-  color: bs.$navbar-dark-color;
+  color: $navbar-dark-color;
 }
 
 .profile-image {

@@ -19,9 +19,9 @@ import { ArtemisServer } from '../../core/util/artemisServer';
   imports: [RouterModule, SharedModule, HasAnyAuthorityDirective],
 })
 export default class NavbarComponent implements OnInit {
-  inProduction?: boolean;
+  inProduction = false;
   isNavbarCollapsed = signal(true);
-  openAPIEnabled?: boolean;
+  openAPIEnabled = false;
   version = '';
   account = inject(AccountService).trackCurrentAccount();
   entitiesNavbarItems: NavbarItem[] = [];

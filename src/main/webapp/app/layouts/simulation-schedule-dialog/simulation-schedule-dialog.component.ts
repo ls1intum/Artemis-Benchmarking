@@ -1,5 +1,5 @@
-import { Component, inject, OnInit, input } from '@angular/core';
-import { CommonModule, formatDate } from '@angular/common';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { formatDate } from '@angular/common';
 import {
   NgbActiveModal,
   NgbCollapseModule,
@@ -43,11 +43,11 @@ export class SimulationScheduleDialogComponent implements OnInit {
   faTrash = faTrash;
   faPen = faPen;
 
-  readonly simulation = input<Simulation>();
+  simulation = signal<Simulation | undefined>(undefined);
 
   timezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  existingSchedules: SimulationSchedule[] = [];
+  existingSchedules = signal<SimulationSchedule[]>([]);
   activeModal = inject(NgbActiveModal);
   isCollapsed = true;
   editScheduleId?: number = undefined;
@@ -88,7 +88,7 @@ export class SimulationScheduleDialogComponent implements OnInit {
     const simulation = this.simulation();
     if (simulation?.id) {
       this.simulationService.getSimulationSchedules(simulation.id).subscribe(schedules => {
-        this.existingSchedules = schedules;
+        this.existingSchedules.set(schedules);
       });
     }
   }
@@ -106,11 +106,14 @@ export class SimulationScheduleDialogComponent implements OnInit {
       this.weekday,
     );
     this.isCollapsed = true;
-    this.simulationService.createSimulationSchedule(this.simulation()!.id!, schedule).subscribe(newSchedule => {
-      if (newSchedule) {
-        this.existingSchedules.push(newSchedule);
-      }
-    });
+    const simulation = this.simulation();
+    if (simulation?.id) {
+      this.simulationService.createSimulationSchedule(simulation.id, schedule).subscribe(newSchedule => {
+        if (newSchedule) {
+          this.existingSchedules.update(schedules => [...schedules, newSchedule]);
+        }
+      });
+    }
   }
 
   inputValid(): boolean {
@@ -122,9 +125,9 @@ export class SimulationScheduleDialogComponent implements OnInit {
     }
   }
 
-  openEditSchedule(id: number): void {
-    this.editScheduleId = id;
-    const schedule = this.existingSchedules.find(s => s.id === id);
+  openEditSchedule(scheduleId: number): void {
+    this.editScheduleId = scheduleId;
+    const schedule = this.existingSchedules().find(aSchedule => aSchedule.id === scheduleId);
     if (schedule) {
       this.editCycle = schedule.cycle;
       const time = new Date(schedule.timeOfDay);
@@ -145,7 +148,7 @@ export class SimulationScheduleDialogComponent implements OnInit {
   }
 
   updateSchedule(): void {
-    const schedule = this.existingSchedules.find(s => s.id === this.editScheduleId);
+    const schedule = this.existingSchedules().find(aSchedule => aSchedule.id === this.editScheduleId);
     if (schedule) {
       const hourString = this.editTimeOfDay!.hour.toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false });
       const minuteString = this.editTimeOfDay!.minute.toLocaleString('en-US', { minimumIntegerDigits: 2, useGrouping: false });
@@ -162,18 +165,18 @@ export class SimulationScheduleDialogComponent implements OnInit {
       );
       this.simulationService.updateSimulationSchedule(updatedSchedule).subscribe(newSchedule => {
         if (newSchedule === undefined) {
-          this.existingSchedules = this.existingSchedules.filter(s => s.id !== schedule.id);
+          this.existingSchedules.update(schedules => schedules.filter(s => s.id !== schedule.id));
         } else {
-          this.existingSchedules = this.existingSchedules.map(s => (s.id === newSchedule.id ? newSchedule : s));
+          this.existingSchedules.update(schedules => schedules.map(s => (s.id === newSchedule.id ? newSchedule : s)));
         }
         this.editScheduleId = undefined;
       });
     }
   }
 
-  deleteSchedule(id: number): void {
-    this.simulationService.deleteSimulationSchedule(id).subscribe(() => {
-      this.existingSchedules = this.existingSchedules.filter(s => s.id !== id);
+  deleteSchedule(scheduleId: number): void {
+    this.simulationService.deleteSimulationSchedule(scheduleId).subscribe(() => {
+      this.existingSchedules.update(schedules => schedules.filter(s => s.id !== scheduleId));
     });
   }
 

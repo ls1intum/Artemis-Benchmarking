@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Simulation } from '../../entities/simulation/simulation';
 import { SimulationsService } from '../simulations.service';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
@@ -15,6 +15,10 @@ import { CiStatusCardComponent } from '../../layouts/ci-status-card/ci-status-ca
 import { PrometheusBoxComponent } from '../../layouts/prometheus-box/prometheus-box.component';
 import { ResultBoxComponent } from '../../layouts/result-box/result-box.component';
 import { DatePipe } from '@angular/common';
+
+export function sortSimulations(simulations: Simulation[]): Simulation[] {
+  return simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+}
 
 @Component({
   selector: 'jhi-simulations-overview',
@@ -37,8 +41,8 @@ import { DatePipe } from '@angular/common';
 export default class SimulationsOverviewComponent implements OnInit {
   faSpinner = faSpinner;
 
-  simulations: Simulation[] = [];
-  selectedRun?: SimulationRun;
+  simulations = signal<Simulation[]>([]);
+  selectedRun = signal<SimulationRun | undefined>(undefined);
   isCollapsed = true;
   cancellationInProgress = false;
 
@@ -56,9 +60,9 @@ export default class SimulationsOverviewComponent implements OnInit {
       selectedRunId = parseInt(selectedRunString, 10);
     }
     this.simulationsService.getSimulations().subscribe(simulations => {
-      this.simulations = simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+      this.simulations.set(sortSimulations(simulations));
 
-      this.simulations.forEach(simulation => {
+      this.simulations().forEach(simulation => {
         simulation.runs.forEach(run => {
           this.subscribeToRunStatus(run);
           if (run.id === selectedRunId) {
@@ -71,15 +75,16 @@ export default class SimulationsOverviewComponent implements OnInit {
 
   createSimulation(simulation: Simulation): void {
     this.simulationsService.createSimulation(simulation).subscribe(newSimulation => {
-      this.simulations.push(newSimulation);
-      this.simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+      this.simulations.update(simulations => [...simulations, newSimulation]);
+      this.simulations.set(sortSimulations(this.simulations()));
     });
     this.isCollapsed = true;
   }
 
   selectRun(run: SimulationRun): void {
-    if (this.selectedRun) {
-      this.simulationsService.unsubscribeFromSelectedSimulationRun(this.selectedRun);
+    const selectedRun = this.selectedRun();
+    if (selectedRun) {
+      this.simulationsService.unsubscribeFromSelectedSimulationRun(selectedRun);
     }
 
     // Update the run
@@ -87,7 +92,7 @@ export default class SimulationsOverviewComponent implements OnInit {
       run.status = updatedRun.status;
       run.stats = updatedRun.stats.sort((a, b) => getOrder(a) - getOrder(b));
       run.logMessages = updatedRun.logMessages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-      this.selectedRun = run;
+      this.selectedRun.set(run);
       this.subscribeToSelectedRun(run);
       this.router.navigate([], { queryParams: { runId: run.id } });
     });
@@ -95,17 +100,16 @@ export default class SimulationsOverviewComponent implements OnInit {
 
   deleteSelectedRun(content: any): void {
     this.modalService.open(content, { ariaLabelledBy: 'delete-modal-title' }).result.then(() => {
-      if (!this.selectedRun) {
+      const selectedRun = this.selectedRun();
+      if (!selectedRun) {
         return;
       }
-      this.simulationsService.deleteSimulationRun(this.selectedRun.id).subscribe(() => {
-        if (this.selectedRun) {
-          this.simulationsService.unsubscribeFromSimulationRun(this.selectedRun);
-        }
+      this.simulationsService.deleteSimulationRun(selectedRun.id).subscribe(() => {
+        this.simulationsService.unsubscribeFromSimulationRun(selectedRun);
 
-        this.selectedRun = undefined;
+        this.selectedRun.set(undefined);
         this.simulationsService.getSimulations().subscribe(simulations => {
-          this.simulations = simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+          this.simulations.set(sortSimulations(simulations));
         });
       });
     });
@@ -113,7 +117,7 @@ export default class SimulationsOverviewComponent implements OnInit {
 
   cancelSelectedRun(): void {
     this.cancellationInProgress = true;
-    this.simulationsService.abortSimulationRun(this.selectedRun!.id).subscribe(() => {
+    this.simulationsService.abortSimulationRun(this.selectedRun()!.id).subscribe(() => {
       this.cancellationInProgress = false;
     });
   }
@@ -124,10 +128,10 @@ export default class SimulationsOverviewComponent implements OnInit {
         this.simulationsService.unsubscribeFromSimulationRun(run);
       });
 
-      if (this.selectedRun && simulation.runs.includes(this.selectedRun)) {
-        this.selectedRun = undefined;
+      if (this.selectedRun() && simulation.runs.includes(this.selectedRun()!)) {
+        this.selectedRun.set(undefined);
       }
-      this.simulations = this.simulations.filter(s => s.id !== simulation.id);
+      this.simulations.update(simulations => simulations.filter(s => s.id !== simulation.id));
     });
   }
 

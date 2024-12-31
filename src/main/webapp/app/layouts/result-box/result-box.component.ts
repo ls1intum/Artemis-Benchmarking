@@ -18,7 +18,7 @@ export class ResultBoxComponent implements OnInit {
   faChartLine = faChartLine;
   faTable = faTable;
 
-  readonly simulationStats = input<SimulationStats>();
+  simulationStats = input<SimulationStats>();
   dataResponseTime: any[] = [];
   dataNumberOfRequests: any[] = [];
   statsBySecond: StatsByTime[] = [];

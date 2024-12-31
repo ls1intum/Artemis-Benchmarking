@@ -7,6 +7,7 @@ import de.tum.cit.aet.domain.SimulationSchedule;
 import de.tum.cit.aet.repository.ScheduleSubscriberRepository;
 import de.tum.cit.aet.repository.SimulationScheduleRepository;
 import de.tum.cit.aet.service.MailService;
+import de.tum.cit.aet.web.rest.errors.BadRequestAlertException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
@@ -220,20 +221,24 @@ public class SimulationScheduleService {
 
     private void verifySchedule(SimulationSchedule simulationSchedule) {
         if (simulationSchedule.getStartDateTime() == null) {
-            throw new IllegalArgumentException("Start date time must not be null");
+            throw new BadRequestAlertException("Start date time must not be null", "simulationSchedule", "startDateTimeNull");
         } else if (
             simulationSchedule.getEndDateTime() != null &&
             simulationSchedule.getEndDateTime().isBefore(simulationSchedule.getStartDateTime())
         ) {
-            throw new IllegalArgumentException("End date time must not be before start date time");
+            throw new BadRequestAlertException(
+                "End date time must not be before start date time",
+                "simulationSchedule",
+                "endDateTimeBeforeStartDateTime"
+            );
         } else if (simulationSchedule.getCycle() == null) {
-            throw new IllegalArgumentException("Cycle must not be null");
+            throw new BadRequestAlertException("Cycle must not be null", "simulationSchedule", "cycleNull");
         } else if (simulationSchedule.getEndDateTime() != null && simulationSchedule.getEndDateTime().isBefore(now())) {
-            throw new IllegalArgumentException("End date time must not be in the past");
+            throw new BadRequestAlertException("End date time must not be in the past", "simulationSchedule", "endDateTimeInPast");
         } else if (simulationSchedule.getTimeOfDay() == null) {
-            throw new IllegalArgumentException("Time of day must not be null");
+            throw new BadRequestAlertException("Time of day must not be null", "simulationSchedule", "timeOfDayNull");
         } else if (simulationSchedule.getCycle() == SimulationSchedule.Cycle.WEEKLY && simulationSchedule.getDayOfWeek() == null) {
-            throw new IllegalArgumentException("Day of week must not be null");
+            throw new BadRequestAlertException("Day of week must not be null", "simulationSchedule", "dayOfWeekNull");
         }
     }
 }

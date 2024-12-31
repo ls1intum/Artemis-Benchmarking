@@ -23,8 +23,9 @@ export class ProfileService {
       map((response: InfoResponse) => {
         const profileInfo: ProfileInfo = {
           activeProfiles: response.activeProfiles,
-          inProduction: response.activeProfiles?.includes('prod'),
-          openAPIEnabled: response.activeProfiles?.includes('api-docs'),
+          inProduction: response.activeProfiles?.includes('prod') ?? false,
+          openAPIEnabled: response.activeProfiles?.includes('api-docs') ?? false,
+          git: response.git,
         };
         if (response.activeProfiles && response['display-ribbon-on-profiles']) {
           const displayRibbonOnProfiles = response['display-ribbon-on-profiles'].split(',');

@@ -6,14 +6,14 @@ on:
   workflow_call:
     outputs:
       image_tag:
-        description: "The tag of the image that was built"
+        description: 'The tag of the image that was built'
         value: ${{ jobs.build.outputs.image_tag }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      image_tag: "${{ steps.output-tag.outputs.image_tag }}"
+      image_tag: '${{ steps.output-tag.outputs.image_tag }}'
 
     steps:
       - name: Compute Tag
@@ -69,5 +69,5 @@ jobs:
           tags: |
             ls1tum/artemis-benchmarking:${{ steps.compute-tag.outputs.result }}
             ghcr.io/ls1intum/artemis-benchmarking:${{ steps.compute-tag.outputs.result }}
-          platforms: linux/amd64 # ,linux/arm64 | TODO: Using arm64 leads to an error in GitHub Actions. (e.g. request to https://registry.npmjs.org/zone.js/-/zone.js-0.13.3.tgz failed, reason: connect EPIPE 104.16.2.35:443)
+          platforms: linux/amd64
           push: true

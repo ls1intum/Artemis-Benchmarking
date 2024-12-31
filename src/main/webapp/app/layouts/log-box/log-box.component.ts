@@ -9,5 +9,5 @@ import { DatePipe, NgClass } from '@angular/common';
   imports: [NgClass, DatePipe],
 })
 export class LogBoxComponent {
-  readonly logMessages = input<LogMessage[]>();
+  logMessages = input<LogMessage[]>();
 }

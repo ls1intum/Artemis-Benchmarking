@@ -19,7 +19,7 @@ import { Metric } from '../../entities/metric';
 export class PrometheusBoxComponent implements OnInit, OnChanges {
   private static readonly INTERVAL_SECONDS = 15;
 
-  readonly run = input.required<SimulationRun>();
+  run = input.required<SimulationRun>();
 
   metricValuesArtemis: MetricValue[] = [];
   dataArtemis: any[] = [];

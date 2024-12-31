@@ -34,8 +34,8 @@ export class SimulationCardComponent implements OnInit {
   faEye = faEye;
   faEyeSlash = faEyeSlash;
 
-  readonly simulation = input.required<Simulation>();
-  readonly selectedRun = input<SimulationRun>();
+  simulation = input.required<Simulation>();
+  selectedRun = input<SimulationRun>();
   displayedRuns: SimulationRun[] = [];
   numberOfDisplayedRuns = 3;
   numberOfActiveSchedules = 0;
@@ -157,11 +157,12 @@ export class SimulationCardComponent implements OnInit {
   }
 
   openScheduleDialog(): void {
+    const simulation = this.simulation();
     const modalRef = this.modalService.open(SimulationScheduleDialogComponent, { size: 'xl' });
-    modalRef.componentInstance.simulation = this.simulation();
+    modalRef.componentInstance.simulation.set(simulation);
     modalRef.hidden.subscribe(() => {
-      this.simulationService.getSimulationSchedules(this.simulation().id!).subscribe(numberOfActiveSchedules => {
-        this.numberOfActiveSchedules = numberOfActiveSchedules.length;
+      this.simulationService.getSimulationSchedules(simulation.id!).subscribe(schedules => {
+        this.numberOfActiveSchedules = schedules.length;
       });
     });
   }

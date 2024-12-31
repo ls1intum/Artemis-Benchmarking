@@ -27,7 +27,7 @@
             },
             "index": "src/main/webapp/index.html",
             "browser": "src/main/webapp/main.ts",
-            "polyfills": ["./src/main/webapp/sockjs-client.polyfill", "zone.js", "@angular/localize/init"],
+            "polyfills": ["./src/main/webapp/sockjs-client.polyfill", "@angular/localize/init"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [

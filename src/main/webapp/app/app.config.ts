@@ -1,4 +1,4 @@
-import { ApplicationConfig, LOCALE_ID, importProvidersFrom, inject } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, importProvidersFrom, inject, provideExperimentalZonelessChangeDetection } from '@angular/core';
 import { BrowserModule, Title } from '@angular/platform-browser';
 import {
   NavigationError,
@@ -35,6 +35,7 @@ const routerFeatures: RouterFeatures[] = [
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideExperimentalZonelessChangeDetection(),
     provideRouter(routes, ...routerFeatures),
     importProvidersFrom(BrowserModule),
     // Set this to true to enable service worker (PWA)
