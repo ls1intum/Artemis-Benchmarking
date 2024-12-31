@@ -42,7 +42,7 @@ class SpaWebFilterIT {
     }
 
     @Test
-    void getBackendEndpoint() throws Exception {
+    void getServerEndpoint() throws Exception {
         mockMvc.perform(get("/test")).andExpect(status().isOk()).andExpect(forwardedUrl("/index.html"));
     }
 

@@ -1,10 +1,11 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { of } from 'rxjs';
 
 import LogsComponent from './logs.component';
 import { LogsService } from './logs.service';
 import { Log, LoggersResponse } from './log.model';
-import { of } from 'rxjs';
 
 describe('LogsComponent', () => {
   let comp: LogsComponent;
@@ -13,8 +14,8 @@ describe('LogsComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, LogsComponent],
-      providers: [LogsService],
+      imports: [LogsComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), LogsService],
     })
       .overrideTemplate(LogsComponent, '')
       .compileComponents();
@@ -28,9 +29,9 @@ describe('LogsComponent', () => {
 
   describe('OnInit', () => {
     it('should set all default values correctly', () => {
-      expect(comp.filter).toBe('');
-      expect(comp.orderProp).toBe('name');
-      expect(comp.ascending).toBe(true);
+      expect(comp.filter()).toBe('');
+      expect(comp.sortState().predicate).toBe('name');
+      expect(comp.sortState().order).toBe('asc');
     });
 
     it('Should call load all on init', () => {
@@ -51,7 +52,7 @@ describe('LogsComponent', () => {
 
       // THEN
       expect(service.findAll).toHaveBeenCalled();
-      expect(comp.loggers?.[0]).toEqual(expect.objectContaining(log));
+      expect(comp.loggers()?.[0]).toEqual(expect.objectContaining(log));
     });
   });
 
@@ -76,7 +77,7 @@ describe('LogsComponent', () => {
       // THEN
       expect(service.changeLevel).toHaveBeenCalled();
       expect(service.findAll).toHaveBeenCalled();
-      expect(comp.loggers?.[0]).toEqual(expect.objectContaining(log));
+      expect(comp.loggers()?.[0]).toEqual(expect.objectContaining(log));
     });
   });
 });

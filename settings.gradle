@@ -1,9 +1,10 @@
+import org.apache.tools.ant.DirectoryScanner
+
 pluginManagement {
     repositories {
         mavenLocal()
         mavenCentral()
         gradlePluginPortal()
-        // jhipster-needle-gradle-plugin-management-repositories - JHipster will add additional entries here
     }
     plugins {
         id "com.diffplug.spotless" version "${spotlessPluginVersion}"
@@ -15,8 +16,10 @@ pluginManagement {
         id "org.springframework.boot" version "${springBootVersion}"
         id "org.liquibase.gradle" version "${liquibasePluginVersion}"
         id "org.openapi.generator" version "${openapiPluginVersion}"
-        // jhipster-needle-gradle-plugin-management-plugins - JHipster will add additional entries here
     }
 }
 
-rootProject.name = "Artemis-Benchmarking"
+rootProject.name = "Artemis Benchmarking"
+
+DirectoryScanner.removeDefaultExclude "**/.gitattributes"
+DirectoryScanner.removeDefaultExclude "**/.gitignore"

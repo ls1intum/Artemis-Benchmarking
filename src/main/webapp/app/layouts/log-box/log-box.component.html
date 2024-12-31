@@ -1,5 +1,5 @@
 <div class="bg-black p-3">
-  @for (msg of logMessages; track msg) {
+  @for (msg of logMessages(); track msg) {
     <samp>
       <span class="text-info">{{ msg.timestamp | date: 'yyyy-MM-ddTHH:mm:ss.SSS' }}:</span>
       <span [ngClass]="msg.error ? 'text-danger' : 'text-white'">{{ msg.message }}</span

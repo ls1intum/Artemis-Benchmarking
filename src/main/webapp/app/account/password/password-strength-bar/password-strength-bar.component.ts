@@ -1,78 +1,124 @@
+import { Component, ElementRef, Renderer2, inject, input, computed, OnChanges } from '@angular/core';
+
 import SharedModule from 'app/shared/shared.module';
-import { Component, ElementRef, Input, Renderer2 } from '@angular/core';
+
+type StrengthColorIndex = {
+  index: number;
+  color: PasswordStrengthColor;
+};
+
+/**
+ * Colors representing password strength levels
+ */
+enum PasswordStrengthColor {
+  // noinspection JSUnusedGlobalSymbols
+  VeryWeak = '#F00', // Red
+  Weak = '#F90', // Orange
+  Fair = '#FF0', // Yellow
+  Strong = '#9F0', // Lime Green
+  VeryStrong = '#0F0', // Green
+}
 
 @Component({
   selector: 'jhi-password-strength-bar',
-  standalone: true,
   imports: [SharedModule],
   templateUrl: './password-strength-bar.component.html',
   styleUrl: './password-strength-bar.component.scss',
 })
-export default class PasswordStrengthBarComponent {
-  colors = ['#F00', '#F90', '#FF0', '#9F0', '#0F0'];
+export default class PasswordStrengthBarComponent implements OnChanges {
+  readonly passwordStrengthColors: PasswordStrengthColor[] = Object.values(PasswordStrengthColor) as PasswordStrengthColor[];
 
-  constructor(
-    private renderer: Renderer2,
-    private elementRef: ElementRef,
-  ) {}
+  readonly passwordToCheck = input<string | undefined>();
+  readonly strength = computed(() => this.measurePasswordStrength(this.passwordToCheck() ?? ''));
 
-  measureStrength(p: string): number {
-    let force = 0;
-    const regex = /[$-/:-?{-~!"^_`[\]]/g; // "
-    const lowerLetters = /[a-z]+/.test(p);
-    const upperLetters = /[A-Z]+/.test(p);
-    const numbers = /\d+/.test(p);
-    const symbols = regex.test(p);
+  private readonly renderer = inject(Renderer2);
+  private readonly elementRef = inject(ElementRef);
 
-    const flags = [lowerLetters, upperLetters, numbers, symbols];
-    const passedMatches = flags.filter((isMatchedFlag: boolean) => isMatchedFlag === true).length;
-
-    force += 2 * p.length + (p.length >= 10 ? 1 : 0);
-    force += passedMatches * 10;
-
-    // penalty (short password)
-    force = p.length <= 6 ? Math.min(force, 10) : force;
-
-    // penalty (poor variety of characters)
-    force = passedMatches === 1 ? Math.min(force, 10) : force;
-    force = passedMatches === 2 ? Math.min(force, 20) : force;
-    force = passedMatches === 3 ? Math.min(force, 40) : force;
-
-    return force;
+  ngOnChanges(): void {
+    this.updateStrengthBar();
   }
 
-  getColor(s: number): { idx: number; color: string } {
-    let idx = 0;
-    if (s > 10) {
-      if (s <= 20) {
-        idx = 1;
-      } else if (s <= 30) {
-        idx = 2;
-      } else if (s <= 40) {
-        idx = 3;
-      } else {
-        idx = 4;
-      }
+  /**
+   * Measures the strength of a given password.
+   * The password strength is determined based on length and variety of characters.
+   *
+   * Strength calculation:
+   * - Length contributes to base score (2 points per character, +1 if length ≥ 10).
+   * - Character variety adds to the score (10 points for each type: lowercase, uppercase, numbers, symbols).
+   * - Penalties are applied for short passwords and poor character variety:
+   *   - Length ≤ 6: Maximum score capped at 10.
+   *   - Single character type: Maximum score capped at 10.
+   *   - Two character types: Maximum score capped at 20.
+   *   - Three character types: Maximum score capped at 40.
+   *
+   * @param password - The password to evaluate.
+   * @returns The calculated strength score (0-100).
+   */
+  measurePasswordStrength(password: string): number {
+    if (!password) return 0; // Handle empty passwords
+
+    let strength = 0;
+
+    // Regular expressions for character type detection
+    const regexSymbols = /[$-/:-?{-~!"^_`[\]]/g;
+    const hasLowercase = /[a-z]/.test(password);
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSymbols = regexSymbols.test(password);
+
+    // Count matched character types
+    const flags = [hasLowercase, hasUppercase, hasNumbers, hasSymbols];
+    const matchedTypes = flags.filter(Boolean).length;
+
+    // Base strength calculation
+    strength += 2 * password.length + (password.length >= 10 ? 1 : 0);
+    strength += matchedTypes * 10;
+
+    // Apply penalties
+    if (password.length <= 6) {
+      strength = Math.min(strength, 10); // Very short password
+    } else if (matchedTypes === 1) {
+      strength = Math.min(strength, 10); // Poor variety
+    } else if (matchedTypes === 2) {
+      strength = Math.min(strength, 20); // Low variety
+    } else if (matchedTypes === 3) {
+      strength = Math.min(strength, 40); // Moderate variety
     }
-    return { idx: idx + 1, color: this.colors[idx] };
+
+    return strength;
   }
 
-  @Input()
-  set passwordToCheck(password: string) {
-    if (password) {
-      const c = this.getColor(this.measureStrength(password));
-      const element = this.elementRef.nativeElement;
-      if (element.className) {
-        this.renderer.removeClass(element, element.className);
-      }
-      const lis = element.getElementsByTagName('li');
-      for (let i = 0; i < lis.length; i++) {
-        if (i < c.idx) {
-          this.renderer.setStyle(lis[i], 'backgroundColor', c.color);
-        } else {
-          this.renderer.setStyle(lis[i], 'backgroundColor', '#DDD');
-        }
-      }
+  /**
+   * Determines the color based on the password strength.
+   * The strength index maps to a specific color in the `strengthColors` array.
+   *
+   * @param strength - The numeric strength of the password.
+   * @returns An object containing the 1-based index and the corresponding color.
+   */
+  getStrengthColorIndex(strength: number): StrengthColorIndex {
+    const index = Math.min(Math.max(0, Math.floor((strength - 1) / 10)), 4); // Determine index (0-4) based on strength
+    return { index: index + 1, color: this.passwordStrengthColors[index] }; // Return 1-based index and color
+  }
+
+  /**
+   * Updates the strength bar to visually represent the password strength.
+   * Each segment of the strength bar is styled (red, yellow, green) based on the computed password strength.
+   */
+  private updateStrengthBar(): void {
+    const password = this.passwordToCheck();
+    if (!password) {
+      return;
     }
+
+    const strength = this.strength();
+    const strengthColorIndex = this.getStrengthColorIndex(strength);
+    const element: HTMLElement = this.elementRef.nativeElement;
+    const listItems: HTMLCollectionOf<HTMLElement> = element.getElementsByTagName('li');
+
+    // Iterate through the strength bar elements and update their background color
+    Array.from(listItems).forEach((listItem, index: number) => {
+      const backgroundColor = index < strengthColorIndex.index ? strengthColorIndex.color : '#DDD';
+      this.renderer.setStyle(listItem, 'backgroundColor', backgroundColor.toString());
+    });
   }
 }

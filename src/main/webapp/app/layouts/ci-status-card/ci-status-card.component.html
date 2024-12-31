@@ -1,19 +1,19 @@
 <div class="card h-100">
   <div class="card-body">
-    @if (ciStatus.finished) {
+    @if (ciStatus().finished) {
       <strong>All jobs finished.</strong>
       <div class="mt-1">
-        <p class="mb-0">Total jobs: {{ ciStatus.totalJobs }}</p>
-        <p class="mb-0">Executing jobs took {{ ciStatus.timeInMinutes }} minutes</p>
+        <p class="mb-0">Total jobs: {{ ciStatus().totalJobs }}</p>
+        <p class="mb-0">Executing jobs took {{ ciStatus().timeInMinutes }} minutes</p>
       </div>
     } @else {
       <strong>Jobs running...</strong>
       <div class="mt-1">
-        <p class="mb-0">Finished: {{ ciStatus.totalJobs - ciStatus.queuedJobs }} / {{ ciStatus.totalJobs }}</p>
-        <p class="mb-0">Queued: {{ ciStatus.queuedJobs }}</p>
-        <p class="mb-0">Running for {{ ciStatus.timeInMinutes }} minutes</p>
+        <p class="mb-0">Finished: {{ ciStatus().totalJobs - ciStatus().queuedJobs }} / {{ ciStatus().totalJobs }}</p>
+        <p class="mb-0">Queued: {{ ciStatus().queuedJobs }}</p>
+        <p class="mb-0">Running for {{ ciStatus().timeInMinutes }} minutes</p>
       </div>
     }
-    <p class="mb-0">Average jobs per minute: {{ ciStatus.avgJobsPerMinute | number: '1.0-1' }}</p>
+    <p class="mb-0">Average jobs per minute: {{ ciStatus().avgJobsPerMinute | number: '1.0-1' }}</p>
   </div>
 </div>

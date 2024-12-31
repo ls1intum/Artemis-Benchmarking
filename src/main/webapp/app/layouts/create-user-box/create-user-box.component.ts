@@ -1,16 +1,15 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ElementRef, input, output, viewChild } from '@angular/core';
 import { ArtemisUserForCreationDTO } from '../../artemis-users/artemisUserForCreationDTO';
 import { FormsModule } from '@angular/forms';
 import { NgbAlertModule, NgbNavModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { ArtemisUserPatternDTO } from '../../artemis-users/artemisUserPatternDTO';
 import { faCircleInfo, faEye, faEyeSlash, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import SharedModule from '../../shared/shared.module';
 
 @Component({
   selector: 'jhi-create-user-box',
-  standalone: true,
-  imports: [CommonModule, FormsModule, NgbNavModule, FontAwesomeModule, NgbTooltipModule, NgbAlertModule],
+  imports: [SharedModule, FormsModule, NgbNavModule, FontAwesomeModule, NgbTooltipModule, NgbAlertModule],
   templateUrl: './create-user-box.component.html',
   styleUrl: './create-user-box.component.scss',
 })
@@ -20,31 +19,31 @@ export class CreateUserBoxComponent {
   faEye = faEye;
   faEyeSlash = faEyeSlash;
 
-  @Input() actionInProgress = false;
-  @Input() loading = false;
-  @Input() adminAvailable = false;
+  readonly actionInProgress = input(false);
+  readonly loading = input(false);
+  readonly adminAvailable = input(false);
 
-  username: string = '';
-  password: string = '';
+  username = '';
+  password = '';
   id?: number;
 
-  usernamePattern: string = '';
-  passwordPattern: string = '';
-  firstNamePattern: string = '';
-  lastNamePattern: string = '';
-  emailPattern: string = '';
-  isCreateOnArtemis: boolean = false;
-  from: number = 1;
-  to: number = 2;
+  usernamePattern = '';
+  passwordPattern = '';
+  firstNamePattern = '';
+  lastNamePattern = '';
+  emailPattern = '';
+  isCreateOnArtemis = false;
+  from = 1;
+  to = 2;
 
   file?: File;
-  @ViewChild('fileInput') fileInput?: ElementRef;
+  readonly fileInput = viewChild<ElementRef>('fileInput');
 
   showPassword = false;
 
-  @Output() createUser = new EventEmitter<ArtemisUserForCreationDTO>();
-  @Output() createUserPattern = new EventEmitter<ArtemisUserPatternDTO>();
-  @Output() createUserCsv = new EventEmitter<File>();
+  readonly createUser = output<ArtemisUserForCreationDTO>();
+  readonly createUserPattern = output<ArtemisUserPatternDTO>();
+  readonly createUserCsv = output<File>();
 
   onCreate(): void {
     const user: ArtemisUserForCreationDTO = new ArtemisUserForCreationDTO(this.username, this.password, this.id);
@@ -91,8 +90,9 @@ export class CreateUserBoxComponent {
     if (this.file) {
       this.createUserCsv.emit(this.file);
       this.file = undefined;
-      if (this.fileInput) {
-        this.fileInput.nativeElement.value = '';
+      const fileInput = this.fileInput();
+      if (fileInput) {
+        fileInput.nativeElement.value = '';
       }
     }
   }

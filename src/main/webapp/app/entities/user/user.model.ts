@@ -9,7 +9,3 @@ export class User implements IUser {
     public login: string,
   ) {}
 }
-
-export function getUserIdentifier(user: IUser): number {
-  return user.id;
-}

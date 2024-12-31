@@ -1,11 +1,11 @@
 <ngb-alert class="pb-0" type="info" [dismissible]="false">
-  @if (mode == Mode.CREATE_COURSE_AND_EXAM) {
+  @if (mode() == Mode.CREATE_COURSE_AND_EXAM) {
     <h5>Create Course and Exam</h5>
     <p>
       Creates a new course and a new exam with a few exercises.<br />
       Registers the necessary amount of test-users, generates student-exams and simulates the exam.<br />
       If cleanup is enabled in the server configuration, the created course will be deleted afterwards. <br />
-      @if (cleanupEnabled) {
+      @if (cleanupEnabled()) {
         <span class="text-primary-emphasis">Cleanup is currently enabled for the chosen Artemis Instance!</span>
       } @else {
         <span class="text-warning">Cleanup is currently disabled for the chosen Artemis Instance!</span>
@@ -14,7 +14,7 @@
       <span class="text-warning">On the Production instance, this mode requires ADMIN rights.</span>
     </p>
   }
-  @if (mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM) {
+  @if (mode() == Mode.EXISTING_COURSE_UNPREPARED_EXAM) {
     <h5>Existing Course and Unprepared Exam</h5>
     <p>
       Uses an existing course and exam. Please make sure that the necessary number of test-users is registered.<br />
@@ -24,7 +24,7 @@
       <span class="text-warning">On the Production instance, this mode requires INSTRUCTOR rights in the corresponding course.</span>
     </p>
   }
-  @if (mode == Mode.EXISTING_COURSE_PREPARED_EXAM) {
+  @if (mode() == Mode.EXISTING_COURSE_PREPARED_EXAM) {
     <h5>Existing Course and Prepared Exam</h5>
     <p>
       Uses an existing course and exam. Please make sure that the necessary number of test-users is registered.<br />
@@ -33,7 +33,7 @@
       The exam will not be changed.
     </p>
   }
-  @if (mode == Mode.EXISTING_COURSE_CREATE_EXAM) {
+  @if (mode() == Mode.EXISTING_COURSE_CREATE_EXAM) {
     <h5>Existing Course, Create Exam</h5>
     <p>
       Uses an existing course and creates a new exam. Please make sure that the necessary number of test-users is registered for the
@@ -41,7 +41,7 @@
       Registers the necessary amount of test-users to the exam, generates student-exams and simulates the exam.<br />
       The course will not be changed.<br />
       If cleanup is enabled in the server configuration, the created exam will be deleted afterwards. <br />
-      @if (cleanupEnabled) {
+      @if (cleanupEnabled()) {
         <span class="text-primary-emphasis">Cleanup is currently enabled for the chosen Artemis Instance!</span>
       } @else {
         <span class="text-warning">Cleanup is currently disabled for the chosen Artemis Instance!</span>

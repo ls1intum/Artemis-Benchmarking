@@ -19,7 +19,7 @@
     </thead>
     <tbody>
       <tr class="d-flex">
-        @if (adminUserCopy === undefined) {
+        @if (adminUserEdit() === undefined) {
           <td class="col-1"></td>
           <td class="col-3">{{ adminUser?.username }}</td>
           <td class="col-3">
@@ -42,7 +42,7 @@
         } @else {
           <td class="col-1"></td>
           <td class="col-3 pe-5">
-            <input type="text" class="form-control" [(ngModel)]="adminUserCopy!.username" />
+            <input type="text" class="form-control" [(ngModel)]="adminUserEdit()!.username" />
             <div class="ms-2 form-text">
               Note: The Admin cannot be a Student! Please make sure that the Admin Account is not in the list of Student Accounts.
             </div>
@@ -54,7 +54,7 @@
               } @else {
                 <fa-icon class="input-group-text" [icon]="faEye" role="button" (click)="showAdminPassword = true"></fa-icon>
               }
-              <input [type]="showAdminPassword ? 'text' : 'password'" class="form-control" [(ngModel)]="adminUserCopy!.password" />
+              <input [type]="showAdminPassword ? 'text' : 'password'" class="form-control" [(ngModel)]="adminUserEdit()!.password" />
             </div>
           </td>
           <td class="col-3">
@@ -66,7 +66,7 @@
             >
               Save
             </button>
-            <button type="button" class="btn btn-danger" (click)="showAdminPassword = false; adminUserCopy = undefined">Cancel</button>
+            <button type="button" class="btn btn-danger" (click)="showAdminPassword = false; adminUserEdit.set(undefined)">Cancel</button>
           </td>
         }
       </tr>

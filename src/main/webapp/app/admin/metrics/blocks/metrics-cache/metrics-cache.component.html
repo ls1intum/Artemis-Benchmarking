@@ -1,5 +1,6 @@
-<h3 id="cacheMetrics">Cache statistics</h3>
-@if (!updating && cacheMetrics) {
+<h3 id="cacheMetrics()">Cache statistics</h3>
+
+@if (!updating() && cacheMetrics()) {
   <div class="table-responsive">
     <table class="table table-striped" aria-describedby="cacheMetrics">
       <thead>
@@ -16,7 +17,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (entry of cacheMetrics | keyvalue; track entry) {
+        @for (entry of cacheMetrics() | keyvalue; track entry.key) {
           <tr>
             <td>{{ entry.key }}</td>
             <td class="text-end">{{ entry.value['cache.gets.hit'] }}</td>

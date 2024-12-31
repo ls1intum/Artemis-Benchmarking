@@ -4,14 +4,12 @@ import { AuthServerProvider } from 'app/core/auth/auth-jwt.service';
 import { Login } from './login.model';
 import { mergeMap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class LoginService {
-  constructor(
-    private accountService: AccountService,
-    private authServerProvider: AuthServerProvider,
-  ) {}
+  private accountService = inject(AccountService);
+  private authServerProvider = inject(AuthServerProvider);
 
   login(credentials: Login): Observable<Account | null> {
     return this.authServerProvider.login(credentials).pipe(mergeMap(() => this.accountService.identity(true)));

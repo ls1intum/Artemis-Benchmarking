@@ -27,7 +27,7 @@ plugins {
 }
 
 group = "de.tum.cit.aet"
-version = "0.1.3"
+version = "0.2.0"
 
 description = "Benchmarking Application for Performance Tests in the Artemis project"
 
@@ -90,9 +90,8 @@ test {
         events "FAILED", "SKIPPED"
     }
     jvmArgs += "-Djava.security.egd=file:/dev/./urandom -Xmx512m"
-    // uncomment if the tests reports are not generated
-    // see https://github.com/jhipster/generator-jhipster/pull/2771 and https://github.com/jhipster/generator-jhipster/pull/4484
-    // ignoreFailures true
+    testClassesDirs = testing.suites.test.sources.output.classesDirs
+    classpath = testing.suites.test.sources.runtimeClasspath
     reports.html.required = false
 }
 
@@ -113,11 +112,6 @@ tasks.register("testReport", TestReport) {
 tasks.register("integrationTestReport", TestReport) {
     destinationDirectory.set(layout.buildDirectory.dir("reports/tests"))
     testResults.from(tasks.named("integrationTest"))
-}
-
-gitProperties {
-    failOnNoGitDirectory = false
-    keys = ["git.branch", "git.commit.id.abbrev", "git.commit.id.describe"]
 }
 
 tasks.withType(GenerateGitPropertiesTask).configureEach {
@@ -227,6 +221,10 @@ dependencies {
     testRuntimeOnly("com.tngtech.archunit:archunit-junit5-engine:${archunitJunit5Version}") {
         exclude group: "org.slf4j", module: "slf4j-api"
     }
+    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+    // NOTE: make sure this corresponds to the version used for JUnit in the testImplementation
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}"
+
 }
 
 tasks.register("cleanResources", Delete) {
@@ -263,7 +261,7 @@ tasks.register("webapp_test", NpmTask) {
         .withPropertyName("clover-result")
 
     dependsOn(tasks.named("npmInstall"), tasks.named("compileTestJava"))
-    args = ["run", "webapp:test"]
+    args = ["run", "test"]
 }
 
 node {
@@ -309,7 +307,7 @@ tasks.named("dependencyUpdates").configure {
 // Available commands:
 //
 // 1) Build production:                             ./gradlew -Pprod -Pwar clean bootWar
-// 2) Execute tests without coverage report:        ./gradlew test -x webapp
+// 2) Execute server integration tests:             ./gradlew integrationTest -x webapp
 // 3) Find dependency updates:                      ./gradlew dependencyUpdates -Drevision=release
 // 4) Check Java code format:                       ./gradlew spotlessCheck -x webapp
 // 5) Apply Java code formatter:                    ./gradlew spotlessApply -x webapp

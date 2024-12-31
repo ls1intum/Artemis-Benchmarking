@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
@@ -6,18 +6,15 @@ import { ApplicationConfigService } from '../core/config/application-config.serv
 
 @Component({
   selector: 'jhi-unsubscribe-schedule',
-  standalone: true,
   imports: [CommonModule],
   templateUrl: './unsubscribe-schedule.component.html',
 })
-export class UnsubscribeScheduleComponent implements OnInit {
+export default class UnsubscribeScheduleComponent implements OnInit {
   state = 'PENDING';
 
-  constructor(
-    private httpClient: HttpClient,
-    private route: ActivatedRoute,
-    private applicationConfigService: ApplicationConfigService,
-  ) {}
+  private httpClient = inject(HttpClient);
+  private route = inject(ActivatedRoute);
+  private applicationConfigService = inject(ApplicationConfigService);
 
   ngOnInit(): void {
     const key = this.route.snapshot.queryParamMap.get('key');

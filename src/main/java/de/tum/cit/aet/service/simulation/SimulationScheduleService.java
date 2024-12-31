@@ -7,6 +7,7 @@ import de.tum.cit.aet.domain.SimulationSchedule;
 import de.tum.cit.aet.repository.ScheduleSubscriberRepository;
 import de.tum.cit.aet.repository.SimulationScheduleRepository;
 import de.tum.cit.aet.service.MailService;
+import de.tum.cit.aet.web.rest.errors.BadRequestAlertException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
@@ -45,16 +46,20 @@ public class SimulationScheduleService {
      * @param simulationId the id of the simulation
      * @param simulationSchedule the schedule to create
      * @return the created schedule
-     * @throws IllegalArgumentException if the schedule is invalid
+     * @throws BadRequestAlertException if the schedule is invalid
      */
     public SimulationSchedule createSimulationSchedule(long simulationId, SimulationSchedule simulationSchedule) {
         log.debug("Creating simulation schedule for simulation {}", simulationId);
         if (simulationSchedule == null) {
-            throw new IllegalArgumentException("Simulation schedule must not be null");
+            throw new BadRequestAlertException("Simulation schedule must not be null", "simulationSchedule", "null");
         } else if (simulationSchedule.getId() != null) {
-            throw new IllegalArgumentException("Simulation schedule must not have an id yet");
+            throw new BadRequestAlertException("Simulation schedule must not have an id yet", "simulationSchedule", "idNotNull");
         } else if (simulationSchedule.getSimulation() != null) {
-            throw new IllegalArgumentException("Simulation schedule must not have a simulation yet");
+            throw new BadRequestAlertException(
+                "Simulation schedule must not have a simulation yet",
+                "simulationSchedule",
+                "simulationNotNull"
+            );
         }
         verifySchedule(simulationSchedule);
         simulationSchedule.setSimulation(simulationDataService.getSimulation(simulationId));
@@ -67,18 +72,18 @@ public class SimulationScheduleService {
      * @param simulationScheduleId the id of the schedule to update
      * @param simulationSchedule the updated schedule
      * @return the updated schedule
-     * @throws IllegalArgumentException if the schedule is invalid
+     * @throws BadRequestAlertException if the schedule is invalid
      */
     public SimulationSchedule updateSimulationSchedule(long simulationScheduleId, SimulationSchedule simulationSchedule) {
         log.debug("Updating simulation schedule {}", simulationScheduleId);
         if (simulationSchedule == null) {
-            throw new IllegalArgumentException("Simulation schedule must not be null");
+            throw new BadRequestAlertException("Simulation schedule must not be null", "simulationSchedule", "null");
         } else if (simulationScheduleId != simulationSchedule.getId()) {
-            throw new IllegalArgumentException("Invalid id!");
+            throw new BadRequestAlertException("Invalid id!", "simulationSchedule", "invalidId");
         }
         var existingSimulationSchedule = simulationScheduleRepository.findById(simulationScheduleId).orElseThrow();
         if (simulationSchedule.getSimulation() != null) {
-            throw new IllegalArgumentException("Id of simulation must not be changed!");
+            throw new BadRequestAlertException("Id of simulation must not be changed!", "simulationSchedule", "simulationIdChanged");
         }
         verifySchedule(simulationSchedule);
         simulationSchedule.setSimulation(existingSimulationSchedule.getSimulation());
@@ -220,20 +225,24 @@ public class SimulationScheduleService {
 
     private void verifySchedule(SimulationSchedule simulationSchedule) {
         if (simulationSchedule.getStartDateTime() == null) {
-            throw new IllegalArgumentException("Start date time must not be null");
+            throw new BadRequestAlertException("Start date time must not be null", "simulationSchedule", "startDateTimeNull");
         } else if (
             simulationSchedule.getEndDateTime() != null &&
             simulationSchedule.getEndDateTime().isBefore(simulationSchedule.getStartDateTime())
         ) {
-            throw new IllegalArgumentException("End date time must not be before start date time");
+            throw new BadRequestAlertException(
+                "End date time must not be before start date time",
+                "simulationSchedule",
+                "endDateTimeBeforeStartDateTime"
+            );
         } else if (simulationSchedule.getCycle() == null) {
-            throw new IllegalArgumentException("Cycle must not be null");
+            throw new BadRequestAlertException("Cycle must not be null", "simulationSchedule", "cycleNull");
         } else if (simulationSchedule.getEndDateTime() != null && simulationSchedule.getEndDateTime().isBefore(now())) {
-            throw new IllegalArgumentException("End date time must not be in the past");
+            throw new BadRequestAlertException("End date time must not be in the past", "simulationSchedule", "endDateTimeInPast");
         } else if (simulationSchedule.getTimeOfDay() == null) {
-            throw new IllegalArgumentException("Time of day must not be null");
+            throw new BadRequestAlertException("Time of day must not be null", "simulationSchedule", "timeOfDayNull");
         } else if (simulationSchedule.getCycle() == SimulationSchedule.Cycle.WEEKLY && simulationSchedule.getDayOfWeek() == null) {
-            throw new IllegalArgumentException("Day of week must not be null");
+            throw new BadRequestAlertException("Day of week must not be null", "simulationSchedule", "dayOfWeekNull");
         }
     }
 }
