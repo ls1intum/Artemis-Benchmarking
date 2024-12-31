@@ -222,6 +222,10 @@ dependencies {
     testRuntimeOnly("com.tngtech.archunit:archunit-junit5-engine:${archunitJunit5Version}") {
         exclude group: "org.slf4j", module: "slf4j-api"
     }
+    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+    // NOTE: make sure this corresponds to the version used for JUnit in the testImplementation
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}"
+
 }
 
 tasks.register("cleanResources", Delete) {

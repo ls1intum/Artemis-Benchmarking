@@ -590,6 +590,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     }
 
     @Nullable
+    @SuppressWarnings("unchecked")
     private static <S extends Submission> S getSubmissionOfType(Exercise exercise, Class<S> submissionType) {
         if (!exercise.getStudentParticipations().isEmpty()) {
             var participation = exercise.getStudentParticipations().iterator().next();
