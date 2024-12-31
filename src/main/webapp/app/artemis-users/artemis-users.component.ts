@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ArtemisServer } from '../core/util/artemisServer';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ArtemisUser } from '../entities/artemis-user/artemisUser';
@@ -34,7 +34,7 @@ export default class ArtemisUsersComponent implements OnInit {
   showPasswords = false;
   editedUser?: ArtemisUser;
   adminUser?: ArtemisUser;
-  adminUserCopy?: ArtemisUser;
+  adminUserEdit = signal<ArtemisUser | undefined>(undefined);
   showAdminPassword = false;
   showEditUserPassword = false;
   actionInProgress = false;
@@ -196,12 +196,13 @@ export default class ArtemisUsersComponent implements OnInit {
   }
 
   updateAdminUser(): void {
-    if (this.adminUserCopy?.id !== undefined) {
+    const adminUserEdit = this.adminUserEdit();
+    if (adminUserEdit?.id !== undefined) {
       this.actionInProgress = true;
-      this.artemisUsersService.updateUser(this.adminUserCopy).subscribe({
+      this.artemisUsersService.updateUser(adminUserEdit).subscribe({
         next: (user: ArtemisUser) => {
           this.adminUser = user;
-          this.adminUserCopy = undefined;
+          this.adminUserEdit.set(undefined);
           this.actionInProgress = false;
         },
         error: () => {
@@ -209,12 +210,12 @@ export default class ArtemisUsersComponent implements OnInit {
           this.actionInProgress = false;
         },
       });
-    } else if (this.adminUserCopy) {
+    } else if (adminUserEdit) {
       this.actionInProgress = true;
-      this.artemisUsersService.createUser(this.server, this.adminUserCopy).subscribe({
+      this.artemisUsersService.createUser(this.server, adminUserEdit).subscribe({
         next: (user: ArtemisUser) => {
           this.adminUser = user;
-          this.adminUserCopy = undefined;
+          this.adminUserEdit.set(undefined);
           this.actionInProgress = false;
         },
         error: () => {
@@ -230,14 +231,15 @@ export default class ArtemisUsersComponent implements OnInit {
   }
 
   adminValid(): boolean {
-    return this.adminUserCopy !== undefined && this.adminUserCopy.username.length > 0 && this.adminUserCopy.password.length > 0;
+    const adminUserEdit = this.adminUserEdit();
+    return adminUserEdit !== undefined && adminUserEdit.username.length > 0 && adminUserEdit.password.length > 0;
   }
 
   editAdmin(): void {
     if (this.adminUser) {
-      this.adminUserCopy = Object.assign({}, this.adminUser);
+      this.adminUserEdit.set(Object.assign({}, this.adminUser));
     } else {
-      this.adminUserCopy = new ArtemisUser(undefined, 0, '', '', this.server);
+      this.adminUserEdit.set(new ArtemisUser(undefined, 0, '', '', this.server));
     }
   }
 
