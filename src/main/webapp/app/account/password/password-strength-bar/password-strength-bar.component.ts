@@ -11,6 +11,7 @@ type StrengthColorIndex = {
  * Colors representing password strength levels
  */
 enum PasswordStrengthColor {
+  // noinspection JSUnusedGlobalSymbols
   VeryWeak = '#F00', // Red
   Weak = '#F90', // Orange
   Fair = '#FF0', // Yellow
@@ -95,7 +96,7 @@ export default class PasswordStrengthBarComponent implements OnChanges {
    * @returns An object containing the 1-based index and the corresponding color.
    */
   getStrengthColorIndex(strength: number): StrengthColorIndex {
-    const index = Math.min(Math.floor(strength / 10), 4); // Determine index (0-4) based on strength
+    const index = Math.min(Math.floor((strength - 1) / 10), 4); // Determine index (0-4) based on strength
     return { index: index + 1, color: this.passwordStrengthColors[index] }; // Return 1-based index and color
   }
 
