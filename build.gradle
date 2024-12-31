@@ -263,7 +263,7 @@ tasks.register("webapp_test", NpmTask) {
         .withPropertyName("clover-result")
 
     dependsOn(tasks.named("npmInstall"), tasks.named("compileTestJava"))
-    args = ["run", "webapp:test"]
+    args = ["run", "test"]
 }
 
 node {
