@@ -1,33 +1,38 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, OnInit, inject, output } from '@angular/core';
 import { getTextRepresentation, Mode, Simulation } from '../../entities/simulation/simulation';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ProfileService } from '../profiles/profile.service';
 import { SimulationsService } from '../../simulations/simulations.service';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { ModeExplanationComponent } from '../mode-explanation/mode-explanation.component';
 
 @Component({
   selector: 'jhi-create-simulation-box',
   templateUrl: './create-simulation-box.component.html',
   styleUrls: ['./create-simulation-box.component.scss'],
+  imports: [FormsModule, RouterLink, FaIconComponent, ModeExplanationComponent],
 })
 export class CreateSimulationBoxComponent implements OnInit {
   faEye = faEye;
   faEyeSlash = faEyeSlash;
 
-  @Output() simulationToCreate = new EventEmitter<Simulation>();
+  readonly simulationToCreate = output<Simulation>();
 
-  name: string = '';
-  numberOfUsers: number = 0;
-  courseId: number = 0;
-  examId: number = 0;
+  name = '';
+  numberOfUsers = 0;
+  courseId = 0;
+  examId = 0;
   server: ArtemisServer = ArtemisServer.TS1;
   mode: Mode = Mode.CREATE_COURSE_AND_EXAM;
-  customizeUserRange: boolean = false;
-  userRange: string = '';
-  numberOfCommitsAndPushesFrom: number = 8;
-  numberOfCommitsAndPushesTo: number = 15;
-  instructorUsername: string = '';
-  instructorPassword: string = '';
+  customizeUserRange = false;
+  userRange = '';
+  numberOfCommitsAndPushesFrom = 8;
+  numberOfCommitsAndPushesTo = 15;
+  instructorUsername = '';
+  instructorPassword = '';
   passwordPercentage: number = 100;
   tokenPercentage: number = 0;
   sshPercentage: number = 0;
@@ -41,16 +46,14 @@ export class CreateSimulationBoxComponent implements OnInit {
     Mode.EXISTING_COURSE_UNPREPARED_EXAM,
   ];
   serversWithCleanupEnabled: ArtemisServer[] = [];
-  showPassword: boolean = false;
+  showPassword = false;
 
   protected readonly Mode = Mode;
   protected readonly ArtemisServer = ArtemisServer;
   protected readonly getTextRepresentation = getTextRepresentation;
 
-  constructor(
-    private profileService: ProfileService,
-    private simulationService: SimulationsService,
-  ) {}
+  private profileService = inject(ProfileService);
+  private simulationService = inject(SimulationsService);
 
   ngOnInit(): void {
     this.profileService.getProfileInfo().subscribe(profileInfo => {
@@ -110,7 +113,6 @@ export class CreateSimulationBoxComponent implements OnInit {
     if (this.mode === Mode.EXISTING_COURSE_CREATE_EXAM) {
       return basicRequirements && this.courseId > 0;
     }
-
     return basicRequirements && this.courseId > 0 && this.examId > 0;
   }
 }

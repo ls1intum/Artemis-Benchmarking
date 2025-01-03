@@ -13,33 +13,70 @@ import org.springframework.stereotype.Service;
 
 /**
  * Mapper for the entity {@link User} and its DTO called {@link UserDTO}.
- *
+ * <p>
  * Normal mappers are generated using MapStruct, this one is hand-coded as MapStruct
  * support is still in beta, and requires a manual step with an IDE.
  */
 @Service
 public class UserMapper {
 
+    /**
+     * Converts a list of {@link User} entities to a list of {@link UserDTO}.
+     *
+     * @param users the list of users to convert
+     * @return a list of user DTOs
+     */
     public List<UserDTO> usersToUserDTOs(List<User> users) {
         return users.stream().filter(Objects::nonNull).map(this::userToUserDTO).toList();
     }
 
+    /**
+     * Converts a {@link User} entity to a {@link UserDTO}.
+     *
+     * @param user the user entity to convert
+     * @return the user DTO
+     */
     public UserDTO userToUserDTO(User user) {
         return new UserDTO(user);
     }
 
+    /**
+     * Converts a list of {@link User} entities to a list of {@link AdminUserDTO}.
+     *
+     * @param users the list of users to convert
+     * @return a list of admin user DTOs
+     */
     public List<AdminUserDTO> usersToAdminUserDTOs(List<User> users) {
         return users.stream().filter(Objects::nonNull).map(this::userToAdminUserDTO).toList();
     }
 
+    /**
+     * Converts a {@link User} entity to an {@link AdminUserDTO}.
+     *
+     * @param user the user entity to convert
+     * @return the admin user DTO
+     */
     public AdminUserDTO userToAdminUserDTO(User user) {
         return new AdminUserDTO(user);
     }
 
+    /**
+     * Converts a list of {@link AdminUserDTO} to a list of {@link User} entities.
+     *
+     * @param userDTOs the list of admin user DTOs to convert
+     * @return a list of user entities
+     */
     public List<User> userDTOsToUsers(List<AdminUserDTO> userDTOs) {
         return userDTOs.stream().filter(Objects::nonNull).map(this::userDTOToUser).toList();
     }
 
+    /**
+     * Converts an {@link AdminUserDTO} to a {@link User} entity.
+     * Includes mapping of authorities from strings to {@link Authority} objects.
+     *
+     * @param userDTO the admin user DTO to convert
+     * @return the user entity
+     */
     public User userDTOToUser(AdminUserDTO userDTO) {
         if (userDTO == null) {
             return null;
@@ -76,6 +113,12 @@ public class UserMapper {
         return authorities;
     }
 
+    /**
+     * Converts a user ID to a {@link User} entity.
+     *
+     * @param id the ID to convert
+     * @return a user entity with only the ID populated, or null if the ID is null
+     */
     public User userFromId(Long id) {
         if (id == null) {
             return null;
@@ -85,6 +128,12 @@ public class UserMapper {
         return user;
     }
 
+    /**
+     * Converts a {@link User} entity to a {@link UserDTO} containing only the ID.
+     *
+     * @param user the user entity to convert
+     * @return a user DTO with only the ID populated
+     */
     @Named("id")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
@@ -97,6 +146,12 @@ public class UserMapper {
         return userDto;
     }
 
+    /**
+     * Converts a set of {@link User} entities to a set of {@link UserDTO} containing only the IDs.
+     *
+     * @param users the set of user entities to convert
+     * @return a set of user DTOs with only the IDs populated
+     */
     @Named("idSet")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
@@ -113,6 +168,12 @@ public class UserMapper {
         return userSet;
     }
 
+    /**
+     * Converts a {@link User} entity to a {@link UserDTO} containing only the ID and login.
+     *
+     * @param user the user entity to convert
+     * @return a user DTO with ID and login populated
+     */
     @Named("login")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")
@@ -127,6 +188,12 @@ public class UserMapper {
         return userDto;
     }
 
+    /**
+     * Converts a set of {@link User} entities to a set of {@link UserDTO} containing only the ID and login.
+     *
+     * @param users the set of user entities to convert
+     * @return a set of user DTOs with ID and login populated
+     */
     @Named("loginSet")
     @BeanMapping(ignoreByDefault = true)
     @Mapping(target = "id", source = "id")

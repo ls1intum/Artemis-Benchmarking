@@ -3,59 +3,43 @@ configurations {
 }
 
 dependencies {
-  implementation "org.liquibase:liquibase-core:${liquibaseVersion}"
-  liquibaseRuntime "org.liquibase:liquibase-core:${liquibaseVersion}"
-  // Dependency required to parse options. Refer to https://github.com/liquibase/liquibase-gradle-plugin/tree/Release_2.2.0#news.
-  liquibaseRuntime "info.picocli:picocli:4.7.6"
+    implementation "org.liquibase:liquibase-core:${liquibaseVersion}"
+    liquibaseRuntime "org.liquibase:liquibase-core:${liquibaseVersion}"
+    // Dependency required to parse options. Refer to https://github.com/liquibase/liquibase-gradle-plugin/tree/Release_2.2.0#news.
+    liquibaseRuntime "info.picocli:picocli:4.7.6"
 
-  liquibaseRuntime "org.liquibase.ext:liquibase-hibernate6:${liquibaseVersion}"
-  liquibaseRuntime "com.mysql:mysql-connector-j:${mysqlVersion}"
+    liquibaseRuntime "org.liquibase.ext:liquibase-hibernate6:${liquibaseVersion}"
+    liquibaseRuntime "com.mysql:mysql-connector-j:${mysqlVersion}"
 }
 
 project.ext.diffChangelogFile = "src/main/resources/config/liquibase/changelog/" + new Date().format("yyyyMMddHHmmss") + "_changelog.xml"
 if (!project.hasProperty("runList")) {
- project.ext.runList = "main"
+    project.ext.runList = "main"
 }
 
 liquibase {
-  activities {
-    main {
-      driver "com.mysql.cj.jdbc.Driver"
-      url "jdbc:mysql://localhost:3306/artemis-benchmarking"
-      username "root"
-      changelogFile "src/main/resources/config/liquibase/master.xml"
-      logLevel "debug"
-      classpath "src/main/resources/"
+    activities {
+        register("main") {
+            driver = "com.mysql.cj.jdbc.Driver"
+            url = "jdbc:mysql://localhost:3306/artemis-benchmarking"
+            username = "root"
+            changelogFile = "src/main/resources/config/liquibase/master.xml"
+            logLevel = "debug"
+            classpath = "src/main/resources/"
+        }
+        register("diffLog") {
+            driver = "com.mysql.cj.jdbc.Driver"
+            url = "jdbc:mysql://localhost:3306/artemis-benchmarking"
+            username = "root"
+            changelogFile = project.ext.diffChangelogFile
+            referenceUrl = "hibernate:spring:de.tum.cit.aet.domain?dialect=org.hibernate.dialect.MySQL8Dialect&hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
+            logLevel = "debug"
+            classpath = "${layout.buildDirectory.dir("classes/java/main")}"
+        }
     }
-    diffLog {
-      driver "com.mysql.cj.jdbc.Driver"
-      url "jdbc:mysql://localhost:3306/artemis-benchmarking"
-      username "root"
-      changelogFile project.ext.diffChangelogFile
-      referenceUrl "hibernate:spring:de.tum.cit.aet.domain?dialect=org.hibernate.dialect.MySQL8Dialect&hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
-      logLevel "debug"
-      classpath "$buildDir/classes/java/main"
-    }
-  }
 
-  runList = project.ext.runList
+    runList = project.ext.runList
 }
 
 liquibaseDiff.dependsOn compileJava
 liquibaseDiffChangelog.dependsOn compileJava
-
-configurations {
-  all {
-    resolutionStrategy {
-      // Inherited version from Spring Boot can't be used because of regressions:
-      // To be removed as soon as spring-boot use the same version
-      force "org.liquibase:liquibase-core:${liquibaseVersion}"
-    }
-  }
-}
-
-ext {
-  if (project.hasProperty("no-liquibase")) {
-    springProfiles += ",no-liquibase"
-  }
-}

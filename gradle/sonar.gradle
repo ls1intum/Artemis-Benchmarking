@@ -1,5 +1,5 @@
 jacoco {
-    toolVersion = "0.8.11"
+    toolVersion = "0.8.12"
 }
 
 jacocoTestReport {
@@ -19,7 +19,7 @@ file("sonar-project.properties").withReader {
     sonarProperties.each { key, value ->
         sonarqube {
             properties {
-                property key, value
+                property key.toString(), value.toString()
             }
         }
     }

@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ArtemisServer } from '../core/util/artemisServer';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ArtemisUser } from '../entities/artemis-user/artemisUser';
@@ -12,15 +11,15 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ArtemisUserPatternDTO } from './artemisUserPatternDTO';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Observable, Subject, map, merge, startWith } from 'rxjs';
+import SharedModule from '../shared/shared.module';
 
 @Component({
   selector: 'jhi-artemis-users',
-  standalone: true,
-  imports: [CommonModule, NgbCollapse, CreateUserBoxComponent, FontAwesomeModule, NgbTooltipModule, FormsModule, ReactiveFormsModule],
+  imports: [SharedModule, NgbCollapse, CreateUserBoxComponent, FontAwesomeModule, NgbTooltipModule, FormsModule, ReactiveFormsModule],
   templateUrl: './artemis-users.component.html',
   styleUrl: './artemis-users.component.scss',
 })
-export class ArtemisUsersComponent implements OnInit {
+export default class ArtemisUsersComponent implements OnInit {
   faEye = faEye;
   faEyeSlash = faEyeSlash;
   faCircleInfo = faCircleInfo;
@@ -35,7 +34,7 @@ export class ArtemisUsersComponent implements OnInit {
   showPasswords = false;
   editedUser?: ArtemisUser;
   adminUser?: ArtemisUser;
-  adminUserCopy?: ArtemisUser;
+  adminUserEdit = signal<ArtemisUser | undefined>(undefined);
   showAdminPassword = false;
   showEditUserPassword = false;
   actionInProgress = false;
@@ -48,12 +47,12 @@ export class ArtemisUsersComponent implements OnInit {
 
   protected readonly ArtemisServer = ArtemisServer;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private artemisUsersService: ArtemisUsersService,
-    private modalService: NgbModal,
-  ) {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private artemisUsersService = inject(ArtemisUsersService);
+  private modalService = inject(NgbModal);
+
+  constructor() {
     this.users$ = merge(
       this.filter.valueChanges.pipe(
         startWith(''),
@@ -197,12 +196,13 @@ export class ArtemisUsersComponent implements OnInit {
   }
 
   updateAdminUser(): void {
-    if (this.adminUserCopy?.id !== undefined) {
+    const adminUserEdit = this.adminUserEdit();
+    if (adminUserEdit?.id !== undefined) {
       this.actionInProgress = true;
-      this.artemisUsersService.updateUser(this.adminUserCopy).subscribe({
+      this.artemisUsersService.updateUser(adminUserEdit).subscribe({
         next: (user: ArtemisUser) => {
           this.adminUser = user;
-          this.adminUserCopy = undefined;
+          this.adminUserEdit.set(undefined);
           this.actionInProgress = false;
         },
         error: () => {
@@ -210,12 +210,12 @@ export class ArtemisUsersComponent implements OnInit {
           this.actionInProgress = false;
         },
       });
-    } else if (this.adminUserCopy) {
+    } else if (adminUserEdit) {
       this.actionInProgress = true;
-      this.artemisUsersService.createUser(this.server, this.adminUserCopy).subscribe({
+      this.artemisUsersService.createUser(this.server, adminUserEdit).subscribe({
         next: (user: ArtemisUser) => {
           this.adminUser = user;
-          this.adminUserCopy = undefined;
+          this.adminUserEdit.set(undefined);
           this.actionInProgress = false;
         },
         error: () => {
@@ -231,14 +231,15 @@ export class ArtemisUsersComponent implements OnInit {
   }
 
   adminValid(): boolean {
-    return this.adminUserCopy !== undefined && this.adminUserCopy.username.length > 0 && this.adminUserCopy.password.length > 0;
+    const adminUserEdit = this.adminUserEdit();
+    return adminUserEdit !== undefined && adminUserEdit.username.length > 0 && adminUserEdit.password.length > 0;
   }
 
   editAdmin(): void {
     if (this.adminUser) {
-      this.adminUserCopy = Object.assign({}, this.adminUser);
+      this.adminUserEdit.set(Object.assign({}, this.adminUser));
     } else {
-      this.adminUserCopy = new ArtemisUser(undefined, 0, '', '', this.server);
+      this.adminUserEdit.set(new ArtemisUser(undefined, 0, '', '', this.server));
     }
   }
 

@@ -22,7 +22,7 @@ function inferVersion() {
 
     version = version[1] ?? 'DEV';
   } catch (error) {
-    console.log("Error while retrieving 'APP_VERSION' property");
+    console.log("Error while retrieving 'APP_VERSION' property: " + error);
   }
 
   return version;
@@ -32,7 +32,9 @@ function inferVersion() {
 const args = process.argv.slice(2);
 const developFlag = args.includes('--develop');
 const environmentConfig = `// Don't change this file manually, it will be overwritten by the build process!
-export const __DEBUG_INFO_ENABLED__ = ${developFlag};
-export const __VERSION__ = '${process.env.APP_VERSION || inferVersion()}';
+export const environment = {
+  VERSION: '${process.env.APP_VERSION || inferVersion()}',
+  DEBUG_INFO_ENABLED: ${developFlag},
+};
 `;
 fs.writeFileSync(path.resolve(__dirname, 'src', 'main', 'webapp', 'app', 'environments', 'environment.override.ts'), environmentConfig);

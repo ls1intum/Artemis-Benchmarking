@@ -380,6 +380,11 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .block();
     }
 
+    /**
+     * Create a course programming exercise for benchmarking.
+     * @param course the course for which to create the exercise
+     * @return the created exercise
+     */
     public ProgrammingExercise createCourseProgrammingExercise(Course course) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");

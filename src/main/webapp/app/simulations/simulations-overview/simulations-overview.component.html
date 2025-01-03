@@ -24,17 +24,17 @@
 </div>
 <div class="flex-container vh-90 mt-3">
   <div class="w-25 pe-3 overflow-scroll">
-    @for (simulation of simulations; track simulation) {
+    @for (simulation of simulations(); track simulation) {
       <jhi-simulation-card
         [simulation]="simulation"
-        [selectedRun]="selectedRun"
+        [selectedRun]="selectedRun()"
         (clickedRunEvent)="selectRun($event)"
         (delete)="deleteSimulation(simulation)"
       ></jhi-simulation-card>
     }
   </div>
   <div class="vr"></div>
-  @if (selectedRun) {
+  @if (selectedRun(); as selectedRun) {
     <div class="w-75 ms-3 pe-3 overflow-scroll">
       <div class="space-between-wrapper">
         <h3>Run #{{ selectedRun.id }} - {{ selectedRun.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</h3>

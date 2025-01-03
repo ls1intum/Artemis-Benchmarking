@@ -1,6 +1,6 @@
 
 configurations {
-  all {
+  configureEach {
     resolutionStrategy {
       // TODO drop forced version. Refer to https://github.com/jhipster/generator-jhipster/issues/22579
       force "org.hibernate.orm:hibernate-core:${hibernateVersion}"
@@ -29,15 +29,15 @@ bootRun {
     args = ["--spring.profiles.active=${springProfiles}"]
 }
 
-task webapp(type: NpmTask) {
+tasks.register("webapp", NpmTask) {
     dependsOn npmInstall
     args = ["run", "webapp:prod"]
     environment = [APP_VERSION: project.version]
 }
 
 processResources {
-    inputs.property('version', version)
-    inputs.property('springProfiles', springProfiles)
+    inputs.property("version", version)
+    inputs.property("springProfiles", springProfiles)
     filesMatching("**/application.yml") {
         filter {
             it.replace("#project.version#", version)
@@ -48,17 +48,17 @@ processResources {
     }
 }
 
-task integrationTest(type: Test) {
+tasks.register("integrationTest", Test) {
     maxHeapSize = "1G"
     useJUnitPlatform()
     description = "Execute integration tests."
     group = "verification"
     include "**/*IT*", "**/*IntTest*"
     testLogging {
-        events 'FAILED', 'SKIPPED'
+        events "FAILED", "SKIPPED"
     }
-    systemProperty('spring.profiles.active', 'testprod')
-    systemProperty('java.security.egd', 'file:/dev/./urandom')
+    systemProperty("spring.profiles.active", "testprod")
+    systemProperty("java.security.egd", "file:/dev/./urandom")
     // uncomment if the tests reports are not generated
     // see https://github.com/jhipster/generator-jhipster/pull/2771 and https://github.com/jhipster/generator-jhipster/pull/4484
     // ignoreFailures true

@@ -51,6 +51,12 @@ public class AuthenticateController {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
     }
 
+    /**
+     * {@code POST /authenticate} : authenticate the user.
+     *
+     * @param loginVM the login view model.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the JWT token in the body.
+     */
     @PostMapping("/authenticate")
     public ResponseEntity<JWTToken> authenticate(@Valid @RequestBody LoginVM loginVM) {
         log.info("Request to authenticate user {}", loginVM.getUsername());
@@ -75,16 +81,19 @@ public class AuthenticateController {
         return request.getRemoteUser();
     }
 
+    /**
+     * Create a JWT token.
+     *
+     * @param authentication the authentication.
+     * @param rememberMe if the user should be remembered.
+     * @return the JWT token.
+     */
     public String createToken(Authentication authentication, boolean rememberMe) {
         String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
 
         Instant now = Instant.now();
-        Instant validity;
-        if (rememberMe) {
-            validity = now.plus(this.tokenValidityInSecondsForRememberMe, ChronoUnit.SECONDS);
-        } else {
-            validity = now.plus(this.tokenValidityInSeconds, ChronoUnit.SECONDS);
-        }
+        long amountToAdd = rememberMe ? this.tokenValidityInSecondsForRememberMe : this.tokenValidityInSeconds;
+        Instant validity = now.plus(amountToAdd, ChronoUnit.SECONDS);
 
         // @formatter:off
         JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -93,11 +102,11 @@ public class AuthenticateController {
             .subject(authentication.getName())
             .claim(AUTHORITIES_KEY, authorities)
             .build();
+        // @formatter:on
 
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
     }
 
-    public record JWTToken(@JsonProperty("id_token") String idToken) {
-    }
+    public record JWTToken(@JsonProperty("id_token") String idToken) {}
 }

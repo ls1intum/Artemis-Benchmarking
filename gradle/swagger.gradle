@@ -7,7 +7,7 @@ apply plugin: "org.openapi.generator"
 openApiGenerate {
     generatorName = "spring"
     inputSpec = "$rootDir/src/main/resources/swagger/api.yml".toString()
-    outputDir = "$buildDir/openapi".toString()
+    outputDir = layout.buildDirectory.dir("openapi").get().asFile.toString()
     apiPackage = "de.tum.cit.aet.web.api"
     modelPackage = "de.tum.cit.aet.service.api.dto"
     apiFilesConstrainedTo = [""]

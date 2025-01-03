@@ -14,6 +14,7 @@ import de.tum.cit.aet.domain.SimulationSchedule;
 import de.tum.cit.aet.repository.SimulationScheduleRepository;
 import de.tum.cit.aet.service.simulation.SimulationDataService;
 import de.tum.cit.aet.service.simulation.SimulationScheduleService;
+import de.tum.cit.aet.web.rest.errors.BadRequestAlertException;
 import jakarta.transaction.Transactional;
 import java.time.ZonedDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -185,7 +186,7 @@ public class SimulationScheduleServiceIT {
 
     @Test
     public void testCreateSimulationSchedule_fail_onScheduleNull() {
-        assertThrows(IllegalArgumentException.class, () -> simulationScheduleService.createSimulationSchedule(1L, null));
+        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, null));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -200,7 +201,7 @@ public class SimulationScheduleServiceIT {
         schedule.setDayOfWeek(now().getDayOfWeek());
         schedule.setId(1L);
 
-        assertThrows(IllegalArgumentException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -215,7 +216,7 @@ public class SimulationScheduleServiceIT {
         schedule.setDayOfWeek(now().getDayOfWeek());
         schedule.setSimulation(simulation);
 
-        assertThrows(IllegalArgumentException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -229,7 +230,7 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(now());
         schedule.setDayOfWeek(now().getDayOfWeek());
 
-        assertThrows(IllegalArgumentException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -243,7 +244,7 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(now());
         schedule.setDayOfWeek(now().getDayOfWeek());
 
-        assertThrows(IllegalArgumentException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -257,7 +258,7 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(now());
         schedule.setDayOfWeek(now().getDayOfWeek());
 
-        assertThrows(IllegalArgumentException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -271,7 +272,7 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(now());
         schedule.setDayOfWeek(now().getDayOfWeek());
 
-        assertThrows(IllegalArgumentException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -285,7 +286,7 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(null);
         schedule.setDayOfWeek(now().getDayOfWeek());
 
-        assertThrows(IllegalArgumentException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -299,7 +300,7 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(now());
         schedule.setDayOfWeek(null);
 
-        assertThrows(IllegalArgumentException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -348,7 +349,7 @@ public class SimulationScheduleServiceIT {
 
         when(simulationScheduleRepository.findById(1L)).thenReturn(java.util.Optional.of(existingSchedule));
 
-        assertThrows(IllegalArgumentException.class, () -> simulationScheduleService.updateSimulationSchedule(1L, null));
+        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.updateSimulationSchedule(1L, null));
         verify(simulationScheduleRepository, times(0)).save(any());
         verifyNoMoreInteractions(simulationDataService);
     }
@@ -376,7 +377,7 @@ public class SimulationScheduleServiceIT {
         ZonedDateTime time = now();
         schedule.setTimeOfDay(time.plusHours(1));
 
-        assertThrows(IllegalArgumentException.class, () -> simulationScheduleService.updateSimulationSchedule(42L, schedule));
+        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.updateSimulationSchedule(42L, schedule));
         verify(simulationScheduleRepository, times(0)).save(any());
         verifyNoMoreInteractions(simulationDataService);
     }
@@ -404,7 +405,7 @@ public class SimulationScheduleServiceIT {
         ZonedDateTime time = now();
         schedule.setTimeOfDay(time.plusHours(1));
 
-        assertThrows(IllegalArgumentException.class, () -> simulationScheduleService.updateSimulationSchedule(1L, schedule));
+        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.updateSimulationSchedule(1L, schedule));
         verify(simulationScheduleRepository, times(0)).save(any());
         verifyNoMoreInteractions(simulationDataService);
     }

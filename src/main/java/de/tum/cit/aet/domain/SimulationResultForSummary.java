@@ -13,6 +13,12 @@ public class SimulationResultForSummary {
     public String avgClone;
     public String avgPush;
 
+    /**
+     * Create a new instance of SimulationResultForSummary from a SimulationRun.
+     *
+     * @param run the SimulationRun to create the summary from
+     * @return the new instance of SimulationResultForSummary
+     */
     public static SimulationResultForSummary from(SimulationRun run) {
         SimulationResultForSummary result = new SimulationResultForSummary();
         result.avgTotal = TimeLogUtil.formatDuration(

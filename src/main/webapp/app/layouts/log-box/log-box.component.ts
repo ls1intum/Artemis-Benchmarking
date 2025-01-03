@@ -1,11 +1,13 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { LogMessage } from '../../entities/simulation/logMessage';
+import { DatePipe, NgClass } from '@angular/common';
 
 @Component({
   selector: 'jhi-log-box',
   templateUrl: './log-box.component.html',
   styleUrls: ['./log-box.component.scss'],
+  imports: [NgClass, DatePipe],
 })
 export class LogBoxComponent {
-  @Input() logMessages?: LogMessage[];
+  logMessages = input<LogMessage[]>();
 }

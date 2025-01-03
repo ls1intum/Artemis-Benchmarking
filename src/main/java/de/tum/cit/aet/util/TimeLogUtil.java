@@ -9,11 +9,34 @@ public class TimeLogUtil {
      * @return formatted string of the duration between now and timeNanoStart
      */
     public static String formatDurationFrom(long timeNanoStart) {
-        return formatDuration(System.nanoTime() - timeNanoStart);
+        long durationInMicroSeconds = (System.nanoTime() - timeNanoStart) / 1000;
+        if (durationInMicroSeconds < 1000) {
+            return durationInMicroSeconds + "µs";
+        }
+        double durationInMilliSeconds = durationInMicroSeconds / 1000.0;
+        if (durationInMilliSeconds < 1000) {
+            return roundOffTo2DecPlaces(durationInMilliSeconds) + "ms";
+        }
+        double durationInSeconds = durationInMilliSeconds / 1000.0;
+        if (durationInSeconds < 60) {
+            return roundOffTo2DecPlaces(durationInSeconds) + "sec";
+        }
+        double durationInMinutes = durationInSeconds / 60.0;
+        if (durationInMinutes < 60) {
+            return roundOffTo2DecPlaces(durationInMinutes) + "min";
+        }
+        double durationInHours = durationInMinutes / 60.0;
+        return roundOffTo2DecPlaces(durationInHours) + "hours";
     }
 
-    public static String formatDuration(long durationinNanoSeconds) {
-        long durationInMicroSeconds = durationinNanoSeconds / 1000;
+    /**
+     * Format the given duration in nano seconds in a readable way
+     *
+     * @param durationInNanoSeconds the duration in nano seconds
+     * @return formatted string of the duration
+     */
+    public static String formatDuration(long durationInNanoSeconds) {
+        long durationInMicroSeconds = durationInNanoSeconds / 1000;
         if (durationInMicroSeconds > 1000) {
             double durationInMilliSeconds = durationInMicroSeconds / 1000.0;
             if (durationInMilliSeconds > 1000) {

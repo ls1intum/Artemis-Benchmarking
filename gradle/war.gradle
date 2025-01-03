@@ -4,13 +4,21 @@ bootWar {
     mainClass = "de.tum.cit.aet.ArtemisBenchmarkingApp"
     includes = ["WEB-INF/**", "META-INF/**"]
     webXml = file("${project.rootDir}/src/main/webapp/WEB-INF/web.xml")
+    manifest {
+        attributes("Implementation-Title": "Artemis-Benchmarking",
+                   "Implementation-Version": version)
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 war {
-    webAppDirName = "build/resources/main/static/"
+    webAppDirectory = file("build/resources/main/static/")
+    includes = ["WEB-INF/**", "META-INF/**"]
     webXml = file("${project.rootDir}/src/main/webapp/WEB-INF/web.xml")
     enabled = true
     archiveExtension = "war.original"
-    includes = ["WEB-INF/**", "META-INF/**"]
+}
 
+jar {
+    enabled = false
 }

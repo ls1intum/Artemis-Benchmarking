@@ -41,6 +41,26 @@ public class SecurityConfiguration {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Configures the {@link SecurityFilterChain} for the application, specifying security settings for HTTP requests.
+     * <p>
+     * This method uses a fluent API to configure {@link HttpSecurity} by:
+     * <ul>
+     * <li>Disabling CSRF protection, as it might be handled client-side or deemed unnecessary for stateless APIs.</li>
+     * <li>Setting up CORS filtering.</li>
+     * <li>Customizing exception handling for authentication and access denial.</li>
+     * <li>Defining content security policy, frame options, and other security headers.</li>
+     * <li>Configuring session management to be stateless, suitable for RESTful and SPA-oriented architectures.</li>
+     * <li>Specifying access rules for various endpoints, allowing fine-grained control over access based on roles.</li>
+     * <li>Adding custom security configurations, such as LTI support if enabled.</li>
+     * </ul>
+     * </p>
+     *
+     * @param http                   The {@link HttpSecurity} object to configure security settings for HTTP requests.
+     * @param mvc                    The {@link MvcRequestMatcher.Builder} to create request matchers for various endpoints.
+     * @return The configured {@link SecurityFilterChain}.
+     * @throws Exception If an error occurs during the configuration process.
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc) throws Exception {
         http

@@ -1,33 +1,57 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Simulation } from '../../entities/simulation/simulation';
 import { SimulationsService } from '../simulations.service';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
 import { getOrder } from '../../entities/simulation/simulationStats';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbAccordionModule, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CreateSimulationBoxComponent } from '../../layouts/create-simulation-box/create-simulation-box.component';
+import { SimulationCardComponent } from '../../layouts/simulation-card/simulation-card.component';
+import { StatusIconComponent } from '../../layouts/status-icon/status-icon.component';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { LogBoxComponent } from '../../layouts/log-box/log-box.component';
+import { CiStatusCardComponent } from '../../layouts/ci-status-card/ci-status-card.component';
+import { PrometheusBoxComponent } from '../../layouts/prometheus-box/prometheus-box.component';
+import { ResultBoxComponent } from '../../layouts/result-box/result-box.component';
+import { DatePipe } from '@angular/common';
+
+export function sortSimulations(simulations: Simulation[]): Simulation[] {
+  return simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+}
 
 @Component({
   selector: 'jhi-simulations-overview',
   templateUrl: './simulations-overview.component.html',
   styleUrls: ['./simulations-overview.component.scss'],
+  imports: [
+    NgbModule,
+    NgbAccordionModule,
+    CreateSimulationBoxComponent,
+    SimulationCardComponent,
+    StatusIconComponent,
+    FaIconComponent,
+    LogBoxComponent,
+    CiStatusCardComponent,
+    PrometheusBoxComponent,
+    ResultBoxComponent,
+    DatePipe,
+  ],
 })
-export class SimulationsOverviewComponent implements OnInit {
+export default class SimulationsOverviewComponent implements OnInit {
   faSpinner = faSpinner;
 
-  simulations: Simulation[] = [];
-  selectedRun?: SimulationRun;
+  simulations = signal<Simulation[]>([]);
+  selectedRun = signal<SimulationRun | undefined>(undefined);
   isCollapsed = true;
   cancellationInProgress = false;
 
   protected readonly Status = Status;
 
-  constructor(
-    private simulationsService: SimulationsService,
-    private modalService: NgbModal,
-    private route: ActivatedRoute,
-    private router: Router,
-  ) {}
+  private simulationsService = inject(SimulationsService);
+  private modalService = inject(NgbModal);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   ngOnInit(): void {
     const selectedRunString = this.route.snapshot.queryParamMap.get('runId');
@@ -36,9 +60,9 @@ export class SimulationsOverviewComponent implements OnInit {
       selectedRunId = parseInt(selectedRunString, 10);
     }
     this.simulationsService.getSimulations().subscribe(simulations => {
-      this.simulations = simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+      this.simulations.set(sortSimulations(simulations));
 
-      this.simulations.forEach(simulation => {
+      this.simulations().forEach(simulation => {
         simulation.runs.forEach(run => {
           this.subscribeToRunStatus(run);
           if (run.id === selectedRunId) {
@@ -51,15 +75,16 @@ export class SimulationsOverviewComponent implements OnInit {
 
   createSimulation(simulation: Simulation): void {
     this.simulationsService.createSimulation(simulation).subscribe(newSimulation => {
-      this.simulations.push(newSimulation);
-      this.simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
+      this.simulations.update(simulations => [...simulations, newSimulation]);
+      this.simulations.set(sortSimulations(this.simulations()));
     });
     this.isCollapsed = true;
   }
 
   selectRun(run: SimulationRun): void {
-    if (this.selectedRun) {
-      this.simulationsService.unsubscribeFromSelectedSimulationRun(this.selectedRun);
+    const selectedRun = this.selectedRun();
+    if (selectedRun) {
+      this.simulationsService.unsubscribeFromSelectedSimulationRun(selectedRun);
     }
 
     // Update the run
@@ -67,36 +92,32 @@ export class SimulationsOverviewComponent implements OnInit {
       run.status = updatedRun.status;
       run.stats = updatedRun.stats.sort((a, b) => getOrder(a) - getOrder(b));
       run.logMessages = updatedRun.logMessages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-      this.selectedRun = run;
+      this.selectedRun.set(run);
       this.subscribeToSelectedRun(run);
       this.router.navigate([], { queryParams: { runId: run.id } });
     });
   }
 
   deleteSelectedRun(content: any): void {
-    this.modalService.open(content, { ariaLabelledBy: 'delete-modal-title' }).result.then(
-      () => {
-        if (!this.selectedRun) {
-          return;
-        }
-        this.simulationsService.deleteSimulationRun(this.selectedRun.id).subscribe(() => {
-          if (this.selectedRun) {
-            this.simulationsService.unsubscribeFromSimulationRun(this.selectedRun);
-          }
+    this.modalService.open(content, { ariaLabelledBy: 'delete-modal-title' }).result.then(() => {
+      const selectedRun = this.selectedRun();
+      if (!selectedRun) {
+        return;
+      }
+      this.simulationsService.deleteSimulationRun(selectedRun.id).subscribe(() => {
+        this.simulationsService.unsubscribeFromSimulationRun(selectedRun);
 
-          this.selectedRun = undefined;
-          this.simulationsService.getSimulations().subscribe(simulations => {
-            this.simulations = simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
-          });
+        this.selectedRun.set(undefined);
+        this.simulationsService.getSimulations().subscribe(simulations => {
+          this.simulations.set(sortSimulations(simulations));
         });
-      },
-      () => {},
-    );
+      });
+    });
   }
 
   cancelSelectedRun(): void {
     this.cancellationInProgress = true;
-    this.simulationsService.abortSimulationRun(this.selectedRun!.id).subscribe(() => {
+    this.simulationsService.abortSimulationRun(this.selectedRun()!.id).subscribe(() => {
       this.cancellationInProgress = false;
     });
   }
@@ -107,10 +128,10 @@ export class SimulationsOverviewComponent implements OnInit {
         this.simulationsService.unsubscribeFromSimulationRun(run);
       });
 
-      if (this.selectedRun && simulation.runs.includes(this.selectedRun)) {
-        this.selectedRun = undefined;
+      if (this.selectedRun() && simulation.runs.includes(this.selectedRun()!)) {
+        this.selectedRun.set(undefined);
       }
-      this.simulations = this.simulations.filter(s => s.id !== simulation.id);
+      this.simulations.update(simulations => simulations.filter(s => s.id !== simulation.id));
     });
   }
 

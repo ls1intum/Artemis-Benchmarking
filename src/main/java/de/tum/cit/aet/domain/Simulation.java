@@ -218,6 +218,9 @@ public class Simulation {
         this.instructorPassword = instructorPassword;
     }
 
+    /**
+     * @return true if instructor credentials are provided, false otherwise
+     */
     public boolean instructorCredentialsProvided() {
         if (mode == Mode.CREATE_COURSE_AND_EXAM) {
             // For this mode we need admin credentials, not instructor credentials

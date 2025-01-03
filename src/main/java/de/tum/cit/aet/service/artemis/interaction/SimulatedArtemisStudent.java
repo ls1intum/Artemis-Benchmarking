@@ -150,6 +150,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
      *
      * @param courseId the ID of the course
      * @param examId   the ID of the exam
+     * @param courseProgrammingExerciseId the ID of the course programming exercise
      * @return the list of request stats
      */
     public List<RequestStat> startExamParticipation(long courseId, long examId, long courseProgrammingExerciseId) {

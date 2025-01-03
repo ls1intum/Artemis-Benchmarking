@@ -2,12 +2,12 @@
   <span
     class="badge"
     [ngClass]="{
-      'bg-success': server == ArtemisServer.LOCAL,
-      'bg-warning text-dark': server?.startsWith('STAGING'),
-      'bg-danger': server == ArtemisServer.PRODUCTION,
-      'bg-info': server?.startsWith('TS')
+      'bg-success': server() == ArtemisServer.LOCAL,
+      'bg-warning text-dark': server()?.startsWith('STAGING'),
+      'bg-danger': server() == ArtemisServer.PRODUCTION,
+      'bg-info': server()?.startsWith('TS'),
     }"
   >
-    {{ server }}
+    {{ server() }}
   </span>
 </h5>

@@ -37,7 +37,7 @@
               />
             </div>
           </div>
-          <button type="submit" class="btn btn-primary" [disabled]="!isValidManually() || actionInProgress" (click)="onCreate()">
+          <button type="submit" class="btn btn-primary" [disabled]="!isValidManually() || actionInProgress()" (click)="onCreate()">
             Create User
           </button>
         </form>
@@ -54,7 +54,7 @@
       </ngb-alert>
       <div class="flex-container">
         <form class="mb-3">
-          @if (adminAvailable) {
+          @if (adminAvailable()) {
             <input
               class="form-check-input"
               type="checkbox"
@@ -161,8 +161,8 @@
               <input type="number" class="form-control" id="to-input" min="2" [(ngModel)]="to" [ngModelOptions]="{ standalone: true }" />
             </div>
           </div>
-          <button type="submit" class="btn btn-primary" [disabled]="!isValidPattern() || actionInProgress" (click)="onCreatePattern()">
-            @if (loading) {
+          <button type="submit" class="btn btn-primary" [disabled]="!isValidPattern() || actionInProgress()" (click)="onCreatePattern()">
+            @if (loading()) {
               <fa-icon [icon]="faSpinner" class="fa-spin" style="display: inline-block"></fa-icon>
             }
             Create {{ to - from }} Users
@@ -183,8 +183,8 @@
         <label for="csv-file" class="form-label">CSV file</label>
         <input #fileInput class="form-control" type="file" id="csv-file" (change)="onFileSelect($event)" accept="text/csv" />
       </div>
-      <button type="submit" class="btn btn-primary mb-3" [disabled]="file === undefined || actionInProgress" (click)="onSubmitCsv()">
-        @if (loading) {
+      <button type="submit" class="btn btn-primary mb-3" [disabled]="file === undefined || actionInProgress()" (click)="onSubmitCsv()">
+        @if (loading()) {
           <fa-icon [icon]="faSpinner" class="fa-spin" style="display: inline-block"></fa-icon>
         }
         Upload File and Create Users

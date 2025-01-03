@@ -16,10 +16,10 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "useDefineForClassFields": false,
-    "target": "es2022",
+    "target": "es2023",
     "module": "es2022",
     "types": [],
-    "lib": ["es2022", "dom"]
+    "lib": ["es2023", "dom"]
   },
   "references": [
     {
@@ -27,8 +27,11 @@
     }
   ],
   "angularCompilerOptions": {
+    "genDir": "build/resources/main/aot",
+    "skipMetadataEmit": true,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
+    "fullTemplateTypeCheck": true,
     "strictTemplates": true,
     "preserveWhitespaces": true
   }

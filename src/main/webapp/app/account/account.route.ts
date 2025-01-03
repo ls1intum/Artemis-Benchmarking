@@ -1,9 +1,10 @@
+import { Routes } from '@angular/router';
+
 import activateRoute from './activate/activate.route';
 import passwordRoute from './password/password.route';
 import passwordResetFinishRoute from './password-reset/finish/password-reset-finish.route';
 import passwordResetInitRoute from './password-reset/init/password-reset-init.route';
 import settingsRoute from './settings/settings.route';
-import { Routes } from '@angular/router';
 
 const accountRoutes: Routes = [activateRoute, passwordRoute, passwordResetFinishRoute, passwordResetInitRoute, settingsRoute];
 

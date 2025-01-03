@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit } from '@angular/core';
+import { Component, OnChanges, OnInit, inject, input } from '@angular/core';
 import { SimulationRun } from '../../entities/simulation/simulationRun';
 import { ApplicationConfigService } from '../../core/config/application-config.service';
 import { MetricValue } from '../../entities/metric-value';
@@ -8,29 +8,26 @@ import { Observable } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { NgxChartsModule, ScaleType } from '@swimlane/ngx-charts';
 import { FormsModule } from '@angular/forms';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Metric } from '../../entities/metric';
 
 @Component({
   selector: 'jhi-prometheus-box',
-  standalone: true,
-  imports: [DatePipe, NgxChartsModule, FormsModule, BrowserAnimationsModule],
-  providers: [DatePipe],
+  imports: [NgxChartsModule, FormsModule],
   templateUrl: './prometheus-box.component.html',
   styleUrl: './prometheus-box.component.scss',
 })
 export class PrometheusBoxComponent implements OnInit, OnChanges {
   private static readonly INTERVAL_SECONDS = 15;
 
-  @Input()
-  run!: SimulationRun;
+  run = input.required<SimulationRun>();
+
   metricValuesArtemis: MetricValue[] = [];
   dataArtemis: any[] = [];
   metricValuesVcs: MetricValue[] = [];
   dataVcs: any[] = [];
   metricValuesCi: MetricValue[] = [];
   dataCi: any[] = [];
-  timeIntervalId: number | undefined;
+  timeInterval: NodeJS.Timeout | undefined;
 
   colorScheme = {
     name: 'color',
@@ -39,11 +36,9 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
     domain: ['#FF4833', '#A10A28', '#33ADFF', '#37FF33', '#FF33FC'],
   };
 
-  constructor(
-    private applicationConfigService: ApplicationConfigService,
-    private httpClient: HttpClient,
-    private datePipe: DatePipe,
-  ) {}
+  private applicationConfigService = inject(ApplicationConfigService);
+  private httpClient = inject(HttpClient);
+  private datePipe = inject(DatePipe);
 
   axisFormatArtemis = (val: any): string => {
     if (this.metricValuesArtemis.length === 0) {
@@ -81,16 +76,18 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     this.updateMetrics();
     // Update metrics every 15 seconds if the run is still running / only recently finished
-    if (!this.run.endDateTime || new Date(this.run.endDateTime).getTime() + 1000 * 60 * 30 >= Date.now()) {
-      this.timeIntervalId = setInterval(() => this.updateMetrics(), 1000 * PrometheusBoxComponent.INTERVAL_SECONDS);
+    const run = this.run();
+    if (!run.endDateTime || new Date(run.endDateTime).getTime() + 1000 * 60 * 30 >= Date.now()) {
+      this.timeInterval = setInterval(() => this.updateMetrics(), 1000 * PrometheusBoxComponent.INTERVAL_SECONDS);
     }
   }
 
   ngOnChanges(): void {
     this.updateMetrics();
     // Stop updating metrics if the run is finished for more than 30 minutes
-    if (!!this.run.endDateTime && new Date(this.run.endDateTime).getTime() + 1000 * 60 * 30 < Date.now()) {
-      clearInterval(this.timeIntervalId);
+    const run = this.run();
+    if (!!run.endDateTime && new Date(run.endDateTime).getTime() + 1000 * 60 * 30 < Date.now()) {
+      clearInterval(this.timeInterval);
     }
   }
 
@@ -140,17 +137,17 @@ export class PrometheusBoxComponent implements OnInit, OnChanges {
   }
 
   fetchMetricsArtemis(): Observable<Metric[]> {
-    const endpoint = this.applicationConfigService.getEndpointFor('/api/prometheus/' + this.run.id + '/artemis');
+    const endpoint = this.applicationConfigService.getEndpointFor(`/api/prometheus/${this.run().id}/artemis`);
     return this.httpClient.get(endpoint).pipe(map((res: any) => res as Metric[]));
   }
 
   fetchMetricsVcs(): Observable<Metric[]> {
-    const endpoint = this.applicationConfigService.getEndpointFor('/api/prometheus/' + this.run.id + '/vcs');
+    const endpoint = this.applicationConfigService.getEndpointFor(`/api/prometheus/${this.run().id}/vcs`);
     return this.httpClient.get(endpoint).pipe(map((res: any) => res as Metric[]));
   }
 
   fetchMetricsCi(): Observable<Metric[]> {
-    const endpoint = this.applicationConfigService.getEndpointFor('/api/prometheus/' + this.run.id + '/ci');
+    const endpoint = this.applicationConfigService.getEndpointFor(`/api/prometheus/${this.run().id}/ci`);
     return this.httpClient.get(endpoint).pipe(map((res: any) => res as Metric[]));
   }
 }

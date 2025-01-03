@@ -10,12 +10,14 @@ import org.springframework.test.context.ContextConfigurationAttributes;
 import org.springframework.test.context.ContextCustomizer;
 import org.springframework.test.context.ContextCustomizerFactory;
 
+@SuppressWarnings("unused")
 public class SqlTestContainersSpringContextCustomizerFactory implements ContextCustomizerFactory {
 
-    private Logger log = LoggerFactory.getLogger(SqlTestContainersSpringContextCustomizerFactory.class);
+    private final Logger log = LoggerFactory.getLogger(SqlTestContainersSpringContextCustomizerFactory.class);
 
     private static SqlTestContainer prodTestContainer;
 
+    @SuppressWarnings("unchecked")
     @Override
     public ContextCustomizer createContextCustomizer(Class<?> testClass, List<ContextConfigurationAttributes> configAttributes) {
         return (context, mergedConfig) -> {

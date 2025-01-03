@@ -1,6 +1,6 @@
 <div class="card h-100">
   <div class="card-header">
-    {{ formatRequestType(simulationStats!.requestType) }}
+    {{ formatRequestType(simulationStats()!.requestType) }}
     @if (statsBySecond.length >= 3) {
       <div class="float-end">
         <button type="button" class="btn btn-link btn-sm p-0" (click)="showChart = !showChart">
@@ -15,15 +15,15 @@
   </div>
   <div class="card-body">
     <div class="flex-wrapper">
-      <p class="w-50"><strong>Number of requests:</strong> {{ simulationStats!.numberOfRequests }}</p>
-      <p class="w-50"><strong>Average response time:</strong> {{ formatDuration(simulationStats!.avgResponseTime) }}</p>
+      <p class="w-50"><strong>Number of requests:</strong> {{ simulationStats()!.numberOfRequests }}</p>
+      <p class="w-50"><strong>Average response time:</strong> {{ formatDuration(simulationStats()!.avgResponseTime) }}</p>
     </div>
     @if (!showChart) {
       <div class="flex-wrapper">
         <div class="w-50">
           <strong class="mb-0">Requests per minute:</strong>
           <div class="ps-5">
-            @for (statsMinute of simulationStats!.statsByMinute; track statsMinute) {
+            @for (statsMinute of simulationStats()!.statsByMinute; track statsMinute) {
               <p class="mb-0">{{ statsMinute.dateTime | date: 'HH:mm' }}: {{ statsMinute.numberOfRequests }}</p>
             }
           </div>
@@ -31,7 +31,7 @@
         <div class="w-50">
           <strong class="mb-0">Avg. response time by minute:</strong>
           <div class="ps-5">
-            @for (statsMinute of simulationStats!.statsByMinute; track statsMinute) {
+            @for (statsMinute of simulationStats()!.statsByMinute; track statsMinute) {
               <p class="mb-0">{{ statsMinute.dateTime | date: 'HH:mm' }}: {{ formatDuration(statsMinute.avgResponseTime) }}</p>
             }
           </div>

@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, inject } from '@angular/core';
 import { BehaviorSubject, Observable, Subscriber, Subscription, first } from 'rxjs';
 import SockJS from 'sockjs-client';
 import Stomp, { Client, ConnectionHeaders, Subscription as StompSubscription } from 'webstomp-client';
@@ -19,6 +19,8 @@ export class ConnectionState {
   providedIn: 'root',
 })
 export class WebsocketService implements OnDestroy {
+  private authServerProvider = inject(AuthServerProvider);
+
   private stompClient?: Client;
 
   // we store the STOMP subscriptions per channel so that we can unsubscribe in case we are not interested any more
@@ -37,7 +39,7 @@ export class WebsocketService implements OnDestroy {
   private connecting = false;
   private socket: any = undefined;
   private subscriptionCounter = 0;
-  constructor(private authServerProvider: AuthServerProvider) {
+  constructor() {
     this.connectionStateInternal = new BehaviorSubject<ConnectionState>(new ConnectionState(false, false, true));
   }
 
@@ -113,8 +115,9 @@ export class WebsocketService implements OnDestroy {
     };
     this.stompClient = Stomp.over(this.socket, options);
     // Note: at the moment, debugging is deactivated to prevent console log statements
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     this.stompClient.debug = () => {};
-    const headers = <ConnectionHeaders>{};
+    const headers = {} as ConnectionHeaders;
 
     this.stompClient.connect(
       headers,
@@ -211,7 +214,7 @@ export class WebsocketService implements OnDestroy {
    * Subscribe to a channel: add the channel to the observables and create a STOMP subscription for the channel if this has not been done before
    * @param channel
    */
-  subscribe(channel: string): WebsocketService {
+  subscribe(channel: string): this {
     const subscription = this.connectionState.pipe(first(connectionState => connectionState.connected)).subscribe(() => {
       if (!this.observables.has(channel)) {
         this.observables.set(channel, this.createObservable(channel));
@@ -256,7 +259,7 @@ export class WebsocketService implements OnDestroy {
         }
       },
       {
-        id: this.getSessionId() + '-' + this.subscriptionCounter++,
+        id: this.getSessionId() + '-' + String(this.subscriptionCounter++),
       },
     );
     this.stompSubscriptions.set(channel, subscription);

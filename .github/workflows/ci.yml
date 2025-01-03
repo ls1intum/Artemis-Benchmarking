@@ -1,7 +1,7 @@
 # You can enable the CI workflow by uncommenting the following lines.
 # This will compile, lint and test the code on every push to the main branch and for pull requests.
 # Currently, the CI will fail as there are linting errors in the code.
-#
+
 name: Continuous Integration
 
 on:
@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Run Server Tests
         run: ./gradlew test integrationTest jacocoTestReport

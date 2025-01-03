@@ -1,30 +1,35 @@
 import com.gorylenko.GenerateGitPropertiesTask
 
+// This section is required so that the latest version of the liquibase gradle plugin works
+buildscript {
+    dependencies {
+        classpath "org.liquibase:liquibase-core:${liquibaseVersion}"
+    }
+}
+
 plugins {
     id "checkstyle"
-    id "java"
-    id "maven-publish"
     id "idea"
-    id "eclipse"
+    id "java"
     id "jacoco"
-    id "org.springframework.boot"
-    id "com.google.cloud.tools.jib" version "3.4.4"
-    id "com.gorylenko.gradle-git-properties" version "2.4.2"
-    id "org.openapi.generator" version "7.10.0"
-    id "com.github.node-gradle.node" version "7.1.0"
-    id "org.sonarqube" version "6.0.1.5171"
     id "com.diffplug.spotless" version "6.25.0"
-    id "com.github.andygoossens.gradle-modernizer-plugin" version "1.10.0"
-    id "org.liquibase.gradle" version "2.2.2"
-    // this allows us to find outdated dependencies via ./gradlew dependencyUpdates
+    id "com.github.andygoossens.gradle-modernizer-plugin" version "${modernizerPluginVersion}"
     id "com.github.ben-manes.versions" version "0.51.0"
+    id "com.github.node-gradle.node" version "${gradleNodePluginVersion}"
+    id "com.google.cloud.tools.jib" version "3.4.4"
+    id "com.gorylenko.gradle-git-properties" version "${gitPropertiesPluginVersion}"
+    id "io.spring.dependency-management" version "1.1.7"
+    id "org.liquibase.gradle" version "${liquibasePluginVersion}"
+    id "org.openapi.generator" version "7.10.0"
+    id "org.sonarqube" version "6.0.1.5171"
+    id "org.springframework.boot" version "${springBootVersion}"
     // jhipster-needle-gradle-plugins - JHipster will add additional gradle plugins here
 }
 
 group = "de.tum.cit.aet"
-version = "0.1.3"
+version = "0.2.0"
 
-description = ""
+description = "Benchmarking Application for Performance Tests in the Artemis project"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -46,7 +51,7 @@ apply from: "gradle/sonar.gradle"
 
 spotless {
     java {
-        target 'src/*/java/**/*.java'
+        target "src/*/java/**/*.java"
         // removeUnusedImports()
     }
 }
@@ -72,16 +77,6 @@ idea {
     }
 }
 
-eclipse {
-    sourceSets {
-        main {
-            java {
-                srcDirs += ["build/generated/sources/annotationProcessor/java/main"]
-            }
-        }
-    }
-}
-
 defaultTasks "bootRun"
 
 springBoot {
@@ -92,12 +87,11 @@ test {
     useJUnitPlatform()
     exclude "**/*IT*", "**/*IntTest*"
     testLogging {
-        events 'FAILED', 'SKIPPED'
+        events "FAILED", "SKIPPED"
     }
-    jvmArgs += '-Djava.security.egd=file:/dev/./urandom -Xmx512m'
-    // uncomment if the tests reports are not generated
-    // see https://github.com/jhipster/generator-jhipster/pull/2771 and https://github.com/jhipster/generator-jhipster/pull/4484
-    // ignoreFailures true
+    jvmArgs += "-Djava.security.egd=file:/dev/./urandom -Xmx512m"
+    testClassesDirs = testing.suites.test.sources.output.classesDirs
+    classpath = testing.suites.test.sources.runtimeClasspath
     reports.html.required = false
 }
 
@@ -120,30 +114,27 @@ tasks.register("integrationTestReport", TestReport) {
     testResults.from(tasks.named("integrationTest"))
 }
 
-gitProperties {
-    failOnNoGitDirectory = false
-    keys = ["git.branch", "git.commit.id.abbrev", "git.commit.id.describe"]
-}
-
 tasks.withType(GenerateGitPropertiesTask).configureEach {
   outputs.doNotCacheIf("Task is always executed") { true }
 }
 
 checkstyle {
-    toolVersion "${checkstyleVersion}"
-    configFile file("checkstyle.xml")
+    // Exclude everything under the build directory
+    toolVersion = "${checkstyleVersion}"
+    configFile = file("checkstyle.xml")
     checkstyleTest.enabled = false
     maxErrors = 0
 }
+
+checkstyleMain.source = "src/main/java"
 
 configurations {
     providedRuntime
 }
 
 repositories {
-    // Local maven repository is required for libraries built locally with maven like development jhipster-bom.
-    // mavenLocal()
     mavenCentral()
+    mavenLocal()
     // jhipster-needle-gradle-repositories - JHipster will add additional repositories
 }
 
@@ -223,8 +214,18 @@ dependencies {
     implementation 'io.netty:netty-resolver-dns-native-macos:4.1.100.Final:osx-aarch_64'
     implementation "org.eclipse.jgit:org.eclipse.jgit:7.1.0.202411261347-r"
     implementation "io.reactivex.rxjava3:rxjava:3.1.10"
-    implementation 'io.netty:netty-resolver-dns-native-macos:4.1.116.Final:osx-aarch_64'
-    implementation 'com.opencsv:opencsv:5.9'
+    implementation "io.netty:netty-resolver-dns-native-macos:4.1.116.Final:osx-aarch_64"
+    implementation "com.opencsv:opencsv:5.9"
+
+    // ---- CHECKSTYLE DEPENDENCIES ----
+
+    // use newest version of plexus to avoid security issues through outdated dependencies
+    checkstyle "org.codehaus.plexus:plexus-container-default:2.1.1"
+    checkstyle "org.codehaus.plexus:plexus-classworlds:2.8.0"
+    checkstyle "com.puppycrawl.tools:checkstyle:${checkstyleVersion}"
+
+
+    // ---- TEST DEPENDENCIES ----
 
     testImplementation "org.testcontainers:jdbc:${testcontainersVersion}"
     testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
@@ -238,6 +239,10 @@ dependencies {
     testRuntimeOnly("com.tngtech.archunit:archunit-junit5-engine:${archunitJunit5Version}") {
         exclude group: "org.slf4j", module: "slf4j-api"
     }
+    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+    // NOTE: make sure this corresponds to the version used for JUnit in the testImplementation
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}"
+
 }
 
 tasks.register("cleanResources", Delete) {
@@ -249,15 +254,15 @@ wrapper {
 }
 
 tasks.register("webapp_test", NpmTask) {
-    inputs.property('appVersion', project.version)
+    inputs.property("appVersion", project.version)
     inputs.files("package-lock.json")
-        .withPropertyName('package-lock')
+        .withPropertyName("package-lock")
         .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.files("build.gradle")
-        .withPropertyName('build.gradle')
+        .withPropertyName("build.gradle")
         .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.files("angular.json")
-        .withPropertyName('angular.json')
+        .withPropertyName("angular.json")
         .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.files("tsconfig.json", "tsconfig.app.json")
         .withPropertyName("tsconfig")
@@ -274,7 +279,7 @@ tasks.register("webapp_test", NpmTask) {
         .withPropertyName("clover-result")
 
     dependsOn(tasks.named("npmInstall"), tasks.named("compileTestJava"))
-    args = ["run", "webapp:test"]
+    args = ["run", "test"]
 }
 
 node {
@@ -286,13 +291,13 @@ node {
 // Copy local node and npm to a fixed location for npmw
 def fixedNode = tasks.register("fixedNode", Copy) {
     from nodeSetup
-    into 'build/node'
+    into "build/node"
 }
 tasks.named("nodeSetup").configure { finalizedBy fixedNode }
 
 def fixedNpm = tasks.register("fixedNpm", Copy) {
     from npmSetup
-    into 'build/node'
+    into "build/node"
 }
 tasks.named("npmSetup").configure { finalizedBy fixedNpm }
 
@@ -320,5 +325,9 @@ tasks.named("dependencyUpdates").configure {
 // Available commands:
 //
 // 1) Build production:                             ./gradlew -Pprod -Pwar clean bootWar
-// 2) Execute tests without coverage report:        ./gradlew test -x webapp
+// 2) Execute server integration tests:             ./gradlew integrationTest -x webapp
 // 3) Find dependency updates:                      ./gradlew dependencyUpdates -Drevision=release
+// 4) Check Java code format:                       ./gradlew spotlessCheck -x webapp
+// 5) Apply Java code formatter:                    ./gradlew spotlessApply -x webapp
+// 6) Check JavaDoc:                                ./gradlew checkstyleMain -x webapp
+// 7) Detects uses of legacy code:                  ./gradlew modernizer -x webapp

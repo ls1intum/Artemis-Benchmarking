@@ -2,7 +2,7 @@
   <div class="container-fluid">
     <a class="navbar-brand logo" routerLink="/" (click)="collapseNavbar()">
       <span class="logo-img"></span>
-      <span class="navbar-title">Artemis-Benchmarking</span>
+      <span class="navbar-title">Artemis Benchmarking</span>
       <span class="navbar-version">{{ version }}</span>
     </a>
     <a
@@ -17,7 +17,7 @@
     >
       <fa-icon icon="bars"></fa-icon>
     </a>
-    <div class="navbar-collapse collapse" id="navbarResponsive" [ngbCollapse]="isNavbarCollapsed">
+    <div class="navbar-collapse collapse" id="navbarResponsive" [ngbCollapse]="isNavbarCollapsed()">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <a class="nav-link" routerLink="/" (click)="collapseNavbar()">
@@ -28,7 +28,7 @@
           </a>
         </li>
         <!-- jhipster-needle-add-element-to-menu - JHipster will add new menu items here -->
-        @if (account != null) {
+        @if (account() !== null) {
           <li
             ngbDropdown
             class="nav-item dropdown pointer"
@@ -113,15 +113,6 @@
                 <span>Logs</span>
               </a>
             </li>
-            @if (openAPIEnabled) {
-              <li>
-                <a class="dropdown-item" routerLink="/admin/docs" routerLinkActive="active" (click)="collapseNavbar()">
-                  <fa-icon icon="book" [fixedWidth]="true"></fa-icon>
-                  <span>API</span>
-                </a>
-              </li>
-            }
-            <!-- jhipster-needle-add-element-to-admin-menu - JHipster will add entities to the admin menu here -->
           </ul>
         </li>
         <li
@@ -131,21 +122,21 @@
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: true }"
         >
+          @let accountRef = account();
           <a class="nav-link dropdown-toggle" ngbDropdownToggle href="javascript:void(0);" id="account-menu" data-cy="accountMenu">
-            @if (!account?.imageUrl) {
+            @if (!accountRef?.imageUrl) {
               <span>
                 <fa-icon icon="user"></fa-icon>
                 <span>Account</span>
               </span>
-            }
-            @if (account?.imageUrl) {
+            } @else {
               <span>
-                <img [src]="account!.imageUrl" class="profile-image rounded-circle" alt="Avatar" />
+                <img [src]="accountRef!.imageUrl" class="profile-image rounded-circle" alt="Avatar" />
               </span>
             }
           </a>
           <ul class="dropdown-menu" ngbDropdownMenu aria-labelledby="account-menu">
-            @if (account !== null) {
+            @if (accountRef !== null) {
               <li>
                 <a
                   class="dropdown-item"

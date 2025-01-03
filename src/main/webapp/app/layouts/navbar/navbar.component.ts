@@ -1,43 +1,41 @@
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
+
 import SharedModule from 'app/shared/shared.module';
 import HasAnyAuthorityDirective from 'app/shared/auth/has-any-authority.directive';
-import { VERSION } from 'app/app.constants';
-import { Account } from 'app/core/auth/account.model';
 import { AccountService } from 'app/core/auth/account.service';
 import { LoginService } from 'app/login/login.service';
 import { ProfileService } from 'app/layouts/profiles/profile.service';
 import { EntityNavbarItems } from 'app/entities/entity-navbar-items';
+import { environment } from 'app/environments/environment';
 import NavbarItem from './navbar-item.model';
-import { Router, RouterModule } from '@angular/router';
-import { Component, OnInit } from '@angular/core';
-import { ArtemisServer } from '../../core/util/artemisServer';
 import { faCirclePlay, faHammer } from '@fortawesome/free-solid-svg-icons';
+import { ArtemisServer } from '../../core/util/artemisServer';
 
 @Component({
-  standalone: true,
   selector: 'jhi-navbar',
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
   imports: [RouterModule, SharedModule, HasAnyAuthorityDirective],
 })
 export default class NavbarComponent implements OnInit {
-  faHammer = faHammer;
-  faCirclePlay = faCirclePlay;
-
-  inProduction?: boolean;
-  isNavbarCollapsed = true;
-  openAPIEnabled?: boolean;
+  inProduction = false;
+  isNavbarCollapsed = signal(true);
+  openAPIEnabled = false;
   version = '';
-  account: Account | null = null;
+  account = inject(AccountService).trackCurrentAccount();
   entitiesNavbarItems: NavbarItem[] = [];
   availableServers = Object.values(ArtemisServer);
 
-  constructor(
-    private loginService: LoginService,
-    private accountService: AccountService,
-    private profileService: ProfileService,
-    private router: Router,
-  ) {
-    /* eslint-disable @typescript-eslint/no-unnecessary-condition */
+  readonly faCirclePlay = faCirclePlay;
+  readonly faHammer = faHammer;
+
+  private readonly loginService = inject(LoginService);
+  private readonly profileService = inject(ProfileService);
+  private readonly router = inject(Router);
+
+  constructor() {
+    const { VERSION } = environment;
     if (VERSION) {
       this.version = VERSION.toLowerCase().startsWith('v') ? VERSION : `v${VERSION}`;
     }
@@ -49,23 +47,10 @@ export default class NavbarComponent implements OnInit {
       this.inProduction = profileInfo.inProduction;
       this.openAPIEnabled = profileInfo.openAPIEnabled;
     });
-
-    this.accountService.getAuthenticationState().subscribe(account => {
-      this.account = account;
-    });
-
-    this.profileService.getProfileInfo().subscribe(profileInfo => {
-      if (profileInfo.inProduction && this.availableServers.includes(ArtemisServer.LOCAL)) {
-        const index = this.availableServers.indexOf(ArtemisServer.LOCAL);
-        this.availableServers.splice(index, 1);
-      } else if (!profileInfo.inProduction && !this.availableServers.includes(ArtemisServer.LOCAL)) {
-        this.availableServers.push(ArtemisServer.LOCAL);
-      }
-    });
   }
 
   collapseNavbar(): void {
-    this.isNavbarCollapsed = true;
+    this.isNavbarCollapsed.set(true);
   }
 
   login(): void {
@@ -79,6 +64,6 @@ export default class NavbarComponent implements OnInit {
   }
 
   toggleNavbar(): void {
-    this.isNavbarCollapsed = !this.isNavbarCollapsed;
+    this.isNavbarCollapsed.update(isNavbarCollapsed => !isNavbarCollapsed);
   }
 }

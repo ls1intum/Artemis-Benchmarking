@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./build/out-tsc/app",
-    "types": ["@angular/localize"]
+    "types": ["node"]
   },
   "files": ["src/main/webapp/sockjs-client.polyfill.ts", "src/main/webapp/main.ts"],
   "include": ["src/main/webapp/**/*.d.ts"]

@@ -1,25 +1,22 @@
+import { Component, OnInit, inject } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
-import SharedModule from 'app/shared/shared.module';
 import { HealthService } from './health.service';
 import { Health, HealthDetails, HealthStatus } from './health.model';
+import SharedModule from '../../shared/shared.module';
 import HealthModalComponent from './modal/health-modal.component';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Component, OnInit } from '@angular/core';
 
 @Component({
-  standalone: true,
   selector: 'jhi-health',
   templateUrl: './health.component.html',
-  imports: [SharedModule, HealthModalComponent],
+  imports: [SharedModule],
 })
 export default class HealthComponent implements OnInit {
   health?: Health;
 
-  constructor(
-    private modalService: NgbModal,
-    private healthService: HealthService,
-  ) {}
+  private readonly modalService = inject(NgbModal);
+  private readonly healthService = inject(HealthService);
 
   ngOnInit(): void {
     this.refresh();

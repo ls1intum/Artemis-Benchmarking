@@ -33,10 +33,6 @@ public class MailService {
 
     private static final String BASE_URL = "baseUrl";
 
-    private static final String SUBSCRIPTION_KEY = "subscriptionKey";
-
-    private static final String SIMULATION_NAME = "simulationName";
-
     private final JHipsterProperties jHipsterProperties;
 
     private final JavaMailSender javaMailSender;
@@ -128,6 +124,11 @@ public class MailService {
         this.sendEmailFromTemplateSync(user, "mail/passwordResetEmail", "email.reset.title");
     }
 
+    /**
+     * Send an email to the user, which is subscribed to a simulation schedule.
+     *
+     * @param subscriber The subscriber to send the email to.
+     */
     @Async
     public void sendSubscribedMail(ScheduleSubscriber subscriber) {
         log.debug("Sending subscription confirmation email to '{}'", subscriber.getEmail());
@@ -140,6 +141,17 @@ public class MailService {
         self.sendEmail(subscriber.getEmail(), subject, content, false, true);
     }
 
+    /**
+     * Sends the result email for a simulation run to all subscribers of the given schedule.
+     * The email is sent asynchronously.
+     *
+     * @param run      the {@link SimulationRun} containing the details of the completed simulation
+     * @param schedule the {@link SimulationSchedule} containing the subscribers to be notified
+     * <p>
+     * This method creates an email context containing information about the simulation run and
+     * its result, processes the email content using a template, and sends the email to all
+     * subscribers in the schedule. The emails are sent asynchronously to avoid blocking.
+     */
     @Async
     public void sendRunResultMail(SimulationRun run, SimulationSchedule schedule) {
         SimulationResultForSummary result = SimulationResultForSummary.from(run);
@@ -154,11 +166,24 @@ public class MailService {
             .forEach(subscriber -> {
                 context.setVariable("subscriber", subscriber);
                 String content = templateEngine.process("mail/subscriptionResultEmail", context);
-                log.debug("Sending result email to '{}'", subscriber.getEmail());
+                log.debug("Sending run result email to '{}'", subscriber.getEmail());
                 self.sendEmail(subscriber.getEmail(), subject, content, false, true);
             });
     }
 
+    /**
+     * Sends a failure notification email for a simulation run to all subscribers of the given schedule.
+     * The email is sent asynchronously.
+     *
+     * @param run             the {@link SimulationRun} containing details of the failed simulation
+     * @param schedule        the {@link SimulationSchedule} containing the subscribers to be notified
+     * @param errorLogMessage the {@link LogMessage} containing details about the failure; if null, a default message is used
+     * <p>
+     * This method creates an email context with details of the simulation run, the error message,
+     * and other relevant information. It processes the email content using a template and sends
+     * failure notification emails to all subscribers in the schedule. The emails are sent asynchronously
+     * to prevent blocking operations.
+     */
     @Async
     public void sendRunFailureMail(SimulationRun run, SimulationSchedule schedule, LogMessage errorLogMessage) {
         Locale locale = Locale.forLanguageTag("en");
@@ -176,7 +201,7 @@ public class MailService {
             .forEach(subscriber -> {
                 context.setVariable("subscriber", subscriber);
                 String content = templateEngine.process("mail/subscriptionFailureEmail", context);
-                log.debug("Sending result email to '{}'", subscriber.getEmail());
+                log.debug("Sending run failure result email to '{}'", subscriber.getEmail());
                 self.sendEmail(subscriber.getEmail(), subject, content, false, true);
             });
     }

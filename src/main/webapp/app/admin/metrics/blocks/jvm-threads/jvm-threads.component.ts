@@ -1,57 +1,59 @@
+import { Component, inject, signal, ChangeDetectionStrategy, ChangeDetectorRef, input, effect } from '@angular/core';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+
 import SharedModule from 'app/shared/shared.module';
 import { Thread, ThreadState } from 'app/admin/metrics/metrics.model';
 import { MetricsModalThreadsComponent } from '../metrics-modal-threads/metrics-modal-threads.component';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Component, Input } from '@angular/core';
 
 @Component({
-  standalone: true,
   selector: 'jhi-jvm-threads',
   templateUrl: './jvm-threads.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [SharedModule],
 })
 export class JvmThreadsComponent {
-  threadStats = {
-    threadDumpAll: 0,
-    threadDumpRunnable: 0,
-    threadDumpTimedWaiting: 0,
-    threadDumpWaiting: 0,
-    threadDumpBlocked: 0,
-  };
+  threadStats = signal({
+    all: 0,
+    runnable: 0,
+    timedWaiting: 0,
+    waiting: 0,
+    blocked: 0,
+  });
 
-  @Input()
-  set threads(threads: Thread[] | undefined) {
-    this._threads = threads;
+  threads = input<Thread[]>([]);
 
-    threads?.forEach(thread => {
-      if (thread.threadState === ThreadState.Runnable) {
-        this.threadStats.threadDumpRunnable += 1;
-      } else if (thread.threadState === ThreadState.Waiting) {
-        this.threadStats.threadDumpWaiting += 1;
-      } else if (thread.threadState === ThreadState.TimedWaiting) {
-        this.threadStats.threadDumpTimedWaiting += 1;
-      } else if (thread.threadState === ThreadState.Blocked) {
-        this.threadStats.threadDumpBlocked += 1;
+  private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly modalService = inject(NgbModal);
+
+  constructor() {
+    effect(() => this.computeThreadStats());
+  }
+
+  open(): void {
+    const modalRef = this.modalService.open(MetricsModalThreadsComponent, { size: 'xl' });
+    modalRef.componentInstance.threads = this.threads();
+  }
+
+  private computeThreadStats(): void {
+    this.threads().forEach(thread => {
+      switch (thread.threadState) {
+        case ThreadState.Runnable:
+          this.threadStats().runnable += 1;
+          break;
+        case ThreadState.Waiting:
+          this.threadStats().waiting += 1;
+          break;
+        case ThreadState.TimedWaiting:
+          this.threadStats().timedWaiting += 1;
+          break;
+        case ThreadState.Blocked:
+          this.threadStats().blocked += 1;
+          break;
       }
     });
 
-    this.threadStats.threadDumpAll =
-      this.threadStats.threadDumpRunnable +
-      this.threadStats.threadDumpWaiting +
-      this.threadStats.threadDumpTimedWaiting +
-      this.threadStats.threadDumpBlocked;
-  }
-
-  get threads(): Thread[] | undefined {
-    return this._threads;
-  }
-
-  private _threads: Thread[] | undefined;
-
-  constructor(private modalService: NgbModal) {}
-
-  open(): void {
-    const modalRef = this.modalService.open(MetricsModalThreadsComponent);
-    modalRef.componentInstance.threads = this.threads;
+    this.threadStats().all =
+      this.threadStats().runnable + this.threadStats().waiting + this.threadStats().timedWaiting + this.threadStats().blocked;
+    this.changeDetector.markForCheck();
   }
 }
