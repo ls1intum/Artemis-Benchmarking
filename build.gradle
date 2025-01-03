@@ -195,6 +195,24 @@ dependencies {
     implementation "commons-io:commons-io:2.18.0"
     implementation "com.thedeanda:lorem:2.2"
     implementation "org.eclipse.jgit:org.eclipse.jgit:7.1.0.202411261347-r"
+    // https://search.maven.org/artifact/org.eclipse.jgit/org.eclipse.jgit
+    implementation "org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.1.0.202411261347-r"
+    // Note: jgit.htt.server is not compatible with jakarta yet and neither is there a timeline. Hence, we had to add the source files to our repository.
+    // Once the compatibility is given, we can switch back to the maven dependency.
+    implementation "org.eclipse.jgit:org.eclipse.jgit.http.server:7.1.0.202411261347-r"
+
+    // apache ssh enabled the ssh git operations in LocalVC together with JGit
+    implementation "org.apache.sshd:sshd-core:2.14.0"
+    implementation "org.apache.sshd:sshd-git:2.14.0"
+    implementation "org.apache.sshd:sshd-osgi:2.14.0"
+    implementation "org.apache.sshd:sshd-sftp:2.14.0"
+
+    implementation "org.bouncycastle:bcpkix-jdk18on:1.79"
+    implementation "org.bouncycastle:bcprov-jdk18on:1.79"
+
+    implementation "io.reactivex.rxjava3:rxjava:3.1.8"
+    implementation 'io.netty:netty-resolver-dns-native-macos:4.1.100.Final:osx-aarch_64'
+    implementation "org.eclipse.jgit:org.eclipse.jgit:7.1.0.202411261347-r"
     implementation "io.reactivex.rxjava3:rxjava:3.1.10"
     implementation "io.netty:netty-resolver-dns-native-macos:4.1.116.Final:osx-aarch_64"
     implementation "com.opencsv:opencsv:5.9"

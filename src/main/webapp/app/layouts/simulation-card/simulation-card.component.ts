@@ -1,11 +1,5 @@
 import { Component, OnInit, inject, input, output } from '@angular/core';
-import {
-  getTextRepresentation,
-  getTextRepresentationIdeType,
-  instructorCredentialsProvided,
-  Mode,
-  Simulation,
-} from '../../entities/simulation/simulation';
+import { getTextRepresentation, instructorCredentialsProvided, Mode, Simulation } from '../../entities/simulation/simulation';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
 import { SimulationsService } from '../../simulations/simulations.service';
 import { NgbModal, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
@@ -24,6 +18,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './simulation-card.component.html',
   styleUrls: ['./simulation-card.component.scss'],
   imports: [FaIconComponent, NgbTooltip, NgClass, ServerBadgeComponent, StatusIconComponent, DatePipe, FormsModule],
+  standalone: true,
 })
 export class SimulationCardComponent implements OnInit {
   faTrashCan = faTrashCan;
@@ -52,7 +47,6 @@ export class SimulationCardComponent implements OnInit {
   protected readonly Mode = Mode;
   protected readonly Status = Status;
   protected readonly getTextRepresentation = getTextRepresentation;
-  protected readonly getTextRepresentationIdeType = getTextRepresentationIdeType;
   protected readonly ArtemisServer = ArtemisServer;
   protected readonly instructorCredentialsProvided = instructorCredentialsProvided;
 

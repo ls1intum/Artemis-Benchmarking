@@ -15,6 +15,7 @@ import { Metric } from '../../entities/metric';
   imports: [NgxChartsModule, FormsModule],
   templateUrl: './prometheus-box.component.html',
   styleUrl: './prometheus-box.component.scss',
+  standalone: true,
 })
 export class PrometheusBoxComponent implements OnInit, OnChanges {
   private static readonly INTERVAL_SECONDS = 15;

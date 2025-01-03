@@ -45,9 +45,23 @@ public class Simulation {
     @Column(name = "user_range")
     private String userRange;
 
+    @Deprecated
+    @JsonIgnore
     @Enumerated(EnumType.STRING)
     @Column(name = "ide_type", nullable = false)
     private IDEType ideType;
+
+    @Column(name = "onlineide_percentage", nullable = false)
+    private double onlineIdePercentage;
+
+    @Column(name = "password_percentage", nullable = false)
+    private double passwordPercentage;
+
+    @Column(name = "token_percentage", nullable = false)
+    private double tokenPercentage;
+
+    @Column(name = "ssh_percentage", nullable = false)
+    private double sshPercentage;
 
     @Column(name = "number_of_commits_and_pushes_from")
     private int numberOfCommitsAndPushesFrom;
@@ -213,6 +227,42 @@ public class Simulation {
             return false;
         }
         return instructorUsername != null && instructorPassword != null;
+    }
+
+    public double getOnlineIdePercentage() {
+        return onlineIdePercentage;
+    }
+
+    public void setOnlineIdePercentage(double onlineIdePercentage) {
+        this.onlineIdePercentage = onlineIdePercentage;
+    }
+
+    public double getPasswordPercentage() {
+        return passwordPercentage;
+    }
+
+    public void setPasswordPercentage(double passwordPercentage) {
+        this.passwordPercentage = passwordPercentage;
+    }
+
+    public double getTokenPercentage() {
+        return tokenPercentage;
+    }
+
+    public void setTokenPercentage(double tokenPercentage) {
+        this.tokenPercentage = tokenPercentage;
+    }
+
+    public double getSshPercentage() {
+        return sshPercentage;
+    }
+
+    public void setSshPercentage(double sshPercentage) {
+        this.sshPercentage = sshPercentage;
+    }
+
+    public boolean participationPercentagesSumUpToHundredPercent() {
+        return (this.onlineIdePercentage + this.passwordPercentage + this.tokenPercentage + this.sshPercentage) == 100.0;
     }
 
     public enum Mode {

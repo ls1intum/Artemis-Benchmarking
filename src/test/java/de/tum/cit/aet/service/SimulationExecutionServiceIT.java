@@ -10,6 +10,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import de.tum.cit.aet.IntegrationTest;
+import de.tum.cit.aet.artemisModel.ArtemisAuthMechanism;
 import de.tum.cit.aet.artemisModel.Course;
 import de.tum.cit.aet.artemisModel.Exam;
 import de.tum.cit.aet.domain.ArtemisUser;
@@ -34,7 +35,6 @@ import java.util.List;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
@@ -123,13 +123,13 @@ public class SimulationExecutionServiceIT {
             .thenReturn(simulatedArtemisAdmin);
         mockedSimulatedArtemisUser.when(() -> createArtemisAdminFromCredentials("", "admin", "admin")).thenReturn(simulatedArtemisAdmin);
         mockedSimulatedArtemisUser
-            .when(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15))
+            .when(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE))
             .thenReturn(simulatedArtemisStudent1);
         mockedSimulatedArtemisUser
-            .when(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15))
+            .when(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE))
             .thenReturn(simulatedArtemisStudent2);
         mockedSimulatedArtemisUser
-            .when(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15))
+            .when(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE))
             .thenReturn(simulatedArtemisStudent3);
 
         when(simulatedArtemisAdmin.login()).thenReturn(List.of());
@@ -145,9 +145,9 @@ public class SimulationExecutionServiceIT {
         when(simulatedArtemisStudent2.startExamParticipation(1, 1, 0)).thenReturn(List.of());
         when(simulatedArtemisStudent3.startExamParticipation(1, 1, 0)).thenReturn(List.of());
 
-        when((simulatedArtemisStudent1.participateInExam(1, 1, false))).thenReturn(List.of());
-        when((simulatedArtemisStudent2.participateInExam(1, 1, false))).thenReturn(List.of());
-        when((simulatedArtemisStudent3.participateInExam(1, 1, false))).thenReturn(List.of());
+        when((simulatedArtemisStudent1.participateInExam(1, 1))).thenReturn(List.of());
+        when((simulatedArtemisStudent2.participateInExam(1, 1))).thenReturn(List.of());
+        when((simulatedArtemisStudent3.participateInExam(1, 1))).thenReturn(List.of());
 
         when(simulatedArtemisStudent1.startExamParticipation(1, 1, 0)).thenReturn(List.of());
         when(simulatedArtemisStudent2.startExamParticipation(1, 1, 0)).thenReturn(List.of());
@@ -190,6 +190,7 @@ public class SimulationExecutionServiceIT {
         simulation.setCustomizeUserRange(false);
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -209,7 +210,10 @@ public class SimulationExecutionServiceIT {
         );
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
-        verify(simulatedArtemisAdmin, timeout(1000).times(1)).deleteCourse(1);
+        verify(simulatedArtemisAdmin, times(1)).cancelAllQueuedBuildJobs();
+        verify(simulatedArtemisAdmin, times(1)).cancelAllRunningBuildJobs();
+        // To give Artemis time to cancel all build jobs we extend the timeout beyond 5 seconds
+        verify(simulatedArtemisAdmin, timeout(13000).times(1)).deleteCourse(1);
         verify(simulatedArtemisAdmin, timeout(1000).times(0)).deleteExam(anyLong(), anyLong());
 
         for (SimulatedArtemisStudent simulatedStudent : List.of(
@@ -220,7 +224,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1, 0);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -235,9 +239,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -280,7 +293,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1, 0);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -295,9 +308,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -337,7 +359,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1, 0);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -352,9 +374,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -394,7 +425,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1, 0);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -409,9 +440,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -452,7 +492,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1, 0);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -467,9 +507,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -512,7 +561,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1, 0);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -527,9 +576,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser(any(), any(), any()), times(0));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -576,7 +634,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1, 0);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -592,9 +650,18 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser(any(), any(), any()), times(0));
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromCredentials("", "admin", "admin"), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -634,7 +701,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), anyBoolean());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -649,7 +716,10 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser(any(), any(), any()), times(0));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent(any(), any(), any(), anyInt(), anyInt()), times(0));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent(any(), any(), any(), anyInt(), anyInt(), ArtemisAuthMechanism.ONLINE_IDE),
+            times(0)
+        );
     }
 
     @Test
@@ -689,7 +759,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), anyBoolean());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -704,9 +774,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser(any(), any(), any()), times(0));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -746,7 +825,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), anyBoolean());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -761,9 +840,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -806,7 +894,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), anyBoolean());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -821,9 +909,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -864,7 +961,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), anyBoolean());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -879,9 +976,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -922,7 +1028,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), anyBoolean());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -937,9 +1043,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -980,7 +1095,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), anyBoolean());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -995,9 +1110,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -1038,7 +1162,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), anyBoolean());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -1053,9 +1177,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -1096,7 +1229,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(0)).login();
             verify(simulatedStudent, times(0)).performInitialCalls();
             verify(simulatedStudent, times(0)).startExamParticipation(anyLong(), anyLong(), anyLong());
-            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong(), anyBoolean());
+            verify(simulatedStudent, times(0)).participateInExam(anyLong(), anyLong());
             verify(simulatedStudent, times(0)).submitAndEndExam(anyLong(), anyLong());
         }
 
@@ -1111,9 +1244,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -1147,15 +1289,9 @@ public class SimulationExecutionServiceIT {
         when(simulatedArtemisStudent3.startExamParticipation(anyLong(), anyLong(), anyLong())).thenThrow(
             new RuntimeException("Test exception")
         );
-        when(simulatedArtemisStudent1.participateInExam(anyLong(), anyLong(), anyBoolean())).thenThrow(
-            new RuntimeException("Test exception")
-        );
-        when(simulatedArtemisStudent2.participateInExam(anyLong(), anyLong(), anyBoolean())).thenThrow(
-            new RuntimeException("Test exception")
-        );
-        when(simulatedArtemisStudent3.participateInExam(anyLong(), anyLong(), anyBoolean())).thenThrow(
-            new RuntimeException("Test exception")
-        );
+        when(simulatedArtemisStudent1.participateInExam(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
+        when(simulatedArtemisStudent2.participateInExam(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
+        when(simulatedArtemisStudent3.participateInExam(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
         when(simulatedArtemisStudent1.submitAndEndExam(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
         when(simulatedArtemisStudent2.submitAndEndExam(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
         when(simulatedArtemisStudent3.submitAndEndExam(anyLong(), anyLong())).thenThrow(new RuntimeException("Test exception"));
@@ -1181,7 +1317,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1, 0);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -1196,9 +1332,18 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 
     @Test
@@ -1239,7 +1384,7 @@ public class SimulationExecutionServiceIT {
             verify(simulatedStudent, times(1)).login();
             verify(simulatedStudent, times(1)).performInitialCalls();
             verify(simulatedStudent, times(1)).startExamParticipation(1, 1, 0);
-            verify(simulatedStudent, times(1)).participateInExam(1, 1, false);
+            verify(simulatedStudent, times(1)).participateInExam(1, 1);
             verify(simulatedStudent, times(1)).submitAndEndExam(1, 1);
         }
 
@@ -1254,8 +1399,17 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15), times(1));
-        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15), times(1));
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
+        mockedSimulatedArtemisUser.verify(
+            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            times(1)
+        );
     }
 }
