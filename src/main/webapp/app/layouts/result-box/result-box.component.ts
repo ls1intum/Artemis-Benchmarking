@@ -13,6 +13,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
   providers: [DatePipe],
   styleUrls: ['./result-box.component.scss'],
   imports: [FaIconComponent, NgxChartsModule],
+  standalone: true,
 })
 export class ResultBoxComponent implements OnInit {
   faChartLine = faChartLine;

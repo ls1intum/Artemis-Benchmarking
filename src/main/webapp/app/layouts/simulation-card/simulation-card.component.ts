@@ -18,6 +18,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './simulation-card.component.html',
   styleUrls: ['./simulation-card.component.scss'],
   imports: [FaIconComponent, NgbTooltip, NgClass, ServerBadgeComponent, StatusIconComponent, DatePipe, FormsModule],
+  standalone: true,
 })
 export class SimulationCardComponent implements OnInit {
   faTrashCan = faTrashCan;

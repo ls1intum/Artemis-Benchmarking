@@ -36,7 +36,7 @@
     </div>
 
     <div class="flex-wrapper">
-      <div class="me-3 mb-3">
+      <div class="me-3">
         <label for="online-percentage-input" class="form-label">Online percentage</label>
         <input
           type="number"
@@ -48,7 +48,7 @@
           [ngModelOptions]="{ standalone: true }"
         />
       </div>
-      <div class="me-3 mb-3">
+      <div class="me-3">
         <label for="password-percentage-input" class="form-label">Password percentage</label>
         <input
           type="number"
@@ -60,7 +60,7 @@
           [ngModelOptions]="{ standalone: true }"
         />
       </div>
-      <div class="me-3 mb-3">
+      <div class="me-3">
         <label for="token-percentage-input" class="form-label">Token percentage</label>
         <input
           type="number"
@@ -72,7 +72,7 @@
           [ngModelOptions]="{ standalone: true }"
         />
       </div>
-      <div class="me-3 mb-3">
+      <div class="me-3">
         <label for="ssh-percentage-input" class="form-label">SSH percentage</label>
         <input
           type="number"
@@ -84,6 +84,9 @@
           [ngModelOptions]="{ standalone: true }"
         />
       </div>
+    </div>
+    <div class="form-text mb-3">
+      Percentages must add up to 100 in total. The percentage of users wich will use the specified authentication mechanism
     </div>
     <div class="flex-wrapper mb-3">
       <label for="users-input" class="form-label">Users</label>

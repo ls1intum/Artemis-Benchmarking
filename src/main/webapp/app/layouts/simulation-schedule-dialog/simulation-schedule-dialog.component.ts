@@ -31,6 +31,7 @@ import SharedModule from '../../shared/shared.module';
   ],
   templateUrl: './simulation-schedule-dialog.component.html',
   styleUrl: './simulation-schedule-dialog.component.scss',
+  standalone: true,
 })
 export class SimulationScheduleDialogComponent implements OnInit {
   emailRegex =

@@ -14,6 +14,7 @@ import { ModeExplanationComponent } from '../mode-explanation/mode-explanation.c
   templateUrl: './create-simulation-box.component.html',
   styleUrls: ['./create-simulation-box.component.scss'],
   imports: [FormsModule, RouterLink, FaIconComponent, ModeExplanationComponent],
+  standalone: true,
 })
 export class CreateSimulationBoxComponent implements OnInit {
   faEye = faEye;
@@ -33,10 +34,10 @@ export class CreateSimulationBoxComponent implements OnInit {
   numberOfCommitsAndPushesTo = 15;
   instructorUsername = '';
   instructorPassword = '';
-  passwordPercentage: number = 100;
-  tokenPercentage: number = 0;
-  sshPercentage: number = 0;
-  onlineIdePercentage: number = 0;
+  passwordPercentage = 100;
+  tokenPercentage = 0;
+  sshPercentage = 0;
+  onlineIdePercentage = 0;
 
   availableServers = Object.values(ArtemisServer);
   availableModes = [
