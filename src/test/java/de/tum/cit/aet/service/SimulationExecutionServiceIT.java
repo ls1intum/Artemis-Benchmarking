@@ -190,6 +190,7 @@ public class SimulationExecutionServiceIT {
         simulation.setCustomizeUserRange(false);
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -209,7 +210,10 @@ public class SimulationExecutionServiceIT {
         );
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
-        verify(simulatedArtemisAdmin, timeout(1000).times(1)).deleteCourse(1);
+        verify(simulatedArtemisAdmin, times(1)).cancelAllQueuedBuildJobs();
+        verify(simulatedArtemisAdmin, times(1)).cancelAllRunningBuildJobs();
+        // To give Artemis time to cancel all build jobs we extend the timeout beyond 5 seconds
+        verify(simulatedArtemisAdmin, timeout(13000).times(1)).deleteCourse(1);
         verify(simulatedArtemisAdmin, timeout(1000).times(0)).deleteExam(anyLong(), anyLong());
 
         for (SimulatedArtemisStudent simulatedStudent : List.of(
