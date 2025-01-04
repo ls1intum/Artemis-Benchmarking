@@ -262,6 +262,7 @@ public class SimulationExecutionServiceIT {
         simulation.setCustomizeUserRange(false);
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -332,6 +333,7 @@ public class SimulationExecutionServiceIT {
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
         simulation.setCourseId(1L);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -398,6 +400,7 @@ public class SimulationExecutionServiceIT {
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
         simulation.setCourseId(1L);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -465,6 +468,7 @@ public class SimulationExecutionServiceIT {
         simulation.setNumberOfCommitsAndPushesTo(15);
         simulation.setCourseId(1L);
         simulation.setExamId(1L);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -532,6 +536,7 @@ public class SimulationExecutionServiceIT {
         simulation.setNumberOfCommitsAndPushesTo(15);
         simulation.setCourseId(1L);
         simulation.setExamId(1L);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -599,6 +604,7 @@ public class SimulationExecutionServiceIT {
         simulation.setCustomizeUserRange(false);
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -673,6 +679,7 @@ public class SimulationExecutionServiceIT {
         simulation.setCustomizeUserRange(false);
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -728,6 +735,7 @@ public class SimulationExecutionServiceIT {
         simulation.setCustomizeUserRange(false);
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -794,6 +802,7 @@ public class SimulationExecutionServiceIT {
         simulation.setCustomizeUserRange(false);
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -860,6 +869,7 @@ public class SimulationExecutionServiceIT {
         simulation.setCustomizeUserRange(false);
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -930,6 +940,7 @@ public class SimulationExecutionServiceIT {
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
         simulation.setCourseId(1L);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -997,6 +1008,7 @@ public class SimulationExecutionServiceIT {
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
         simulation.setCourseId(1L);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -1064,6 +1076,7 @@ public class SimulationExecutionServiceIT {
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
         simulation.setCourseId(1L);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -1131,6 +1144,7 @@ public class SimulationExecutionServiceIT {
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
         simulation.setCourseId(1L);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -1198,6 +1212,7 @@ public class SimulationExecutionServiceIT {
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
         simulation.setCourseId(1L);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -1265,6 +1280,7 @@ public class SimulationExecutionServiceIT {
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
         simulation.setCourseId(1L);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
@@ -1353,6 +1369,7 @@ public class SimulationExecutionServiceIT {
         simulation.setNumberOfCommitsAndPushesFrom(8);
         simulation.setNumberOfCommitsAndPushesTo(15);
         simulation.setCourseId(1L);
+        simulation.setOnlineIdePercentage(100);
 
         SimulationRun run = new SimulationRun();
         run.setSimulation(simulation);
