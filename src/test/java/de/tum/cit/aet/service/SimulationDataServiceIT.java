@@ -67,6 +67,7 @@ public class SimulationDataServiceIT {
         simulation.setNumberOfCommitsAndPushesFrom(1);
         simulation.setNumberOfCommitsAndPushesTo(4);
         simulation.setIdeType(Simulation.IDEType.OFFLINE);
+        simulation.setOnlineIdePercentage(100);
 
         when(simulationRepository.save(any(Simulation.class))).thenAnswer(invocation -> {
             var simulation = invocation.getArgument(0, Simulation.class);
