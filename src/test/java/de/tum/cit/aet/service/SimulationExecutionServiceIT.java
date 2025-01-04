@@ -716,10 +716,7 @@ public class SimulationExecutionServiceIT {
 
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser(any(), any(), any()), times(0));
 
-        mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent(any(), any(), any(), anyInt(), anyInt(), ArtemisAuthMechanism.ONLINE_IDE),
-            times(0)
-        );
+        mockedSimulatedArtemisUser.verify(() -> createArtemisStudent(any(), any(), any(), anyInt(), anyInt(), any()), times(0));
     }
 
     @Test
