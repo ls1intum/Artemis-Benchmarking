@@ -669,10 +669,12 @@ public class SimulationExecutionService {
 
         logAndSend(false, simulationRun, "Trying to cancel all build jobs...");
         cancelAllBuildJobs(admin);
-        try {
-            sleep(1_000 * 10);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        if (!doNotSleep) {
+            try {
+                sleep(1_000 * 10);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         logAndSend(false, simulationRun, "Done cancelling all build jobs");
 
