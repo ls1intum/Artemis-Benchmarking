@@ -71,16 +71,16 @@ public class SimulationResultServiceIT {
             new RequestStat(nowMinute.plusMinutes(4).plus(410, ChronoUnit.MILLIS), 340L, SUBMIT_STUDENT_EXAM),
             new RequestStat(nowMinute.plusMinutes(5).plus(420, ChronoUnit.MILLIS), 320L, SUBMIT_STUDENT_EXAM),
             new RequestStat(nowMinute.plusMinutes(5).plus(420, ChronoUnit.MILLIS), 300L, SUBMIT_STUDENT_EXAM),
-            new RequestStat(nowMinute.plusMinutes(5).plus(500, ChronoUnit.MILLIS), 440L, CLONE),
-            new RequestStat(nowMinute.plusMinutes(5).plus(510, ChronoUnit.MILLIS), 420L, CLONE),
-            new RequestStat(nowMinute.plusMinutes(5).plus(510, ChronoUnit.MILLIS), 400L, CLONE),
-            new RequestStat(nowMinute.plusMinutes(5).plus(520, ChronoUnit.MILLIS), 380L, CLONE),
-            new RequestStat(nowMinute.plusMinutes(5).plus(520, ChronoUnit.MILLIS), 360L, CLONE),
-            new RequestStat(nowMinute.plusMinutes(6).plus(600, ChronoUnit.MILLIS), 500L, PUSH),
-            new RequestStat(nowMinute.plusMinutes(6).plus(610, ChronoUnit.MILLIS), 480L, PUSH),
-            new RequestStat(nowMinute.plusMinutes(6).plus(610, ChronoUnit.MILLIS), 460L, PUSH),
-            new RequestStat(nowMinute.plusMinutes(6).plus(620, ChronoUnit.MILLIS), 440L, PUSH),
-            new RequestStat(nowMinute.plusMinutes(6).plus(620, ChronoUnit.MILLIS), 420L, PUSH),
+            new RequestStat(nowMinute.plusMinutes(5).plus(500, ChronoUnit.MILLIS), 440L, CLONE_PASSWORD),
+            new RequestStat(nowMinute.plusMinutes(5).plus(510, ChronoUnit.MILLIS), 420L, CLONE_PASSWORD),
+            new RequestStat(nowMinute.plusMinutes(5).plus(510, ChronoUnit.MILLIS), 400L, CLONE_PASSWORD),
+            new RequestStat(nowMinute.plusMinutes(5).plus(520, ChronoUnit.MILLIS), 380L, CLONE_PASSWORD),
+            new RequestStat(nowMinute.plusMinutes(5).plus(520, ChronoUnit.MILLIS), 360L, CLONE_PASSWORD),
+            new RequestStat(nowMinute.plusMinutes(6).plus(600, ChronoUnit.MILLIS), 500L, PUSH_PASSWORD),
+            new RequestStat(nowMinute.plusMinutes(6).plus(610, ChronoUnit.MILLIS), 480L, PUSH_PASSWORD),
+            new RequestStat(nowMinute.plusMinutes(6).plus(610, ChronoUnit.MILLIS), 460L, PUSH_PASSWORD),
+            new RequestStat(nowMinute.plusMinutes(6).plus(620, ChronoUnit.MILLIS), 440L, PUSH_PASSWORD),
+            new RequestStat(nowMinute.plusMinutes(6).plus(620, ChronoUnit.MILLIS), 420L, PUSH_PASSWORD),
             new RequestStat(nowMinute.plusMinutes(7).plus(700, ChronoUnit.MILLIS), 560L, MISC),
             new RequestStat(nowMinute.plusMinutes(7).plus(710, ChronoUnit.MILLIS), 540L, MISC),
             new RequestStat(nowMinute.plusMinutes(7).plus(710, ChronoUnit.MILLIS), 520L, MISC),
@@ -124,8 +124,32 @@ public class SimulationResultServiceIT {
             .filter(stats -> stats.getRequestType() == SUBMIT_STUDENT_EXAM)
             .findFirst()
             .orElseThrow();
-        var cloneStats = simulationRun.getStats().stream().filter(stats -> stats.getRequestType() == CLONE).findFirst().orElseThrow();
-        var pushStats = simulationRun.getStats().stream().filter(stats -> stats.getRequestType() == PUSH).findFirst().orElseThrow();
+        var clonePasswordStats = simulationRun
+            .getStats()
+            .stream()
+            .filter(stats -> stats.getRequestType() == CLONE_PASSWORD)
+            .findFirst()
+            .orElseThrow();
+        var pushPasswordStats = simulationRun
+            .getStats()
+            .stream()
+            .filter(stats -> stats.getRequestType() == PUSH_PASSWORD)
+            .findFirst()
+            .orElseThrow();
+        var cloneTokenStats = simulationRun
+            .getStats()
+            .stream()
+            .filter(stats -> stats.getRequestType() == CLONE_TOKEN)
+            .findFirst()
+            .orElseThrow();
+        var pushTokenStats = simulationRun
+            .getStats()
+            .stream()
+            .filter(stats -> stats.getRequestType() == PUSH_TOKEN)
+            .findFirst()
+            .orElseThrow();
+        simulationRun.getStats().stream().filter(stats -> stats.getRequestType() == CLONE_SSH).findFirst().orElseThrow();
+        simulationRun.getStats().stream().filter(stats -> stats.getRequestType() == PUSH_SSH).findFirst().orElseThrow();
         var miscStats = simulationRun.getStats().stream().filter(stats -> stats.getRequestType() == MISC).findFirst().orElseThrow();
 
         // TOTAL
@@ -185,17 +209,21 @@ public class SimulationResultServiceIT {
         assertEquals(310, stats2.getAvgResponseTime());
         assertEquals(submitStudentExamStats, stats2.getSimulationStats());
 
-        // CLONE
-        assertEquals(5, cloneStats.getNumberOfRequests());
-        assertEquals(400, cloneStats.getAvgResponseTime());
-        assertEquals(simulationRun, cloneStats.getSimulationRun());
-        assertEquals(1, cloneStats.getStatsByMinute().size());
+        // CLONE over password
+        assertEquals(5, clonePasswordStats.getNumberOfRequests());
+        assertEquals(400, clonePasswordStats.getAvgResponseTime());
+        assertEquals(simulationRun, clonePasswordStats.getSimulationRun());
+        assertEquals(1, clonePasswordStats.getStatsByMinute().size());
 
-        // PUSH
-        assertEquals(5, pushStats.getNumberOfRequests());
-        assertEquals(460, pushStats.getAvgResponseTime());
-        assertEquals(simulationRun, pushStats.getSimulationRun());
-        assertEquals(1, pushStats.getStatsByMinute().size());
+        // PUSH over password
+        assertEquals(5, pushPasswordStats.getNumberOfRequests());
+        assertEquals(460, pushPasswordStats.getAvgResponseTime());
+        assertEquals(simulationRun, pushPasswordStats.getSimulationRun());
+        assertEquals(1, pushPasswordStats.getStatsByMinute().size());
+
+        // PUSH and CLONE via token
+        assertEquals(0, pushTokenStats.getNumberOfRequests());
+        assertEquals(0, cloneTokenStats.getNumberOfRequests());
 
         // MISC
         assertEquals(5, miscStats.getNumberOfRequests());
