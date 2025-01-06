@@ -5,6 +5,7 @@ import static de.tum.cit.aet.util.TimeLogUtil.formatDurationFrom;
 import static java.lang.Thread.sleep;
 import static java.time.ZonedDateTime.now;
 
+import com.mysql.cj.xdevapi.SessionFactory;
 import com.thedeanda.lorem.LoremIpsum;
 import de.tum.cit.aet.artemisModel.*;
 import de.tum.cit.aet.domain.ArtemisUser;
@@ -14,19 +15,45 @@ import de.tum.cit.aet.service.artemis.ArtemisUserService;
 import de.tum.cit.aet.service.artemis.util.ArtemisServerInfo;
 import de.tum.cit.aet.service.artemis.util.CourseDashboardDTO;
 import de.tum.cit.aet.service.artemis.util.ScienceEventDTO;
+import de.tum.cit.aet.service.artemis.util.UserSshPublicKeyDTO;
+import de.tum.cit.aet.util.SshUtils;
 import de.tum.cit.aet.util.UMLClassDiagrams;
 import jakarta.annotation.Nullable;
-import java.io.IOException;
+import java.io.*;
+import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.security.*;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.sshd.common.config.keys.AuthorizedKeyEntry;
+import org.apache.sshd.common.config.keys.PublicKeyEntry;
+import org.apache.sshd.common.config.keys.loader.KeyPairResourceLoader;
+import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider;
+import org.apache.sshd.common.keyprovider.KeyPairProvider;
+import org.apache.sshd.common.session.Session;
+import org.apache.sshd.common.session.SessionContext;
+import org.apache.sshd.common.util.io.IoUtils;
+import org.apache.sshd.common.util.security.SecurityUtils;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.errors.TransportException;
+import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.transport.sshd.JGitKeyCache;
+import org.eclipse.jgit.transport.sshd.ServerKeyDatabase;
+import org.eclipse.jgit.transport.sshd.SshdSessionFactory;
+import org.eclipse.jgit.transport.sshd.SshdSessionFactoryBuilder;
+import org.eclipse.jgit.util.FS;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
@@ -43,6 +70,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private String examIdString;
     private Long studentExamId;
     private StudentExam studentExam;
+    private String participationVcsAccessToken;
+    private ArtemisAuthMechanism authenticationMechanism;
+
     private final int numberOfCommitsAndPushesFrom;
     private final int numberOfCommitsAndPushesTo;
 
@@ -53,12 +83,16 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         ArtemisUser artemisUser,
         ArtemisUserService artemisUserService,
         int numberOfCommitsAndPushesFrom,
-        int numberOfCommitsAndPushesTo
+        int numberOfCommitsAndPushesTo,
+        ArtemisAuthMechanism authMechanism
     ) {
         super(artemisUrl, artemisUser, artemisUserService);
         log = LoggerFactory.getLogger(SimulatedArtemisStudent.class.getName() + "." + username);
         this.numberOfCommitsAndPushesFrom = numberOfCommitsAndPushesFrom;
         this.numberOfCommitsAndPushesTo = numberOfCommitsAndPushesTo;
+        this.authenticationMechanism = authMechanism;
+        this.publicKeyString = artemisUser.getPublicKey();
+        this.privateKeyString = artemisUser.getPrivateKey();
     }
 
     @Override
@@ -69,6 +103,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     /**
      * Perform miscellaneous calls to Artemis, e.g. to get the user info, system notifications, account, notification settings, and courses.
+     *
      * @return the list of request stats
      */
     public List<RequestStat> performInitialCalls() {
@@ -83,18 +118,19 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             getNotificationSettings(),
             getCourses(),
             getMutedConversations(),
-            getNotifications()
+            getNotifications(),
+            configureSSH()
         );
     }
 
     /**
      * Participate in an exam, i.e. solve and submit the exercises and fetch live events.
+     *
      * @param courseId the ID of the course
-     * @param examId the ID of the exam
-     * @param onlineIde whether to use the online IDE for programming exercises
+     * @param examId   the ID of the exam
      * @return the list of request stats
      */
-    public List<RequestStat> participateInExam(long courseId, long examId, boolean onlineIde) {
+    public List<RequestStat> participateInExam(long courseId, long examId) {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
         }
@@ -104,15 +140,16 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         List<RequestStat> requestStats = new ArrayList<>();
 
         requestStats.add(fetchLiveEvents());
-        requestStats.addAll(handleExercises(onlineIde));
+        requestStats.addAll(handleExercises());
 
         return requestStats;
     }
 
     /**
      * Start participating in an exam, i.e. navigate into the exam and start the exam.
+     *
      * @param courseId the ID of the course
-     * @param examId the ID of the exam
+     * @param examId   the ID of the exam
      * @param courseProgrammingExerciseId the ID of the course programming exercise
      * @return the list of request stats
      */
@@ -143,8 +180,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     /**
      * Submit and end an exam, i.e. submit the student exam and load the exam summary.
+     *
      * @param courseId the ID of the course
-     * @param examId the ID of the exam
+     * @param examId   the ID of the exam
      * @return the list of request stats
      */
     public List<RequestStat> submitAndEndExam(long courseId, long examId) {
@@ -205,6 +243,35 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .toBodilessEntity()
             .block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat configureSSH() {
+        long start = System.nanoTime();
+        List<UserSshPublicKeyDTO> keys = webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.path("api/ssh-settings/public-keys").build())
+            .retrieve()
+            .bodyToFlux(UserSshPublicKeyDTO.class)
+            .collectList()
+            .block();
+
+        var hasArtemisKeyStoredAlready = keys.stream().anyMatch(key -> key.publicKey().equals(publicKeyString));
+
+        if (!hasArtemisKeyStoredAlready) {
+            try {
+                webClient
+                    .post()
+                    .uri("api/ssh-settings/public-key")
+                    .bodyValue(UserSshPublicKeyDTO.of(publicKeyString))
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+            } catch (Exception e) {
+                log.error("Error while adding SSH key for {{}}: {{}}", username, e.getMessage());
+            }
+        }
+
+        return new RequestStat(now(), System.nanoTime() - start, SETUP_SSH_KEYS);
     }
 
     private RequestStat getCourses() {
@@ -412,7 +479,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
-    private List<RequestStat> handleExercises(boolean onlineIde) {
+    private List<RequestStat> handleExercises() {
         List<RequestStat> requestStats = new ArrayList<>();
         for (var exercise : studentExam.getExercises()) {
             if (exercise instanceof ModelingExercise) {
@@ -422,7 +489,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             } else if (exercise instanceof QuizExercise) {
                 requestStats.add(solveAndSubmitQuizExercise((QuizExercise) exercise));
             } else if (exercise instanceof ProgrammingExercise) {
-                requestStats.addAll(solveAndSubmitProgrammingExercise((ProgrammingExercise) exercise, onlineIde));
+                requestStats.addAll(solveAndSubmitProgrammingExercise((ProgrammingExercise) exercise));
             }
         }
         return requestStats;
@@ -492,16 +559,19 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return null;
     }
 
-    private void commitAndPush(List<RequestStat> requestStats, boolean onlineIde, Long participationId, String changedFileContent)
-        throws IOException, GitAPIException {
-        if (onlineIde) {
-            makeOnlineIDECommitAndPush(requestStats, participationId, changedFileContent);
-        } else {
-            makeOfflineIDECommitAndPush(requestStats);
+    private void commitAndPush(
+        List<RequestStat> requestStats,
+        ArtemisAuthMechanism mechanism,
+        Long participationId,
+        String changedFileContent
+    ) throws IOException, GitAPIException, GeneralSecurityException {
+        switch (mechanism) {
+            case ONLINE_IDE -> makeOnlineIDECommitAndPush(requestStats, participationId, changedFileContent);
+            default -> makeOfflineIDECommitAndPush(requestStats);
         }
     }
 
-    private List<RequestStat> solveAndSubmitProgrammingExercise(ProgrammingExercise programmingExercise, boolean onlineIDE) {
+    private List<RequestStat> solveAndSubmitProgrammingExercise(ProgrammingExercise programmingExercise) {
         var programmingParticipation = (ProgrammingExerciseStudentParticipation) programmingExercise
             .getStudentParticipations()
             .iterator()
@@ -509,14 +579,14 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         List<RequestStat> requestStats = new ArrayList<>();
         var repositoryCloneUrl = programmingParticipation.getRepositoryUri();
         var participationId = programmingParticipation.getId();
-
+        requestStats.add(fetchParticipationVcsAccessToken(participationId));
         try {
             long start = System.nanoTime();
 
-            if (onlineIDE) {
-                makeInitialProgrammingExerciseOnlineIDECalls(requestStats, participationId);
-            } else {
-                requestStats.add(cloneRepo(repositoryCloneUrl));
+            switch (authenticationMechanism) {
+                case ONLINE_IDE -> makeInitialProgrammingExerciseOnlineIDECalls(requestStats, participationId);
+                case SSH -> requestStats.add(cloneRepoOverSSH(repositoryCloneUrl));
+                default -> requestStats.add(cloneRepo(repositoryCloneUrl));
             }
 
             int n = new Random().nextInt(numberOfCommitsAndPushesFrom, numberOfCommitsAndPushesTo); // we do a random number of commits and pushes to make some noise
@@ -524,16 +594,32 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             for (int j = 0; j < n; j++) {
                 sleep(100);
                 var makeInvalidChange = new Random().nextBoolean();
-                var writeToFile = !onlineIDE;
+                var writeToFile = !this.authenticationMechanism.equals(ArtemisAuthMechanism.ONLINE_IDE);
                 var changedFileContent = changeFiles(makeInvalidChange, writeToFile);
 
-                commitAndPush(requestStats, onlineIDE, participationId, changedFileContent);
+                commitAndPush(requestStats, this.authenticationMechanism, participationId, changedFileContent);
             }
             log.debug("    Clone and commit+push done in " + formatDurationFrom(start));
         } catch (Exception e) {
             log.error("Error while handling programming exercise for {{}}: {{}}", username, e.getMessage());
         }
         return requestStats;
+    }
+
+    private RequestStat fetchParticipationVcsAccessToken(Long participationId) {
+        long start = System.nanoTime();
+        this.participationVcsAccessToken = webClient
+            .get()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .pathSegment("api", "account", "participation-vcs-access-token")
+                    .queryParam("participationId", participationId)
+                    .build()
+            )
+            .retrieve()
+            .bodyToMono(String.class)
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, FETCH_PARTICIPATION_VCS_ACCESS_TOKEN);
     }
 
     private RequestStat submitStudentExam() {
@@ -590,7 +676,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     }
 
     @Nullable
-    @SuppressWarnings("unchecked")
     private static <S extends Submission> S getSubmissionOfType(Exercise exercise, Class<S> submissionType) {
         if (!exercise.getStudentParticipations().isEmpty()) {
             var participation = exercise.getStudentParticipations().iterator().next();
@@ -604,7 +689,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return null;
     }
 
-    private RequestStat commitAndPushRepo() throws IOException, GitAPIException {
+    private RequestStat commitAndPushRepo() throws IOException, GitAPIException, GeneralSecurityException {
         var localPath = Path.of("repos", username);
         log.debug("Commit and push to " + localPath);
 
@@ -612,12 +697,32 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         git.add().addFilepattern("src").call();
         git.commit().setMessage("local test").setAllowEmpty(true).setSign(false).call();
 
+        var keyPair = loadKeys(privateKeyString);
         long start = System.nanoTime();
-        git.push().setCredentialsProvider(getCredentialsProvider()).call();
+
+        switch (this.authenticationMechanism) {
+            case ONLINE_IDE -> throw new IllegalStateException("Cannot push to Online IDE via jgit");
+            case PASSWORD -> git.push().setCredentialsProvider(getCredentialsProvider()).call();
+            case PARTICIPATION_TOKEN -> git.push().setCredentialsProvider(getCredentialsProviderWithToken()).call();
+            case SSH -> git
+                .push()
+                .setTransportConfigCallback(transport -> {
+                    SshTransport sshTransport = (SshTransport) transport;
+                    sshTransport.setSshSessionFactory(getSessionFactory(keyPair));
+                })
+                .call();
+        }
+
         long duration = System.nanoTime() - start;
 
         git.close();
-        return new RequestStat(now(), duration, PUSH);
+
+        return switch (this.authenticationMechanism) {
+            case PASSWORD -> new RequestStat(now(), duration, PUSH_PASSWORD);
+            case PARTICIPATION_TOKEN -> new RequestStat(now(), duration, PUSH_TOKEN);
+            case SSH -> new RequestStat(now(), duration, PUSH_SSH);
+            default -> new RequestStat(now(), duration, PUSH);
+        };
     }
 
     private String changeFiles(boolean invalidChange, boolean writeToFile) throws IOException {
@@ -666,7 +771,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         requestStats.add(fetchFiles(participationId));
     }
 
-    private void makeOfflineIDECommitAndPush(List<RequestStat> requestStats) throws IOException, GitAPIException {
+    private void makeOfflineIDECommitAndPush(List<RequestStat> requestStats) throws IOException, GitAPIException, GeneralSecurityException {
         requestStats.add(commitAndPushRepo());
     }
 
@@ -743,16 +848,28 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         while (attempt < MAX_RETRIES) {
             try {
                 long start = System.nanoTime();
+                UsernamePasswordCredentialsProvider credentialsProvider;
+                switch (authenticationMechanism) {
+                    case ONLINE_IDE -> throw new IOException("Cannot pull from Online IDE");
+                    case PASSWORD -> credentialsProvider = getCredentialsProvider();
+                    case PARTICIPATION_TOKEN -> credentialsProvider = getCredentialsProviderWithToken();
+                    default -> throw new IllegalStateException("Not implemented");
+                }
+
                 var git = Git.cloneRepository()
                     .setURI(repositoryUrl)
                     .setDirectory(localPath.toFile())
-                    .setCredentialsProvider(getCredentialsProvider())
+                    .setCredentialsProvider(credentialsProvider)
                     .call();
-                var duration = System.nanoTime() - start;
 
+                var duration = System.nanoTime() - start;
                 git.close();
                 log.debug("Done " + repositoryUrl);
-                return new RequestStat(now(), duration, CLONE);
+                return switch (authenticationMechanism) {
+                    case PASSWORD -> new RequestStat(now(), duration, CLONE_PASSWORD);
+                    case PARTICIPATION_TOKEN -> new RequestStat(now(), duration, CLONE_TOKEN);
+                    default -> new RequestStat(now(), duration, CLONE);
+                };
             } catch (Exception e) {
                 log.warn("Error while cloning repository for {{}}: {{}}", username, e.getMessage());
                 attempt++;
@@ -767,7 +884,110 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         throw new RuntimeException("Failed to clone repository for " + username);
     }
 
+    public RequestStat cloneRepoOverSSH(String repositoryUrl) throws IOException, GeneralSecurityException {
+        log.debug("Clone " + repositoryUrl);
+
+        var localPath = Path.of("repos", username);
+        FileUtils.deleteDirectory(localPath.toFile());
+
+        var sshRepositoryUrl = getSshCloneUrl(repositoryUrl);
+
+        int attempt = 0;
+
+        var keyPair = loadKeys(privateKeyString);
+        while (attempt < MAX_RETRIES) {
+            try {
+                long start = System.nanoTime();
+
+                Git git = Git.cloneRepository()
+                    .setURI(sshRepositoryUrl)
+                    .setDirectory(localPath.toFile())
+                    .setTransportConfigCallback(transport -> {
+                        SshTransport sshTransport = (SshTransport) transport;
+                        sshTransport.setSshSessionFactory(getSessionFactory(keyPair));
+                    })
+                    .call();
+
+                var duration = System.nanoTime() - start;
+
+                git.close();
+
+                return new RequestStat(now(), duration, CLONE_SSH);
+            } catch (Exception e) {
+                log.warn("Error while cloning repository for {{}}: {{}}", username, e.getMessage());
+                attempt++;
+                try {
+                    sleep(RETRY_DELAY_MS);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+
+        log.error("Failed to clone repository for {{}}", username);
+        throw new RuntimeException("Failed to clone repository for " + username);
+    }
+
+    public Iterable<KeyPair> loadKeys(String privateKey) throws IOException, GeneralSecurityException {
+        try {
+            Object parsed = new PEMParser(new StringReader(privateKey)).readObject();
+            KeyPair pair;
+            pair = new JcaPEMKeyConverter().getKeyPair((PEMKeyPair) parsed);
+
+            return Collections.singleton(pair);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load SSH keys", e);
+        }
+    }
+
+    private SshdSessionFactory getSessionFactory(Iterable<KeyPair> keyPairs) {
+        // Create a temporary directory to use for the home directory and SSH directory
+        // This is required by the SshdSessionFactory object despite us not using them
+        Path temporaryDirectory;
+        try {
+            temporaryDirectory = Files.createTempDirectory("ssh-temp-dir-user-1");
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create temporary directory", e);
+        }
+
+        return new SshdSessionFactoryBuilder()
+            .setPreferredAuthentications("publickey")
+            .setDefaultKeysProvider(ignoredSshDirBecauseWeUseAnInMemorySetOfKeyPairs -> keyPairs)
+            .setHomeDirectory(temporaryDirectory.toFile())
+            .setSshDirectory(temporaryDirectory.toFile())
+            .setServerKeyDatabase((ignoredHomeDir, ignoredSshDir) ->
+                new ServerKeyDatabase() {
+                    @Override
+                    public List<PublicKey> lookup(String connectAddress, InetSocketAddress remoteAddress, Configuration config) {
+                        return Collections.emptyList();
+                    }
+
+                    @Override
+                    public boolean accept(
+                        String connectAddress,
+                        InetSocketAddress remoteAddress,
+                        PublicKey serverKey,
+                        Configuration config,
+                        CredentialsProvider provider
+                    ) {
+                        return true;
+                    }
+                }
+            )
+            //The JGitKeyCache handles the caching of keys to avoid unnecessary disk I/O and improve performance
+            .build(new JGitKeyCache());
+    }
+
+    private String getSshCloneUrl(String cloneUrl) {
+        var artemisServerHostname = artemisUrl.substring(artemisUrl.indexOf("//") + 2).split("/")[0].split(":")[0];
+        return "ssh://git@" + artemisServerHostname + ":7921" + cloneUrl.substring(cloneUrl.indexOf("/git/"));
+    }
+
     private UsernamePasswordCredentialsProvider getCredentialsProvider() {
         return new UsernamePasswordCredentialsProvider(username, password);
+    }
+
+    private UsernamePasswordCredentialsProvider getCredentialsProviderWithToken() {
+        return new UsernamePasswordCredentialsProvider(username, participationVcsAccessToken);
     }
 }

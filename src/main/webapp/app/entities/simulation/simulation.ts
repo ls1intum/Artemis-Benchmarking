@@ -13,9 +13,12 @@ export class Simulation {
     public runs: SimulationRun[],
     public creationDate: Date,
     public customizeUserRange: boolean,
-    public ideType: IdeType,
     public numberOfCommitsAndPushesFrom: number,
     public numberOfCommitsAndPushesTo: number,
+    public onlineIdePercentage: number,
+    public passwordPercentage: number,
+    public tokenPercentage: number,
+    public sshPercentage: number,
     public userRange?: string,
     public instructorUsername?: string | null,
     public instructorPassword?: string | null,
@@ -47,19 +50,5 @@ export function getTextRepresentation(mode: Mode): string {
       return 'Existing course, prepared exam';
     case Mode.EXISTING_COURSE_CREATE_EXAM:
       return 'Existing course, create exam';
-  }
-}
-
-export enum IdeType {
-  ONLINE = 'ONLINE',
-  OFFLINE = 'OFFLINE',
-}
-
-export function getTextRepresentationIdeType(ideType: IdeType): string {
-  switch (ideType) {
-    case IdeType.OFFLINE:
-      return 'Offline';
-    case IdeType.ONLINE:
-      return 'Online';
   }
 }

@@ -71,7 +71,12 @@ public class SimulationDataService {
             throw new IllegalArgumentException("Invalid simulation");
         }
         if (simulation.getIdeType() == null) {
-            throw new IllegalArgumentException("IDE type must not be null");
+            // Deprecated
+            simulation.setIdeType(Simulation.IDEType.OFFLINE);
+        }
+
+        if (!simulation.participationPercentagesSumUpToHundredPercent()) {
+            throw new IllegalArgumentException("Participation mode percentages must add up to 100%");
         }
         // If only one of the instructor credentials is set, remove both
         if ((simulation.getInstructorUsername() != null) ^ (simulation.getInstructorPassword() != null)) {

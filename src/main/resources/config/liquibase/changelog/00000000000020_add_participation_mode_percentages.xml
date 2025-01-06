@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <changeSet id="00000000000020" author="entholzer">
+        <addColumn tableName="simulation">
+            <column name="onlineIde_percentage" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password_percentage" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_percentage" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ssh_percentage" type="double">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

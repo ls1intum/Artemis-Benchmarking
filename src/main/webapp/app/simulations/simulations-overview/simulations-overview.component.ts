@@ -33,10 +33,10 @@ export function sortSimulations(simulations: Simulation[]): Simulation[] {
     FaIconComponent,
     LogBoxComponent,
     CiStatusCardComponent,
-    PrometheusBoxComponent,
     ResultBoxComponent,
     DatePipe,
   ],
+  standalone: true,
 })
 export default class SimulationsOverviewComponent implements OnInit {
   faSpinner = faSpinner;

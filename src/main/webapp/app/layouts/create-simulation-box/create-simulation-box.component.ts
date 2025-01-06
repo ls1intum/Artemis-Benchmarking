@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, output } from '@angular/core';
-import { getTextRepresentation, getTextRepresentationIdeType, IdeType, Mode, Simulation } from '../../entities/simulation/simulation';
+import { getTextRepresentation, Mode, Simulation } from '../../entities/simulation/simulation';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ProfileService } from '../profiles/profile.service';
 import { SimulationsService } from '../../simulations/simulations.service';
@@ -14,6 +14,7 @@ import { ModeExplanationComponent } from '../mode-explanation/mode-explanation.c
   templateUrl: './create-simulation-box.component.html',
   styleUrls: ['./create-simulation-box.component.scss'],
   imports: [FormsModule, RouterLink, FaIconComponent, ModeExplanationComponent],
+  standalone: true,
 })
 export class CreateSimulationBoxComponent implements OnInit {
   faEye = faEye;
@@ -29,11 +30,14 @@ export class CreateSimulationBoxComponent implements OnInit {
   mode: Mode = Mode.CREATE_COURSE_AND_EXAM;
   customizeUserRange = false;
   userRange = '';
-  ideType: IdeType = IdeType.OFFLINE;
   numberOfCommitsAndPushesFrom = 8;
   numberOfCommitsAndPushesTo = 15;
   instructorUsername = '';
   instructorPassword = '';
+  passwordPercentage = 100;
+  tokenPercentage = 0;
+  sshPercentage = 0;
+  onlineIdePercentage = 0;
 
   availableServers = Object.values(ArtemisServer);
   availableModes = [
@@ -42,14 +46,12 @@ export class CreateSimulationBoxComponent implements OnInit {
     Mode.EXISTING_COURSE_PREPARED_EXAM,
     Mode.EXISTING_COURSE_UNPREPARED_EXAM,
   ];
-  availableIdeTypes = [IdeType.OFFLINE, IdeType.ONLINE];
   serversWithCleanupEnabled: ArtemisServer[] = [];
   showPassword = false;
 
   protected readonly Mode = Mode;
   protected readonly ArtemisServer = ArtemisServer;
   protected readonly getTextRepresentation = getTextRepresentation;
-  protected readonly getTextRepresentationIdeType = getTextRepresentationIdeType;
 
   private profileService = inject(ProfileService);
   private simulationService = inject(SimulationsService);
@@ -81,9 +83,12 @@ export class CreateSimulationBoxComponent implements OnInit {
         [],
         new Date(),
         this.customizeUserRange,
-        this.ideType,
         this.numberOfCommitsAndPushesFrom,
         this.numberOfCommitsAndPushesTo,
+        this.onlineIdePercentage,
+        this.passwordPercentage,
+        this.tokenPercentage,
+        this.sshPercentage,
         this.userRange,
         this.instructorUsername.length > 0 ? this.instructorUsername : undefined,
         this.instructorPassword.length > 0 ? this.instructorPassword : undefined,
@@ -100,7 +105,8 @@ export class CreateSimulationBoxComponent implements OnInit {
       this.name.length > 0 &&
       ((!this.customizeUserRange && this.numberOfUsers > 0) || (this.customizeUserRange && this.userRange.length > 0)) &&
       this.numberOfCommitsAndPushesFrom > 0 &&
-      this.numberOfCommitsAndPushesTo > this.numberOfCommitsAndPushesFrom;
+      this.numberOfCommitsAndPushesTo > this.numberOfCommitsAndPushesFrom &&
+      this.sshPercentage + this.tokenPercentage + this.passwordPercentage + this.onlineIdePercentage === 100;
 
     if (this.mode === Mode.CREATE_COURSE_AND_EXAM) {
       return basicRequirements;

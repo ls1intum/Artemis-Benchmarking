@@ -4,7 +4,21 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.opencsv.bean.CsvBindByName;
 import de.tum.cit.aet.util.ArtemisServer;
 import jakarta.persistence.*;
+import java.io.ByteArrayOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.security.*;
+import java.security.interfaces.RSAPublicKey;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Base64;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
+import org.springframework.data.util.Pair;
 
 @Entity
 @Table(name = "artemis_user")
@@ -34,6 +48,14 @@ public class ArtemisUser {
     @Column(name = "token_expiration_date")
     @JsonIgnore
     private ZonedDateTime tokenExpirationDate;
+
+    @Column(name = "public_ssh_key")
+    @JsonIgnore
+    private String publicKey;
+
+    @Column(name = "private_ssh_key")
+    @JsonIgnore
+    private String privateKey;
 
     public Long getId() {
         return id;
@@ -89,5 +111,26 @@ public class ArtemisUser {
 
     public void setTokenExpirationDate(ZonedDateTime tokenExpirationDate) {
         this.tokenExpirationDate = tokenExpirationDate;
+    }
+
+    public String getPrivateKey() {
+        return privateKey;
+    }
+
+    public void setPrivateKey(String privateKey) {
+        this.privateKey = privateKey;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public void setKeyPair(Pair<String, String> keyPair) {
+        this.publicKey = keyPair.getFirst();
+        this.privateKey = keyPair.getSecond();
     }
 }

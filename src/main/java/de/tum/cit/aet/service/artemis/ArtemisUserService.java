@@ -10,11 +10,15 @@ import de.tum.cit.aet.service.dto.ArtemisUserForCreationDTO;
 import de.tum.cit.aet.service.dto.ArtemisUserPatternDTO;
 import de.tum.cit.aet.util.ArtemisServer;
 import de.tum.cit.aet.util.NumberRangeParser;
+import de.tum.cit.aet.util.SshUtils;
 import de.tum.cit.aet.web.rest.errors.BadRequestAlertException;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -68,6 +72,21 @@ public class ArtemisUserService {
             );
             simulatedArtemisAdmin.login();
         }
+        log.info("Generate SSH keys... this might take some time");
+        AtomicInteger sshKeyCounter = new AtomicInteger(0);
+        int totalKeys = pattern.getTo() - pattern.getFrom();
+        Pair<String, String>[] pregeneratedSSHkeys = new Pair[totalKeys + 1];
+
+        IntStream.range(pattern.getFrom(), pattern.getTo() + 1)
+            .parallel()
+            .forEach(i -> {
+                if (sshKeyCounter.get() % 100 == 0) {
+                    log.info("{{}} of {{}} keys created...", sshKeyCounter.get(), totalKeys);
+                }
+                pregeneratedSSHkeys[i - pattern.getFrom()] = SshUtils.generateSshKeyPair();
+                sshKeyCounter.getAndIncrement();
+            });
+        log.info("Done generating {{}} SSH keys", totalKeys);
 
         List<ArtemisUser> createdUsers = new ArrayList<>();
         for (int i = pattern.getFrom(); i < pattern.getTo(); i++) {
@@ -78,6 +97,8 @@ public class ArtemisUserService {
             var password = pattern.getPasswordPattern().replace("{i}", String.valueOf(i));
             artemisUser.setUsername(username);
             artemisUser.setPassword(password);
+            artemisUser.setKeyPair(pregeneratedSSHkeys[i - pattern.getFrom()]);
+
             try {
                 ArtemisUser createdUser = saveArtemisUser(artemisUser);
                 // Create user on Artemis if necessary
@@ -111,6 +132,7 @@ public class ArtemisUserService {
         artemisUser.setServer(server);
         artemisUser.setUsername(artemisUserDTO.getUsername());
         artemisUser.setPassword(artemisUserDTO.getPassword());
+        artemisUser.setKeyPair(SshUtils.generateSshKeyPair());
 
         if (artemisUserDTO.getServerWideId() != null) {
             artemisUser.setServerWideId(artemisUserDTO.getServerWideId());

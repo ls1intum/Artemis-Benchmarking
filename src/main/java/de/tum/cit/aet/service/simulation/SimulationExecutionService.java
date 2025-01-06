@@ -2,6 +2,7 @@ package de.tum.cit.aet.service.simulation;
 
 import static java.lang.Thread.sleep;
 
+import de.tum.cit.aet.artemisModel.ArtemisAuthMechanism;
 import de.tum.cit.aet.artemisModel.Course;
 import de.tum.cit.aet.artemisModel.Exam;
 import de.tum.cit.aet.artemisModel.ProgrammingExercise;
@@ -74,6 +75,7 @@ public class SimulationExecutionService {
      * <p>
      * The steps of the simulation depend on the simulation mode, see {@link Simulation.Mode}.
      * This method sends status updates, log messages and results to the client via websockets.
+     *
      * @param simulationRun the simulation run to execute
      * @throws SimulationFailedException if an error occurs while executing the simulation
      */
@@ -189,7 +191,8 @@ public class SimulationExecutionService {
         );
 
         logAndSend(false, simulationRun, "Simulation finished.");
-        // TODO: Cleanup deletes running build jobs. Need to find another approach to cleanup
+
+        // Cleanup deletes running build jobs. When it is enabled subscribing to CI status is disabled
         cleanupAsync(admin, simulationRun, courseId, examId);
 
         // Calculate, save and send result
@@ -206,11 +209,14 @@ public class SimulationExecutionService {
                     return;
                 }
             }
-            // Subscribe to CI status, as we can only safely delete the course after all CI jobs have finished
-            try {
-                ciStatusService.subscribeToCiStatusViaResults(runWithResult, admin, examId).get();
-            } catch (ExecutionException | InterruptedException e) {
-                logAndSend(true, simulationRun, "Error while subscribing to CI status: %s", e.getMessage());
+
+            // Subscribe to CI status, as we can only safely delete the course after all CI jobs have finished.
+            if (!artemisConfiguration.getCleanup(simulationRun.getSimulation().getServer())) {
+                try {
+                    ciStatusService.subscribeToCiStatusViaResults(runWithResult, admin, examId).get();
+                } catch (ExecutionException | InterruptedException e) {
+                    logAndSend(true, simulationRun, "Error while subscribing to CI status: %s", e.getMessage());
+                }
             }
         }
     }
@@ -222,11 +228,12 @@ public class SimulationExecutionService {
      * <p>
      * Fails the simulation run if an error occurs while performing the simulations.
      * Does not fail for exceptions occurring for individual students.
+     *
      * @param simulationRun the simulation run to perform the exam participations for
-     * @param students the students to perform the exam participations with
-     * @param admin the admin to use for cleanup if necessary
-     * @param courseId the ID of the course the exam is in
-     * @param examId the ID of the exam to participate in
+     * @param students      the students to perform the exam participations with
+     * @param admin         the admin to use for cleanup if necessary
+     * @param courseId      the ID of the course the exam is in
+     * @param examId        the ID of the exam to participate in
      * @return a list of request stats for all performed actions
      * @throws SimulationFailedException if an error occurs while performing the simulations
      */
@@ -260,9 +267,7 @@ public class SimulationExecutionService {
                 )
             );
             requestStats.addAll(
-                performActionWithAll(threadCount, simulation.getNumberOfUsers(), i ->
-                    students[i].participateInExam(courseId, examId, simulation.getIdeType() == Simulation.IDEType.ONLINE)
-                )
+                performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].participateInExam(courseId, examId))
             );
             requestStats.addAll(
                 performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].submitAndEndExam(courseId, examId))
@@ -281,6 +286,7 @@ public class SimulationExecutionService {
      * Sets the doNotSleep flag.
      * If the flag is set to true, the simulation will not wait for user group synchronization.
      * The flag should only be set to true for testing purposes when the connection to Artemis is mocked.
+     *
      * @param doNotSleep the value to set the flag to
      */
     public void setDoNotSleep(boolean doNotSleep) {
@@ -290,8 +296,9 @@ public class SimulationExecutionService {
     /**
      * Initializes and logs in the admin for the given simulation run.
      * Fails the simulation run if an error occurs while initializing the admin.
+     *
      * @param simulationRun the simulation run to initialize the admin for
-     * @param accountDTO the account to use for logging in (only necessary for production instance)
+     * @param accountDTO    the account to use for logging in (only necessary for production instance)
      * @return the initialized and logged in admin
      * @throws SimulationFailedException if an error occurs while initializing the admin
      */
@@ -328,7 +335,7 @@ public class SimulationExecutionService {
     /**
      * Initializes the admin for the given server with the given account and logs in.
      *
-     * @param server the Artemis Server to initialize the admin for
+     * @param server            the Artemis Server to initialize the admin for
      * @param artemisAccountDTO the account to use for logging in
      * @return the initialized and logged in admin
      */
@@ -345,7 +352,8 @@ public class SimulationExecutionService {
     /**
      * Creates a course for the given admin and simulation run.
      * Fails the simulation run if an error occurs while creating the course.
-     * @param admin the admin to use for creating the course
+     *
+     * @param admin         the admin to use for creating the course
      * @param simulationRun the simulation run to create the course for
      * @return the created course
      * @throws SimulationFailedException if an error occurs while creating the course
@@ -361,13 +369,19 @@ public class SimulationExecutionService {
         }
     }
 
+    private void cancelAllBuildJobs(SimulatedArtemisAdmin admin) {
+        admin.cancelAllQueuedBuildJobs();
+        admin.cancelAllRunningBuildJobs();
+    }
+
     /**
      * Registers the given students for the given course using the given admin and simulation run.
      * Fails the simulation run if an error occurs while registering the students.
-     * @param admin the admin to use for registering the students
+     *
+     * @param admin         the admin to use for registering the students
      * @param simulationRun the simulation run to register the students for
-     * @param courseId the ID of the course to register the students for
-     * @param students the students to register
+     * @param courseId      the ID of the course to register the students for
+     * @param students      the students to register
      * @throws SimulationFailedException if an error occurs while registering the students
      */
     private void registerStudentsForCourse(
@@ -390,9 +404,10 @@ public class SimulationExecutionService {
     /**
      * Fetches the course with the given ID using the given admin and simulation run.
      * Fails the simulation run if an error occurs while fetching the course.
-     * @param admin the admin to use for fetching the course
+     *
+     * @param admin         the admin to use for fetching the course
      * @param simulationRun the simulation run to fetch the course for
-     * @param courseId the ID of the course to fetch
+     * @param courseId      the ID of the course to fetch
      * @return the fetched course
      * @throws SimulationFailedException if an error occurs while fetching the course
      */
@@ -420,9 +435,10 @@ public class SimulationExecutionService {
     /**
      * Creates an exam for the given simulation run in the given course using the given admin.
      * Fails the simulation run if an error occurs while creating the exam.
-     * @param admin the admin to use for creating the exam
+     *
+     * @param admin         the admin to use for creating the exam
      * @param simulationRun the simulation run to create the exam for
-     * @param course the course to create the exam in
+     * @param course        the course to create the exam in
      * @return the created exam
      * @throws SimulationFailedException if an error occurs while creating the exam
      */
@@ -441,10 +457,11 @@ public class SimulationExecutionService {
     /**
      * Creates the exercises for the given exam using the given admin and simulation run.
      * Fails the simulation run if an error occurs while creating the exercises.
-     * @param admin the admin to use for creating the exercises
+     *
+     * @param admin         the admin to use for creating the exercises
      * @param simulationRun the simulation run to create the exercises for
-     * @param courseId the ID of the course the exam is in
-     * @param exam the exam to create the exercises for
+     * @param courseId      the ID of the course the exam is in
+     * @param exam          the exam to create the exercises for
      * @throws SimulationFailedException if an error occurs while creating the exercises
      */
     private void createExamExercises(SimulatedArtemisAdmin admin, SimulationRun simulationRun, long courseId, Exam exam) {
@@ -463,10 +480,11 @@ public class SimulationExecutionService {
      * Registers the students for the given exam using the given admin and simulation run.
      * Registers all students of the course.
      * Fails the simulation run if an error occurs while registering the students.
-     * @param admin the admin to use for registering the students
+     *
+     * @param admin         the admin to use for registering the students
      * @param simulationRun the simulation run to register the students for
-     * @param courseId the ID of the course the exam is in
-     * @param examId the ID of the exam to register the students for
+     * @param courseId      the ID of the course the exam is in
+     * @param examId        the ID of the exam to register the students for
      * @throws SimulationFailedException if an error occurs while registering the students
      */
     private void registerStudentsForExam(SimulatedArtemisAdmin admin, SimulationRun simulationRun, long courseId, long examId) {
@@ -485,10 +503,11 @@ public class SimulationExecutionService {
      * Prepares the exam for conduction using the given admin and simulation run.
      * This includes generating the student exams and preparing the exercises.
      * Fails the simulation run if an error occurs while preparing the exam.
-     * @param admin the admin to use for preparing the exam
+     *
+     * @param admin         the admin to use for preparing the exam
      * @param simulationRun the simulation run to prepare the exam for
-     * @param courseId the ID of the course the exam is in
-     * @param examId the ID of the exam to prepare
+     * @param courseId      the ID of the course the exam is in
+     * @param examId        the ID of the exam to prepare
      * @throws SimulationFailedException if an error occurs while preparing the exam
      */
     private void prepareExam(SimulatedArtemisAdmin admin, SimulationRun simulationRun, long courseId, long examId) {
@@ -525,15 +544,45 @@ public class SimulationExecutionService {
             }
 
             SimulatedArtemisStudent[] users = new SimulatedArtemisStudent[artemisUsers.size()];
+            int onlineIde, password, token, ssh;
+            onlineIde = password = token = ssh = 0;
+
             for (int i = 0; i < artemisUsers.size(); i++) {
+                var mechanism = getArtemisAuthMechanism(simulation);
+                switch (mechanism) {
+                    case ONLINE_IDE -> onlineIde++;
+                    case PASSWORD -> password++;
+                    case PARTICIPATION_TOKEN -> token++;
+                    case SSH -> ssh++;
+                }
+
                 users[i] = SimulatedArtemisUser.createArtemisStudent(
                     artemisConfiguration.getUrl(simulation.getServer()),
                     artemisUsers.get(i),
                     artemisUserService,
                     simulation.getNumberOfCommitsAndPushesFrom(),
-                    simulation.getNumberOfCommitsAndPushesTo()
+                    simulation.getNumberOfCommitsAndPushesTo(),
+                    mechanism
                 );
             }
+
+            log.info(
+                "Users will use authentication mechanisms: onlineIDE {{}} | password {{}} | token {{}} | SSH {{}}",
+                onlineIde,
+                password,
+                token,
+                ssh
+            );
+            logAndSend(
+                false,
+                simulationRun,
+                "User authentication: onlineIDE %s | password %s | token %s | SSH %s",
+                onlineIde,
+                password,
+                token,
+                ssh
+            );
+
             return users;
         } catch (Exception e) {
             logAndSend(true, simulationRun, "Error while initializing students: %s", e.getMessage());
@@ -549,9 +598,9 @@ public class SimulationExecutionService {
      * If an exception occurs while performing the action for a user, the exception is logged and the user is skipped.
      * Exceptions occurring for one user do not affect the execution of the action for other users and are not rethrown.
      *
-     * @param threadCount the number of threads to use
+     * @param threadCount   the number of threads to use
      * @param numberOfUsers the number of users to perform the action for
-     * @param action the action to perform
+     * @param action        the action to perform
      * @return a list of request stats for all performed actions
      */
     private List<RequestStat> performActionWithAll(int threadCount, int numberOfUsers, Function<Integer, List<RequestStat>> action) {
@@ -581,10 +630,11 @@ public class SimulationExecutionService {
 
     /**
      * Calls {@link #cleanup(SimulatedArtemisAdmin, SimulationRun, long, long)} asynchronously.
-     * @param admin the admin to use for cleanup
+     *
+     * @param admin         the admin to use for cleanup
      * @param simulationRun the simulation run to cleanup
-     * @param courseId the ID of the course to cleanup
-     * @param examId the ID of the exam to cleanup
+     * @param courseId      the ID of the course to cleanup
+     * @param examId        the ID of the exam to cleanup
      */
     private void cleanupAsync(SimulatedArtemisAdmin admin, SimulationRun simulationRun, long courseId, long examId) {
         if (Thread.currentThread().isInterrupted() || admin == null) {
@@ -600,10 +650,10 @@ public class SimulationExecutionService {
      * <p>
      * It is recommended to call this method asynchronously via {@link #cleanupAsync(SimulatedArtemisAdmin, SimulationRun, long, long)}.
      *
-     * @param admin the admin to use for cleanup
+     * @param admin         the admin to use for cleanup
      * @param simulationRun the simulation run to cleanup
-     * @param courseId the ID of the course to cleanup
-     * @param examId the ID of the exam to cleanup
+     * @param courseId      the ID of the course to cleanup
+     * @param examId        the ID of the exam to cleanup
      */
     private void cleanup(SimulatedArtemisAdmin admin, SimulationRun simulationRun, long courseId, long examId) {
         if (Thread.currentThread().isInterrupted() || admin == null) {
@@ -616,6 +666,17 @@ public class SimulationExecutionService {
             logAndSend(false, simulationRun, "Cleanup is currently disabled for this Artemis instance.");
             return;
         }
+
+        logAndSend(false, simulationRun, "Trying to cancel all build jobs...");
+        cancelAllBuildJobs(admin);
+        if (!doNotSleep) {
+            try {
+                sleep(1_000 * 10);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        logAndSend(false, simulationRun, "Done cancelling all build jobs");
 
         logAndSend(false, simulationRun, "Cleaning up... This may take a while.");
         try {
@@ -638,10 +699,11 @@ public class SimulationExecutionService {
     /**
      * Logs the given message and sends it to the client via websockets.
      * Also saves the message to the database.
-     * @param error whether the message is an error message
+     *
+     * @param error         whether the message is an error message
      * @param simulationRun the simulation run to send the message for
-     * @param format the format string
-     * @param args the arguments for the format string
+     * @param format        the format string
+     * @param args          the arguments for the format string
      */
     private void logAndSend(boolean error, SimulationRun simulationRun, String format, Object... args) {
         if (Thread.currentThread().isInterrupted()) {
@@ -691,6 +753,7 @@ public class SimulationExecutionService {
 
     /**
      * Sets the simulation run status to finished and sends the result to the client via websockets.
+     *
      * @param simulationRun the simulation run to finish
      */
     private void finishSimulationRun(SimulationRun simulationRun) {
@@ -703,12 +766,30 @@ public class SimulationExecutionService {
     /**
      * Sends the result of the given simulation run to the client via websockets.
      * Also sends a mail with the result if the simulation run is part of a schedule.
+     *
      * @param simulationRun the simulation run to send the result for
      */
     private void sendRunResult(SimulationRun simulationRun) {
         simulationWebsocketService.sendSimulationResult(simulationRun);
         if (simulationRun.getSchedule() != null) {
             mailService.sendRunResultMail(simulationRun, simulationRun.getSchedule());
+        }
+    }
+
+    private ArtemisAuthMechanism getArtemisAuthMechanism(Simulation simulation) {
+        Random random = new Random();
+        double randomValue = random.nextDouble() * 100;
+
+        if (randomValue <= simulation.getOnlineIdePercentage()) {
+            return ArtemisAuthMechanism.ONLINE_IDE;
+        } else if (randomValue <= simulation.getOnlineIdePercentage() + simulation.getPasswordPercentage()) {
+            return ArtemisAuthMechanism.PASSWORD;
+        } else if (
+            randomValue <= simulation.getOnlineIdePercentage() + simulation.getPasswordPercentage() + simulation.getTokenPercentage()
+        ) {
+            return ArtemisAuthMechanism.PARTICIPATION_TOKEN;
+        } else {
+            return ArtemisAuthMechanism.SSH;
         }
     }
 }
