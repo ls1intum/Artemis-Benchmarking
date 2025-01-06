@@ -60,7 +60,7 @@
     "webstomp-client": "1.2.6"
   },
   "devDependencies": {
-    "@angular-builders/jest": "19.0.0-beta.1",
+    "@angular-builders/jest": "19.0.0",
     "@angular-devkit/build-angular": "19.0.6",
     "@angular/build": "19.0.6",
     "@angular/cli": "19.0.6",
