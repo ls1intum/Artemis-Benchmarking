@@ -36,7 +36,6 @@ export function sortSimulations(simulations: Simulation[]): Simulation[] {
     ResultBoxComponent,
     DatePipe,
   ],
-  standalone: true,
 })
 export default class SimulationsOverviewComponent implements OnInit {
   faSpinner = faSpinner;

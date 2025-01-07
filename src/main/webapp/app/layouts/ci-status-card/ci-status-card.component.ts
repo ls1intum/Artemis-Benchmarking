@@ -7,7 +7,6 @@ import { DecimalPipe } from '@angular/common';
   imports: [DecimalPipe],
   templateUrl: './ci-status-card.component.html',
   styleUrl: './ci-status-card.component.scss',
-  standalone: true,
 })
 export class CiStatusCardComponent {
   ciStatus = input.required<CiStatus>();

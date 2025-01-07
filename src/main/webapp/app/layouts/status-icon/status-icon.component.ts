@@ -8,7 +8,6 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
   templateUrl: './status-icon.component.html',
   styleUrls: ['./status-icon.component.scss'],
   imports: [FaIconComponent],
-  standalone: true,
 })
 export class StatusIconComponent {
   faCircleCheck = faCircleCheck;
