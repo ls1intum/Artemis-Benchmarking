@@ -7,7 +7,6 @@ import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
   templateUrl: './mode-explanation.component.html',
   styleUrls: ['./mode-explanation.component.scss'],
   imports: [NgbAlert],
-  standalone: true,
 })
 export class ModeExplanationComponent {
   readonly mode = input<Mode>();

@@ -14,7 +14,6 @@ import { ModeExplanationComponent } from '../mode-explanation/mode-explanation.c
   templateUrl: './create-simulation-box.component.html',
   styleUrls: ['./create-simulation-box.component.scss'],
   imports: [FormsModule, RouterLink, FaIconComponent, ModeExplanationComponent],
-  standalone: true,
 })
 export class CreateSimulationBoxComponent implements OnInit {
   faEye = faEye;

@@ -7,7 +7,6 @@ import { NgClass } from '@angular/common';
   templateUrl: './server-badge.component.html',
   styleUrls: ['./server-badge.component.scss'],
   imports: [NgClass],
-  standalone: true,
 })
 export class ServerBadgeComponent {
   readonly server = input<ArtemisServer>();

@@ -7,7 +7,6 @@ import { DatePipe, NgClass } from '@angular/common';
   templateUrl: './log-box.component.html',
   styleUrls: ['./log-box.component.scss'],
   imports: [NgClass, DatePipe],
-  standalone: true,
 })
 export class LogBoxComponent {
   logMessages = input<LogMessage[]>();
