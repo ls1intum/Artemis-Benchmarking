@@ -197,7 +197,7 @@ dependencies {
     implementation "org.eclipse.jgit:org.eclipse.jgit:7.1.0.202411261347-r"
     implementation "io.reactivex.rxjava3:rxjava:3.1.10"
     implementation "io.netty:netty-resolver-dns-native-macos:4.1.116.Final:osx-aarch_64"
-    implementation "com.opencsv:opencsv:5.9"
+    implementation "com.opencsv:opencsv:5.10"
 
     // ---- CHECKSTYLE DEPENDENCIES ----
 
