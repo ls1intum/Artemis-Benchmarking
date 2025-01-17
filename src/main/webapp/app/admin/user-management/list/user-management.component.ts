@@ -39,7 +39,8 @@ export default class UserManagementComponent implements OnInit {
   }
 
   setActive(user: User, isActivated: boolean): void {
-    this.userService.update({ ...user, activated: isActivated }).subscribe(() => this.loadAll());
+    user.activated = isActivated;
+    this.userService.update(user).subscribe(() => this.loadAll());
   }
 
   trackIdentity(item: User): number {

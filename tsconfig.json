@@ -16,10 +16,10 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "useDefineForClassFields": false,
-    "target": "es2023",
+    "target": "es2024",
     "module": "es2022",
     "types": [],
-    "lib": ["es2023", "dom"]
+    "lib": ["es2024", "dom"]
   },
   "references": [
     {
