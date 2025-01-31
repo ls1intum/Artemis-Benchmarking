@@ -266,6 +266,14 @@ artemis:
       artemis:
       vcs:
       ci:
+  devcluster:
+    url: https://artemis-dev-cluster.artemis.cit.tum.de/ # reachable from TUM network / via EduVPN
+    cleanup-enabled: true
+    is-local: true
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
   production:
     url: https://artemis.cit.tum.de/
     cleanup-enabled: false

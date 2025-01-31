@@ -133,6 +133,24 @@ public class ArtemisConfiguration {
     @Value("${artemis.staging2.is-local}")
     private boolean staging2IsLocal;
 
+    @Value("${artemis.devcluster.url}")
+    private String devclusterUrl;
+
+    @Value("${artemis.devcluster.cleanup-enabled}")
+    private boolean devclusterCleanup;
+
+    @Value("${artemis.devcluster.prometheus-instances.artemis}")
+    private String[] devclusterPrometheusInstanceArtemis;
+
+    @Value("${artemis.devcluster.prometheus-instances.vcs}")
+    private String[] devclusterPrometheusInstanceVcs;
+
+    @Value("${artemis.devcluster.prometheus-instances.ci}")
+    private String[] devclusterPrometheusInstanceCi;
+
+    @Value("${artemis.devcluster.is-local}")
+    private boolean devclusterIsLocal;
+
     @Value("${artemis.production.url}")
     private String productionUrl;
 
@@ -166,6 +184,7 @@ public class ArtemisConfiguration {
             case TS8 -> test8Url;
             case STAGING -> stagingUrl;
             case STAGING2 -> staging2Url;
+            case DEVCLUSTER -> devclusterUrl;
             case PRODUCTION -> productionUrl;
         };
     }
@@ -185,6 +204,7 @@ public class ArtemisConfiguration {
             case TS8 -> test8Cleanup;
             case STAGING -> stagingCleanup;
             case STAGING2 -> staging2Cleanup;
+            case DEVCLUSTER -> devclusterCleanup;
             case PRODUCTION -> productionCleanup;
         };
     }
@@ -204,6 +224,7 @@ public class ArtemisConfiguration {
             case TS8 -> test8PrometheusInstanceArtemis;
             case STAGING -> stagingPrometheusInstanceArtemis;
             case STAGING2 -> staging2PrometheusInstanceArtemis;
+            case DEVCLUSTER -> devclusterPrometheusInstanceArtemis;
             case PRODUCTION -> productionPrometheusInstanceArtemis;
         };
     }
@@ -223,6 +244,7 @@ public class ArtemisConfiguration {
             case TS8 -> test8PrometheusInstanceVcs;
             case STAGING -> stagingPrometheusInstanceVcs;
             case STAGING2 -> staging2PrometheusInstanceVcs;
+            case DEVCLUSTER -> devclusterPrometheusInstanceVcs;
             case PRODUCTION -> productionPrometheusInstanceVcs;
         };
     }
@@ -242,6 +264,7 @@ public class ArtemisConfiguration {
             case TS8 -> test8PrometheusInstanceCi;
             case STAGING -> stagingPrometheusInstanceCi;
             case STAGING2 -> staging2PrometheusInstanceCi;
+            case DEVCLUSTER -> devclusterPrometheusInstanceCi;
             case PRODUCTION -> productionPrometheusInstanceCi;
         };
     }
@@ -261,6 +284,7 @@ public class ArtemisConfiguration {
             case TS8 -> test8IsLocal;
             case STAGING -> stagingIsLocal;
             case STAGING2 -> staging2IsLocal;
+            case DEVCLUSTER -> devclusterIsLocal;
             case PRODUCTION -> productionIsLocal;
         };
     }
