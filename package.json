@@ -96,7 +96,7 @@
     "swagger-ui-dist": "5.18.2",
     "ts-jest": "29.2.5",
     "typescript": "5.7.3",
-    "typescript-eslint": "8.21.0"
+    "typescript-eslint": "8.23.0"
   },
   "engines": {
     "node": ">=22.12.0"
