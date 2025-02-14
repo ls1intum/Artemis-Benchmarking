@@ -146,6 +146,14 @@ artemis:
       artemis:
       vcs:
       ci:
+  devcluster:
+    url:
+    cleanup-enabled: false
+    is-local: true
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
   production:
     url:
     cleanup-enabled: false

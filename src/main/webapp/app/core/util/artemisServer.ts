@@ -6,5 +6,6 @@ export enum ArtemisServer {
   TS8 = 'TS8',
   STAGING = 'STAGING',
   STAGING2 = 'STAGING2',
+  DEVCLUSTER = 'DEVCLUSTER',
   PRODUCTION = 'PRODUCTION',
 }

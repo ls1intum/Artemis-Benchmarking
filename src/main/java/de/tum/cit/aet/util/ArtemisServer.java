@@ -8,5 +8,6 @@ public enum ArtemisServer {
     TS8,
     STAGING,
     STAGING2,
+    DEVCLUSTER,
     PRODUCTION,
 }
