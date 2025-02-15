@@ -30,15 +30,27 @@ export function getOrder(simulationStats: SimulationStats): number {
       return 5;
     case RequestType.CLONE:
       return 6;
-    case RequestType.PUSH:
+    case RequestType.CLONE_PASSWORD:
       return 7;
-    case RequestType.PROGRAMMING_EXERCISE_RESULT:
+    case RequestType.CLONE_SSH:
       return 8;
-    case RequestType.REPOSITORY_INFO:
+    case RequestType.CLONE_TOKEN:
       return 9;
-    case RequestType.REPOSITORY_FILES:
+    case RequestType.PUSH:
       return 10;
-    case RequestType.MISC:
+    case RequestType.PUSH_PASSWORD:
       return 11;
+    case RequestType.PUSH_SSH:
+      return 12;
+    case RequestType.PUSH_TOKEN:
+      return 13;
+    case RequestType.PROGRAMMING_EXERCISE_RESULT:
+      return 14;
+    case RequestType.REPOSITORY_INFO:
+      return 15;
+    case RequestType.REPOSITORY_FILES:
+      return 16;
+    case RequestType.MISC:
+      return 17;
   }
 }
