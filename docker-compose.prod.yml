@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   nginx:
-    image: nginx:1.27.3-alpine-slim
+    image: nginx:1.27.4-alpine-slim
     ports:
       - '80:80'
       - '443:443'

@@ -148,7 +148,7 @@ dependencies {
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.3"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.5"
     implementation "com.zaxxer:HikariCP:6.2.1"
     implementation "org.apache.commons:commons-lang3:3.17.0"
     implementation "org.openapitools:jackson-databind-nullable:${jacksonDatabindNullableVersion}"
@@ -168,6 +168,26 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-security:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVersion}"
 
+
+    // Avoid outdated version of netty to prevent security issues
+    implementation("io.netty:netty-buffer") { version { 				strictly nettyVersion } }
+    implementation("io.netty:netty-codec") { version { 					strictly nettyVersion } }
+    implementation("io.netty:netty-codec-dns") { version { 				strictly nettyVersion } }
+    implementation("io.netty:netty-codec-http") { version { 			strictly nettyVersion } }
+    implementation("io.netty:netty-codec-http2") { version { 			strictly nettyVersion } }
+    implementation("io.netty:netty-codec-socks") { version { 			strictly nettyVersion } }
+    implementation("io.netty:netty-common") { version { 				strictly nettyVersion } }
+    implementation("io.netty:netty-resolver") { version { 	    		strictly nettyVersion } }
+    implementation("io.netty:netty-resolver-dns") { version { 			strictly nettyVersion } }
+    implementation("io.netty:netty-transport") { version { 				strictly nettyVersion } }
+    implementation("io.netty:netty-transport-native-epoll") { version {	strictly nettyVersion } }
+    implementation("io.netty:netty-handler") { version { 				strictly nettyVersion } }
+    implementation("io.netty:netty-handler-proxy") { version { 			strictly nettyVersion } }
+
+    implementation("net.minidev:json-smart") { version { 				strictly "2.5.2" } }
+
+
+
     // NOTE: the following dependencies use the newer versions explicitly to avoid other dependencies to use older versions
     implementation "ch.qos.logback:logback-classic:${logbackVersion}"
     implementation "ch.qos.logback:logback-core:${logbackVersion}"
@@ -183,7 +203,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server:${springBootVersion}"
     implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.14.3"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.14.4"
     implementation "io.dropwizard.metrics:metrics-core:4.2.30"
     implementation "org.springframework.security:spring-security-messaging:${springSecurityVersion}"
     implementation "commons-io:commons-io:2.18.0"
@@ -206,7 +226,7 @@ dependencies {
 
     implementation "org.eclipse.jgit:org.eclipse.jgit:7.1.0.202411261347-r"
     implementation "io.reactivex.rxjava3:rxjava:3.1.10"
-    implementation "io.netty:netty-resolver-dns-native-macos:4.1.117.Final:osx-aarch_64"
+    implementation "io.netty:netty-resolver-dns-native-macos:4.1.118.Final:osx-aarch_64"
     implementation "com.opencsv:opencsv:5.10"
 
     // ---- CHECKSTYLE DEPENDENCIES ----
