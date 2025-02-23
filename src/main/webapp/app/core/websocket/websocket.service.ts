@@ -1,6 +1,6 @@
 import { Injectable, OnDestroy, inject } from '@angular/core';
 import { BehaviorSubject, Observable, Subscriber, Subscription, first } from 'rxjs';
-import Stomp, { Client, ConnectionHeaders, Subscription as StompSubscription } from 'webstomp-client';
+import { RxStomp, RxStompConfig, RxStompState } from '@stomp/rx-stomp';
 import { AuthServerProvider } from '../auth/auth-jwt.service';
 
 export class ConnectionState {
@@ -20,10 +20,11 @@ export class ConnectionState {
 export class WebsocketService implements OnDestroy {
   private authServerProvider = inject(AuthServerProvider);
 
-  private stompClient?: Client;
+  private rxStomp: RxStomp = new RxStomp();
+  private rxStompConnectionSubscription?: Subscription;
 
   // we store the STOMP subscriptions per channel so that we can unsubscribe in case we are not interested any more
-  private stompSubscriptions = new Map<string, StompSubscription>();
+  private stompSubscriptions = new Map<string, Subscription>();
   // we store the observables per channel to make sure we can resubscribe them in case of connection issues
   private observables = new Map<string, Observable<any>>();
   // we store the subscribers (represent the components who want to receive messages) per channel so that we can notify them in case a message was received from the server
@@ -33,12 +34,9 @@ export class WebsocketService implements OnDestroy {
 
   private alreadyConnectedOnce = false;
   private shouldReconnect = false;
-  private readonly connectionStateInternal: BehaviorSubject<ConnectionState>;
+  private readonly connectionStateInternal = new BehaviorSubject<ConnectionState>(new ConnectionState(false, false, true));
   private consecutiveFailedAttempts = 0;
   private connecting = false;
-  constructor() {
-    this.connectionStateInternal = new BehaviorSubject<ConnectionState>(new ConnectionState(false, false, true));
-  }
 
   private static parseJSON(response: string): any {
     try {
@@ -103,50 +101,63 @@ export class WebsocketService implements OnDestroy {
     const authToken = this.authServerProvider.getToken();
     // NOTE: we add 'websocket' twice to use STOMP without SockJS
     const url = `ws://${window.location.host}/websocket/websocket?access_token=${authToken}`;
-    const options = {
-      heartbeat: { outgoing: 10000, incoming: 10000 },
-      debug: false,
-      protocols: ['v12.stomp'],
+    const rxStompConfig: RxStompConfig = {
+      brokerURL: url,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
+      // Disable RxStomp auto reconnect; we'll handle reconnection with our custom logic
+      reconnectDelay: 0,
+      // Note: debugging is deactivated to prevent console log statements
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      debug() {},
     };
-    this.stompClient = Stomp.over(url, options);
-    // Note: at the moment, debugging is deactivated to prevent console log statements
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    this.stompClient.debug = () => {};
-    const headers = {} as ConnectionHeaders;
+    this.rxStomp.configure(rxStompConfig);
+    this.rxStomp.activate();
 
-    this.stompClient.connect(
-      headers,
-      () => {
+    this.rxStompConnectionSubscription = this.rxStomp.connectionState$.subscribe((state: RxStompState) => {
+      if (state === RxStompState.OPEN && !this.connectionStateInternal.getValue().connected) {
         this.connecting = false;
-        if (!this.connectionStateInternal.getValue().connected) {
-          this.connectionStateInternal.next(new ConnectionState(true, this.alreadyConnectedOnce, false));
-        }
+        this.connectionStateInternal.next(new ConnectionState(true, this.alreadyConnectedOnce, false));
         this.consecutiveFailedAttempts = 0;
         if (this.alreadyConnectedOnce) {
-          // (re)connect to all existing channels
-          if (this.observables.size !== 0) {
-            this.observables.forEach((observable, channel) => this.addSubscription(channel));
-          }
+          this.observables.forEach((_, channel) => this.addSubscription(channel));
         } else {
           this.alreadyConnectedOnce = true;
         }
-      },
-      this.stompFailureCallback.bind(this),
-    );
+      } else if (
+        state === RxStompState.CLOSED &&
+        this.connectionStateInternal.getValue().connected &&
+        !this.connectionStateInternal.getValue().intendedDisconnect
+      ) {
+        this.connectionStateInternal.next(new ConnectionState(false, this.alreadyConnectedOnce, false));
+        this.stompFailureCallback();
+      }
+    });
   }
 
   public isConnected(): boolean {
-    return this.stompClient?.connected ?? false;
+    return this.rxStomp.connected();
   }
 
   /**
-   * Creates a new observable  in case there is no observable for the passed channel yet.
+   * Combined subscribe and receive functionality
+   * Creates a new observable in case there is no observable for the passed channel yet.
    * Returns the Observable which is invoked when a new message is received
    * @param channel The channel the observable listens on
    */
   receive(channel: string): Observable<any> {
-    if (this.observables.size === 0 || !this.observables.has(channel)) {
-      this.observables.set(channel, this.createObservable(channel));
+    if (!this.observables.has(channel)) {
+      const observable = new Observable((subscriber: Subscriber<unknown>) => {
+        this.subscribers.set(channel, subscriber);
+      });
+      this.observables.set(channel, observable);
+
+      const connectionSubscription = this.connectionState.pipe(first(cs => cs.connected)).subscribe(() => {
+        if (!this.stompSubscriptions.has(channel)) {
+          this.addSubscription(channel);
+        }
+      });
+      this.waitUntilConnectionSubscriptions.set(channel, connectionSubscription);
     }
     return this.observables.get(channel)!;
   }
@@ -158,16 +169,14 @@ export class WebsocketService implements OnDestroy {
     if (!this.isConnected()) {
       return;
     }
-    this.observables.forEach((observable, channel) => this.unsubscribe(channel));
+    this.observables.forEach((_observable, channel) => this.unsubscribe(channel));
     this.waitUntilConnectionSubscriptions.forEach(subscription => subscription.unsubscribe());
-    if (this.stompClient) {
-      this.stompClient.disconnect();
-      this.stompClient = undefined;
-      if (this.connectionStateInternal.getValue().connected || !this.connectionStateInternal.getValue().intendedDisconnect) {
-        this.connectionStateInternal.next(new ConnectionState(false, this.alreadyConnectedOnce, true));
-      }
+    this.rxStomp.deactivate();
+    if (this.connectionStateInternal.getValue().connected || !this.connectionStateInternal.getValue().intendedDisconnect) {
+      this.connectionStateInternal.next(new ConnectionState(false, this.alreadyConnectedOnce, true));
     }
     this.alreadyConnectedOnce = false;
+    this.rxStompConnectionSubscription?.unsubscribe();
   }
 
   /**
@@ -184,25 +193,8 @@ export class WebsocketService implements OnDestroy {
    */
   send(path: string, data: any): void {
     if (this.isConnected()) {
-      this.stompClient!.send(path, JSON.stringify(data), {});
+      this.rxStomp.publish({ destination: path, body: JSON.stringify(data) });
     }
-  }
-
-  /**
-   * Subscribe to a channel: add the channel to the observables and create a STOMP subscription for the channel if this has not been done before
-   * @param channel
-   */
-  subscribe(channel: string): this {
-    const subscription = this.connectionState.pipe(first(connectionState => connectionState.connected)).subscribe(() => {
-      if (!this.observables.has(channel)) {
-        this.observables.set(channel, this.createObservable(channel));
-      }
-      if (!this.stompSubscriptions.has(channel)) {
-        this.addSubscription(channel);
-      }
-    });
-    this.waitUntilConnectionSubscriptions.set(channel, subscription);
-    return this;
   }
 
   /**
@@ -227,7 +219,7 @@ export class WebsocketService implements OnDestroy {
    * @param channel the path (e.g. '/courses/5/exercises/10') that should be subscribed
    */
   private addSubscription(channel: string): void {
-    const subscription = this.stompClient!.subscribe(channel, message => {
+    const subscription = this.rxStomp.watch(channel).subscribe(message => {
       // this code is invoked if a new websocket message was received from the server
       // we pass the message to the subscriber (e.g. a component who will be notified and can handle the message)
       if (this.subscribers.has(channel)) {

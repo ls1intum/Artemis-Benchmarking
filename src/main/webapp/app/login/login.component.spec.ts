@@ -49,8 +49,8 @@ describe('LoginComponent', () => {
   describe('ngOnInit', () => {
     it('Should call accountService.identity on Init', () => {
       // GIVEN
-      mockAccountService.identity = jest.fn(() => of(null));
-      mockAccountService.getAuthenticationState = jest.fn(() => of(null));
+      mockAccountService.identity = jest.fn(() => of(undefined));
+      mockAccountService.getAuthenticationState = jest.fn(() => of(undefined));
 
       // WHEN
       comp.ngOnInit();
@@ -61,7 +61,7 @@ describe('LoginComponent', () => {
 
     it('Should call accountService.isAuthenticated on Init', () => {
       // GIVEN
-      mockAccountService.identity = jest.fn(() => of(null));
+      mockAccountService.identity = jest.fn(() => of(undefined));
 
       // WHEN
       comp.ngOnInit();
@@ -72,8 +72,8 @@ describe('LoginComponent', () => {
 
     it('should navigate to home page on Init if authenticated=true', () => {
       // GIVEN
-      mockAccountService.identity = jest.fn(() => of(null));
-      mockAccountService.getAuthenticationState = jest.fn(() => of(null));
+      mockAccountService.identity = jest.fn(() => of(undefined));
+      mockAccountService.getAuthenticationState = jest.fn(() => of(undefined));
       mockAccountService.isAuthenticated = () => true;
 
       // WHEN

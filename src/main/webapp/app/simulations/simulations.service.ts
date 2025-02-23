@@ -22,27 +22,22 @@ export class SimulationsService {
   private websocketService = inject(WebsocketService);
 
   receiveSimulationResult(run: SimulationRun): Observable<SimulationStats[]> {
-    this.websocketService.subscribe(`/topic/simulation/runs/${run.id}/result`);
     return this.websocketService.receive(`/topic/simulation/runs/${run.id}/result`).pipe(map((res: any) => res as SimulationStats[]));
   }
 
   receiveSimulationLog(run: SimulationRun): Observable<LogMessage> {
-    this.websocketService.subscribe(`/topic/simulation/runs/${run.id}/log`);
     return this.websocketService.receive(`/topic/simulation/runs/${run.id}/log`).pipe(map((res: any) => res as LogMessage));
   }
 
   receiveSimulationStatus(run: SimulationRun): Observable<Status> {
-    this.websocketService.subscribe(`/topic/simulation/runs/${run.id}/status`);
     return this.websocketService.receive(`/topic/simulation/runs/${run.id}/status`).pipe(map((res: any) => res as Status));
   }
 
   receiveNewSimulationRun(simulation: Simulation): Observable<SimulationRun> {
-    this.websocketService.subscribe(`/topic/simulation/${simulation.id}/runs/new`);
     return this.websocketService.receive(`/topic/simulation/${simulation.id}/runs/new`).pipe(map((res: any) => res as SimulationRun));
   }
 
   receiveCiStatus(simulationRun: SimulationRun): Observable<CiStatus> {
-    this.websocketService.subscribe(`/topic/simulation/runs/${simulationRun.id}/ci-status`);
     return this.websocketService.receive(`/topic/simulation/runs/${simulationRun.id}/ci-status`).pipe(map((res: any) => res as CiStatus));
   }
 
