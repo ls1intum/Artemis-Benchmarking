@@ -13,6 +13,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.*;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
+import org.springframework.web.socket.sockjs.transport.handler.WebSocketTransportHandler;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -27,12 +28,17 @@ public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        DefaultHandshakeHandler handshakeHandler = defaultHandshakeHandler();
+        WebSocketTransportHandler webSocketTransportHandler = new WebSocketTransportHandler(handshakeHandler);
         // @formatter:off
         registry
+            // NOTE: clients can connect using sockjs via 'ws://{artemis-url}/websocket' or without sockjs using 'ws://{artemis-url}/websocket/websocket'
             .addEndpoint("/websocket")
             .setAllowedOriginPatterns("*")
-            .setHandshakeHandler(defaultHandshakeHandler())
-            .addInterceptors(httpSessionHandshakeInterceptor());
+            // TODO: in the future, we should deactivate the option to connect with sockjs, because this is not needed any more
+            .withSockJS()
+            .setTransportHandlers(webSocketTransportHandler)
+            .setInterceptors(httpSessionHandshakeInterceptor());
         // @formatter:on
     }
 
