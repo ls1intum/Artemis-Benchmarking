@@ -1,6 +1,5 @@
 import { Injectable, OnDestroy, inject } from '@angular/core';
 import { BehaviorSubject, Observable, Subscriber, Subscription, first } from 'rxjs';
-import SockJS from 'sockjs-client';
 import Stomp, { Client, ConnectionHeaders, Subscription as StompSubscription } from 'webstomp-client';
 import { AuthServerProvider } from '../auth/auth-jwt.service';
 
@@ -37,8 +36,6 @@ export class WebsocketService implements OnDestroy {
   private readonly connectionStateInternal: BehaviorSubject<ConnectionState>;
   private consecutiveFailedAttempts = 0;
   private connecting = false;
-  private socket: any = undefined;
-  private subscriptionCounter = 0;
   constructor() {
     this.connectionStateInternal = new BehaviorSubject<ConnectionState>(new ConnectionState(false, false, true));
   }
@@ -105,15 +102,12 @@ export class WebsocketService implements OnDestroy {
     this.connecting = true;
     const authToken = this.authServerProvider.getToken();
     const url = `//${window.location.host}/websocket?access_token=${authToken}`;
-    // NOTE: only support real websockets transports and disable http poll, http stream and other exotic workarounds.
-    // nowadays, all modern browsers support websockets and workarounds are not necessary anymore and might only lead to problems
-    this.socket = new SockJS(url, undefined, { transports: 'websocket' });
     const options = {
       heartbeat: { outgoing: 10000, incoming: 10000 },
       debug: false,
       protocols: ['v12.stomp'],
     };
-    this.stompClient = Stomp.over(this.socket, options);
+    this.stompClient = Stomp.over(url, options);
     // Note: at the moment, debugging is deactivated to prevent console log statements
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     this.stompClient.debug = () => {};
@@ -176,23 +170,6 @@ export class WebsocketService implements OnDestroy {
   }
 
   /**
-   * Enable automatic reconnect
-   */
-  enableReconnect(): void {
-    if (this.stompClient && !this.stompClient.connected) {
-      this.connect();
-    }
-    this.shouldReconnect = true;
-  }
-
-  /**
-   * Disable automatic reconnect
-   */
-  disableReconnect(): void {
-    this.shouldReconnect = false;
-  }
-
-  /**
    * On destroy disconnect.
    */
   ngOnDestroy(): void {
@@ -249,19 +226,13 @@ export class WebsocketService implements OnDestroy {
    * @param channel the path (e.g. '/courses/5/exercises/10') that should be subscribed
    */
   private addSubscription(channel: string): void {
-    const subscription = this.stompClient!.subscribe(
-      channel,
-      message => {
-        // this code is invoked if a new websocket message was received from the server
-        // we pass the message to the subscriber (e.g. a component who will be notified and can handle the message)
-        if (this.subscribers.has(channel)) {
-          this.subscribers.get(channel)!.next(WebsocketService.parseJSON(message.body));
-        }
-      },
-      {
-        id: this.getSessionId() + '-' + String(this.subscriptionCounter++),
-      },
-    );
+    const subscription = this.stompClient!.subscribe(channel, message => {
+      // this code is invoked if a new websocket message was received from the server
+      // we pass the message to the subscriber (e.g. a component who will be notified and can handle the message)
+      if (this.subscribers.has(channel)) {
+        this.subscribers.get(channel)!.next(WebsocketService.parseJSON(message.body));
+      }
+    });
     this.stompSubscriptions.set(channel, subscription);
   }
 
@@ -273,14 +244,5 @@ export class WebsocketService implements OnDestroy {
     return new Observable((subscriber: Subscriber<T>) => {
       this.subscribers.set(channel, subscriber);
     });
-  }
-
-  // https://stackoverflow.com/a/35651029/3802758
-  private getSessionId(): string {
-    if (this.socket?._transport?.url) {
-      return this.socket._transport.url.match('.*\\/websocket\\/\\d*\\/(.*)\\/websocket.*')[1] as string;
-    } else {
-      return 'unsubscribed';
-    }
   }
 }
