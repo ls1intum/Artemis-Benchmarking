@@ -20,7 +20,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "allowedCommonJsDependencies": ["webstomp-client", "rfdc"],
+            "allowedCommonJsDependencies": ["rfdc"],
             "outputPath": {
               "base": "build/resources/main/static/",
               "browser": ""
