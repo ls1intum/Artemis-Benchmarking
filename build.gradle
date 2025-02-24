@@ -216,7 +216,7 @@ dependencies {
     implementation "org.eclipse.jgit:org.eclipse.jgit.http.server:7.1.0.202411261347-r"
 
     // apache ssh enabled the ssh git operations in LocalVC together with JGit
-    implementation "org.apache.sshd:sshd-core:2.14.0"
+    implementation "org.apache.sshd:sshd-core:2.15.0"
     implementation "org.apache.sshd:sshd-git:2.14.0"
     implementation "org.apache.sshd:sshd-osgi:2.14.0"
     implementation "org.apache.sshd:sshd-sftp:2.14.0"
