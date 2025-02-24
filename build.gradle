@@ -218,7 +218,7 @@ dependencies {
     // apache ssh enabled the ssh git operations in LocalVC together with JGit
     implementation "org.apache.sshd:sshd-core:2.14.0"
     implementation "org.apache.sshd:sshd-git:2.14.0"
-    implementation "org.apache.sshd:sshd-osgi:2.14.0"
+    implementation "org.apache.sshd:sshd-osgi:2.15.0"
     implementation "org.apache.sshd:sshd-sftp:2.14.0"
 
     implementation "org.bouncycastle:bcpkix-jdk18on:1.80"
