@@ -13,7 +13,7 @@ import { Account } from 'app/core/auth/account.model';
   imports: [SharedModule, RouterModule],
 })
 export default class HomeComponent implements OnInit, OnDestroy {
-  account = signal<Account | null>(null);
+  account = signal<Account | undefined>(undefined);
 
   private readonly destroy$ = new Subject<void>();
 

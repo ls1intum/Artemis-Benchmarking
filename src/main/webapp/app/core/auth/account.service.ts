@@ -7,31 +7,34 @@ import { catchError, shareReplay, tap } from 'rxjs/operators';
 import { StateStorageService } from 'app/core/auth/state-storage.service';
 import { Account } from 'app/core/auth/account.model';
 import { ApplicationConfigService } from '../config/application-config.service';
+import { WebsocketService } from '../websocket/websocket.service';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
-  private readonly userIdentity = signal<Account | null>(null);
-  private readonly authenticationState = new ReplaySubject<Account | null>(1);
-  private accountCache$?: Observable<Account> | null;
+  private readonly userIdentity = signal<Account | undefined>(undefined);
+  private readonly authenticationState = new ReplaySubject<Account | undefined>(1);
+  private accountCache$?: Observable<Account> | undefined;
 
   private readonly http = inject(HttpClient);
   private readonly stateStorageService = inject(StateStorageService);
   private readonly router = inject(Router);
   private readonly applicationConfigService = inject(ApplicationConfigService);
+  private readonly webSocketService = inject(WebsocketService);
 
   save(account: Account): Observable<{}> {
     return this.http.post(this.applicationConfigService.getEndpointFor('api/account'), account);
   }
 
-  authenticate(identity: Account | null): void {
+  authenticate(identity: Account | undefined): void {
     this.userIdentity.set(identity);
     this.authenticationState.next(this.userIdentity());
     if (!identity) {
-      this.accountCache$ = null;
+      this.accountCache$ = undefined;
     }
+    this.webSocketService.connect();
   }
 
-  trackCurrentAccount(): Signal<Account | null> {
+  trackCurrentAccount(): Signal<Account | undefined> {
     return this.userIdentity.asReadonly();
   }
 
@@ -46,7 +49,7 @@ export class AccountService {
     return userIdentity.authorities.some((authority: string) => authorities.includes(authority));
   }
 
-  identity(force?: boolean): Observable<Account | null> {
+  identity(force?: boolean): Observable<Account | undefined> {
     if (!this.accountCache$ || force) {
       this.accountCache$ = this.fetch().pipe(
         tap((account: Account) => {
@@ -57,14 +60,14 @@ export class AccountService {
         shareReplay(),
       );
     }
-    return this.accountCache$.pipe(catchError(() => of(null)));
+    return this.accountCache$.pipe(catchError(() => of(undefined)));
   }
 
   isAuthenticated(): boolean {
-    return this.userIdentity() !== null;
+    return this.userIdentity() !== undefined;
   }
 
-  getAuthenticationState(): Observable<Account | null> {
+  getAuthenticationState(): Observable<Account | undefined> {
     return this.authenticationState.asObservable();
   }
 

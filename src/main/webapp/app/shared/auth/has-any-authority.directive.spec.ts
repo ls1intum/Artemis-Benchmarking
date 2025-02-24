@@ -19,7 +19,7 @@ class TestHasAnyAuthorityDirectiveComponent {
 
 describe('HasAnyAuthorityDirective tests', () => {
   let mockAccountService: AccountService;
-  let currentAccount: WritableSignal<Account | null>;
+  let currentAccount: WritableSignal<Account | undefined>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
@@ -30,7 +30,7 @@ describe('HasAnyAuthorityDirective tests', () => {
 
   beforeEach(() => {
     mockAccountService = TestBed.inject(AccountService);
-    currentAccount = signal<Account | null>({ activated: true, authorities: [] } as any);
+    currentAccount = signal<Account | undefined>({ activated: true, authorities: [] } as any);
     mockAccountService.trackCurrentAccount = jest.fn(() => currentAccount);
   });
 
@@ -79,7 +79,7 @@ describe('HasAnyAuthorityDirective tests', () => {
       expect(comp.content()).toBeDefined();
 
       // GIVEN
-      currentAccount.set(null);
+      currentAccount.set(undefined);
 
       // WHEN
       fixture.detectChanges();

@@ -17,7 +17,7 @@ export default class PasswordComponent implements OnInit {
   doNotMatch = signal(false);
   error = signal(false);
   success = signal(false);
-  account$?: Observable<Account | null>;
+  account$?: Observable<Account | undefined>;
   passwordForm = new FormGroup({
     currentPassword: new FormControl('', { nonNullable: true, validators: Validators.required }),
     newPassword: new FormControl('', {

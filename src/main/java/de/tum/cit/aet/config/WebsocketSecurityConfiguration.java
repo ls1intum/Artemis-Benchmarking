@@ -1,19 +1,19 @@
 package de.tum.cit.aet.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessageType;
-import org.springframework.security.config.annotation.web.messaging.MessageSecurityMetadataSourceRegistry;
-import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
+import org.springframework.security.authorization.AuthorizationManager;
+import org.springframework.security.config.annotation.web.socket.EnableWebSocketSecurity;
+import org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager;
 
-// NOTE: due to an issue in Spring Security, we had to use the old "deprecated" way with extending AbstractSecurityWebSocketMessageBrokerConfigurer
-// https://github.com/spring-projects/spring-security/issues/16299
-// As soon as this issue was addressed in a future Spring Framework / Spring Security, we can switch to the new way by using @EnableWebSocketSecurity again
-// @EnableWebSocketSecurity
 @Configuration
-public class WebsocketSecurityConfiguration extends AbstractSecurityWebSocketMessageBrokerConfigurer {
+@EnableWebSocketSecurity
+public class WebsocketSecurityConfiguration {
 
-    @Override
-    protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
+    @Bean
+    AuthorizationManager<Message<?>> authorizationManager(MessageMatcherDelegatingAuthorizationManager.Builder messages) {
         messages
             .nullDestMatcher()
             .authenticated()
@@ -29,13 +29,6 @@ public class WebsocketSecurityConfiguration extends AbstractSecurityWebSocketMes
             // catch all
             .anyMessage()
             .denyAll();
-    }
-
-    /**
-     * Disables CSRF for Websockets.
-     */
-    @Override
-    protected boolean sameOriginDisabled() {
-        return true;
+        return messages.build();
     }
 }

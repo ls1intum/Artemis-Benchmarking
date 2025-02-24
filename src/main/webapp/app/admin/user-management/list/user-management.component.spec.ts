@@ -41,7 +41,7 @@ describe('User Management Component', () => {
     comp = fixture.componentInstance;
     service = TestBed.inject(UserManagementService);
     mockAccountService = TestBed.inject(AccountService);
-    mockAccountService.identity = jest.fn(() => of(null));
+    mockAccountService.identity = jest.fn(() => of(undefined));
   });
 
   describe('OnInit', () => {

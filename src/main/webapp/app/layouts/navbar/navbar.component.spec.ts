@@ -61,7 +61,7 @@ describe('Navbar Component', () => {
     comp.ngOnInit();
 
     // THEN
-    expect(comp.account()).toBeNull();
+    expect(comp.account()).toBeUndefined();
 
     // WHEN
     accountService.authenticate(account);
@@ -70,10 +70,10 @@ describe('Navbar Component', () => {
     expect(comp.account()).toEqual(account);
 
     // WHEN
-    accountService.authenticate(null);
+    accountService.authenticate(undefined);
 
     // THEN
-    expect(comp.account()).toBeNull();
+    expect(comp.account()).toBeUndefined();
   });
 
   it('Should hold current authenticated user in variable account if user is authenticated before page load', () => {
@@ -87,9 +87,9 @@ describe('Navbar Component', () => {
     expect(comp.account()).toEqual(account);
 
     // WHEN
-    accountService.authenticate(null);
+    accountService.authenticate(undefined);
 
     // THEN
-    expect(comp.account()).toBeNull();
+    expect(comp.account()).toBeUndefined();
   });
 });
