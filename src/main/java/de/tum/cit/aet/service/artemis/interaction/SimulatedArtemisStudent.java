@@ -97,7 +97,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     @Override
     protected void checkAccess() {
-        var response = webClient.get().uri("api/public/account").retrieve().bodyToMono(User.class).block();
+        var response = webClient.get().uri("api/core/public/account").retrieve().bodyToMono(User.class).block();
         this.authenticated = response != null && response.getAuthorities().contains("ROLE_USER");
     }
 
@@ -290,7 +290,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         CourseDashboardDTO courseDashboard = webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", courseIdString, "for-dashboard").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "core", "courses", courseIdString, "for-dashboard").build())
             .retrieve()
             .bodyToMono(CourseDashboardDTO.class)
             .block();
@@ -321,7 +321,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private void getUnreadMessages() {
         webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", courseIdString, "unread-messages").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "core", "courses", courseIdString, "unread-messages").build())
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -331,7 +331,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         Map<String, Object> channelResponse = webClient
             .get()
             .uri(uriBuilder ->
-                uriBuilder.pathSegment("api", "courses", courseIdString, "exercises", String.valueOf(exerciseId), "channel").build()
+                uriBuilder.pathSegment("api", "core", "courses", courseIdString, "exercises", String.valueOf(exerciseId), "channel").build()
             )
             .retrieve()
             .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
@@ -347,7 +347,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                 .get()
                 .uri(uriBuilder ->
                     uriBuilder
-                        .pathSegment("api", "courses", courseIdString, "messages")
+                        .pathSegment("api", "communication", "courses", courseIdString, "messages")
                         .queryParam("conversationId", channelId)
                         .queryParam("PostSortCriterion", "CREATION_DATE")
                         .queryParam("SortingOrder", "DESCENDING")
@@ -367,7 +367,13 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .get()
             .uri(uriBuilder ->
                 uriBuilder
-                    .pathSegment("api", "programming-exercise-participations", String.valueOf(participationId), "latest-pending-submission")
+                    .pathSegment(
+                        "api",
+                        "programming",
+                        "programming-exercise-participations",
+                        String.valueOf(participationId),
+                        "latest-pending-submission"
+                    )
                     .build()
             )
             .retrieve()
@@ -377,13 +383,13 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat getCoursesDropdown() {
         long start = System.nanoTime();
-        webClient.get().uri("api/courses/for-dropdown").retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/core/courses/for-dropdown").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private RequestStat getScienceSettings() {
         long start = System.nanoTime();
-        webClient.get().uri("api/science-settings").retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/atlas/science-settings").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -392,7 +398,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         try {
             webClient
                 .put()
-                .uri("api/science")
+                .uri("api/atlas/science")
                 .bodyValue(new ScienceEventDTO(ScienceEventDTO.ScienceEventType.EXERCISE__OPEN, exerciseId))
                 .retrieve()
                 .toBodilessEntity()
@@ -407,7 +413,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exercises", String.valueOf(exerciseId), "details").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exercise", "exercises", String.valueOf(exerciseId), "details").build())
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -419,7 +425,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         StudentExam studentExam = webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "own-student-exam").build())
+            .uri(uriBuilder ->
+                uriBuilder.pathSegment("api", "exam", "courses", courseIdString, "exams", examIdString, "own-student-exam").build()
+            )
             .retrieve()
             .bodyToMono(StudentExam.class)
             .block();
@@ -435,7 +443,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "courses", courseIdString, "test-exams-per-user").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exam", "courses", courseIdString, "test-exams-per-user").build())
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -450,6 +458,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                 uriBuilder
                     .pathSegment(
                         "api",
+                        "exam",
                         "courses",
                         courseIdString,
                         "exams",
@@ -471,7 +480,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         webClient
             .get()
             .uri(uriBuilder ->
-                uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "live-events").build()
+                uriBuilder
+                    .pathSegment("api", "core", "courses", courseIdString, "exams", examIdString, "student-exams", "live-events")
+                    .build()
             )
             .retrieve()
             .toBodilessEntity()
@@ -510,7 +521,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             webClient
                 .put()
                 .uri(uriBuilder ->
-                    uriBuilder.pathSegment("api", "exercises", modelingExercise.getId().toString(), "modeling-submissions").build()
+                    uriBuilder
+                        .pathSegment("api", "modeling", "exercises", modelingExercise.getId().toString(), "modeling-submissions")
+                        .build()
                 )
                 .bodyValue(modelingSubmission)
                 .retrieve()
@@ -530,7 +543,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             long start = System.nanoTime();
             webClient
                 .put()
-                .uri(uriBuilder -> uriBuilder.pathSegment("api", "exercises", textExercise.getId().toString(), "text-submissions").build())
+                .uri(uriBuilder ->
+                    uriBuilder.pathSegment("api", "text", "exercises", textExercise.getId().toString(), "text-submissions").build()
+                )
                 .bodyValue(textSubmission)
                 .retrieve()
                 .toBodilessEntity()
@@ -548,7 +563,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             webClient
                 .put()
                 .uri(uriBuilder ->
-                    uriBuilder.pathSegment("api", "exercises", quizExercise.getId().toString(), "submissions", "exam").build()
+                    uriBuilder.pathSegment("api", "quiz", "exercises", quizExercise.getId().toString(), "submissions", "exam").build()
                 )
                 .bodyValue(quizSubmission)
                 .retrieve()
@@ -612,7 +627,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .get()
             .uri(uriBuilder ->
                 uriBuilder
-                    .pathSegment("api", "account", "participation-vcs-access-token")
+                    .pathSegment("api", "core", "account", "participation-vcs-access-token")
                     .queryParam("participationId", participationId)
                     .build()
             )
@@ -627,7 +642,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         webClient
             .post()
             .uri(uriBuilder ->
-                uriBuilder.pathSegment("api", "courses", courseIdString, "exams", examIdString, "student-exams", "submit").build()
+                uriBuilder.pathSegment("api", "exam", "courses", courseIdString, "exams", examIdString, "student-exams", "submit").build()
             )
             .bodyValue(studentExam)
             .retrieve()
@@ -644,6 +659,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                 uriBuilder
                     .pathSegment(
                         "api",
+                        "exam",
                         "courses",
                         courseIdString,
                         "exams",
@@ -785,7 +801,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .put()
-            .uri("api/repository/" + participationId + "/files?commit=yes")
+            .uri("api/programming/repository/" + participationId + "/files?commit=yes")
             .bodyValue(List.of(new OnlineIdeFileSubmission(fileName, changedFileContent)))
             .retrieve()
             .toBodilessEntity()
@@ -798,7 +814,11 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri("api/programming-exercise-participations/" + participationId + "/latest-result-with-feedbacks?withSubmission=true")
+            .uri(
+                "api/programming/programming-exercise-participations/" +
+                participationId +
+                "/latest-result-with-feedbacks?withSubmission=true"
+            )
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -807,7 +827,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat fetchRepository(Long participationId) {
         long start = System.nanoTime();
-        webClient.get().uri("api/repository/" + participationId).retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/programming/repository/" + participationId).retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, REPOSITORY_INFO);
     }
 
@@ -815,7 +835,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri("api/repository/" + participationId + "/file?file=" + fileName)
+            .uri("api/programming/repository/" + participationId + "/file?file=" + fileName)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .retrieve()
             .toBodilessEntity()
@@ -825,7 +845,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat fetchFiles(Long participationId) {
         long start = System.nanoTime();
-        webClient.get().uri("api/repository/" + participationId + "/files").retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/programming/repository/" + participationId + "/files").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, REPOSITORY_FILES);
     }
 
@@ -833,7 +853,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         String plantUmlString =
             "%40startuml%0A%0Aclass%20Client%20%7B%0A%7D%0A%0Aclass%20Policy%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2Bconfigure()%3C%2Fcolor%3E%0A%7D%0A%0Aclass%20Context%20%7B%0A%20%20%3Ccolor%3Agrey%3E-dates%3A%20List%3CDate%3E%3C%2Fcolor%3E%0A%20%20%3Ccolor%3Agrey%3E%2Bsort()%3C%2Fcolor%3E%0A%7D%0A%0Ainterface%20SortStrategy%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2BperformSort(List%3CDate%3E)%3C%2Fcolor%3E%0A%7D%0A%0Aclass%20BubbleSort%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2BperformSort(List%3CDate%3E)%3C%2Fcolor%3E%0A%7D%0A%0Aclass%20MergeSort%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2BperformSort(List%3CDate%3E)%3C%2Fcolor%3E%0A%7D%0A%0AMergeSort%20-up-%7C%3E%20SortStrategy%20%23grey%0ABubbleSort%20-up-%7C%3E%20SortStrategy%20%23grey%0APolicy%20-right-%3E%20Context%20%23grey%3A%20context%0AContext%20-right-%3E%20SortStrategy%20%23grey%3A%20sortAlgorithm%0AClient%20.down.%3E%20Policy%0AClient%20.down.%3E%20Context%0A%0Ahide%20empty%20fields%0Ahide%20empty%20methods%0A%0A%40enduml&useDarkTheme=true";
-        webClient.get().uri("api/plantuml/svg?plantuml=" + plantUmlString).retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/programming/plantuml/svg?plantuml=" + plantUmlString).retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
