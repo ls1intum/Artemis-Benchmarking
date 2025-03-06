@@ -204,7 +204,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         ArtemisServerInfo response = webClient.get().uri("management/info").retrieve().bodyToMono(ArtemisServerInfo.class).block();
         if (response != null) {
-            isScienceFeatureEnabled = response.features().contains("science");
+            isScienceFeatureEnabled = response.features().contains("Science");
         }
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
