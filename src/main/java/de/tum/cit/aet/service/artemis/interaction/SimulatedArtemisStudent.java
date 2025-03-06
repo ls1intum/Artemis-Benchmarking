@@ -211,19 +211,19 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat getSystemNotifications() {
         long start = System.nanoTime();
-        webClient.get().uri("api/public/system-notifications/active").retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/core/public/system-notifications/active").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private RequestStat getAccount() {
         long start = System.nanoTime();
-        webClient.get().uri("api/public/account").retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/core/public/account").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private RequestStat getNotificationSettings() {
         long start = System.nanoTime();
-        webClient.get().uri("api/notification-settings").retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/communication/notification-settings").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -233,7 +233,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .get()
             .uri(uriBuilder ->
                 uriBuilder
-                    .path("api/notifications")
+                    .path("api/communication/notifications")
                     .queryParam("page", 0)
                     .queryParam("size", 25)
                     .queryParam("sort", "notificationDate,desc")
@@ -249,7 +249,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         List<UserSshPublicKeyDTO> keys = webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.path("api/ssh-settings/public-keys").build())
+            .uri(uriBuilder -> uriBuilder.path("api/programming/ssh-settings/public-keys").build())
             .retrieve()
             .bodyToFlux(UserSshPublicKeyDTO.class)
             .collectList()
@@ -261,7 +261,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             try {
                 webClient
                     .post()
-                    .uri("api/ssh-settings/public-key")
+                    .uri("api/programming/ssh-settings/public-key")
                     .bodyValue(UserSshPublicKeyDTO.of(publicKeyString))
                     .retrieve()
                     .toBodilessEntity()
@@ -276,13 +276,13 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat getCourses() {
         long start = System.nanoTime();
-        webClient.get().uri("api/courses/for-dashboard").retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/core/courses/for-dashboard").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private RequestStat getMutedConversations() {
         long start = System.nanoTime();
-        webClient.get().uri("api/muted-conversations").retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/communication/muted-conversations").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -321,7 +321,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private void getUnreadMessages() {
         webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "core", "courses", courseIdString, "unread-messages").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "communication", "courses", courseIdString, "unread-messages").build())
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -331,7 +331,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         Map<String, Object> channelResponse = webClient
             .get()
             .uri(uriBuilder ->
-                uriBuilder.pathSegment("api", "core", "courses", courseIdString, "exercises", String.valueOf(exerciseId), "channel").build()
+                uriBuilder
+                    .pathSegment("api", "communication", "courses", courseIdString, "exercises", String.valueOf(exerciseId), "channel")
+                    .build()
             )
             .retrieve()
             .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
@@ -481,7 +483,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .get()
             .uri(uriBuilder ->
                 uriBuilder
-                    .pathSegment("api", "core", "courses", courseIdString, "exams", examIdString, "student-exams", "live-events")
+                    .pathSegment("api", "exam", "courses", courseIdString, "exams", examIdString, "student-exams", "live-events")
                     .build()
             )
             .retrieve()
