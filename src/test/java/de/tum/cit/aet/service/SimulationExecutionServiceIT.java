@@ -17,6 +17,7 @@ import de.tum.cit.aet.domain.ArtemisUser;
 import de.tum.cit.aet.domain.LogMessage;
 import de.tum.cit.aet.domain.Simulation;
 import de.tum.cit.aet.domain.SimulationRun;
+import de.tum.cit.aet.repository.CiStatusRepository;
 import de.tum.cit.aet.repository.LogMessageRepository;
 import de.tum.cit.aet.repository.SimulationRunRepository;
 import de.tum.cit.aet.service.artemis.ArtemisConfiguration;
@@ -57,6 +58,9 @@ public class SimulationExecutionServiceIT {
 
     @MockitoBean
     private SimulationRunRepository simulationRunRepository;
+
+    @MockitoBean
+    private CiStatusRepository ciStatusRepository;
 
     @MockitoBean
     private LogMessageRepository logMessageRepository;
@@ -166,6 +170,7 @@ public class SimulationExecutionServiceIT {
         when(logMessageRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(simulationRunRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(simulationResultService.calculateAndSaveResult(any(), any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(ciStatusRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         statusesOnWebsocketUpdate = new LinkedList<>();
         doAnswer(invocation -> {
