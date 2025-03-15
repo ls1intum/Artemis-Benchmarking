@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,47 +46,18 @@ public class CiStatusService {
         status.setQueuedJobs(0);
         status.setTotalJobs(0);
         status.setTimeInMinutes(0);
+        status.setStartTimeNanos(System.nanoTime());
         return ciStatusRepository.save(status);
     }
 
     /**
-     * Subscribe to the CI status for a given SimulationRun.
-     * This method will update the status of the SimulationRun in the database and send updates to the clients via WebSockets.
-     * It gets the status through the build queue.
+     * Get the CiStatus for a given SimulationRun.
      *
-     * @param simulationRun the SimulationRun to subscribe to
-     * @param admin the SimulatedArtemisAdmin to use for querying the CI status
-     * @param courseId the ID of the course to use for querying the CI status
+     * @param simulationRun the SimulationRun to get the CiStatus for
+     * @return the CiStatus for the given SimulationRun
      */
-    @Async
-    public void subscribeToCiStatusViaBuildQueue(SimulationRun simulationRun, SimulatedArtemisAdmin admin, long courseId) {
-        log.info("Subscribing to CI status for simulation run {}", simulationRun.getId());
-        CiStatus status = createCiStatus(simulationRun);
-
-        int numberOfQueuedJobs = admin.getBuildQueue(courseId).size();
-        status.setTotalJobs(numberOfQueuedJobs);
-        status.setQueuedJobs(numberOfQueuedJobs);
-        status = ciStatusRepository.save(status);
-        websocketService.sendRunCiUpdate(simulationRun.getId(), status);
-
-        do {
-            try {
-                Thread.sleep(1000 * 60);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            log.debug("Updating CI status for simulation run {}", simulationRun.getId());
-            numberOfQueuedJobs = admin.getBuildQueue(courseId).size();
-            status.setQueuedJobs(numberOfQueuedJobs);
-            status.setTimeInMinutes(status.getTimeInMinutes() + 1);
-            status.setAvgJobsPerMinute((double) (status.getTotalJobs() - status.getQueuedJobs()) / status.getTimeInMinutes());
-            status = ciStatusRepository.save(status);
-            websocketService.sendRunCiUpdate(simulationRun.getId(), status);
-        } while (numberOfQueuedJobs > 0);
-        status.setFinished(true);
-        status = ciStatusRepository.save(status);
-        websocketService.sendRunCiUpdate(simulationRun.getId(), status);
-        log.info("Finished subscribing to CI status for simulation run {}", simulationRun.getId());
+    public CiStatus getCiStatusForSimulationRun(SimulationRun simulationRun) {
+        return ciStatusRepository.findBySimulationRunId(simulationRun.getId());
     }
 
     /**
@@ -103,7 +73,7 @@ public class CiStatusService {
     public CompletableFuture<Void> subscribeToCiStatusViaResults(SimulationRun simulationRun, SimulatedArtemisAdmin admin, long examId) {
         return CompletableFuture.supplyAsync(() -> {
             log.info("Subscribing to CI status for simulation run {}", simulationRun.getId());
-            CiStatus status = createCiStatus(simulationRun);
+            CiStatus status = getCiStatusForSimulationRun(simulationRun);
 
             List<Long> programmingExerciseIds = admin
                 .getExamWithExercises(examId)
@@ -123,7 +93,8 @@ public class CiStatusService {
                 submissions.addAll(admin.getSubmissions(participation.getId()));
             }
 
-            int numberOfQueuedJobs = submissions.size() - getNumberOfResults(submissions);
+            int numberOfQueuedJobs = submissions.size();
+            log.info("Number of already existing results {}", getNumberOfResults(submissions));
             status.setTotalJobs(numberOfQueuedJobs);
             status.setQueuedJobs(numberOfQueuedJobs);
             status = ciStatusRepository.save(status);
@@ -145,16 +116,21 @@ public class CiStatusService {
                 log.info("Currently queued buildjobs: {}", numberOfQueuedJobs);
 
                 status.setQueuedJobs(numberOfQueuedJobs);
-                status.setTimeInMinutes(status.getTimeInMinutes() + 1);
+                status.setTimeInMinutes(getTimeElapsedInMinutes(status.getStartTimeNanos()));
                 status.setAvgJobsPerMinute((double) (status.getTotalJobs() - status.getQueuedJobs()) / status.getTimeInMinutes());
                 status = ciStatusRepository.save(status);
                 websocketService.sendRunCiUpdate(simulationRun.getId(), status);
             } while (numberOfQueuedJobs > 0);
 
             status.setFinished(true);
+            status.setTimeInMinutes(getTimeElapsedInMinutes(status.getStartTimeNanos()));
             status = ciStatusRepository.save(status);
             websocketService.sendRunCiUpdate(simulationRun.getId(), status);
-            log.info("Finished subscribing to CI status for simulation run {}", simulationRun.getId());
+            log.info(
+                "Finished subscribing to CI status for simulation run {} after {} minutes",
+                simulationRun.getId(),
+                status.getTimeInMinutes()
+            );
 
             return null;
         });
@@ -175,5 +151,9 @@ public class CiStatusService {
     private void cleanup() {
         log.info("Cleaning up CI status");
         ciStatusRepository.deleteAllNotFinished();
+    }
+
+    private long getTimeElapsedInMinutes(long startTimeNanos) {
+        return (System.nanoTime() - startTimeNanos) / (1000L * 1000 * 1000 * 60);
     }
 }
