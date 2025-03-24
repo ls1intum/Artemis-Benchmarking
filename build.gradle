@@ -213,7 +213,7 @@ dependencies {
     implementation "org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.1.0.202411261347-r"
     // Note: jgit.htt.server is not compatible with jakarta yet and neither is there a timeline. Hence, we had to add the source files to our repository.
     // Once the compatibility is given, we can switch back to the maven dependency.
-    implementation "org.eclipse.jgit:org.eclipse.jgit.http.server:7.1.0.202411261347-r"
+    implementation "org.eclipse.jgit:org.eclipse.jgit.http.server:7.2.0.202503040940-r"
 
     // apache ssh enabled the ssh git operations in LocalVC together with JGit
     implementation "org.apache.sshd:sshd-core:2.14.0"
