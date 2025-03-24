@@ -71,7 +71,7 @@
     "@types/jest": "29.5.14",
     "@types/node": "22.13.5",
     "@types/sockjs-client": "1.5.4",
-    "angular-eslint": "19.1.0",
+    "angular-eslint": "19.3.0",
     "buffer": "6.0.3",
     "concurrently": "9.1.2",
     "eslint": "9.21.0",
