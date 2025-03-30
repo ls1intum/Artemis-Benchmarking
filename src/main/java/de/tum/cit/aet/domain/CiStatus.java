@@ -21,7 +21,11 @@ public class CiStatus {
     private int totalJobs;
 
     @Column(name = "time_in_minutes")
-    private int timeInMinutes;
+    private long timeInMinutes;
+
+    @JsonIgnore
+    @Column(name = "start_time_nanos")
+    private long startTimeNanos;
 
     @Column(name = "avg_jobs_per_minute")
     private double avgJobsPerMinute;
@@ -63,11 +67,11 @@ public class CiStatus {
         this.totalJobs = totalJobs;
     }
 
-    public int getTimeInMinutes() {
+    public long getTimeInMinutes() {
         return timeInMinutes;
     }
 
-    public void setTimeInMinutes(int timeInMinutes) {
+    public void setTimeInMinutes(long timeInMinutes) {
         this.timeInMinutes = timeInMinutes;
     }
 
@@ -85,5 +89,13 @@ public class CiStatus {
 
     public void setSimulationRun(SimulationRun simulationRun) {
         this.simulationRun = simulationRun;
+    }
+
+    public long getStartTimeNanos() {
+        return startTimeNanos;
+    }
+
+    public void setStartTimeNanos(long startTimeNanos) {
+        this.startTimeNanos = startTimeNanos;
     }
 }
