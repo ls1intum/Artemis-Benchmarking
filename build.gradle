@@ -148,7 +148,7 @@ dependencies {
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.5"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.8"
     implementation "com.zaxxer:HikariCP:6.2.1"
     implementation "org.apache.commons:commons-lang3:3.17.0"
     implementation "org.openapitools:jackson-databind-nullable:${jacksonDatabindNullableVersion}"
