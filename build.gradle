@@ -210,7 +210,7 @@ dependencies {
     implementation "com.thedeanda:lorem:2.2"
     implementation "org.eclipse.jgit:org.eclipse.jgit:7.1.0.202411261347-r"
     // https://search.maven.org/artifact/org.eclipse.jgit/org.eclipse.jgit
-    implementation "org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.1.0.202411261347-r"
+    implementation "org.eclipse.jgit:org.eclipse.jgit.ssh.apache:7.2.1.202505142326-r"
     // Note: jgit.htt.server is not compatible with jakarta yet and neither is there a timeline. Hence, we had to add the source files to our repository.
     // Once the compatibility is given, we can switch back to the maven dependency.
     implementation "org.eclipse.jgit:org.eclipse.jgit.http.server:7.1.0.202411261347-r"
