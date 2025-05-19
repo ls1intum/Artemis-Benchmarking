@@ -203,7 +203,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server:${springBootVersion}"
     implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.14.4"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.15.0"
     implementation "io.dropwizard.metrics:metrics-core:4.2.30"
     implementation "org.springframework.security:spring-security-messaging:${springSecurityVersion}"
     implementation "commons-io:commons-io:2.18.0"
