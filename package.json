@@ -45,6 +45,7 @@
     "rimraf": "6.0.1",
     "tough-cookie": "5.1.2",
     "vite": "6.3.5",
+    "webpack": "5.99.9",
     "webpack-dev-middleware": "7.4.2",
     "webpack-dev-server": "5.2.1",
     "word-wrap": "1.2.5",
@@ -110,7 +111,8 @@
     "typescript-eslint": "8.32.1"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.16.0",
+    "npm": ">=10.9.2"
   },
   "cacheDirectories": [
     "node_modules"
