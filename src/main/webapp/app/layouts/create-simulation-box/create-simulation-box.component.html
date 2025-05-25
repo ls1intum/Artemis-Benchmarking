@@ -126,7 +126,7 @@
         }
       </div>
     </div>
-    @if (mode != Mode.CREATE_COURSE_AND_EXAM) {
+    @if (mode !== Mode.CREATE_COURSE_AND_EXAM) {
       <div class="flex-wrapper">
         <div class="me-3 mb-3">
           <label for="course-input" class="form-label">Course ID</label>
@@ -139,7 +139,7 @@
             [ngModelOptions]="{ standalone: true }"
           />
         </div>
-        @if (mode != Mode.EXISTING_COURSE_CREATE_EXAM) {
+        @if (mode !== Mode.EXISTING_COURSE_CREATE_EXAM) {
           <div class="me-3 mb-3">
             <label for="exam-input" class="form-label">Exam ID</label>
             <input
