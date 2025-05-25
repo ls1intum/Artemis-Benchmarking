@@ -26,9 +26,15 @@
     <div class="space-between-wrapper">
       <div class="me-3 w-60">
         @if (numberOfActiveSchedules > 0) {
-          <div class="alert alert-warning p-1 w-fit-content" role="button" (click)="openScheduleDialog()">
+          <div
+            class="alert alert-warning p-1 w-fit-content"
+            role="button"
+            (click)="openScheduleDialog()"
+            (keydown)="openScheduleDialog()"
+            tabindex="0"
+          >
             <fa-icon class="ms-2" [icon]="faClock"></fa-icon>
-            <span class="ms-2 me-2"> {{ numberOfActiveSchedules }} {{ numberOfActiveSchedules == 1 ? 'Schedule' : 'Schedules' }} </span>
+            <span class="ms-2 me-2"> {{ numberOfActiveSchedules }} {{ numberOfActiveSchedules === 1 ? 'Schedule' : 'Schedules' }} </span>
           </div>
         }
         <p>
@@ -42,7 +48,7 @@
           }
         </p>
         <p class="mb-1">Commits: {{ simulation().numberOfCommitsAndPushesFrom }} - {{ simulation().numberOfCommitsAndPushesTo }}</p>
-        @if (simulation().mode != Mode.CREATE_COURSE_AND_EXAM) {
+        @if (simulation().mode !== Mode.CREATE_COURSE_AND_EXAM) {
           <div class="flex-wrapper">
             <p class="mb-1">Course-ID: {{ simulation().courseId }}</p>
             @if (
@@ -66,7 +72,7 @@
             }
           </div>
         }
-        @if (simulation().mode == Mode.EXISTING_COURSE_PREPARED_EXAM || simulation().mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM) {
+        @if (simulation().mode === Mode.EXISTING_COURSE_PREPARED_EXAM || simulation().mode === Mode.EXISTING_COURSE_UNPREPARED_EXAM) {
           <p class="mb-1">Exam-ID: {{ simulation().examId }}</p>
         }
       </div>
@@ -80,7 +86,7 @@
         type="button"
         class="shadow btn btn-outline-secondary w-100 mb-2"
         (click)="clickedRun(run)"
-        [ngClass]="{ active: selectedRun() == run }"
+        [ngClass]="{ active: selectedRun() === run }"
       >
         <div class="space-between-wrapper text-white">
           <div class="flex-container">
@@ -110,11 +116,11 @@
     <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
   </div>
   <div class="modal-body">
-    @if (simulation().mode == Mode.CREATE_COURSE_AND_EXAM) {
+    @if (simulation().mode === Mode.CREATE_COURSE_AND_EXAM) {
       <p>To perform a run of this simulation, you need to specify an Artemis Admin Account.</p>
     }
     @if (
-      (simulation().mode == Mode.EXISTING_COURSE_CREATE_EXAM || simulation().mode == Mode.EXISTING_COURSE_UNPREPARED_EXAM) &&
+      (simulation().mode === Mode.EXISTING_COURSE_CREATE_EXAM || simulation().mode === Mode.EXISTING_COURSE_UNPREPARED_EXAM) &&
       !instructorCredentialsProvided(simulation())
     ) {
       <p>
@@ -166,7 +172,7 @@
     <button
       type="submit"
       class="btn btn-primary"
-      [disabled]="(adminPassword.length == 0 || adminUsername.length == 0) && credentialsRequired"
+      [disabled]="(adminPassword.length === 0 || adminUsername.length === 0) && credentialsRequired"
       (click)="modal.close()"
     >
       Start run
@@ -250,7 +256,7 @@
     <button
       type="submit"
       class="btn btn-primary"
-      [disabled]="adminUsername.length == 0 || adminPassword.length == 0"
+      [disabled]="adminUsername.length === 0 || adminPassword.length === 0"
       (click)="modal.close('submit')"
     >
       Save

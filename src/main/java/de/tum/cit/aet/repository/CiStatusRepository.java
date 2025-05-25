@@ -13,4 +13,6 @@ public interface CiStatusRepository extends JpaRepository<CiStatus, Long> {
     @Transactional
     @Query(value = "delete from CiStatus status where status.isFinished = false")
     void deleteAllNotFinished();
+
+    CiStatus findBySimulationRunId(Long simulationRunId);
 }

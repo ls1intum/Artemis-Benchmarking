@@ -9,8 +9,8 @@ import { NgbAlert } from '@ng-bootstrap/ng-bootstrap';
   imports: [NgbAlert],
 })
 export class ModeExplanationComponent {
-  readonly mode = input<Mode>();
-  readonly cleanupEnabled = input(false);
+  mode = input<Mode>();
+  cleanupEnabled = input(false);
 
   protected readonly Mode = Mode;
 }

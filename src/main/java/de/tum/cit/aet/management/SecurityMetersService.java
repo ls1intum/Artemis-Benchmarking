@@ -2,9 +2,11 @@ package de.tum.cit.aet.management;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
+@Lazy(false) // This service should be eagerly initialized to ensure that the meters are registered at application startup
 public class SecurityMetersService {
 
     public static final String INVALID_TOKENS_METER_NAME = "security.authentication.invalid-tokens";

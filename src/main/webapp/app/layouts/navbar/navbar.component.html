@@ -162,14 +162,14 @@
                 </a>
               </li>
               <li>
-                <a class="dropdown-item" (click)="logout()" id="logout" data-cy="logout">
+                <a class="dropdown-item" (click)="logout()" (keydown)="logout()" tabindex="0" id="logout" data-cy="logout">
                   <fa-icon icon="sign-out-alt" [fixedWidth]="true"></fa-icon>
                   <span>Sign out</span>
                 </a>
               </li>
             } @else {
               <li>
-                <a class="dropdown-item" (click)="login()" id="login" data-cy="login">
+                <a class="dropdown-item" (click)="login()" (keydown)="login()" tabindex="0" id="login" data-cy="login">
                   <fa-icon icon="sign-in-alt" [fixedWidth]="true"></fa-icon>
                   <span>Sign in</span>
                 </a>

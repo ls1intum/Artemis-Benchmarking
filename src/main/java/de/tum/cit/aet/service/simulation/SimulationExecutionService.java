@@ -266,6 +266,11 @@ public class SimulationExecutionService {
                     students[i].startExamParticipation(courseId, examId, programmingExerciseId)
                 )
             );
+
+            // create ci status here and start measuring the total duration of build jobs since Artemis starts to process the queue directly
+            CiStatus status = ciStatusService.createCiStatus(simulationRun);
+            simulationRun.setCiStatus(status);
+
             requestStats.addAll(
                 performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].participateInExam(courseId, examId))
             );

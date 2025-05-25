@@ -9,6 +9,6 @@ import { NgClass } from '@angular/common';
   imports: [NgClass],
 })
 export class ServerBadgeComponent {
-  readonly server = input<ArtemisServer>();
+  server = input<ArtemisServer>();
   protected readonly ArtemisServer = ArtemisServer;
 }

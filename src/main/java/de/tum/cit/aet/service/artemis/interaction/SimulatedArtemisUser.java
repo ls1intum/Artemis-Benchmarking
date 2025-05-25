@@ -112,7 +112,7 @@ public abstract class SimulatedArtemisUser {
 
         long start = System.nanoTime();
         var payload = Map.of("username", username, "password", password, "rememberMe", true);
-        var response = webClient.post().uri("api/public/authenticate").bodyValue(payload).retrieve().toBodilessEntity().block();
+        var response = webClient.post().uri("api/core/public/authenticate").bodyValue(payload).retrieve().toBodilessEntity().block();
 
         requestStats.add(new RequestStat(now(), System.nanoTime() - start, AUTHENTICATION));
 

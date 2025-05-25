@@ -42,7 +42,12 @@
               </td>
               <td class="text-center">
                 @if (componentHealth.value!.details) {
-                  <a class="hand" (click)="showHealth({ key: componentHealth.key, value: componentHealth.value! })">
+                  <a
+                    class="hand"
+                    (click)="showHealth({ key: componentHealth.key, value: componentHealth.value! })"
+                    (keydown.enter)="showHealth({ key: componentHealth.key, value: componentHealth.value! })"
+                    tabindex="0"
+                  >
                     <fa-icon icon="eye"></fa-icon>
                   </a>
                 }
