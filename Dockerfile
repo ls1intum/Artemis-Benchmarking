@@ -1,10 +1,10 @@
-FROM gradle:8.14.1-jdk21 AS build
+FROM gradle:8.14-jdk21-alpine AS build
 
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN ./gradlew -Pprod --no-daemon clean bootJar
 
-FROM eclipse-temurin:21
+FROM eclipse-temurin:21-jre
 
 RUN mkdir /app
 COPY --from=build /home/gradle/src/build/libs/*.jar /app/app.jar
