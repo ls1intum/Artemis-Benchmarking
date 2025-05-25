@@ -69,21 +69,21 @@ describe('Account Service', () => {
   describe('authenticate', () => {
     it('authenticationState should emit null if input is null', () => {
       // GIVEN
-      let userIdentity: Account | null = accountWithAuthorities([]);
+      let userIdentity: Account | undefined = accountWithAuthorities([]);
       service.getAuthenticationState().subscribe(account => (userIdentity = account));
 
       // WHEN
-      service.authenticate(null);
+      service.authenticate(undefined);
 
       // THEN
-      expect(userIdentity).toBeNull();
+      expect(userIdentity).toBeUndefined();
       expect(service.isAuthenticated()).toBe(false);
     });
 
     it('authenticationState should emit the same account as was in input parameter', () => {
       // GIVEN
       const expectedResult = accountWithAuthorities([]);
-      let userIdentity: Account | null = null;
+      let userIdentity: Account | undefined = undefined;
       service.getAuthenticationState().subscribe(account => (userIdentity = account));
 
       // WHEN
@@ -117,7 +117,7 @@ describe('Account Service', () => {
       httpMock.expectNone({ method: 'GET' });
 
       // When I log out
-      service.authenticate(null);
+      service.authenticate(undefined);
       // and then call
       service.identity().subscribe();
 

@@ -20,14 +20,14 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "allowedCommonJsDependencies": ["sockjs-client", "webstomp-client", "rfdc"],
+            "allowedCommonJsDependencies": ["rfdc"],
             "outputPath": {
               "base": "build/resources/main/static/",
               "browser": ""
             },
             "index": "src/main/webapp/index.html",
             "browser": "src/main/webapp/main.ts",
-            "polyfills": ["./src/main/webapp/sockjs-client.polyfill", "@angular/localize/init"],
+            "polyfills": ["@angular/localize/init"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [

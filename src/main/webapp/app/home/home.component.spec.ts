@@ -38,8 +38,8 @@ describe('Home Component', () => {
     fixture = TestBed.createComponent(HomeComponent);
     comp = fixture.componentInstance;
     mockAccountService = TestBed.inject(AccountService);
-    mockAccountService.identity = jest.fn(() => of(null));
-    mockAccountService.getAuthenticationState = jest.fn(() => of(null));
+    mockAccountService.identity = jest.fn(() => of(undefined));
+    mockAccountService.getAuthenticationState = jest.fn(() => of(undefined));
 
     mockRouter = TestBed.inject(Router);
     jest.spyOn(mockRouter, 'navigate').mockImplementation(() => Promise.resolve(true));
@@ -48,14 +48,14 @@ describe('Home Component', () => {
   describe('ngOnInit', () => {
     it('Should synchronize account variable with current account', () => {
       // GIVEN
-      const authenticationState = new Subject<Account | null>();
+      const authenticationState = new Subject<Account | undefined>();
       mockAccountService.getAuthenticationState = jest.fn(() => authenticationState.asObservable());
 
       // WHEN
       comp.ngOnInit();
 
       // THEN
-      expect(comp.account()).toBeNull();
+      expect(comp.account()).toBeUndefined();
 
       // WHEN
       authenticationState.next(account);
@@ -64,10 +64,10 @@ describe('Home Component', () => {
       expect(comp.account()).toEqual(account);
 
       // WHEN
-      authenticationState.next(null);
+      authenticationState.next(undefined);
 
       // THEN
-      expect(comp.account()).toBeNull();
+      expect(comp.account()).toBeUndefined();
     });
   });
 
@@ -84,14 +84,14 @@ describe('Home Component', () => {
   describe('ngOnDestroy', () => {
     it('Should destroy authentication state subscription on component destroy', () => {
       // GIVEN
-      const authenticationState = new Subject<Account | null>();
+      const authenticationState = new Subject<Account | undefined>();
       mockAccountService.getAuthenticationState = jest.fn(() => authenticationState.asObservable());
 
       // WHEN
       comp.ngOnInit();
 
       // THEN
-      expect(comp.account()).toBeNull();
+      expect(comp.account()).toBeUndefined();
 
       // WHEN
       authenticationState.next(account);
@@ -101,7 +101,7 @@ describe('Home Component', () => {
 
       // WHEN
       comp.ngOnDestroy();
-      authenticationState.next(null);
+      authenticationState.next(undefined);
 
       // THEN
       expect(comp.account()).toEqual(account);
