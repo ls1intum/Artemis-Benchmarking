@@ -1,4 +1,4 @@
-import { TestBed, fakeAsync, inject, tick, waitForAsync } from '@angular/core/testing';
+import { TestBed, inject, tick } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -9,7 +9,7 @@ import ActivateComponent from './activate.component';
 describe('ActivateComponent', () => {
   let comp: ActivateComponent;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [ActivateComponent],
       providers: [
@@ -22,48 +22,36 @@ describe('ActivateComponent', () => {
     })
       .overrideTemplate(ActivateComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     const fixture = TestBed.createComponent(ActivateComponent);
     comp = fixture.componentInstance;
   });
 
-  it('calls activate.get with the key from params', inject(
-    [ActivateService],
-    fakeAsync((service: ActivateService) => {
-      jest.spyOn(service, 'get').mockReturnValue(of());
+  it('calls activate.get with the key from params', inject([ActivateService], (service: ActivateService) => {
+    jest.spyOn(service, 'get').mockReturnValue(of());
 
-      comp.ngOnInit();
-      tick();
+    comp.ngOnInit();
 
-      expect(service.get).toHaveBeenCalledWith('ABC123');
-    }),
-  ));
+    expect(service.get).toHaveBeenCalledWith('ABC123');
+  }));
 
-  it('should set set success to true upon successful activation', inject(
-    [ActivateService],
-    fakeAsync((service: ActivateService) => {
-      jest.spyOn(service, 'get').mockReturnValue(of({}));
+  it('should set set success to true upon successful activation', inject([ActivateService], (service: ActivateService) => {
+    jest.spyOn(service, 'get').mockReturnValue(of({}));
 
-      comp.ngOnInit();
-      tick();
+    comp.ngOnInit();
 
-      expect(comp.error()).toBe(false);
-      expect(comp.success()).toBe(true);
-    }),
-  ));
+    expect(comp.error()).toBe(false);
+    expect(comp.success()).toBe(true);
+  }));
 
-  it('should set set error to true upon activation failure', inject(
-    [ActivateService],
-    fakeAsync((service: ActivateService) => {
-      jest.spyOn(service, 'get').mockReturnValue(throwError(() => {}));
+  it('should set set error to true upon activation failure', inject([ActivateService], (service: ActivateService) => {
+    jest.spyOn(service, 'get').mockReturnValue(throwError(() => {}));
 
-      comp.ngOnInit();
-      tick();
+    comp.ngOnInit();
 
-      expect(comp.error()).toBe(true);
-      expect(comp.success()).toBe(false);
-    }),
-  ));
+    expect(comp.error()).toBe(true);
+    expect(comp.success()).toBe(false);
+  }));
 });

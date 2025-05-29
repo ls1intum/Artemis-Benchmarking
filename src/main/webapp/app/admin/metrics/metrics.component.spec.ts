@@ -1,5 +1,5 @@
 import { ChangeDetectorRef } from '@angular/core';
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 
@@ -13,14 +13,14 @@ describe('MetricsComponent', () => {
   let service: MetricsService;
   let changeDetector: ChangeDetectorRef;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [MetricsComponent],
       providers: [provideHttpClient()],
     })
       .overrideTemplate(MetricsComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(MetricsComponent);

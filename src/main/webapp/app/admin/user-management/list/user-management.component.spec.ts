@@ -1,6 +1,6 @@
 jest.mock('app/core/auth/account.service');
 
-import { ComponentFixture, TestBed, fakeAsync, inject, tick, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed, inject } from '@angular/core/testing';
 import { HttpHeaders, HttpResponse, provideHttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
@@ -27,14 +27,14 @@ describe('User Management Component', () => {
     }),
   );
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [UserManagementComponent],
       providers: [provideHttpClient(), { provide: ActivatedRoute, useValue: { data, queryParamMap } }, AccountService],
     })
       .overrideTemplate(UserManagementComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(UserManagementComponent);
@@ -45,57 +45,49 @@ describe('User Management Component', () => {
   });
 
   describe('OnInit', () => {
-    it('Should call load all on init', inject(
-      [],
-      fakeAsync(() => {
-        // GIVEN
-        const headers = new HttpHeaders().append('link', 'link;link');
-        jest.spyOn(service, 'query').mockReturnValue(
-          of(
-            new HttpResponse({
-              body: [new User(123)],
-              headers,
-            }),
-          ),
-        );
+    it('Should call load all on init', inject([], () => {
+      // GIVEN
+      const headers = new HttpHeaders().append('link', 'link;link');
+      jest.spyOn(service, 'query').mockReturnValue(
+        of(
+          new HttpResponse({
+            body: [new User(123)],
+            headers,
+          }),
+        ),
+      );
 
-        // WHEN
-        comp.ngOnInit();
-        tick(); // simulate async
+      // WHEN
+      comp.ngOnInit();
 
-        // THEN
-        expect(service.query).toHaveBeenCalled();
-        expect(comp.users()?.[0]).toEqual(expect.objectContaining({ id: 123 }));
-      }),
-    ));
+      // THEN
+      expect(service.query).toHaveBeenCalled();
+      expect(comp.users()?.[0]).toEqual(expect.objectContaining({ id: 123 }));
+    }));
   });
 
   describe('setActive', () => {
-    it('Should update user and call load all', inject(
-      [],
-      fakeAsync(() => {
-        // GIVEN
-        const headers = new HttpHeaders().append('link', 'link;link');
-        const user = new User(123);
-        jest.spyOn(service, 'query').mockReturnValue(
-          of(
-            new HttpResponse({
-              body: [user],
-              headers,
-            }),
-          ),
-        );
-        jest.spyOn(service, 'update').mockReturnValue(of(user));
+    it('Should update user and call load all', inject([], () => {
+      // GIVEN
+      const headers = new HttpHeaders().append('link', 'link;link');
+      const user = new User(123);
+      jest.spyOn(service, 'query').mockReturnValue(
+        of(
+          new HttpResponse({
+            body: [user],
+            headers,
+          }),
+        ),
+      );
+      jest.spyOn(service, 'update').mockReturnValue(of(user));
 
-        // WHEN
-        comp.setActive(user, true);
-        tick(); // simulate async
+      // WHEN
+      comp.setActive(user, true);
 
-        // THEN
-        expect(service.update).toHaveBeenCalledWith(user);
-        expect(service.query).toHaveBeenCalled();
-        expect(comp.users()?.[0]).toEqual(expect.objectContaining({ id: 123 }));
-      }),
-    ));
+      // THEN
+      expect(service.update).toHaveBeenCalledWith(user);
+      expect(service.query).toHaveBeenCalled();
+      expect(comp.users()?.[0]).toEqual(expect.objectContaining({ id: 123 }));
+    }));
   });
 });

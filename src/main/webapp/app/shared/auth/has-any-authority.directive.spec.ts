@@ -2,7 +2,7 @@ jest.mock('app/core/auth/account.service');
 
 import { Component, ElementRef, WritableSignal, signal, viewChild } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
-import { TestBed, waitForAsync } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 
 import { AccountService } from 'app/core/auth/account.service';
 import { Account } from 'app/core/auth/account.model';
@@ -21,12 +21,12 @@ describe('HasAnyAuthorityDirective tests', () => {
   let mockAccountService: AccountService;
   let currentAccount: WritableSignal<Account | undefined>;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [TestHasAnyAuthorityDirectiveComponent],
       providers: [provideHttpClient(), AccountService],
     });
-  }));
+  });
 
   beforeEach(() => {
     mockAccountService = TestBed.inject(AccountService);

@@ -1,0 +1,37 @@
+diff --git a/node_modules/jest-preset-angular/setup-env/zoneless/index.js b/node_modules/jest-preset-angular/setup-env/zoneless/index.js
+index 6ef884f..5c4d058 100644
+--- a/node_modules/jest-preset-angular/setup-env/zoneless/index.js
++++ b/node_modules/jest-preset-angular/setup-env/zoneless/index.js
+@@ -1,4 +1,4 @@
+-const { provideExperimentalZonelessChangeDetection, NgModule, ErrorHandler } = require('@angular/core');
++const { provideZonelessChangeDetection, NgModule, ErrorHandler } = require('@angular/core');
+ const { getTestBed } = require('@angular/core/testing');
+ const {
+     BrowserDynamicTestingModule,
+@@ -11,7 +11,7 @@ const provideZonelessConfig = () => {
+     class TestModule {}
+     NgModule({
+         providers: [
+-            provideExperimentalZonelessChangeDetection(),
++            provideZonelessChangeDetection(),
+             {
+                 provide: ErrorHandler,
+                 useValue: {
+@@ -28,7 +28,7 @@ const provideZonelessConfig = () => {
+ 
+ const setupZonelessTestEnv = (options) => {
+     polyfillEncoder();
+-    if (typeof provideExperimentalZonelessChangeDetection !== 'undefined') {
++    if (typeof provideZonelessChangeDetection !== 'undefined') {
+         const testEnvironmentOptions = resolveTestEnvOptions(options);
+ 
+         getTestBed().initTestEnvironment(
+@@ -41,7 +41,7 @@ const setupZonelessTestEnv = (options) => {
+     }
+ 
+     throw Error(
+-        'Cannot find provideExperimentalZonelessChangeDetection() to setup zoneless testing environment. ' +
++        'Cannot find provideZonelessChangeDetection() to setup zoneless testing environment. ' +
+             'Please use setupZoneTestEnv() from jest-preset-angular/setup-env/setup-zone-env.mjs instead.',
+     );
+ };

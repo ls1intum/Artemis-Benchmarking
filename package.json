@@ -12,8 +12,9 @@
   "scripts": {
     "prebuild": "node prebuild.mjs",
     "build": "npm run webapp:prod --",
+    "compile:ts:tests": "npm run prebuild && tsc --project tsconfig.spec.json",
     "cleanup": "rimraf build/",
-    "postinstall": "husky && patch-package",
+    "postinstall": "husky && patch-package && cp -R node_modules/jest-preset-angular node_modules/@angular-builders/jest/node_modules",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "prettier:check": "prettier --check \"{,src/**/,.blueprint/**/}*.{md,json,yml,html,cjs,mjs,js,ts,tsx,css,scss,java}\"",

@@ -32,7 +32,6 @@ module.exports = {
       {
         tsconfig: '<rootDir>/tsconfig.spec.json',
         stringifyContentPathRegex: '\\.html$',
-        isolatedModules: true,
         diagnostics: {
           ignoreCodes: [151001],
         },

@@ -1,6 +1,6 @@
 jest.mock('app/core/auth/account.service');
 
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpResponse, provideHttpClient } from '@angular/common/http';
 import { FormBuilder } from '@angular/forms';
 import { of, throwError } from 'rxjs';
@@ -15,14 +15,14 @@ describe('PasswordComponent', () => {
   let fixture: ComponentFixture<PasswordComponent>;
   let service: PasswordService;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [PasswordComponent],
       providers: [FormBuilder, AccountService, provideHttpClient()],
     })
       .overrideTemplate(PasswordComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(PasswordComponent);

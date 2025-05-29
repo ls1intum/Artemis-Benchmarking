@@ -1,5 +1,5 @@
 import { ElementRef, signal } from '@angular/core';
-import { ComponentFixture, TestBed, fakeAsync, inject, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed, inject } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -63,7 +63,7 @@ describe('PasswordResetFinishComponent', () => {
 
   it('should update success to true after resetting password', inject(
     [PasswordResetFinishService],
-    fakeAsync((service: PasswordResetFinishService) => {
+    (service: PasswordResetFinishService) => {
       jest.spyOn(service, 'save').mockReturnValue(of({}));
       comp.passwordForm.patchValue({
         newPassword: 'password',
@@ -71,28 +71,23 @@ describe('PasswordResetFinishComponent', () => {
       });
 
       comp.finishReset();
-      tick();
 
       expect(service.save).toHaveBeenCalledWith('XYZPDQ', 'password');
       expect(comp.success()).toBe(true);
-    }),
+    },
   ));
 
-  it('should notify of generic error', inject(
-    [PasswordResetFinishService],
-    fakeAsync((service: PasswordResetFinishService) => {
-      jest.spyOn(service, 'save').mockReturnValue(throwError(() => {}));
-      comp.passwordForm.patchValue({
-        newPassword: 'password',
-        confirmPassword: 'password',
-      });
+  it('should notify of generic error', inject([PasswordResetFinishService], (service: PasswordResetFinishService) => {
+    jest.spyOn(service, 'save').mockReturnValue(throwError(() => {}));
+    comp.passwordForm.patchValue({
+      newPassword: 'password',
+      confirmPassword: 'password',
+    });
 
-      comp.finishReset();
-      tick();
+    comp.finishReset();
 
-      expect(service.save).toHaveBeenCalledWith('XYZPDQ', 'password');
-      expect(comp.success()).toBe(false);
-      expect(comp.error()).toBe(true);
-    }),
-  ));
+    expect(service.save).toHaveBeenCalledWith('XYZPDQ', 'password');
+    expect(comp.success()).toBe(false);
+    expect(comp.error()).toBe(true);
+  }));
 });

@@ -2,7 +2,7 @@ jest.mock('app/core/auth/account.service');
 jest.mock('app/login/login.service');
 
 import { ElementRef, signal } from '@angular/core';
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormBuilder } from '@angular/forms';
 import { Navigation, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -19,7 +19,7 @@ describe('LoginComponent', () => {
   let mockAccountService: AccountService;
   let mockLoginService: LoginService;
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [LoginComponent],
       providers: [
@@ -35,7 +35,7 @@ describe('LoginComponent', () => {
     })
       .overrideTemplate(LoginComponent, '')
       .compileComponents();
-  }));
+  });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(LoginComponent);
