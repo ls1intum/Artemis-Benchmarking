@@ -11,8 +11,25 @@ import java.util.Base64;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.springframework.data.util.Pair;
 
+/**
+ * Utility class providing methods for SSH key management.
+ */
 public class SshUtils {
 
+    /**
+     * Generates a new SSH RSA key pair.
+     * <p>
+     * This method:
+     * <ul>
+     *   <li>Creates a 2048-bit RSA key pair.</li>
+     *   <li>Exports the public key in OpenSSH format and the private key in PEM format.</li>
+     * </ul>
+     * <p>
+     * <strong>Rationale:</strong> Encapsulates SSH key generation logic, providing a convenient and secure way to produce key pairs for authentication or encryption purposes.
+     *
+     * @return a {@link Pair} where the left is the public key (OpenSSH format) and the right is the private key (PEM format)
+     * @throws RuntimeException if the key generation or export fails
+     */
     public static Pair<String, String> generateSshKeyPair() {
         try {
             // Generate RSA key pair

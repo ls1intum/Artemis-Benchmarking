@@ -160,6 +160,7 @@ public abstract class SimulatedArtemisUser {
      * @param artemisUserService the ArtemisUserService to use to update the ArtemisUser entity
      * @param numberOfCommitsAndPushesFrom the minimum number of commits and pushes to simulate
      * @param numberOfCommitsAndPushesTo the maximum number of commits and pushes to simulate
+     * @param authMechanism the authentication mechanism to use for the student
      * @return a new SimulatedArtemisStudent
      */
     public static SimulatedArtemisStudent createArtemisStudent(

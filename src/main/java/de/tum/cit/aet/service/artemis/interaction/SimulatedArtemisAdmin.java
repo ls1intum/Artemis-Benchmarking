@@ -190,6 +190,11 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .block();
     }
 
+    /**
+     * Cancel all queued build jobs on Artemis.
+     * <p>
+     * Note: This method is only available for admins.
+     */
     public void cancelAllQueuedBuildJobs() {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
@@ -203,6 +208,11 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .block();
     }
 
+    /**
+     * Cancel all running build jobs on Artemis.
+     * <p>
+     * Note: This method is only available for admins.
+     */
     public void cancelAllRunningBuildJobs() {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");

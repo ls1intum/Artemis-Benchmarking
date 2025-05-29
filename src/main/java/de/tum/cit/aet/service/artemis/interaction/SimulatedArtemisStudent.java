@@ -906,6 +906,14 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         throw new RuntimeException("Failed to clone repository for " + username);
     }
 
+    /**
+     * Clones a repository over SSH using JGit and measures the time taken for the operation.
+     *
+     * @param repositoryUrl the URL of the repository to clone
+     * @return a RequestStat containing the time taken for the clone operation
+     * @throws IOException if an I/O error occurs
+     * @throws GeneralSecurityException if a security error occurs
+     */
     public RequestStat cloneRepoOverSSH(String repositoryUrl) throws IOException, GeneralSecurityException {
         log.debug("Clone " + repositoryUrl);
 
@@ -950,6 +958,14 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         throw new RuntimeException("Failed to clone repository for " + username);
     }
 
+    /**
+     * Loads SSH keys from a given private key string.
+     *
+     * @param privateKey the private key in PEM format
+     * @return an iterable of KeyPair objects
+     * @throws IOException if an I/O error occurs
+     * @throws GeneralSecurityException if a security error occurs
+     */
     public Iterable<KeyPair> loadKeys(String privateKey) throws IOException, GeneralSecurityException {
         try {
             Object parsed = new PEMParser(new StringReader(privateKey)).readObject();
@@ -962,6 +978,12 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         }
     }
 
+    /**
+     * Creates an SshdSessionFactory for SSH connections using the provided key pairs.
+     *
+     * @param keyPairs the key pairs to use for authentication
+     * @return an SshdSessionFactory configured with the provided key pairs
+     */
     private SshdSessionFactory getSessionFactory(Iterable<KeyPair> keyPairs) {
         // Create a temporary directory to use for the home directory and SSH directory
         // This is required by the SshdSessionFactory object despite us not using them
