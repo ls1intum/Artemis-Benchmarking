@@ -47,7 +47,7 @@ describe('MetricsModalThreadsComponent', () => {
           stackTrace: [],
           lockedMonitors: [],
           lockedSynchronizers: [],
-          lockInfo: null,
+          lockInfo: undefined,
         },
         {
           threadName: '',
@@ -67,7 +67,7 @@ describe('MetricsModalThreadsComponent', () => {
           stackTrace: [],
           lockedMonitors: [],
           lockedSynchronizers: [],
-          lockInfo: null,
+          lockInfo: undefined,
         },
         {
           threadName: '',
@@ -87,7 +87,7 @@ describe('MetricsModalThreadsComponent', () => {
           stackTrace: [],
           lockedMonitors: [],
           lockedSynchronizers: [],
-          lockInfo: null,
+          lockInfo: undefined,
         },
         {
           threadName: '',
@@ -107,7 +107,7 @@ describe('MetricsModalThreadsComponent', () => {
           stackTrace: [],
           lockedMonitors: [],
           lockedSynchronizers: [],
-          lockInfo: null,
+          lockInfo: undefined,
         },
       ];
 
@@ -201,7 +201,7 @@ describe('MetricsModalThreadsComponent', () => {
         stackTrace: [],
         lockedMonitors: [],
         lockedSynchronizers: [],
-        lockInfo: null,
+        lockInfo: undefined,
       };
       const thread2 = {
         threadName: '',
@@ -221,7 +221,7 @@ describe('MetricsModalThreadsComponent', () => {
         stackTrace: [],
         lockedMonitors: [],
         lockedSynchronizers: [],
-        lockInfo: null,
+        lockInfo: undefined,
       };
       comp.threads = [thread1, thread2];
       comp.threadStateFilter = ThreadState.Blocked;
@@ -265,7 +265,7 @@ describe('MetricsModalThreadsComponent', () => {
         stackTrace: [],
         lockedMonitors: [],
         lockedSynchronizers: [],
-        lockInfo: null,
+        lockInfo: undefined,
       };
       const thread2 = {
         threadName: '',
@@ -285,7 +285,7 @@ describe('MetricsModalThreadsComponent', () => {
         stackTrace: [],
         lockedMonitors: [],
         lockedSynchronizers: [],
-        lockInfo: null,
+        lockInfo: undefined,
       };
       comp.threads = [thread1, thread2];
       comp.threadStateFilter = undefined;

@@ -30,14 +30,11 @@ export class UserService {
     return user.id;
   }
 
-  compareUser(o1: Pick<IUser, 'id'> | null, o2: Pick<IUser, 'id'> | null): boolean {
+  compareUser(o1: Pick<IUser, 'id'> | undefined, o2: Pick<IUser, 'id'> | undefined): boolean {
     return o1 && o2 ? this.getUserIdentifier(o1) === this.getUserIdentifier(o2) : o1 === o2;
   }
 
-  addUserToCollectionIfMissing<Type extends Pick<IUser, 'id'>>(
-    userCollection: Type[],
-    ...usersToCheck: (Type | null | undefined)[]
-  ): Type[] {
+  addUserToCollectionIfMissing<Type extends Pick<IUser, 'id'>>(userCollection: Type[], ...usersToCheck: (Type | undefined)[]): Type[] {
     const users: Type[] = usersToCheck.filter(isPresent);
     if (users.length > 0) {
       const userCollectionIdentifiers = userCollection.map(userItem => this.getUserIdentifier(userItem));

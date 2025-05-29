@@ -146,13 +146,13 @@ export class FilterOptions implements IFilterOptions {
   }
 
   protected getFilterOptionByName(name: string, add: true): FilterOption;
-  protected getFilterOptionByName(name: string, add?: false): FilterOption | null;
-  protected getFilterOptionByName(name: string, add = false): FilterOption | null {
+  protected getFilterOptionByName(name: string, add?: false): FilterOption | undefined;
+  protected getFilterOptionByName(name: string, add = false): FilterOption | undefined {
     const addOption = (option: FilterOption): FilterOption => {
       this._filterOptions.push(option);
       return option;
     };
 
-    return this._filterOptions.find(thisOption => thisOption.name === name) ?? (add ? addOption(new FilterOption(name)) : null);
+    return this._filterOptions.find(thisOption => thisOption.name === name) ?? (add ? addOption(new FilterOption(name)) : undefined);
   }
 }

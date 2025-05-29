@@ -1,8 +1,8 @@
 export interface IUser {
-  id: number | null;
+  id?: number;
   login?: string;
-  firstName?: string | null;
-  lastName?: string | null;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   activated?: boolean;
   langKey?: string;
@@ -15,10 +15,10 @@ export interface IUser {
 
 export class User implements IUser {
   constructor(
-    public id: number | null,
+    public id?: number,
     public login?: string,
-    public firstName?: string | null,
-    public lastName?: string | null,
+    public firstName?: string,
+    public lastName?: string,
     public email?: string,
     public activated?: boolean,
     public langKey?: string,

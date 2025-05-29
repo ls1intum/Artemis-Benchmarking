@@ -16,7 +16,7 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(request);
     }
 
-    const token: string | null = this.stateStorageService.getAuthenticationToken();
+    const token = this.stateStorageService.getAuthenticationToken();
     if (token) {
       request = request.clone({
         setHeaders: {

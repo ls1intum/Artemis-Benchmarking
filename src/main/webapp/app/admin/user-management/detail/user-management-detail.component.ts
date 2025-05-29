@@ -10,5 +10,5 @@ import { User } from '../user-management.model';
   imports: [RouterModule, SharedModule],
 })
 export default class UserManagementDetailComponent {
-  user = input<User | null>(null);
+  user = input<User | undefined>(undefined);
 }

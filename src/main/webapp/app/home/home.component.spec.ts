@@ -16,13 +16,13 @@ describe('Home Component', () => {
   let mockRouter: Router;
   const account: Account = {
     activated: true,
+    login: 'login',
     authorities: [],
     email: '',
-    firstName: null,
     langKey: '',
-    lastName: null,
-    login: 'login',
-    imageUrl: null,
+    firstName: undefined,
+    lastName: undefined,
+    imageUrl: undefined,
   };
 
   beforeEach(() => {

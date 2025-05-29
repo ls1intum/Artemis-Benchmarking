@@ -20,8 +20,8 @@ export class Simulation {
     public tokenPercentage: number,
     public sshPercentage: number,
     public userRange?: string,
-    public instructorUsername?: string | null,
-    public instructorPassword?: string | null,
+    public instructorUsername?: string,
+    public instructorPassword?: string,
   ) {}
 }
 
@@ -30,7 +30,7 @@ export function instructorCredentialsProvided(simulation: Simulation): boolean {
     // For this mode we need admin credentials, not instructor credentials
     return false;
   }
-  return simulation.instructorUsername !== null && simulation.instructorPassword !== null;
+  return simulation.instructorUsername !== undefined && simulation.instructorPassword !== undefined;
 }
 
 export enum Mode {

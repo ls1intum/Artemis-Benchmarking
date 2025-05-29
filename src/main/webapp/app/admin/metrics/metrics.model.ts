@@ -106,9 +106,9 @@ export interface Thread {
   blockedCount: number;
   waitedTime: number;
   waitedCount: number;
-  lockName: string | null;
+  lockName?: string;
   lockOwnerId: number;
-  lockOwnerName: string | null;
+  lockOwnerName?: string;
   daemon: boolean;
   inNative: boolean;
   suspended: boolean;
@@ -117,7 +117,7 @@ export interface Thread {
   stackTrace: StackTrace[];
   lockedMonitors: LockedMonitor[];
   lockedSynchronizers: string[];
-  lockInfo: LockInfo | null;
+  lockInfo?: LockInfo;
   // custom field for showing-hiding thread dump
   showThreadDump?: boolean;
 }
@@ -135,9 +135,9 @@ export interface LockedMonitor {
 }
 
 export interface StackTrace {
-  classLoaderName: string | null;
-  moduleName: string | null;
-  moduleVersion: string | null;
+  classLoaderName?: string;
+  moduleName?: string;
+  moduleVersion?: string;
   methodName: string;
   fileName: string;
   lineNumber: number;

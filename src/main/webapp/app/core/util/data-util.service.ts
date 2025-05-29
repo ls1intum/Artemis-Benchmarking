@@ -60,7 +60,7 @@ export class DataUtils {
    */
   loadFileToForm(event: Event, editForm: FormGroup, field: string, isImage: boolean): Observable<void> {
     return new Observable((observer: Observer<void>) => {
-      const eventTarget: HTMLInputElement | null = event.target as HTMLInputElement | null;
+      const eventTarget: HTMLInputElement | undefined = event.target as HTMLInputElement | undefined;
       if (eventTarget?.files?.[0]) {
         const file: File = eventTarget.files[0];
         if (isImage && !file.type.startsWith('image/')) {

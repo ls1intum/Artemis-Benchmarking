@@ -12,13 +12,13 @@ const requireRestSample: IUser = {
 describe('User Service', () => {
   let service: UserService;
   let httpMock: HttpTestingController;
-  let expectedResult: IUser | IUser[] | boolean | null;
+  let expectedResult: IUser | IUser[] | boolean | undefined;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
-    expectedResult = null;
+    expectedResult = undefined;
     service = TestBed.inject(UserService);
     httpMock = TestBed.inject(HttpTestingController);
   });
@@ -28,7 +28,7 @@ describe('User Service', () => {
       const returnedFromService = { ...requireRestSample };
       const expected = { ...sampleWithRequiredData };
 
-      service.find(123).subscribe(resp => (expectedResult = resp.body));
+      service.find(123).subscribe(resp => (expectedResult = resp.body ?? undefined));
 
       const req = httpMock.expectOne({ method: 'GET' });
       req.flush(returnedFromService);
@@ -40,7 +40,7 @@ describe('User Service', () => {
 
       const expected = { ...sampleWithRequiredData };
 
-      service.query().subscribe(resp => (expectedResult = resp.body));
+      service.query().subscribe(resp => (expectedResult = resp.body ?? undefined));
 
       const req = httpMock.expectOne({ method: 'GET' });
       req.flush([returnedFromService]);
@@ -92,24 +92,24 @@ describe('User Service', () => {
         expect(expectedResult).toContain(user2);
       });
 
-      it('should accept null and undefined values', () => {
+      it('should accept undefined values', () => {
         const user: IUser = sampleWithRequiredData;
-        expectedResult = service.addUserToCollectionIfMissing([], null, user, undefined);
+        expectedResult = service.addUserToCollectionIfMissing([], user, undefined);
         expect(expectedResult).toHaveLength(1);
         expect(expectedResult).toContain(user);
       });
 
       it('should return initial array if no User is added', () => {
         const userCollection: IUser[] = [sampleWithRequiredData];
-        expectedResult = service.addUserToCollectionIfMissing(userCollection, undefined, null);
+        expectedResult = service.addUserToCollectionIfMissing(userCollection, undefined);
         expect(expectedResult).toEqual(userCollection);
       });
     });
 
     describe('compareUser', () => {
       it('Should return true if both entities are null', () => {
-        const entity1 = null;
-        const entity2 = null;
+        const entity1 = undefined;
+        const entity2 = undefined;
 
         const compareResult = service.compareUser(entity1, entity2);
 
@@ -118,7 +118,7 @@ describe('User Service', () => {
 
       it('Should return false if one entity is null', () => {
         const entity1 = { id: 3944 };
-        const entity2 = null;
+        const entity2 = undefined;
 
         const compareResult1 = service.compareUser(entity1, entity2);
         const compareResult2 = service.compareUser(entity2, entity1);

@@ -9,9 +9,9 @@ export class StateStorageService {
     sessionStorage.setItem(this.previousUrlKey, JSON.stringify(url));
   }
 
-  getUrl(): string | null {
-    const previousUrl = sessionStorage.getItem(this.previousUrlKey);
-    return previousUrl ? (JSON.parse(previousUrl) as string | null) : previousUrl;
+  getUrl(): string | undefined {
+    const previousUrl = sessionStorage.getItem(this.previousUrlKey) ?? undefined;
+    return previousUrl ? (JSON.parse(previousUrl) as string | undefined) : previousUrl;
   }
 
   clearUrl(): void {
@@ -28,9 +28,9 @@ export class StateStorageService {
     }
   }
 
-  getAuthenticationToken(): string | null {
-    const authenticationToken = localStorage.getItem(this.authenticationKey) ?? sessionStorage.getItem(this.authenticationKey);
-    return authenticationToken ? (JSON.parse(authenticationToken) as string | null) : authenticationToken;
+  getAuthenticationToken(): string | undefined {
+    const authenticationToken = localStorage.getItem(this.authenticationKey) ?? sessionStorage.getItem(this.authenticationKey) ?? undefined;
+    return authenticationToken ? (JSON.parse(authenticationToken) as string | undefined) : authenticationToken;
   }
 
   clearAuthenticationToken(): void {

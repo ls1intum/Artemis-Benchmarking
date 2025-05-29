@@ -79,10 +79,10 @@ export class AlertErrorComponent implements OnDestroy {
 
   private handleBadRequest(httpErrorResponse: HttpErrorResponse): void {
     const arr = httpErrorResponse.headers.keys();
-    let errorHeader: string | null = null;
+    let errorHeader: string | undefined = undefined;
     for (const entry of arr) {
       if (entry.toLowerCase().endsWith('app-error')) {
-        errorHeader = httpErrorResponse.headers.get(entry);
+        errorHeader = httpErrorResponse.headers.get(entry) ?? undefined;
       }
     }
     if (errorHeader) {

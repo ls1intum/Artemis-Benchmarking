@@ -13,11 +13,11 @@ export class NotificationInterceptor implements HttpInterceptor {
     return next.handle(request).pipe(
       tap((event: HttpEvent<any>) => {
         if (event instanceof HttpResponse) {
-          let alert: string | null = null;
+          let alert: string | undefined = undefined;
 
           for (const headerKey of event.headers.keys()) {
             if (headerKey.toLowerCase().endsWith('app-alert')) {
-              alert = event.headers.get(headerKey);
+              alert = event.headers.get(headerKey) ?? undefined;
             }
           }
 

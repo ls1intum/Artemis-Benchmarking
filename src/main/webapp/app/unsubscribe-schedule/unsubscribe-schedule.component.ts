@@ -17,8 +17,8 @@ export default class UnsubscribeScheduleComponent implements OnInit {
   private applicationConfigService = inject(ApplicationConfigService);
 
   ngOnInit(): void {
-    const key = this.route.snapshot.queryParamMap.get('key');
-    if (key === null) {
+    const key = this.route.snapshot.queryParamMap.get('key') ?? undefined;
+    if (key === undefined) {
       this.state = 'ERROR';
       return;
     }

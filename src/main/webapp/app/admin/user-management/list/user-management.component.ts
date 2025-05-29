@@ -21,7 +21,7 @@ import UserManagementDeleteDialogComponent from '../delete/user-management-delet
 })
 export default class UserManagementComponent implements OnInit {
   currentAccount = inject(AccountService).trackCurrentAccount();
-  users = signal<User[] | null>(null);
+  users = signal<User[] | undefined>(undefined);
   isLoading = signal(false);
   totalItems = signal(0);
   itemsPerPage = ITEMS_PER_PAGE;
@@ -69,7 +69,7 @@ export default class UserManagementComponent implements OnInit {
       .subscribe({
         next: (res: HttpResponse<User[]>) => {
           this.isLoading.set(false);
-          this.onSuccess(res.body, res.headers);
+          this.onSuccess(res.body ?? undefined, res.headers);
         },
         error: () => this.isLoading.set(false),
       });
@@ -94,7 +94,7 @@ export default class UserManagementComponent implements OnInit {
     });
   }
 
-  private onSuccess(users: User[] | null, headers: HttpHeaders): void {
+  private onSuccess(users: User[] | undefined, headers: HttpHeaders): void {
     this.totalItems.set(Number(headers.get('X-Total-Count')));
     this.users.set(users);
   }

@@ -44,7 +44,7 @@ describe('Logs Service', () => {
     });
 
     it('should return Thread Dump', () => {
-      let expectedResult: ThreadDump | null = null;
+      let expectedResult: ThreadDump | undefined = undefined;
       const dump: ThreadDump = {
         threads: [
           {
@@ -54,9 +54,9 @@ describe('Logs Service', () => {
             blockedCount: 7,
             waitedTime: -1,
             waitedCount: 0,
-            lockName: null,
+            lockName: undefined,
             lockOwnerId: -1,
-            lockOwnerName: null,
+            lockOwnerName: undefined,
             daemon: true,
             inNative: false,
             suspended: false,
@@ -65,7 +65,7 @@ describe('Logs Service', () => {
             stackTrace: [],
             lockedMonitors: [],
             lockedSynchronizers: [],
-            lockInfo: null,
+            lockInfo: undefined,
           },
         ],
       };
