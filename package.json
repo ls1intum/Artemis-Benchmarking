@@ -13,7 +13,7 @@
     "prebuild": "node prebuild.mjs",
     "build": "npm run webapp:prod --",
     "cleanup": "rimraf build/",
-    "postinstall": "husky",
+    "postinstall": "husky && patch-package",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "prettier:check": "prettier --check \"{,src/**/,.blueprint/**/}*.{md,json,yml,html,cjs,mjs,js,ts,tsx,css,scss,java}\"",
@@ -35,12 +35,42 @@
     "default_environment": "prod"
   },
   "overrides": {
+    "@angular-builders/jest": {
+      "@angular-devkit/build-angular": "^20.0.0",
+      "@angular/core": "^20.0.0",
+      "@angular/compiler-cli": "^20.0.0",
+      "@angular/platform-browser-dynamic": "^20.0.0"
+    },
+    "@fortawesome/angular-fontawesome": {
+      "@angular/core": "^20.0.0"
+    },
+    "@ng-bootstrap/ng-bootstrap": {
+      "@angular/common": "^20.0.0",
+      "@angular/core": "^20.0.0",
+      "@angular/forms": "^20.0.0",
+      "@angular/localize": "^20.0.0"
+    },
+    "@swimlane/ngx-charts": {
+      "@angular/animations": "^20.0.0",
+      "@angular/cdk": "^20.0.0",
+      "@angular/common": "^20.0.0",
+      "@angular/core": "^20.0.0",
+      "@angular/forms": "^20.0.0",
+      "@angular/platform-browser": "^20.0.0",
+      "@angular/platform-browser-dynamic": "^20.0.0"
+    },
     "braces": "3.0.3",
     "debug": "4.4.1",
-    "esbuild": "0.25.4",
+    "esbuild": "0.25.5",
     "express": "5.1.0",
+    "jest-preset-angular": {
+      "@angular-devkit/build-angular": "^20.0.0",
+      "@angular/compiler-cli": "^20.0.0",
+      "@angular/core": "^20.0.0",
+      "@angular/platform-browser-dynamic": "^20.0.0"
+    },
     "jsdom": "26.1.0",
-    "postcss": "8.5.3",
+    "postcss": "8.5.4",
     "punycode": "2.3.1",
     "rimraf": "6.0.1",
     "tough-cookie": "5.1.2",
@@ -50,19 +80,19 @@
     "webpack-dev-server": "5.2.1",
     "word-wrap": "1.2.5",
     "ws": "8.18.2",
-    "yargs-parser": "21.1.1"
+    "yargs-parser": "22.0.0"
   },
   "dependencies": {
-    "@angular/cdk": "19.2.17",
-    "@angular/common": "19.2.13",
-    "@angular/compiler": "19.2.13",
-    "@angular/core": "19.2.13",
-    "@angular/forms": "19.2.13",
-    "@angular/localize": "19.2.13",
-    "@angular/platform-browser": "19.2.13",
-    "@angular/platform-browser-dynamic": "19.2.13",
-    "@angular/router": "19.2.13",
-    "@angular/service-worker": "19.2.13",
+    "@angular/cdk": "20.0.1",
+    "@angular/common": "20.0.0",
+    "@angular/compiler": "20.0.0",
+    "@angular/core": "20.0.0",
+    "@angular/forms": "20.0.0",
+    "@angular/localize": "20.0.0",
+    "@angular/platform-browser": "20.0.0",
+    "@angular/platform-browser-dynamic": "20.0.0",
+    "@angular/router": "20.0.0",
+    "@angular/service-worker": "20.0.0",
     "@fortawesome/angular-fontawesome": "1.0.0",
     "@fortawesome/fontawesome-svg-core": "6.7.2",
     "@fortawesome/free-solid-svg-icons": "6.7.2",
@@ -77,15 +107,15 @@
   },
   "devDependencies": {
     "@angular-builders/jest": "19.0.1",
-    "@angular/build": "19.2.13",
-    "@angular/cli": "19.2.13",
-    "@angular/compiler-cli": "19.2.13",
+    "@angular/build": "20.0.0",
+    "@angular/cli": "20.0.0",
+    "@angular/compiler-cli": "20.0.0",
     "@types/d3-scale": "4.0.9",
     "@types/d3-selection": "3.0.11",
     "@types/d3-shape": "3.1.7",
     "@types/jest": "29.5.14",
-    "@types/node": "22.15.21",
-    "angular-eslint": "19.5.0",
+    "@types/node": "22.15.24",
+    "angular-eslint": "19.6.0",
     "buffer": "6.0.3",
     "concurrently": "9.1.2",
     "eslint": "9.27.0",
@@ -99,7 +129,9 @@
     "jest-junit": "16.0.0",
     "jest-preset-angular": "14.5.5",
     "jest-sonar": "0.2.16",
-    "lint-staged": "16.0.0",
+    "lint-staged": "16.1.0",
+    "patch-package": "8.0.0",
+    "postinstall-postinstall": "2.1.0",
     "prettier": "3.5.3",
     "prettier-plugin-java": "2.6.7",
     "prettier-plugin-packagejson": "2.5.14",
@@ -108,7 +140,7 @@
     "swagger-ui-dist": "5.22.0",
     "ts-jest": "29.3.4",
     "typescript": "5.8.3",
-    "typescript-eslint": "8.32.1"
+    "typescript-eslint": "8.33.0"
   },
   "engines": {
     "node": ">=22.16.0",
