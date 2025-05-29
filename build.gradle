@@ -27,7 +27,7 @@ plugins {
 }
 
 group = "de.tum.cit.aet"
-version = "0.2.6"
+version = "0.2.7"
 
 description = "Benchmarking Application for Performance Tests in the Artemis project"
 
