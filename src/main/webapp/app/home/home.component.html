@@ -3,16 +3,14 @@
     <h3>Welcome to the Artemis Benchmarking Tool</h3>
     <p class="lead">This application can be used for performance testing of Artemis.</p>
     <div>
-      @if (account() !== null) {
+      @if (account(); as accountRef) {
         <div class="alert alert-success">
-          @if (account(); as accountRef) {
-            <span id="home-logged-message">You are logged in as user &quot;{{ accountRef.login }}&quot;.</span>
-          }
+          <span id="home-logged-message">You are logged in as user &quot;{{ accountRef.login }}&quot;.</span>
         </div>
       } @else {
         <div class="alert alert-warning">
           <span>You are not signed in. Click here to </span>
-          <a class="alert-link" (click)="login()" (keydown.enter)="login()" tabindex="0">sign in</a>
+          <a class="alert-link" href="javascript:void(0)" (click)="login()" (keyup.enter)="login()">sign in</a>
         </div>
       }
     </div>
