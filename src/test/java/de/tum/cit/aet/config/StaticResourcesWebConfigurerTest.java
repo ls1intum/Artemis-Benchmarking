@@ -20,14 +20,13 @@ class StaticResourcesWebConfigurerTest {
     public static final int MAX_AGE_TEST = 5;
     public StaticResourcesWebConfiguration staticResourcesWebConfiguration;
     private ResourceHandlerRegistry resourceHandlerRegistry;
-    private MockServletContext servletContext;
-    private WebApplicationContext applicationContext;
+
     private JHipsterProperties props;
 
     @BeforeEach
     void setUp() {
-        servletContext = spy(new MockServletContext());
-        applicationContext = mock(WebApplicationContext.class);
+        MockServletContext servletContext = spy(new MockServletContext());
+        WebApplicationContext applicationContext = mock(WebApplicationContext.class);
         resourceHandlerRegistry = spy(new ResourceHandlerRegistry(applicationContext, servletContext));
         props = new JHipsterProperties();
         staticResourcesWebConfiguration = spy(new StaticResourcesWebConfiguration(props));
