@@ -94,7 +94,7 @@
     "@angular/platform-browser-dynamic": "20.0.0",
     "@angular/router": "20.0.0",
     "@angular/service-worker": "20.0.0",
-    "@fortawesome/angular-fontawesome": "1.0.0",
+    "@fortawesome/angular-fontawesome": "2.0.0",
     "@fortawesome/fontawesome-svg-core": "6.7.2",
     "@fortawesome/free-solid-svg-icons": "6.7.2",
     "@ng-bootstrap/ng-bootstrap": "18.0.0",
