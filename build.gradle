@@ -129,6 +129,7 @@ configurations {
 repositories {
     mavenCentral()
     mavenLocal()
+    maven { url "https://repo.spring.io/milestone" }
     // jhipster-needle-gradle-repositories - JHipster will add additional repositories
 }
 
@@ -152,7 +153,7 @@ dependencies {
     implementation "tech.jhipster:jhipster-framework"
     implementation "jakarta.annotation:jakarta.annotation-api:3.0.0"
     implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6"
+//    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.8"
@@ -169,7 +170,20 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-cache:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}"
-    implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
+
+//    implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
+
+    // START experimental for supporting Hibernate 7 (can be removed once Spring Boot 4.0.0 is released)
+    implementation "org.springframework.data:spring-data-jpa:4.0.0-M3"
+    implementation "org.springframework.data:spring-data-commons:4.0.0-M3"
+    implementation "jakarta.persistence:jakarta.persistence-api:3.2.0"
+    runtimeOnly "org.aspectj:aspectjweaver:1.9.24"
+    implementation "org.springframework:spring-aspects:6.2.7"
+    implementation "org.jspecify:jspecify:1.0.0"
+    // END experimental for supporting Hibernate 7
+
+
+
     implementation "org.springframework.boot:spring-boot-starter-logging:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-mail:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-security:${springBootVersion}"
