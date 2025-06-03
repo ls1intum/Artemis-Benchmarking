@@ -18,7 +18,7 @@
     "enableTranslation": false,
     "entities": [],
     "gradleEnterpriseHost": null,
-    "jhipsterVersion": "8.1.0",
+    "jhipsterVersion": "8.11.0",
     "jwtSecretKey": "YjQzZmE3YzMxODc2NDE1NDY1M2JlYjQxMjhjZWNiOGU1OWM1ZGFhYmY1OWU5ODI0MWMwMDYwY2ZlZDUwZWUzOWY2OGRmY2EwMDJlODY4NGFiNWNmZjhjMWUyZDRjY2IxZTIxOTBlZGI0NzRlMDJjNGNlMTcwZjE2ODRmMjUxNjc=",
     "messageBroker": false,
     "nativeLanguage": "en",
