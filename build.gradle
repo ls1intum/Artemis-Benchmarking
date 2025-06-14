@@ -3,7 +3,9 @@ import com.gorylenko.GenerateGitPropertiesTask
 // This section is required so that the latest version of the liquibase gradle plugin works
 buildscript {
     dependencies {
-        classpath "org.liquibase:liquibase-core:${liquibaseVersion}"
+        classpath("org.liquibase:liquibase-core:${liquibaseVersion}") {
+            exclude group: "com.opencsv", module: "opencsv"
+        }
     }
 }
 
@@ -53,7 +55,7 @@ spotless {
 apply from: "gradle/swagger.gradle"
 apply from: "gradle/cache.gradle"
 apply from: "gradle/liquibase.gradle"
-// jhipster-needle-gradle-apply-from - JHipster will add additional gradle scripts to be applied here
+
 
 if (project.hasProperty("prod")) {
     apply from: "gradle/profile_prod.gradle"
@@ -77,35 +79,15 @@ springBoot {
     mainClass = "de.tum.cit.aet.ArtemisBenchmarkingApp"
 }
 
-test {
-    useJUnitPlatform()
-    exclude "**/*IT*", "**/*IntTest*"
-    testLogging {
-        events "FAILED", "SKIPPED"
-    }
-    jvmArgs += "-Djava.security.egd=file:/dev/./urandom -Xmx512m"
-    testClassesDirs = testing.suites.test.sources.output.classesDirs
-    classpath = testing.suites.test.sources.runtimeClasspath
-    reports.html.required = false
-}
-
 modernizer {
     failOnViolations = true
     includeTestClasses = true
 }
 
 
-
-check.dependsOn integrationTest
-
 tasks.register("testReport", TestReport) {
     destinationDirectory.set(layout.buildDirectory.dir("reports/tests"))
     testResults.from(tasks.named("test"))
-}
-
-tasks.register("integrationTestReport", TestReport) {
-    destinationDirectory.set(layout.buildDirectory.dir("reports/tests"))
-    testResults.from(tasks.named("integrationTest"))
 }
 
 tasks.withType(GenerateGitPropertiesTask).configureEach {
@@ -132,13 +114,74 @@ repositories {
     // jhipster-needle-gradle-repositories - JHipster will add additional repositories
 }
 
+configurations.configureEach {
+    exclude group: "org.dom4j", module: "dom4j"
+    exclude group: "org.xmlpull", module: "pull-parser"
+    exclude group: "jaxen", module: "jaxen"
+    exclude group: "xmlpull", module: "xpp3"
+    exclude group: "xsdlib", module: "xsdlib"
+    exclude group: "javax.xml.stream", module: "stax-api"
+    exclude group: "javax.xml.bind", module: "jaxb-api"
+
+    // Vintage Junit is required for test containers to work correctly
+//    exclude group: "org.junit.vintage", module: "junit-vintage-engine"
+//    exclude group: "junit", module: "junit"
+    exclude group: "com.vaadin.external.google", module: "android-json"
+    exclude group: "org.xmlunit", module: "xmlunit-core"
+
+    exclude group: "org.testcontainers", module: "mariadb"
+    exclude group: "org.testcontainers", module: "mssqlserver"
+
+    exclude group: "jakarta.ws.rs", module: "jsr311-api"
+
+    exclude group: "org.springframework.boot", module: "spring-boot-starter-undertow"
+
+    // these modules include security issues and are not needed
+    exclude group: "commons-jxpath", module: "commons-jxpath"
+    exclude group: "com.fasterxml.woodstox", module: "woodstox-core"
+
+    // those are transitive dependencies of JPlag Text --> Stanford NLP
+    // Note: we exclude them because they are not needed and might have security vulnerabilities
+    exclude group: "org.apache.lucene", module: "lucene-queryparser"
+    exclude group: "org.apache.lucene", module: "lucene-core"
+    exclude group: "org.apache.lucene", module: "lucene-analyzers-common"
+    exclude group: "com.google.protobuf", module: "protobuf-java"
+
+    exclude group: "org.jasypt", module: "jasypt"
+
+    // required by eureka client, but not used in this project
+    exclude group: "com.thoughtworks.xstream", module: "xstream"
+    // required by JPlag, but not used in this project
+    exclude group: "xerces", module: "xercesImpl"
+    // required by JPlag, but not used in this project
+    exclude group: "xalan", module: "xalan"
+    // required by JPlag, but not used in this project
+    exclude group: "xalan", module: "serializer"
+
+    exclude group: "org.springframework.boot", module: "spring-boot-starter-cache"
+    exclude group: "net.logstash.logback", module: "logstash-logback-encoder"
+
+    exclude group: "javax.cache", module: "cache-api"
+    exclude group: "javax.transaction", module: "javax.transaction-api"
+
+    // JPlag depends on those, but they are not really needed
+    exclude group: "org.jgrapht", module: "jgrapht-core"
+    exclude group: "org.apfloat", module: "apfloat"
+    exclude group: "xom", module: "xom"
+
+    exclude group: "commons-configuration", module: "commons-configuration"
+}
+
 dependencies {
     annotationProcessor "org.hibernate.orm:hibernate-jpamodelgen:${hibernateVersion}"
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor:${springBootVersion}"
+    annotationProcessor "org.glassfish.jaxb:jaxb-runtime:${jaxbRuntimeVersion}"
 
     // import JHipster dependencies BOM
-    implementation platform("tech.jhipster:jhipster-dependencies:${jhipsterDependenciesVersion}")
+    implementation platform("tech.jhipster:jhipster-dependencies:${jhipsterDependenciesVersion}") {
+        exclude group: "org.junit.vintage", module: "junit-vintage-engine"
+    }
 
     implementation "org.hibernate.orm:hibernate-core:${hibernateVersion}"
     annotationProcessor "org.hibernate.orm:hibernate-core:${hibernateVersion}"
@@ -151,11 +194,11 @@ dependencies {
     // to use a SNAPSHOT release instead of a stable release
     implementation "tech.jhipster:jhipster-framework"
     implementation "jakarta.annotation:jakarta.annotation-api:3.0.0"
-    implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc"
-    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.8"
+    implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.9"
     implementation "com.zaxxer:HikariCP:6.3.0"
     implementation "org.apache.commons:commons-lang3:3.17.0"
     implementation "org.openapitools:jackson-databind-nullable:${jacksonDatabindNullableVersion}"
@@ -163,7 +206,7 @@ dependencies {
     implementation "javax.annotation:javax.annotation-api:1.3.2"
     implementation "javax.validation:validation-api:2.0.1.Final"
     implementation "org.hibernate.orm:hibernate-core"
-    implementation "org.hibernate.validator:hibernate-validator:9.0.0.Final"
+    implementation "org.hibernate.validator:hibernate-validator:9.0.1.Final"
     implementation "org.mapstruct:mapstruct:${mapstructVersion}"
     implementation "org.springframework.boot:spring-boot-loader-tools:${springBootVersion}"
     implementation "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
@@ -210,7 +253,27 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server:${springBootVersion}"
     implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.15.0"
+
+    // use the latest version to avoid security vulnerabilities
+    implementation "org.springframework:spring-aop:${springFrameworkVersion}"
+    implementation "org.springframework:spring-aspects:${springFrameworkVersion}"
+    implementation "org.springframework:spring-beans:${springFrameworkVersion}"
+    implementation "org.springframework:spring-context:${springFrameworkVersion}"
+    implementation "org.springframework:spring-context-support:${springFrameworkVersion}"
+    implementation "org.springframework:spring-core:${springFrameworkVersion}"
+    implementation "org.springframework:spring-expression:${springFrameworkVersion}"
+    implementation "org.springframework:spring-jcl:${springFrameworkVersion}"
+    implementation "org.springframework:spring-jdbc:${springFrameworkVersion}"
+    implementation "org.springframework:spring-messaging:${springFrameworkVersion}"
+    implementation "org.springframework:spring-orm:${springFrameworkVersion}"
+    implementation "org.springframework:spring-tx:${springFrameworkVersion}"
+    implementation "org.springframework:spring-webmvc:${springFrameworkVersion}"
+    implementation "org.springframework:spring-web:${springFrameworkVersion}"
+    implementation "org.springframework:spring-webflux:${springFrameworkVersion}"
+    implementation "org.springframework:spring-websocket:${springFrameworkVersion}"
+
+
+    implementation "io.micrometer:micrometer-registry-prometheus:1.15.1"
     implementation "io.dropwizard.metrics:metrics-core:4.2.32"
     implementation "org.springframework.security:spring-security-messaging:${springSecurityVersion}"
     implementation "commons-io:commons-io:2.19.0"
@@ -228,12 +291,20 @@ dependencies {
     implementation "org.apache.sshd:sshd-osgi:${sshdVersion}"
     implementation "org.apache.sshd:sshd-sftp:${sshdVersion}"
 
-    implementation "org.bouncycastle:bcpkix-jdk18on:1.80"
-    implementation "org.bouncycastle:bcprov-jdk18on:1.80"
+    implementation "org.bouncycastle:bcpkix-jdk18on:1.81"
+    implementation "org.bouncycastle:bcprov-jdk18on:1.81"
 
     implementation "io.reactivex.rxjava3:rxjava:3.1.10"
-    implementation "io.netty:netty-resolver-dns-native-macos:4.2.1.Final:osx-aarch_64"
-    implementation "com.opencsv:opencsv:5.11"
+    implementation "io.netty:netty-resolver-dns-native-macos:${nettyVersion}:osx-aarch_64"
+    // TODO: we should remove this dependency once we have migrated to org.apache.commons:csv
+    implementation ("com.opencsv:opencsv:5.11.1") {
+        exclude group: "org.junit.vintage", module: "junit-vintage-engine"
+    }
+
+    // explicitly only use this at runtime (required by liquibase, because developers should prefer org.apache.commons:csv
+    runtimeOnly ("com.opencsv:opencsv:5.11.1") {
+        exclude group: "org.junit.vintage", module: "junit-vintage-engine"
+    }
 
     // ---- CHECKSTYLE DEPENDENCIES ----
 
@@ -244,6 +315,8 @@ dependencies {
 
 
     // ---- TEST DEPENDENCIES ----
+
+    testImplementation "org.springframework:spring-test:${springFrameworkVersion}"
 
     testImplementation "org.testcontainers:jdbc:${testcontainersVersion}"
     testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
@@ -257,18 +330,30 @@ dependencies {
     testRuntimeOnly("com.tngtech.archunit:archunit-junit5-engine:${archunitJunit5Version}") {
         exclude group: "org.slf4j", module: "slf4j-api"
     }
-    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
-    // NOTE: make sure this corresponds to the version used for JUnit in the testImplementation
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}"
 
+    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
+    // Required for Testcontainers to work with JUnit 5
+    testImplementation "org.junit.vintage:junit-vintage-engine:${junitVersion}"
+
+    // NOTE: make sure this corresponds to the version used for JUnit in the testImplementation
+    testImplementation "org.junit.platform:junit-platform-commons:${junitPlatformVersion}"
+    testImplementation "org.junit.platform:junit-platform-engine:${junitPlatformVersion}"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}"
 }
+
+
+// we have to apply the test.gradle file after the dependencies block, otherwise we get the error  Cannot change dependencies of dependency configuration ":mockitoAgent" after it has been resolved
+apply from: "gradle/test.gradle"
 
 tasks.register("cleanResources", Delete) {
     delete(layout.buildDirectory.dir("resources"))
 }
 
 wrapper {
-    gradleVersion = "8.14.1"
+    gradleVersion = "8.14.2"
 }
 
 tasks.register("webapp_test", NpmTask) {
@@ -320,7 +405,6 @@ def fixedNpm = tasks.register("fixedNpm", Copy) {
 tasks.named("npmSetup").configure { finalizedBy fixedNpm }
 
 
-test.dependsOn webapp_test
 compileJava.dependsOn processResources
 processResources.dependsOn bootBuildInfo
 
@@ -343,7 +427,7 @@ tasks.named("dependencyUpdates").configure {
 // Available commands:
 //
 // 1) Build production:                             ./gradlew -Pprod -Pwar clean bootWar
-// 2) Execute server integration tests:             ./gradlew integrationTest -x webapp
+// 2) Execute server integration tests:             ./gradlew test -x webapp
 // 3) Find dependency updates:                      ./gradlew dependencyUpdates -Drevision=release
 // 4) Check Java code format:                       ./gradlew spotlessCheck -x webapp
 // 5) Apply Java code formatter:                    ./gradlew spotlessApply -x webapp
