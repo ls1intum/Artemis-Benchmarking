@@ -121,7 +121,6 @@ configurations.configureEach {
     exclude group: "xmlpull", module: "xpp3"
     exclude group: "xsdlib", module: "xsdlib"
     exclude group: "javax.xml.stream", module: "stax-api"
-    exclude group: "javax.xml.bind", module: "jaxb-api"
 
     // Vintage Junit is required for test containers to work correctly
 //    exclude group: "org.junit.vintage", module: "junit-vintage-engine"
