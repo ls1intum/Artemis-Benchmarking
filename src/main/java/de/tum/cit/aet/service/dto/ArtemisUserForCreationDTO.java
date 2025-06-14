@@ -1,7 +1,6 @@
 package de.tum.cit.aet.service.dto;
 
 import com.opencsv.bean.CsvBindByName;
-import java.io.Serializable;
 
 // TODO: convert to record
 public class ArtemisUserForCreationDTO {
