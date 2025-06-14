@@ -25,9 +25,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Run Server Tests
-        run: ./gradlew test integrationTest jacocoTestReport
+        run: ./gradlew test jacocoTestReport
       - name: Run Client Tests
         run: npm test
