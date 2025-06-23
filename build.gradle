@@ -273,7 +273,7 @@ dependencies {
 
 
     implementation "io.micrometer:micrometer-registry-prometheus:1.15.1"
-    implementation "io.dropwizard.metrics:metrics-core:4.2.32"
+    implementation "io.dropwizard.metrics:metrics-core:4.2.33"
     implementation "org.springframework.security:spring-security-messaging:${springSecurityVersion}"
     implementation "commons-io:commons-io:2.19.0"
     implementation "com.thedeanda:lorem:2.2"
