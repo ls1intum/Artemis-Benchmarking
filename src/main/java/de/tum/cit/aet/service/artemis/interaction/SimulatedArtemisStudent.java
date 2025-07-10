@@ -5,7 +5,6 @@ import static de.tum.cit.aet.util.TimeLogUtil.formatDurationFrom;
 import static java.lang.Thread.sleep;
 import static java.time.ZonedDateTime.now;
 
-import com.mysql.cj.xdevapi.SessionFactory;
 import com.thedeanda.lorem.LoremIpsum;
 import de.tum.cit.aet.artemisModel.*;
 import de.tum.cit.aet.domain.ArtemisUser;
@@ -16,44 +15,26 @@ import de.tum.cit.aet.service.artemis.util.ArtemisServerInfo;
 import de.tum.cit.aet.service.artemis.util.CourseDashboardDTO;
 import de.tum.cit.aet.service.artemis.util.ScienceEventDTO;
 import de.tum.cit.aet.service.artemis.util.UserSshPublicKeyDTO;
-import de.tum.cit.aet.util.SshUtils;
 import de.tum.cit.aet.util.UMLClassDiagrams;
 import jakarta.annotation.Nullable;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 import org.apache.commons.io.FileUtils;
-import org.apache.sshd.common.config.keys.AuthorizedKeyEntry;
-import org.apache.sshd.common.config.keys.PublicKeyEntry;
-import org.apache.sshd.common.config.keys.loader.KeyPairResourceLoader;
-import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider;
-import org.apache.sshd.common.keyprovider.KeyPairProvider;
-import org.apache.sshd.common.session.Session;
-import org.apache.sshd.common.session.SessionContext;
-import org.apache.sshd.common.util.io.IoUtils;
-import org.apache.sshd.common.util.security.SecurityUtils;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.TransportException;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.transport.sshd.JGitKeyCache;
 import org.eclipse.jgit.transport.sshd.ServerKeyDatabase;
 import org.eclipse.jgit.transport.sshd.SshdSessionFactory;
 import org.eclipse.jgit.transport.sshd.SshdSessionFactoryBuilder;
-import org.eclipse.jgit.util.FS;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
@@ -117,8 +98,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             getAccount(),
             getNotificationSettings(),
             getCourses(),
-            getMutedConversations(),
-            getNotifications(),
             configureSSH()
         );
     }
@@ -223,25 +202,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat getNotificationSettings() {
         long start = System.nanoTime();
-        webClient.get().uri("api/communication/notification-settings").retrieve().toBodilessEntity().block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
-    }
-
-    private RequestStat getNotifications() {
-        long start = System.nanoTime();
-        webClient
-            .get()
-            .uri(uriBuilder ->
-                uriBuilder
-                    .path("api/communication/notifications")
-                    .queryParam("page", 0)
-                    .queryParam("size", 25)
-                    .queryParam("sort", "notificationDate,desc")
-                    .build()
-            )
-            .retrieve()
-            .toBodilessEntity()
-            .block();
+        webClient.get().uri("api/communication/global-notification-settings").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -277,12 +238,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private RequestStat getCourses() {
         long start = System.nanoTime();
         webClient.get().uri("api/core/courses/for-dashboard").retrieve().toBodilessEntity().block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
-    }
-
-    private RequestStat getMutedConversations() {
-        long start = System.nanoTime();
-        webClient.get().uri("api/communication/muted-conversations").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -350,10 +305,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                 .uri(uriBuilder ->
                     uriBuilder
                         .pathSegment("api", "communication", "courses", courseIdString, "messages")
-                        .queryParam("conversationId", channelId)
-                        .queryParam("PostSortCriterion", "CREATION_DATE")
-                        .queryParam("SortingOrder", "DESCENDING")
-                        .queryParam("pagingEnabled", true)
+                        .queryParam("courseId", courseIdString)
+                        .queryParam("conversationIds", channelId)
+                        .queryParam("postSortCriterion", "CREATION_DATE")
+                        .queryParam("sortingOrder", "DESCENDING")
                         .queryParam("page", 0)
                         .queryParam("size", 50)
                         .build()
