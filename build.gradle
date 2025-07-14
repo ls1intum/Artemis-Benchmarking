@@ -272,7 +272,7 @@ dependencies {
     implementation "org.springframework:spring-websocket:${springFrameworkVersion}"
 
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.15.1"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.15.2"
     implementation "io.dropwizard.metrics:metrics-core:4.2.32"
     implementation "org.springframework.security:spring-security-messaging:${springSecurityVersion}"
     implementation "commons-io:commons-io:2.19.0"
