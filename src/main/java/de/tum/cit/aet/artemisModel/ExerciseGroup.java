@@ -17,6 +17,12 @@ public class ExerciseGroup extends DomainObject {
     @JsonIgnoreProperties(value = "exerciseGroup", allowSetters = true)
     private Set<Exercise> exercises = new HashSet<>();
 
+    public ExerciseGroup(String title, boolean mandatory, Exam exam) {
+        this.title = title;
+        this.mandatory = mandatory;
+        this.exam = exam;
+    }
+
     public Set<Exercise> getExercises() {
         return exercises;
     }

@@ -15,7 +15,7 @@ import java.util.Set;
         @JsonSubTypes.Type(value = ModelingSubmission.class, name = "modeling"),
         @JsonSubTypes.Type(value = QuizSubmission.class, name = "quiz"),
         @JsonSubTypes.Type(value = TextSubmission.class, name = "text"),
-//        @JsonSubTypes.Type(value = FileUploadSubmission.class, name = "file-upload")
+        @JsonSubTypes.Type(value = FileUploadSubmission.class, name = "file-upload")
 })
 // @formatter:on
 @JsonInclude(JsonInclude.Include.NON_EMPTY)

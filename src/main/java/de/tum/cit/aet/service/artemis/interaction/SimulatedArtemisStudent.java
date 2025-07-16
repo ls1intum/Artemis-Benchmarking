@@ -15,6 +15,7 @@ import de.tum.cit.aet.service.artemis.util.ArtemisServerInfo;
 import de.tum.cit.aet.service.artemis.util.CourseDashboardDTO;
 import de.tum.cit.aet.service.artemis.util.ScienceEventDTO;
 import de.tum.cit.aet.service.artemis.util.UserSshPublicKeyDTO;
+import de.tum.cit.aet.util.FileGeneratorUtil;
 import de.tum.cit.aet.util.UMLClassDiagrams;
 import jakarta.annotation.Nullable;
 import java.io.*;
@@ -37,7 +38,11 @@ import org.eclipse.jgit.transport.sshd.SshdSessionFactory;
 import org.eclipse.jgit.transport.sshd.SshdSessionFactoryBuilder;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.BodyInserters;
 
 /**
  * A simulated Artemis student that can be used to interact with the Artemis server.
@@ -458,6 +463,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                 requestStats.add(solveAndSubmitQuizExercise((QuizExercise) exercise));
             } else if (exercise instanceof ProgrammingExercise) {
                 requestStats.addAll(solveAndSubmitProgrammingExercise((ProgrammingExercise) exercise));
+            } else if (exercise instanceof FileUploadExercise) {
+                requestStats.addAll(solveAndSubmitFileUploadExercise((FileUploadExercise) exercise));
             }
         }
         return requestStats;
@@ -577,6 +584,46 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         }
         return requestStats;
     }
+
+
+private List<RequestStat> solveAndSubmitFileUploadExercise(FileUploadExercise fileUploadExercise) {
+    List<RequestStat> requestStats = new ArrayList<>();
+    long start = System.nanoTime();
+    var participation = fileUploadExercise
+        .getStudentParticipations()
+        .iterator()
+        .next();
+    webClient
+        .get()
+        .uri(uriBuilder ->
+            uriBuilder.pathSegment("api", "fileupload", "participations", participation.getId().toString(), "file-upload-editor").build()
+        )
+        .retrieve()
+        .toBodilessEntity()
+        .block();
+    requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC));
+
+    ByteArrayResource file = FileGeneratorUtil.getDummyFile(1024 * 1024, "test-file.txt");
+    MultiValueMap<String, Object> multipartBody = new LinkedMultiValueMap<>();
+    multipartBody.add("file", file);
+    multipartBody.add("submission", new FileUploadSubmission());
+
+    start = System.nanoTime();
+    webClient
+        .post()
+        .uri(uriBuilder ->
+            uriBuilder.pathSegment("api", "fileupload", "exercises", fileUploadExercise.getId().toString(), "file-upload-submissions").build()
+        )
+        .contentType(MediaType.MULTIPART_FORM_DATA)
+        .body(BodyInserters.fromMultipartData(multipartBody))
+        .retrieve()
+        .toBodilessEntity()
+        .block();
+    // TODO maybe this should get a own RequestType to not skew the other submissions? File upload is likely inherently slower
+    requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE));
+
+    return requestStats;
+}
 
     private RequestStat fetchParticipationVcsAccessToken(Long participationId) {
         long start = System.nanoTime();
