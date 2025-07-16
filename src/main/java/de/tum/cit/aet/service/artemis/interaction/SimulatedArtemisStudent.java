@@ -577,6 +577,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         var participationId = programmingParticipation.getId();
         requestStats.add(fetchParticipationVcsAccessToken(participationId));
         requestStats.add(fetchProgrammingIdeSettings());
+        requestStats.add(postParticipation(programmingExercise.getId()));
         try {
             long start = System.nanoTime();
 
@@ -1011,6 +1012,23 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             )
             //The JGitKeyCache handles the caching of keys to avoid unnecessary disk I/O and improve performance
             .build(new JGitKeyCache());
+    }
+
+    /**
+     * Create a participation for the given exercise if it does not exist yet.
+     *
+     * @param exerciseId the ID of the exercise
+     * @return the participations for the given exercise
+     */
+    public RequestStat postParticipation(long exerciseId) {
+        long start = System.nanoTime();
+        webClient
+            .post()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exercise", "exercises", String.valueOf(exerciseId), "participations").build())
+            .retrieve()
+            .bodyToMono(Participation.class)
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private String getSshCloneUrl(String cloneUrl) {
