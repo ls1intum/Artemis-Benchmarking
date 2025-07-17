@@ -603,7 +603,8 @@ private List<RequestStat> solveAndSubmitFileUploadExercise(FileUploadExercise fi
         .block();
     requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC));
 
-    ByteArrayResource file = FileGeneratorUtil.getDummyFile(1024 * 1024, "test-file.txt");
+    int fileSizeInBytes = 1024 * 1024; // 1 MB file size for file upload exercise
+    ByteArrayResource file = FileGeneratorUtil.getDummyFile(fileSizeInBytes, "test-file.txt");
     MultiValueMap<String, Object> multipartBody = new LinkedMultiValueMap<>();
     multipartBody.add("file", file);
     multipartBody.add("submission", new FileUploadSubmission());
