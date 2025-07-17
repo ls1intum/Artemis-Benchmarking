@@ -58,6 +58,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private final int numberOfCommitsAndPushesTo;
 
     private boolean isScienceFeatureEnabled = false;
+    private boolean isIrisEnabled = false;
 
     public SimulatedArtemisStudent(
         String artemisUrl,
@@ -150,6 +151,12 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             }
             requestStats.add(getExerciseDetails(courseProgrammingExerciseId));
         }
+        if (isIrisEnabled) {
+            requestStats.addAll(List.of(
+                getIrisStatus(),
+                postIrisCourseChat(courseId),
+                getIrisChatHistory(courseId)));
+        }
         requestStats.add(navigateIntoExam());
         requestStats.add(getTestExams());
         requestStats.add(startExam());
@@ -184,6 +191,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         ArtemisServerInfo response = webClient.get().uri("management/info").retrieve().bodyToMono(ArtemisServerInfo.class).block();
         if (response != null) {
             isScienceFeatureEnabled = response.features().contains("Science");
+            isIrisEnabled = response.activeProfiles().contains("iris");
         }
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
@@ -980,6 +988,39 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private String getSshCloneUrl(String cloneUrl) {
         var artemisServerHostname = artemisUrl.substring(artemisUrl.indexOf("//") + 2).split("/")[0].split(":")[0];
         return "ssh://git@" + artemisServerHostname + ":7921" + cloneUrl.substring(cloneUrl.indexOf("/git/"));
+    }
+
+    private RequestStat getIrisStatus() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "iris", "status").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat postIrisCourseChat(long courseId) {
+        long start = System.nanoTime();
+        webClient
+            .post()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "iris", "course-chat", String.valueOf(courseId), "sessions", "current").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat getIrisChatHistory(long courseId) {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "iris", "chat-history", String.valueOf(courseId), "sessions").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private UsernamePasswordCredentialsProvider getCredentialsProvider() {
