@@ -96,7 +96,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             getInfo(),
             getSystemNotifications(),
             getAccount(),
-            getNotificationSettings(),
+            getGlobalNotificationSettings(),
             getCourses(),
             configureSSH()
         );
@@ -144,6 +144,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         requestStats.add(getCourseDashboard(courseProgrammingExerciseId));
         requestStats.add(getCoursesDropdown());
         requestStats.add(getScienceSettings());
+        requestStats.add(getNotificationSettings());
+        requestStats.add(getNotificationInfo());
         if (courseProgrammingExerciseId > 0) {
             if (isScienceFeatureEnabled) {
                 requestStats.add(putScienceEvent(courseProgrammingExerciseId));
@@ -200,7 +202,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
-    private RequestStat getNotificationSettings() {
+    private RequestStat getGlobalNotificationSettings() {
         long start = System.nanoTime();
         webClient.get().uri("api/communication/global-notification-settings").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
@@ -280,6 +282,28 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .retrieve()
             .toBodilessEntity()
             .block();
+    }
+
+    public RequestStat getNotificationSettings() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "communication", "notification", courseIdString, "settings").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    public RequestStat getNotificationInfo() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "communication", "notification", "info").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private void getExerciseChannelAndMessages(long exerciseId) {
@@ -552,6 +576,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         var repositoryCloneUrl = programmingParticipation.getRepositoryUri();
         var participationId = programmingParticipation.getId();
         requestStats.add(fetchParticipationVcsAccessToken(participationId));
+        requestStats.add(fetchProgrammingIdeSettings());
+        requestStats.add(postParticipation(programmingExercise.getId()));
         try {
             long start = System.nanoTime();
 
@@ -592,6 +618,17 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .bodyToMono(String.class)
             .block();
         return new RequestStat(now(), System.nanoTime() - start, FETCH_PARTICIPATION_VCS_ACCESS_TOKEN);
+    }
+
+    private RequestStat fetchProgrammingIdeSettings() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "programming", "ide-settings").build())
+            .retrieve()
+            .bodyToMono(String.class)
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private RequestStat submitStudentExam() {
@@ -975,6 +1012,23 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             )
             //The JGitKeyCache handles the caching of keys to avoid unnecessary disk I/O and improve performance
             .build(new JGitKeyCache());
+    }
+
+    /**
+     * Create a participation for the given exercise if it does not exist yet.
+     *
+     * @param exerciseId the ID of the exercise
+     * @return the participations for the given exercise
+     */
+    public RequestStat postParticipation(long exerciseId) {
+        long start = System.nanoTime();
+        webClient
+            .post()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exercise", "exercises", String.valueOf(exerciseId), "participations").build())
+            .retrieve()
+            .bodyToMono(Participation.class)
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private String getSshCloneUrl(String cloneUrl) {
