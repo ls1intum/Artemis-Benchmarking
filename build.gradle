@@ -144,8 +144,6 @@ configurations.configureEach {
     exclude group: "org.apache.lucene", module: "lucene-queryparser"
     exclude group: "org.apache.lucene", module: "lucene-core"
     exclude group: "org.apache.lucene", module: "lucene-analyzers-common"
-    exclude group: "com.google.protobuf", module: "protobuf-java"
-
     exclude group: "org.jasypt", module: "jasypt"
 
     // required by eureka client, but not used in this project
@@ -274,6 +272,9 @@ dependencies {
 
 
     implementation "io.micrometer:micrometer-registry-prometheus:1.15.2"
+    // Prometheus requires the protobuf-java dependency, but we explicitly use the latest version to avoid security vulnerabilities
+    implementation "com.google.protobuf:protobuf-java:4.31.1"
+
     implementation "io.dropwizard.metrics:metrics-core:4.2.33"
     implementation "org.springframework.security:spring-security-messaging:${springSecurityVersion}"
     implementation "commons-io:commons-io:2.20.0"
