@@ -79,7 +79,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         this.numberOfCommitsAndPushesTo = numberOfCommitsAndPushesTo;
         this.authenticationMechanism = authMechanism;
         // for old users in the DB which might never gotten a key pair generated
-        if (artemisUser.getPublicKey()== null || artemisUser.getPrivateKey() == null) {
+        if (artemisUser.getPublicKey() == null || artemisUser.getPrivateKey() == null) {
             var savedUser = artemisUserService.generateKeyPair(artemisUser);
             this.publicKeyString = savedUser.getPublicKey();
             this.privateKeyString = savedUser.getPrivateKey();
