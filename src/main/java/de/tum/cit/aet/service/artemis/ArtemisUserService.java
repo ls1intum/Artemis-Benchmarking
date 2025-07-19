@@ -353,4 +353,14 @@ public class ArtemisUserService {
 
         return n + 1;
     }
+
+    /**
+     * Generates a new SSH key pair for the given ArtemisUser.
+     *
+     * @param artemisUser the ArtemisUser to generate the key pair for
+     */
+    public ArtemisUser generateKeyPair(ArtemisUser artemisUser) {
+        artemisUser.setKeyPair(SshUtils.generateSshKeyPair());
+        return artemisUserRepository.save(artemisUser);
+    }
 }
