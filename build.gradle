@@ -251,6 +251,9 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-oauth2-resource-server:${springBootVersion}"
     implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
 
+    // use newest version of nimbus-jose-jwt to avoid security issues through outdated dependencies
+    implementation "com.nimbusds:nimbus-jose-jwt:10.3.1"
+
 
     // use the latest version to avoid security vulnerabilities
     implementation "org.springframework:spring-aop:${springFrameworkVersion}"
@@ -295,6 +298,10 @@ dependencies {
     implementation "org.bouncycastle:bcpkix-jdk18on:1.81"
     implementation "org.bouncycastle:bcprov-jdk18on:1.81"
 
+    // use newest version
+    implementation "io.projectreactor.netty:reactor-netty-core:1.2.8"
+    implementation "io.projectreactor.netty:reactor-netty-http:1.2.8"
+
     implementation "io.reactivex.rxjava3:rxjava:3.1.11"
     implementation "io.netty:netty-resolver-dns-native-macos:${nettyVersion}:osx-aarch_64"
     // TODO: we should remove this dependency once we have migrated to org.apache.commons:csv
@@ -313,6 +320,7 @@ dependencies {
     checkstyle "org.codehaus.plexus:plexus-container-default:2.1.1"
     checkstyle "org.codehaus.plexus:plexus-classworlds:2.9.0"
     checkstyle "com.puppycrawl.tools:checkstyle:${checkstyleVersion}"
+    checkstyle "org.apache.commons:commons-lang3:3.18.0"
 
 
     // ---- TEST DEPENDENCIES ----
