@@ -154,7 +154,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         if (isIrisEnabled) {
             requestStats.addAll(List.of(
                 getIrisStatus(),
-                postIrisCourseChat(courseId),
                 getIrisChatHistory(courseId)));
         }
         requestStats.add(navigateIntoExam());
@@ -995,17 +994,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         webClient
             .get()
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "iris", "status").build())
-            .retrieve()
-            .toBodilessEntity()
-            .block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
-    }
-
-    private RequestStat postIrisCourseChat(long courseId) {
-        long start = System.nanoTime();
-        webClient
-            .post()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "iris", "course-chat", String.valueOf(courseId), "sessions", "current").build())
             .retrieve()
             .toBodilessEntity()
             .block();
