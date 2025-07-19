@@ -30,15 +30,13 @@ class WebConfigurerTest {
 
     private WebConfigurer webConfigurer;
 
-    private MockServletContext servletContext;
-
     private MockEnvironment env;
 
     private JHipsterProperties props;
 
     @BeforeEach
     public void setup() {
-        servletContext = spy(new MockServletContext());
+        MockServletContext servletContext = spy(new MockServletContext());
         doReturn(mock(FilterRegistration.Dynamic.class)).when(servletContext).addFilter(anyString(), any(Filter.class));
         doReturn(mock(ServletRegistration.Dynamic.class)).when(servletContext).addServlet(anyString(), any(Servlet.class));
 

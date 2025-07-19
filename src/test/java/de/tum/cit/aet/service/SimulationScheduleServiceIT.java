@@ -36,7 +36,6 @@ public class SimulationScheduleServiceIT {
     private SimulationDataService simulationDataService;
 
     private Simulation simulation;
-    private SimulationSchedule simulationSchedule;
 
     @BeforeEach
     public void setUp() {
@@ -94,6 +93,7 @@ public class SimulationScheduleServiceIT {
 
     @Test
     public void testCreateSimulationSchedule_success_weeklyToday() {
+        // TODO: mock the clock to make the test deterministic (independent of the current time)
         SimulationSchedule schedule = new SimulationSchedule();
         schedule.setCycle(WEEKLY);
         schedule.setStartDateTime(now());
