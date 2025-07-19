@@ -242,8 +242,8 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         exam.setStartDate(ZonedDateTime.now().plusDays(1L));
         exam.setVisibleDate(ZonedDateTime.now());
         exam.setEndDate(ZonedDateTime.now().plusDays(1L).plusHours(2L));
-        exam.setNumberOfExercisesInExam(4);
-        exam.setExamMaxPoints(5);
+        exam.setNumberOfExercisesInExam(5);
+        exam.setExamMaxPoints(6);
         exam.setWorkingTime(2 * 60 * 60);
         exam.setCourse(course);
 
@@ -265,23 +265,8 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
-
-        var textExerciseGroup = new ExerciseGroup();
-        textExerciseGroup.setTitle("Text Exercise Group");
-        textExerciseGroup.setMandatory(true);
-        textExerciseGroup.setExam(exam);
-
-        textExerciseGroup = webClient
-            .post()
-            .uri(uriBuilder ->
-                uriBuilder
-                    .pathSegment("api", "exam", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exercise-groups")
-                    .build()
-            )
-            .bodyValue(textExerciseGroup)
-            .retrieve()
-            .bodyToMono(ExerciseGroup.class)
-            .block();
+        var textExerciseGroup = new ExerciseGroup("Text Exercise Group", true, exam);
+        textExerciseGroup = postExerciseGroup(exam, textExerciseGroup);
 
         var textExercise = new TextExercise();
         textExercise.setExerciseGroup(textExerciseGroup);
@@ -296,22 +281,8 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .toBodilessEntity()
             .block();
 
-        var modelingExerciseGroup = new ExerciseGroup();
-        modelingExerciseGroup.setTitle("Modeling Exercise Group");
-        modelingExerciseGroup.setMandatory(true);
-        modelingExerciseGroup.setExam(exam);
-
-        modelingExerciseGroup = webClient
-            .post()
-            .uri(uriBuilder ->
-                uriBuilder
-                    .pathSegment("api", "exam", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exercise-groups")
-                    .build()
-            )
-            .bodyValue(modelingExerciseGroup)
-            .retrieve()
-            .bodyToMono(ExerciseGroup.class)
-            .block();
+        var modelingExerciseGroup = new ExerciseGroup("Modeling Exercise Group", true, exam);
+        modelingExerciseGroup = postExerciseGroup(exam, modelingExerciseGroup);
 
         var modelingExercise = new ModelingExercise();
         modelingExercise.setExerciseGroup(modelingExerciseGroup);
@@ -326,22 +297,9 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .toBodilessEntity()
             .block();
 
-        var programmingExerciseGroup = new ExerciseGroup();
-        programmingExerciseGroup.setTitle("Programming Exercise Group");
-        programmingExerciseGroup.setMandatory(true);
-        programmingExerciseGroup.setExam(exam);
+        var programmingExerciseGroup = new ExerciseGroup("Programming Exercise Group", true, exam);
 
-        programmingExerciseGroup = webClient
-            .post()
-            .uri(uriBuilder ->
-                uriBuilder
-                    .pathSegment("api", "exam", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exercise-groups")
-                    .build()
-            )
-            .bodyValue(programmingExerciseGroup)
-            .retrieve()
-            .bodyToMono(ExerciseGroup.class)
-            .block();
+        programmingExerciseGroup = postExerciseGroup(exam, programmingExerciseGroup);
 
         var programmingExercise = new ProgrammingExercise();
         programmingExercise.setExerciseGroup(programmingExerciseGroup);
@@ -358,22 +316,9 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .toBodilessEntity()
             .block();
 
-        var quizExerciseGroup = new ExerciseGroup();
-        quizExerciseGroup.setTitle("Quiz Exercise Group");
-        quizExerciseGroup.setMandatory(true);
-        quizExerciseGroup.setExam(exam);
+        var quizExerciseGroup = new ExerciseGroup("Quiz Exercise Group", true, exam);
 
-        quizExerciseGroup = webClient
-            .post()
-            .uri(uriBuilder ->
-                uriBuilder
-                    .pathSegment("api", "exam", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exercise-groups")
-                    .build()
-            )
-            .bodyValue(quizExerciseGroup)
-            .retrieve()
-            .bodyToMono(ExerciseGroup.class)
-            .block();
+        quizExerciseGroup = postExerciseGroup(exam, quizExerciseGroup);
 
         var quizExercise = new QuizExercise();
         quizExercise.setExerciseGroup(quizExerciseGroup);
@@ -400,6 +345,39 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .retrieve()
             .toBodilessEntity()
             .block();
+
+        var fileUploadExerciseGroup = new ExerciseGroup("File Upload Exercise Group", true, exam);
+        fileUploadExerciseGroup = postExerciseGroup(exam, fileUploadExerciseGroup);
+
+        var fileUploadExercise = new FileUploadExercise(fileUploadExerciseGroup,"File Upload Exercise",1.0, "pdf,txt" );
+        webClient
+            .post()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "fileupload", "file-upload-exercises").build())
+            .bodyValue(fileUploadExercise)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+    }
+
+    /**
+     * Post an exercise group to the exam.
+     * @param exam the exam to which the exercise group belongs
+     * @param exerciseGroup the exercise group to post
+     * @return the created exercise group
+     */
+    private ExerciseGroup postExerciseGroup(Exam exam, ExerciseGroup exerciseGroup) {
+        exerciseGroup = webClient
+            .post()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .pathSegment("api", "exam", "courses", String.valueOf(exam.getCourse().getId()), "exams", exam.getId().toString(), "exercise-groups")
+                    .build()
+            )
+            .bodyValue(exerciseGroup)
+            .retrieve()
+            .bodyToMono(ExerciseGroup.class)
+            .block();
+        return exerciseGroup;
     }
 
     /**

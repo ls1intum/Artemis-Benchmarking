@@ -15,7 +15,7 @@ import java.util.Set;
         @JsonSubTypes.Type(value = ModelingExercise.class, name = "modeling"),
         @JsonSubTypes.Type(value = QuizExercise.class, name = "quiz"),
         @JsonSubTypes.Type(value = TextExercise.class, name = "text"),
-//        @JsonSubTypes.Type(value = FileUploadExercise.class, name = "file-upload")
+        @JsonSubTypes.Type(value = FileUploadExercise.class, name = "file-upload")
 })
 // @formatter:on
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -28,6 +28,14 @@ public abstract class Exercise extends DomainObject {
 
     @JsonIgnoreProperties("exercise")
     private Set<StudentParticipation> studentParticipations = new HashSet<>();
+
+    public Exercise() {}
+
+    public Exercise(ExerciseGroup exerciseGroup, String title, Double maxPoints) {
+        this.exerciseGroup = exerciseGroup;
+        this.title = title;
+        this.maxPoints = maxPoints;
+    }
 
     public String getProblemStatement() {
         return problemStatement;
