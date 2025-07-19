@@ -1,0 +1,13 @@
+diff --git a/node_modules/@angular-builders/jest/dist/jest-config/setup.js b/node_modules/@angular-builders/jest/dist/jest-config/setup.js
+index 73bd1a8..84f2b77 100644
+--- a/node_modules/@angular-builders/jest/dist/jest-config/setup.js
++++ b/node_modules/@angular-builders/jest/dist/jest-config/setup.js
+@@ -1,5 +1,5 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-const zone_1 = require("jest-preset-angular/setup-env/zone");
+-(0, zone_1.setupZoneTestEnv)();
++const zone_1 = require("jest-preset-angular/setup-env/zoneless");
++(0, zone_1.setupZonelessTestEnv)();
+ //# sourceMappingURL=setup.js.map
+\ No newline at end of file
