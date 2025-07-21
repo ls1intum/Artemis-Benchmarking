@@ -7,7 +7,7 @@
         class="btn btn-link btn-sm me-3"
         (click)="openScheduleDialog()"
         ngbTooltip="Schedule"
-        [disabled]="credentialsRequired"
+        [disabled]="credentialsRequired()"
       >
         <fa-icon [icon]="faCalendarDays" class="text-info"></fa-icon>
       </button>
@@ -25,7 +25,7 @@
   <div class="card-body pt-2 pb-3 position-relative">
     <div class="space-between-wrapper">
       <div class="me-3 w-60">
-        @if (numberOfActiveSchedules > 0) {
+        @if (numberOfActiveSchedules() > 0) {
           <div
             class="alert alert-warning p-1 w-fit-content"
             role="button"
@@ -34,7 +34,9 @@
             tabindex="0"
           >
             <fa-icon class="ms-2" [icon]="faClock"></fa-icon>
-            <span class="ms-2 me-2"> {{ numberOfActiveSchedules }} {{ numberOfActiveSchedules === 1 ? 'Schedule' : 'Schedules' }} </span>
+            <span class="ms-2 me-2">
+              {{ numberOfActiveSchedules() }} {{ numberOfActiveSchedules() === 1 ? 'Schedule' : 'Schedules' }}
+            </span>
           </div>
         }
         <p>
@@ -58,11 +60,11 @@
               <button
                 type="button"
                 class="btn btn-sm btn-link p-0 h-fit-content ms-2"
-                [ngClass]="instructorAccountAvailable ? 'text-success' : 'text-danger'"
+                [ngClass]="instructorAccountAvailable() ? 'text-success' : 'text-danger'"
                 (click)="patchInstructorAccount(instructorUpdateModal)"
                 [disabled]="hasActiveRun()"
                 [ngbTooltip]="
-                  instructorAccountAvailable
+                  instructorAccountAvailable()
                     ? 'Instructor account available. Click here to update it.'
                     : 'No Instructor account available. Click here to add one.'
                 "
@@ -81,7 +83,7 @@
     </div>
   </div>
   <div class="card-footer">
-    @for (run of displayedRuns; track run) {
+    @for (run of displayedRuns(); track run) {
       <button
         type="button"
         class="shadow btn btn-outline-secondary w-100 mb-2"
@@ -100,10 +102,10 @@
   </div>
   @if (simulation().runs.length > 3) {
     <div class="card-footer">
-      @if (numberOfDisplayedRuns < simulation().runs.length) {
+      @if (numberOfDisplayedRuns() < simulation().runs.length) {
         <button type="button" class="btn btn-secondary btn-sm" (click)="increaseNumberOfDisplayedRuns()">Show more</button>
       }
-      @if (numberOfDisplayedRuns > 3) {
+      @if (numberOfDisplayedRuns() > 3) {
         <button type="button" class="btn btn-secondary btn-sm" (click)="decreaseNumberOfDisplayedRuns()">Show less</button>
       }
     </div>
@@ -129,7 +131,7 @@
         {{ simulation().courseId }}.
       </p>
     }
-    @if (credentialsRequired) {
+    @if (credentialsRequired()) {
       <form>
         <div class="mb-3">
           <label for="adminUsername" class="form-label">Username</label>
@@ -172,7 +174,7 @@
     <button
       type="submit"
       class="btn btn-primary"
-      [disabled]="(adminPassword.length === 0 || adminUsername.length === 0) && credentialsRequired"
+      [disabled]="(adminPassword.length === 0 || adminUsername.length === 0) && credentialsRequired()"
       (click)="modal.close()"
     >
       Start run
@@ -210,7 +212,7 @@
       {{ simulation().courseId }}. <span class="text-warning">The credentials will be stored in the database!</span>
     </p>
     <p>If you only want to run this simulation manually, this step is not necessary. For scheduled runs, the credentials are required.</p>
-    @if (instructorAccountAvailable) {
+    @if (instructorAccountAvailable()) {
       <p class="text-warning">Note: An Instructor account already exists for this simulation. You can override it here.</p>
     }
     <div class="mb-3">
@@ -240,7 +242,7 @@
   <div class="modal-footer space-between-wrapper">
     <div>
       <button type="reset" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
-      @if (instructorAccountAvailable) {
+      @if (instructorAccountAvailable()) {
         <button
           type="button"
           class="btn btn-danger"
