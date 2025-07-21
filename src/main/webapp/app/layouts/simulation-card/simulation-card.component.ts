@@ -97,6 +97,26 @@ export class SimulationCardComponent implements OnInit {
     }
   }
 
+  patchInstructorAccount(content: any): void {
+    this.modalService.open(content, { ariaLabelledBy: 'instructor-modal-title' }).result.then(
+      (res: string) => {
+        if (res === 'submit') {
+          this.patchSimulationInstructorAccount();
+        } else if (res === 'delete') {
+          this.deleteSimulationInstructorAccount();
+        }
+        this.adminPassword = '';
+        this.adminUsername = '';
+        this.showAdminPassword = false;
+      },
+      () => {
+        this.adminPassword = '';
+        this.adminUsername = '';
+        this.showAdminPassword = false;
+      },
+    );
+  }
+
   sortRuns(): void {
     this.runs.update(runs => [...runs].sort((a, b) => new Date(b.startDateTime).getTime() - new Date(a.startDateTime).getTime()));
   }
@@ -158,26 +178,6 @@ export class SimulationCardComponent implements OnInit {
     });
 
     this.sortRuns();
-  }
-
-  patchInstructorAccount(content: any): void {
-    this.modalService.open(content, { ariaLabelledBy: 'instructor-modal-title' }).result.then(
-      (res: string) => {
-        if (res === 'submit') {
-          this.patchSimulationInstructorAccount();
-        } else if (res === 'delete') {
-          this.deleteSimulationInstructorAccount();
-        }
-        this.adminPassword = '';
-        this.adminUsername = '';
-        this.showAdminPassword = false;
-      },
-      () => {
-        this.adminPassword = '';
-        this.adminUsername = '';
-        this.showAdminPassword = false;
-      },
-    );
   }
 
   patchSimulationInstructorAccount(): void {
