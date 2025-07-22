@@ -187,7 +187,10 @@ export default class SimulationsOverviewComponent implements OnInit {
     this.router.navigate([], { queryParams: { simulationId: simulation.id } });
   }
 
-  isSimulationSelected(simulationId: number): boolean {
+  isSimulationSelected(simulationId: number | undefined): boolean {
+    if (!simulationId) {
+      return false;
+    }
     return this.selectedSimulation() ? this.selectedSimulation()!.id === simulationId : false;
   }
 }
