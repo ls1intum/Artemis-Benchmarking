@@ -49,9 +49,9 @@ public class ArtemisUserService {
         log.info("Creating ArtemisUsers by pattern for {}", server);
         if (pattern.getFrom() >= pattern.getTo() || pattern.getFrom() <= 0) {
             throw new BadRequestAlertException("from must be smaller than to and greater than 0", "artemisUser", "invalidRange");
-        } else if (!pattern.getUsernamePattern().contains("{i}") || !pattern.getPasswordPattern().contains("{i}")) {
+        } else if (!pattern.getUsernamePattern().contains("{i}")) {
             throw new BadRequestAlertException(
-                "usernamePattern and passwordPattern must contain {i} as placeholder for the index",
+                "usernamePattern must contain {i} as placeholder for the index",
                 "artemisUser",
                 "missingPlaceholder"
             );

@@ -34,20 +34,17 @@ public class ArtemisUserServiceIT {
     @MockitoBean
     private ArtemisUserRepository artemisUserRepository;
 
-    private ArtemisUser userId1;
-    private ArtemisUser userId3;
-
     private List<ArtemisUser> ts1Users;
 
     @BeforeEach
     public void setUp() {
-        userId1 = new ArtemisUser();
+        ArtemisUser userId1 = new ArtemisUser();
         userId1.setServer(TS1);
         userId1.setServerWideId(1);
         userId1.setUsername("testUn1");
         userId1.setId(1L);
 
-        userId3 = new ArtemisUser();
+        ArtemisUser userId3 = new ArtemisUser();
         userId3.setServer(TS1);
         userId3.setServerWideId(3);
         userId3.setUsername("testUn3");
@@ -59,7 +56,7 @@ public class ArtemisUserServiceIT {
 
         when(artemisUserRepository.findAllByServer(TS1)).thenReturn(ts1Users);
 
-        when(artemisUserRepository.findById(1L)).thenReturn(Optional.ofNullable(userId1));
+        when(artemisUserRepository.findById(1L)).thenReturn(Optional.of(userId1));
 
         when(artemisUserRepository.save(any())).thenAnswer(invocation -> {
             var user = invocation.getArgument(0, ArtemisUser.class);
@@ -163,9 +160,9 @@ public class ArtemisUserServiceIT {
         verify(artemisUserRepository, times(3)).save(any());
         assertEquals(3, createdUsers.size());
 
-        assertEquals("test_5", createdUsers.get(0).getUsername());
-        assertEquals("test_pw_5", createdUsers.get(0).getPassword());
-        assertEquals(5, createdUsers.get(0).getServerWideId());
+        assertEquals("test_5", createdUsers.getFirst().getUsername());
+        assertEquals("test_pw_5", createdUsers.getFirst().getPassword());
+        assertEquals(5, createdUsers.getFirst().getServerWideId());
 
         assertEquals("test_6", createdUsers.get(1).getUsername());
         assertEquals("test_pw_6", createdUsers.get(1).getPassword());
@@ -189,9 +186,9 @@ public class ArtemisUserServiceIT {
         verify(artemisUserRepository, times(2)).save(any());
         assertEquals(2, createdUsers.size());
 
-        assertEquals("test_2", createdUsers.get(0).getUsername());
-        assertEquals("test_pw_2", createdUsers.get(0).getPassword());
-        assertEquals(2, createdUsers.get(0).getServerWideId());
+        assertEquals("test_2", createdUsers.getFirst().getUsername());
+        assertEquals("test_pw_2", createdUsers.getFirst().getPassword());
+        assertEquals(2, createdUsers.getFirst().getServerWideId());
 
         assertEquals("test_4", createdUsers.get(1).getUsername());
         assertEquals("test_pw_4", createdUsers.get(1).getPassword());
@@ -235,18 +232,6 @@ public class ArtemisUserServiceIT {
     }
 
     @Test
-    public void testCreateFromPattern_fail_passwordPatternInvalid() {
-        var pattern = new ArtemisUserPatternDTO();
-        pattern.setFrom(1);
-        pattern.setTo(5);
-        pattern.setUsernamePattern("test_{i}");
-        pattern.setPasswordPattern("test_pw_{i");
-
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.createArtemisUsersByPattern(TS1, pattern));
-        verify(artemisUserRepository, times(0)).save(any());
-    }
-
-    @Test
     public void testCreateFromPattern_fail_serverNull() {
         var pattern = new ArtemisUserPatternDTO();
         pattern.setFrom(1);
@@ -271,9 +256,9 @@ public class ArtemisUserServiceIT {
         verify(artemisUserRepository, times(2)).save(any());
         assertEquals(2, createdUsers.size());
 
-        assertEquals("user1", createdUsers.get(0).getUsername());
-        assertEquals("pw1", createdUsers.get(0).getPassword());
-        assertEquals(2, createdUsers.get(0).getServerWideId());
+        assertEquals("user1", createdUsers.getFirst().getUsername());
+        assertEquals("pw1", createdUsers.getFirst().getPassword());
+        assertEquals(2, createdUsers.getFirst().getServerWideId());
 
         assertEquals("user2", createdUsers.get(1).getUsername());
         assertEquals("pw2", createdUsers.get(1).getPassword());
@@ -293,9 +278,9 @@ public class ArtemisUserServiceIT {
         verify(artemisUserRepository, times(2)).save(any());
         assertEquals(2, createdUsers.size());
 
-        assertEquals("user1", createdUsers.get(0).getUsername());
-        assertEquals("pw1", createdUsers.get(0).getPassword());
-        assertEquals(2, createdUsers.get(0).getServerWideId());
+        assertEquals("user1", createdUsers.getFirst().getUsername());
+        assertEquals("pw1", createdUsers.getFirst().getPassword());
+        assertEquals(2, createdUsers.getFirst().getServerWideId());
 
         assertEquals("user2", createdUsers.get(1).getUsername());
         assertEquals("pw2", createdUsers.get(1).getPassword());
@@ -315,9 +300,9 @@ public class ArtemisUserServiceIT {
         verify(artemisUserRepository, times(2)).save(any());
         assertEquals(2, createdUsers.size());
 
-        assertEquals("user1", createdUsers.get(0).getUsername());
-        assertEquals("pw1", createdUsers.get(0).getPassword());
-        assertEquals(2, createdUsers.get(0).getServerWideId());
+        assertEquals("user1", createdUsers.getFirst().getUsername());
+        assertEquals("pw1", createdUsers.getFirst().getPassword());
+        assertEquals(2, createdUsers.getFirst().getServerWideId());
 
         assertEquals("user2", createdUsers.get(1).getUsername());
         assertEquals("pw2", createdUsers.get(1).getPassword());
@@ -337,9 +322,9 @@ public class ArtemisUserServiceIT {
         verify(artemisUserRepository, times(1)).save(any());
         assertEquals(1, createdUsers.size());
 
-        assertEquals("user1", createdUsers.get(0).getUsername());
-        assertEquals("pw1", createdUsers.get(0).getPassword());
-        assertEquals(2, createdUsers.get(0).getServerWideId());
+        assertEquals("user1", createdUsers.getFirst().getUsername());
+        assertEquals("pw1", createdUsers.getFirst().getPassword());
+        assertEquals(2, createdUsers.getFirst().getServerWideId());
     }
 
     @Test
@@ -355,9 +340,9 @@ public class ArtemisUserServiceIT {
         verify(artemisUserRepository, times(2)).save(any());
         assertEquals(2, createdUsers.size());
 
-        assertEquals("user1", createdUsers.get(0).getUsername());
-        assertEquals("pw1", createdUsers.get(0).getPassword());
-        assertEquals(2, createdUsers.get(0).getServerWideId());
+        assertEquals("user1", createdUsers.getFirst().getUsername());
+        assertEquals("pw1", createdUsers.getFirst().getPassword());
+        assertEquals(2, createdUsers.getFirst().getServerWideId());
 
         assertEquals("user2", createdUsers.get(1).getUsername());
         assertEquals("pw2", createdUsers.get(1).getPassword());
