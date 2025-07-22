@@ -143,7 +143,7 @@ export default class SimulationsOverviewComponent implements OnInit {
 
   subscribeToSelectedRun(run: SimulationRun): void {
     this.simulationsService.receiveSimulationLog(run).subscribe(logMessage => {
-      run.logMessages = [...run.logMessages, logMessage];
+      run.logMessages.push(logMessage);
       this.updateSelectedRun(run);
     });
     this.simulationsService.receiveSimulationResult(run).subscribe(stats => {
