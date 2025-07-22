@@ -48,9 +48,9 @@
     <button ngbNavLink>Pattern</button>
     <ng-template ngbNavContent>
       <ngb-alert type="info" [dismissible]="false">
-        Specify a pattern for usernames and passwords. The pattern must contain a <samp>{{ '{' }}i{{ '}' }}</samp> placeholder that will be
-        replaced by the current number. The numbers will start at <samp>from</samp> and end at <samp>to-1</samp>. These number will also be
-        used as the ID. If the ID is already occupied, the respective user will be skipped. Usernames must be unique.
+        Specify a pattern for usernames and passwords. The password pattern must contain a <samp>{{ '{' }}i{{ '}' }}</samp> placeholder that
+        will be replaced by the current number. The numbers will start at <samp>from</samp> and end at <samp>to-1</samp>. These number will
+        also be used as the ID. If the ID is already occupied, the respective user will be skipped. Usernames must be unique.
       </ngb-alert>
       <div class="flex-container">
         <form class="mb-3">

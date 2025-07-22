@@ -70,8 +70,7 @@ export class CreateUserBoxComponent {
   }
 
   isValidPattern(): boolean {
-    const indexPlaceholder = '{i}';
-    if (!(this.usernamePattern.includes(indexPlaceholder) && this.passwordPattern.includes(indexPlaceholder))) {
+    if (!this.usernamePattern.includes('{i}')) {
       return false;
     }
     const validForCreateOnArtemis =
@@ -81,14 +80,7 @@ export class CreateUserBoxComponent {
         this.emailPattern.length > 0 &&
         this.lastNamePattern.length > 0);
     return (
-      this.usernamePattern.length > 0 &&
-      this.passwordPattern.length > 0 &&
-      this.from > 0 &&
-      this.from < this.to &&
-      validForCreateOnArtemis &&
-      this.firstNamePattern.includes(indexPlaceholder) &&
-      this.lastNamePattern.includes(indexPlaceholder) &&
-      this.emailPattern.includes(indexPlaceholder)
+      this.usernamePattern.length > 0 && this.passwordPattern.length > 0 && this.from > 0 && this.from < this.to && validForCreateOnArtemis
     );
   }
 
