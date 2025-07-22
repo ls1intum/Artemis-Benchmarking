@@ -1,0 +1,13 @@
+.card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.space-between-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

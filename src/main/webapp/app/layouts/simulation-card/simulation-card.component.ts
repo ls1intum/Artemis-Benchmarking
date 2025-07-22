@@ -30,7 +30,7 @@ export class SimulationCardComponent implements OnInit {
 
   simulation = input.required<Simulation>();
   selectedRun = input<SimulationRun>();
-
+  isSelected = input(false);
   runs = signal<SimulationRun[]>([]);
   numberOfDisplayedRuns = signal(3);
   numberOfActiveSchedules = signal(0);
@@ -46,6 +46,7 @@ export class SimulationCardComponent implements OnInit {
   showAdminPassword = false;
 
   protected readonly clickedRunEvent = output<SimulationRun>();
+  protected readonly clickedSimulationEvent = output<Simulation>();
   protected readonly delete = output();
   protected readonly Mode = Mode;
   protected readonly Status = Status;
@@ -208,5 +209,9 @@ export class SimulationCardComponent implements OnInit {
         simulation.mode !== Mode.EXISTING_COURSE_PREPARED_EXAM &&
         !instructorCredentialsProvided(simulation),
     );
+  }
+
+  clickedSimulation(): void {
+    this.clickedSimulationEvent.emit(this.simulation());
   }
 }
