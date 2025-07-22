@@ -70,10 +70,25 @@ export class CreateUserBoxComponent {
   }
 
   isValidPattern(): boolean {
+    const indexPlaceholder = '{i}';
+    if (!(this.usernamePattern.includes(indexPlaceholder) && this.passwordPattern.includes(indexPlaceholder))) {
+      return false;
+    }
     const validForCreateOnArtemis =
-      !this.isCreateOnArtemis || (this.firstNamePattern.length > 0 && this.lastNamePattern.length > 0 && this.emailPattern.length > 0);
+      !this.isCreateOnArtemis ||
+      (this.firstNamePattern.length > 0 &&
+        this.lastNamePattern.length > 0 &&
+        this.emailPattern.length > 0 &&
+        this.lastNamePattern.length > 0);
     return (
-      this.usernamePattern.length > 0 && this.passwordPattern.length > 0 && this.from > 0 && this.from < this.to && validForCreateOnArtemis
+      this.usernamePattern.length > 0 &&
+      this.passwordPattern.length > 0 &&
+      this.from > 0 &&
+      this.from < this.to &&
+      validForCreateOnArtemis &&
+      this.firstNamePattern.includes(indexPlaceholder) &&
+      this.lastNamePattern.includes(indexPlaceholder) &&
+      this.emailPattern.includes(indexPlaceholder)
     );
   }
 
