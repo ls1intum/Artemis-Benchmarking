@@ -137,18 +137,28 @@ export default class SimulationsOverviewComponent implements OnInit {
   subscribeToRunStatus(run: SimulationRun): void {
     this.simulationsService.receiveSimulationStatus(run).subscribe(status => {
       run.status = status;
+      this.updateSelectedRun(run);
     });
   }
 
   subscribeToSelectedRun(run: SimulationRun): void {
     this.simulationsService.receiveSimulationLog(run).subscribe(logMessage => {
-      run.logMessages.push(logMessage);
+      run.logMessages = [...run.logMessages, logMessage];
+      this.updateSelectedRun(run);
     });
     this.simulationsService.receiveSimulationResult(run).subscribe(stats => {
       run.stats = stats.sort((a, b) => getOrder(a) - getOrder(b));
+      this.updateSelectedRun(run);
     });
     this.simulationsService.receiveCiStatus(run).subscribe(ciStatus => {
       run.ciStatus = ciStatus;
+      this.updateSelectedRun(run);
     });
+  }
+
+  updateSelectedRun(run: SimulationRun): void {
+    if (this.selectedRun() && this.selectedRun()!.id === run.id) {
+      this.selectedRun.set(SimulationRun.of(run));
+    }
   }
 }
