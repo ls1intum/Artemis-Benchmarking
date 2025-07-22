@@ -99,8 +99,9 @@ export class WebsocketService implements OnDestroy {
     }
     this.connecting = true;
     const authToken = this.authServerProvider.getToken();
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     // NOTE: we add 'websocket' twice to use STOMP without SockJS
-    const url = `wss://${window.location.host}/websocket/websocket?access_token=${authToken}`;
+    const url = `${protocol}//${window.location.host}/websocket/websocket?access_token=${authToken}`;
     const rxStompConfig: RxStompConfig = {
       brokerURL: url,
       heartbeatIncoming: 10000,
