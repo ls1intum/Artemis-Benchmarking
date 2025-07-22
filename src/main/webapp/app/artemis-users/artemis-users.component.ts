@@ -38,8 +38,8 @@ export default class ArtemisUsersComponent implements OnInit {
   showAdminPassword = false;
   showEditUserPassword = false;
   actionInProgress = false;
-  error = false;
-  errorMsg = '';
+  error = signal(false);
+  errorMsg = signal('');
   filter = new FormControl('', { nonNullable: true });
   usersChanged = new Subject<void>();
   loadingCreate = false;
@@ -107,8 +107,13 @@ export default class ArtemisUsersComponent implements OnInit {
         this.loadingCreate = false;
         this.usersChanged.next(void 0);
       },
-      error: () => {
-        this.showError('Error creating users');
+      error: error => {
+        console.error('Error creating users from pattern:', error);
+        let errorMessage = 'Error creating users';
+        if (error.error?.errorMessage) {
+          errorMessage = `${errorMessage}: ${error.error.errorMessage}`;
+        }
+        this.showError(errorMessage);
         this.actionInProgress = false;
         this.loadingCreate = false;
       },
@@ -244,10 +249,10 @@ export default class ArtemisUsersComponent implements OnInit {
   }
 
   showError(errorMsg: string): void {
-    this.error = true;
-    this.errorMsg = errorMsg;
+    this.error.set(true);
+    this.errorMsg.set(errorMsg);
     setTimeout(() => {
-      this.error = false;
+      this.error.set(false);
     }, 3000);
   }
 
