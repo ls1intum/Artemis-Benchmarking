@@ -29,7 +29,7 @@ plugins {
 }
 
 group = "de.tum.cit.aet"
-version = "0.3.0"
+version = "0.3.1"
 
 description = "Benchmarking Application for Performance Tests in the Artemis project"
 
@@ -197,7 +197,7 @@ dependencies {
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc:${jacksonVersion}"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.9"
-    implementation "com.zaxxer:HikariCP:6.3.0"
+    implementation "com.zaxxer:HikariCP:6.3.1"
     implementation "org.apache.commons:commons-lang3:3.18.0"
     implementation "org.openapitools:jackson-databind-nullable:${jacksonDatabindNullableVersion}"
     // Openapi generator uses javax namespace for now https://github.com/OpenAPITools/openapi-generator/pull/13593
@@ -252,7 +252,7 @@ dependencies {
     implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
 
     // use newest version of nimbus-jose-jwt to avoid security issues through outdated dependencies
-    implementation "com.nimbusds:nimbus-jose-jwt:10.3.1"
+    implementation "com.nimbusds:nimbus-jose-jwt:10.4"
 
 
     // use the latest version to avoid security vulnerabilities
