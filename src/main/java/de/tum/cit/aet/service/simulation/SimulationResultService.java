@@ -7,11 +7,9 @@ import de.tum.cit.aet.repository.StatsByMinuteRepository;
 import de.tum.cit.aet.repository.StatsBySecondRepository;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -67,46 +65,29 @@ public class SimulationResultService {
 
         SimulationStats submitStudentExamStats = calculateStatsForRequestType(requestStats, RequestType.SUBMIT_STUDENT_EXAM, simulationRun);
 
-        SimulationStats cloneStatsSSH = calculateStatsForRequestType(requestStats, RequestType.CLONE_SSH, simulationRun);
-        SimulationStats cloneStatsPassword = calculateStatsForRequestType(requestStats, RequestType.CLONE_PASSWORD, simulationRun);
-        SimulationStats cloneStatsToken = calculateStatsForRequestType(requestStats, RequestType.CLONE_TOKEN, simulationRun);
-
-        SimulationStats pushStatsSSH = calculateStatsForRequestType(requestStats, RequestType.PUSH_SSH, simulationRun);
-        SimulationStats pushStatsPassword = calculateStatsForRequestType(requestStats, RequestType.PUSH_PASSWORD, simulationRun);
-        SimulationStats pushStatsToken = calculateStatsForRequestType(requestStats, RequestType.PUSH_TOKEN, simulationRun);
-
-        SimulationStats programmingExerciseResultStats = calculateStatsForRequestType(
-            requestStats,
-            RequestType.PROGRAMMING_EXERCISE_RESULT,
-            simulationRun
-        );
-
-        SimulationStats repositoryInfoStats = calculateStatsForRequestType(requestStats, RequestType.REPOSITORY_INFO, simulationRun);
-
-        SimulationStats repositoryFileStats = calculateStatsForRequestType(requestStats, RequestType.REPOSITORY_FILES, simulationRun);
-
         SimulationStats miscStats = calculateStatsForRequestType(requestStats, RequestType.MISC, simulationRun);
 
-        simulationRun.setStats(
-            Set.of(
-                totalStats,
-                authStats,
-                getStudentExamsStats,
-                startStudentExamStats,
-                submitExerciseStats,
-                submitStudentExamStats,
-                programmingExerciseResultStats,
-                repositoryInfoStats,
-                repositoryFileStats,
-                miscStats,
-                cloneStatsSSH,
-                pushStatsSSH,
-                cloneStatsToken,
-                pushStatsToken,
-                cloneStatsPassword,
-                pushStatsPassword
-            )
-        );
+        Simulation simulation = simulationRun.getSimulation();
+        Set<SimulationStats> stats = Stream.of(
+            totalStats,
+            authStats,
+            getStudentExamsStats,
+            startStudentExamStats,
+            submitExerciseStats,
+            submitStudentExamStats,
+            miscStats,
+            simulation.getOnlineIdePercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.PROGRAMMING_EXERCISE_RESULT, simulationRun) : null,
+            simulation.getOnlineIdePercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.REPOSITORY_INFO, simulationRun) : null,
+            simulation.getOnlineIdePercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.REPOSITORY_FILES, simulationRun) : null,
+            simulation.getSshPercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.CLONE_SSH, simulationRun) : null,
+            simulation.getSshPercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.PUSH_SSH, simulationRun) : null,
+            simulation.getTokenPercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.CLONE_TOKEN, simulationRun) : null,
+            simulation.getTokenPercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.PUSH_TOKEN, simulationRun) : null,
+            simulation.getPasswordPercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.CLONE_PASSWORD, simulationRun) : null,
+            simulation.getPasswordPercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.PUSH_PASSWORD, simulationRun) : null
+        ).filter(Objects::nonNull).collect(Collectors.toSet());
+
+        simulationRun.setStats(stats);
         return simulationRun;
     }
 
