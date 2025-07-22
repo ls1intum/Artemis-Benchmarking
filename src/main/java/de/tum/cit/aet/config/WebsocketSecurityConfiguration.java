@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.simp.SimpMessageType;
+import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.annotation.web.socket.EnableWebSocketSecurity;
 import org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager;
@@ -23,12 +24,18 @@ public class WebsocketSecurityConfiguration {
             // /topic/messages-user<id>)
             .simpDestMatchers("/topic/**")
             .authenticated()
-            // message types other than MESSAGE and SUBSCRIBE
             .simpTypeMatchers(SimpMessageType.MESSAGE, SimpMessageType.SUBSCRIBE)
-            .denyAll()
+            .authenticated()
             // catch all
             .anyMessage()
             .denyAll();
         return messages.build();
+    }
+
+    // Need to disable CSRF for websocket like this after migrating from AbstractSecurityWebSocketMessageBrokerConfigurer
+    // to EnableWebSocketSecurity see e.g. https://github.com/spring-projects/spring-security/issues/13640
+    @Bean
+    public ChannelInterceptor csrfChannelInterceptor() {
+        return new ChannelInterceptor() {};
     }
 }

@@ -45,7 +45,7 @@ describe('User Service', () => {
       });
       const req = httpMock.expectOne({ method: 'GET' });
 
-      req.flush([{ name: Authority.USER }, { name: Authority.ADMIN }]);
+      req.flush([Authority.USER, Authority.ADMIN]);
       expect(expectedResult).toEqual([Authority.USER, Authority.ADMIN]);
     });
 

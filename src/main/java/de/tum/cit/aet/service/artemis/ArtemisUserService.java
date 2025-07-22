@@ -49,9 +49,9 @@ public class ArtemisUserService {
         log.info("Creating ArtemisUsers by pattern for {}", server);
         if (pattern.getFrom() >= pattern.getTo() || pattern.getFrom() <= 0) {
             throw new BadRequestAlertException("from must be smaller than to and greater than 0", "artemisUser", "invalidRange");
-        } else if (!pattern.getUsernamePattern().contains("{i}") || !pattern.getPasswordPattern().contains("{i}")) {
+        } else if (!pattern.getUsernamePattern().contains("{i}")) {
             throw new BadRequestAlertException(
-                "usernamePattern and passwordPattern must contain {i} as placeholder for the index",
+                "usernamePattern must contain {i} as placeholder for the index",
                 "artemisUser",
                 "missingPlaceholder"
             );
@@ -352,5 +352,16 @@ public class ArtemisUserService {
         }
 
         return n + 1;
+    }
+
+    /**
+     * Generates a new SSH key pair for the given ArtemisUser.
+     *
+     * @param artemisUser the ArtemisUser to generate the key pair for
+     * @return the ArtemisUser with the generated key pair
+     */
+    public ArtemisUser generateKeyPair(ArtemisUser artemisUser) {
+        artemisUser.setKeyPair(SshUtils.generateSshKeyPair());
+        return artemisUserRepository.save(artemisUser);
     }
 }
