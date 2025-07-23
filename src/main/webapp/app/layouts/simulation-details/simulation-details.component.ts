@@ -6,7 +6,6 @@ import { ServerBadgeComponent } from '../server-badge/server-badge.component';
 @Component({
   selector: 'jhi-simulation-details',
   templateUrl: './simulation-details.component.html',
-  styleUrls: ['./simulation-details.component.scss'],
   imports: [DatePipe, ServerBadgeComponent],
 })
 export class SimulationDetailsComponent {
