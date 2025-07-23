@@ -61,12 +61,12 @@ export default class SimulationsOverviewComponent implements OnInit {
 
     let selectedRunId = -1;
     if (selectedRunString) {
-      selectedRunId = parseInt(selectedRunString, 10);
+      selectedRunId = Number(selectedRunString);
     }
 
     let selectedSimulationId = -1;
     if (selectedSimulationString) {
-      selectedSimulationId = parseInt(selectedSimulationString, 10);
+      selectedSimulationId = Number(selectedSimulationString);
     }
 
     this.simulationsService.getSimulations().subscribe(simulations => {
