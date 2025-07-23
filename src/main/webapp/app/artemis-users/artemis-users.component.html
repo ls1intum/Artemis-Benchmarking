@@ -1,6 +1,6 @@
-@if (error) {
-  <div class="alert alert-danger position-fixed position-absolute start-50 ps-5 pe-5" role="alert">
-    {{ errorMsg }}
+@if (error()) {
+  <div class="alert alert-danger error-toast" role="alert">
+    {{ errorMsg() }}
   </div>
 }
 
