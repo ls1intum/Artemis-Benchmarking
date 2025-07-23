@@ -17,7 +17,6 @@ import SharedModule from '../shared/shared.module';
   selector: 'jhi-artemis-users',
   imports: [SharedModule, NgbCollapse, CreateUserBoxComponent, FontAwesomeModule, NgbTooltipModule, FormsModule, ReactiveFormsModule],
   templateUrl: './artemis-users.component.html',
-  styleUrl: './artemis-users.component.scss',
 })
 export default class ArtemisUsersComponent implements OnInit {
   faEye = faEye;
