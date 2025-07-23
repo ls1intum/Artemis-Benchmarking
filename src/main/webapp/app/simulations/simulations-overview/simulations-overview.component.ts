@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Simulation } from '../../entities/simulation/simulation';
 import { SimulationsService } from '../simulations.service';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
