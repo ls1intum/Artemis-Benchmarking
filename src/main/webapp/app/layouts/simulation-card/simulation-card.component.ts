@@ -30,7 +30,12 @@ export class SimulationCardComponent implements OnInit {
 
   simulation = input.required<Simulation>();
   selectedRun = input<SimulationRun>();
-  isSelected = input(false);
+  selectedSimulation = input<Simulation | undefined>(undefined);
+
+  isSelected = computed(() => {
+    return this.selectedSimulation()?.id === this.simulation().id;
+  });
+
   runs = signal<SimulationRun[]>([]);
   numberOfDisplayedRuns = signal(3);
   numberOfActiveSchedules = signal(0);

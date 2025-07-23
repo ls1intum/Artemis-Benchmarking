@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { Simulation } from '../../entities/simulation/simulation';
 import { SimulationsService } from '../simulations.service';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
@@ -185,12 +185,5 @@ export default class SimulationsOverviewComponent implements OnInit {
     this.selectedSimulation.set(simulation);
     this.selectedRun.set(undefined);
     this.router.navigate([], { queryParams: { simulationId: simulation.id } });
-  }
-
-  isSimulationSelected(simulationId: number | undefined): boolean {
-    if (!simulationId) {
-      return false;
-    }
-    return this.selectedSimulation() ? this.selectedSimulation()!.id === simulationId : false;
   }
 }

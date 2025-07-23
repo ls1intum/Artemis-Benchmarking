@@ -28,7 +28,7 @@
       <jhi-simulation-card
         [simulation]="simulation"
         [selectedRun]="selectedRun()"
-        [isSelected]="isSimulationSelected(simulation.id)"
+        [selectedSimulation]="selectedSimulation()"
         (clickedRunEvent)="selectRun($event)"
         (clickedSimulationEvent)="onSelectSimulation($event)"
         (delete)="deleteSimulation(simulation)"
