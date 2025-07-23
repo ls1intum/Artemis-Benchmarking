@@ -108,7 +108,6 @@ export default class ArtemisUsersComponent implements OnInit {
         this.usersChanged.next(void 0);
       },
       error: error => {
-        console.error('Error creating users from pattern:', error);
         let errorMessage = 'Error creating users';
         if (error.error?.errorMessage) {
           errorMessage = `${errorMessage}: ${error.error.errorMessage}`;
