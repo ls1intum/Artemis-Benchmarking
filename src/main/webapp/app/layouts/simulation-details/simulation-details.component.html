@@ -1,0 +1,92 @@
+<div class="card mb-3">
+  <div class="card-header space-between-wrapper">
+    <h3 class="mb-0">{{ simulation().name }}</h3>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <h5>Configuration</h5>
+          <table class="table table-bordered table-striped">
+            <tbody>
+              <tr>
+                <th>Server</th>
+                <td><jhi-server-badge [server]="simulation().server"></jhi-server-badge></td>
+              </tr>
+              <tr>
+                <th>Mode</th>
+                <td>{{ modeText() }}</td>
+              </tr>
+              <tr>
+                <th>Number of Users</th>
+                <td>{{ simulation().numberOfUsers }}</td>
+              </tr>
+              <tr>
+                <th>User Range</th>
+                <td>{{ simulation().userRange || '1-' + simulation().numberOfUsers }}</td>
+              </tr>
+              <tr>
+                <th>Commits from - to (excluded)</th>
+                <td>{{ simulation().numberOfCommitsAndPushesFrom }} - {{ simulation().numberOfCommitsAndPushesTo }}</td>
+              </tr>
+              <tr>
+                <th>Created</th>
+                <td>{{ simulation().creationDate | date: 'dd.MM.yyyy, HH:mm' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="mb-3">
+          <h5>Authentication Distribution</h5>
+          <table class="table table-bordered table-striped">
+            <tbody>
+              <tr>
+                <th>Online IDE</th>
+                <td>{{ simulation().onlineIdePercentage }}%</td>
+              </tr>
+              <tr>
+                <th>Password</th>
+                <td>{{ simulation().passwordPercentage }}%</td>
+              </tr>
+              <tr>
+                <th>Token</th>
+                <td>{{ simulation().tokenPercentage }}%</td>
+              </tr>
+              <tr>
+                <th>SSH</th>
+                <td>{{ simulation().sshPercentage }}%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    @if (simulation().mode !== Mode.CREATE_COURSE_AND_EXAM) {
+      <div class="row mt-3">
+        <div class="col-md-12">
+          <div class="mb-3">
+            <h5>Course & Exam Information</h5>
+            <table class="table table-bordered table-striped">
+              <tbody>
+                <tr>
+                  <th>Course ID</th>
+                  <td>{{ simulation().courseId }}</td>
+                </tr>
+                @if (
+                  simulation().mode === Mode.EXISTING_COURSE_PREPARED_EXAM || simulation().mode === Mode.EXISTING_COURSE_UNPREPARED_EXAM
+                ) {
+                  <tr>
+                    <th>Exam ID</th>
+                    <td>{{ simulation().examId }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
