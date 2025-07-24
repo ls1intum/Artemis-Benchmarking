@@ -70,6 +70,9 @@ export class CreateUserBoxComponent {
   }
 
   isValidPattern(): boolean {
+    if (!this.usernamePattern.includes('{i}')) {
+      return false;
+    }
     const validForCreateOnArtemis =
       !this.isCreateOnArtemis || (this.firstNamePattern.length > 0 && this.lastNamePattern.length > 0 && this.emailPattern.length > 0);
     return (
