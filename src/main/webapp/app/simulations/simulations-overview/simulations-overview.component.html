@@ -28,7 +28,9 @@
       <jhi-simulation-card
         [simulation]="simulation"
         [selectedRun]="selectedRun()"
+        [selectedSimulation]="selectedSimulation()"
         (clickedRunEvent)="selectRun($event)"
+        (clickedSimulationEvent)="onSelectSimulation($event)"
         (delete)="deleteSimulation(simulation)"
       ></jhi-simulation-card>
     }
@@ -123,9 +125,13 @@
         }
       </div>
     </div>
+  } @else if (selectedSimulation()) {
+    <div class="w-75 ms-3 pe-3">
+      <jhi-simulation-details [simulation]="selectedSimulation()!"></jhi-simulation-details>
+    </div>
   } @else {
     <div class="w-75 ms-3 pe-3">
-      <p class="text-center">Select a run to see details</p>
+      <p class="text-center">Select a run or simulation to see details</p>
     </div>
   }
 </div>

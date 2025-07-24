@@ -1,5 +1,5 @@
-<div class="card mb-3">
-  <div class="card-header space-between-wrapper">
+<div class="card mb-3" [ngClass]="{ 'border-primary': isSelected() }">
+  <div class="card-header space-between-wrapper" role="button" tabindex="0" (click)="clickedSimulation()">
     {{ simulation().name }}
     <div>
       <button
