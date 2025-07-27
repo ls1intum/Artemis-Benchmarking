@@ -1,4 +1,4 @@
-import { TestBed, inject, tick } from '@angular/core/testing';
+import { TestBed, inject } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { of, throwError } from 'rxjs';

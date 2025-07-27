@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { Simulation } from '../../entities/simulation/simulation';
 import { SimulationsService } from '../simulations.service';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
@@ -12,7 +12,6 @@ import { StatusIconComponent } from '../../layouts/status-icon/status-icon.compo
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { LogBoxComponent } from '../../layouts/log-box/log-box.component';
 import { CiStatusCardComponent } from '../../layouts/ci-status-card/ci-status-card.component';
-import { PrometheusBoxComponent } from '../../layouts/prometheus-box/prometheus-box.component';
 import { ResultBoxComponent } from '../../layouts/result-box/result-box.component';
 import { DatePipe } from '@angular/common';
 import { SimulationDetailsComponent } from '../../layouts/simulation-details/simulation-details.component';
