@@ -197,7 +197,7 @@ dependencies {
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc:${jacksonVersion}"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
     implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.9"
-    implementation "com.zaxxer:HikariCP:6.3.1"
+    implementation "com.zaxxer:HikariCP:6.3.2"
     implementation "org.apache.commons:commons-lang3:3.18.0"
     implementation "org.openapitools:jackson-databind-nullable:${jacksonDatabindNullableVersion}"
     // Openapi generator uses javax namespace for now https://github.com/OpenAPITools/openapi-generator/pull/13593
@@ -305,12 +305,12 @@ dependencies {
     implementation "io.reactivex.rxjava3:rxjava:3.1.11"
     implementation "io.netty:netty-resolver-dns-native-macos:${nettyVersion}:osx-aarch_64"
     // TODO: we should remove this dependency once we have migrated to org.apache.commons:csv
-    implementation ("com.opencsv:opencsv:5.11.2") {
+    implementation ("com.opencsv:opencsv:5.12.0") {
         exclude group: "org.junit.vintage", module: "junit-vintage-engine"
     }
 
     // explicitly only use this at runtime (required by liquibase, because developers should prefer org.apache.commons:csv
-    runtimeOnly ("com.opencsv:opencsv:5.11.2") {
+    runtimeOnly ("com.opencsv:opencsv:5.12.0") {
         exclude group: "org.junit.vintage", module: "junit-vintage-engine"
     }
 
@@ -362,7 +362,7 @@ tasks.register("cleanResources", Delete) {
 }
 
 wrapper {
-    gradleVersion = "8.14.3"
+    gradleVersion = "9.0.0-rc-3"
 }
 
 tasks.register("webapp_test", NpmTask) {
