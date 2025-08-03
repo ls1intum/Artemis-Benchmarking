@@ -172,6 +172,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         }
         requestStats.add(navigateIntoExam());
         requestStats.add(getTestExams());
+        requestStats.add(getExamSideBarData());
         requestStats.add(startExam());
 
         return requestStats;
@@ -444,6 +445,17 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         webClient
             .get()
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "exam", "courses", courseIdString, "test-exams-per-user").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat getExamSideBarData() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exam", "courses", courseIdString, "real-exams-sidebar-data").build())
             .retrieve()
             .toBodilessEntity()
             .block();
