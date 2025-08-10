@@ -186,7 +186,7 @@ dependencies {
 
     // compatible with Hibernate 6.x and Spring Boot 3.x
     // cannot upgrade to 3.2.x, because it is not compatible with Spring Boot 3.x
-    implementation "jakarta.persistence:jakarta.persistence-api:3.1.0"
+    implementation "jakarta.persistence:jakarta.persistence-api:3.2.0"
 
     // Use ", version: jhipsterDependenciesVersion, changing: true" if you want
     // to use a SNAPSHOT release instead of a stable release
