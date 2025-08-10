@@ -362,7 +362,7 @@ tasks.register("cleanResources", Delete) {
 }
 
 wrapper {
-    gradleVersion = "9.0.0-rc-3"
+    gradleVersion = "9.0.0"
 }
 
 tasks.register("webapp_test", NpmTask) {
