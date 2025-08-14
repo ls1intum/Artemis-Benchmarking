@@ -118,7 +118,7 @@ export default class PasswordStrengthBarComponent implements OnChanges {
     // Iterate through the strength bar elements and update their background color
     Array.from(listItems).forEach((listItem, index: number) => {
       const backgroundColor = index < strengthColorIndex.index ? strengthColorIndex.color : '#DDD';
-      this.renderer.setStyle(listItem, 'backgroundColor', backgroundColor.toString());
+      this.renderer.setStyle(listItem, 'backgroundColor', backgroundColor);
     });
   }
 }
