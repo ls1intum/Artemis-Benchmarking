@@ -47,7 +47,7 @@
     "tmp": "0.2.5",
     "tough-cookie": "5.1.2",
     "vite": "7.1.2",
-    "webpack": "5.101.1",
+    "webpack": "5.101.2",
     "webpack-dev-middleware": "7.4.2",
     "webpack-dev-server": "5.2.2",
     "word-wrap": "1.2.5",
@@ -55,7 +55,7 @@
     "yargs-parser": "22.0.0"
   },
   "dependencies": {
-    "@angular/cdk": "20.1.5",
+    "@angular/cdk": "20.1.6",
     "@angular/common": "20.1.7",
     "@angular/compiler": "20.1.7",
     "@angular/core": "20.1.7",
@@ -86,7 +86,7 @@
     "@types/d3-selection": "3.0.11",
     "@types/d3-shape": "3.1.7",
     "@types/jest": "29.5.14",
-    "@types/node": "24.2.1",
+    "@types/node": "24.3.0",
     "angular-eslint": "20.1.1",
     "buffer": "6.0.3",
     "concurrently": "9.2.0",
