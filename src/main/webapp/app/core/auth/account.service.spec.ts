@@ -25,7 +25,7 @@ function accountWithAuthorities(authorities: string[]): Account {
   };
 }
 
-const mockFn = (value: string | null): jest.Mock<string | null> => jest.fn(() => value);
+const mockFn = (value: string | undefined): jest.Mock<string | undefined> => jest.fn(() => value);
 
 describe('Account Service', () => {
   let service: AccountService;
@@ -153,7 +153,7 @@ describe('Account Service', () => {
 
       it('should not navigate to the previous stored url when no such url exists post successful authentication', () => {
         // GIVEN
-        mockStorageService.getUrl = mockFn(null);
+        mockStorageService.getUrl = mockFn(undefined);
 
         // WHEN
         service.identity().subscribe();
