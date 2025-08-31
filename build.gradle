@@ -280,7 +280,7 @@ dependencies {
     // Prometheus requires the protobuf-java dependency, but we explicitly use the latest version to avoid security vulnerabilities
     implementation "com.google.protobuf:protobuf-java:4.32.0"
 
-    implementation "io.dropwizard.metrics:metrics-core:4.2.34"
+    implementation "io.dropwizard.metrics:metrics-core:4.2.36"
     implementation "org.springframework.security:spring-security-messaging:${springSecurityVersion}"
     implementation "commons-io:commons-io:2.20.0"
     implementation "com.thedeanda:lorem:2.2"
