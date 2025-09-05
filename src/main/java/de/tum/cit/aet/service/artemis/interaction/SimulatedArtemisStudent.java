@@ -5,7 +5,6 @@ import static de.tum.cit.aet.util.TimeLogUtil.formatDurationFrom;
 import static java.lang.Thread.sleep;
 import static java.time.ZonedDateTime.now;
 
-import com.mysql.cj.xdevapi.SessionFactory;
 import com.thedeanda.lorem.LoremIpsum;
 import de.tum.cit.aet.artemisModel.*;
 import de.tum.cit.aet.domain.ArtemisUser;
@@ -16,47 +15,34 @@ import de.tum.cit.aet.service.artemis.util.ArtemisServerInfo;
 import de.tum.cit.aet.service.artemis.util.CourseDashboardDTO;
 import de.tum.cit.aet.service.artemis.util.ScienceEventDTO;
 import de.tum.cit.aet.service.artemis.util.UserSshPublicKeyDTO;
-import de.tum.cit.aet.util.SshUtils;
+import de.tum.cit.aet.util.FileGeneratorUtil;
 import de.tum.cit.aet.util.UMLClassDiagrams;
 import jakarta.annotation.Nullable;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 import org.apache.commons.io.FileUtils;
-import org.apache.sshd.common.config.keys.AuthorizedKeyEntry;
-import org.apache.sshd.common.config.keys.PublicKeyEntry;
-import org.apache.sshd.common.config.keys.loader.KeyPairResourceLoader;
-import org.apache.sshd.common.keyprovider.AbstractKeyPairProvider;
-import org.apache.sshd.common.keyprovider.KeyPairProvider;
-import org.apache.sshd.common.session.Session;
-import org.apache.sshd.common.session.SessionContext;
-import org.apache.sshd.common.util.io.IoUtils;
-import org.apache.sshd.common.util.security.SecurityUtils;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.errors.TransportException;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.transport.sshd.JGitKeyCache;
 import org.eclipse.jgit.transport.sshd.ServerKeyDatabase;
 import org.eclipse.jgit.transport.sshd.SshdSessionFactory;
 import org.eclipse.jgit.transport.sshd.SshdSessionFactoryBuilder;
-import org.eclipse.jgit.util.FS;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.function.BodyInserters;
 
 /**
  * A simulated Artemis student that can be used to interact with the Artemis server.
@@ -77,6 +63,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private final int numberOfCommitsAndPushesTo;
 
     private boolean isScienceFeatureEnabled = false;
+    private boolean isIrisEnabled = false;
 
     public SimulatedArtemisStudent(
         String artemisUrl,
@@ -91,8 +78,15 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         this.numberOfCommitsAndPushesFrom = numberOfCommitsAndPushesFrom;
         this.numberOfCommitsAndPushesTo = numberOfCommitsAndPushesTo;
         this.authenticationMechanism = authMechanism;
-        this.publicKeyString = artemisUser.getPublicKey();
-        this.privateKeyString = artemisUser.getPrivateKey();
+        // for old users in the DB which might never gotten a key pair generated
+        if (artemisUser.getPublicKey() == null || artemisUser.getPrivateKey() == null) {
+            var savedUser = artemisUserService.generateKeyPair(artemisUser);
+            this.publicKeyString = savedUser.getPublicKey();
+            this.privateKeyString = savedUser.getPrivateKey();
+        } else {
+            this.publicKeyString = artemisUser.getPublicKey();
+            this.privateKeyString = artemisUser.getPrivateKey();
+        }
     }
 
     @Override
@@ -115,10 +109,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             getInfo(),
             getSystemNotifications(),
             getAccount(),
-            getNotificationSettings(),
+            getGlobalNotificationSettings(),
             getCourses(),
-            getMutedConversations(),
-            getNotifications(),
             configureSSH()
         );
     }
@@ -165,14 +157,22 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         requestStats.add(getCourseDashboard(courseProgrammingExerciseId));
         requestStats.add(getCoursesDropdown());
         requestStats.add(getScienceSettings());
+        requestStats.add(getNotificationSettings());
+        requestStats.add(getNotificationInfo());
         if (courseProgrammingExerciseId > 0) {
             if (isScienceFeatureEnabled) {
                 requestStats.add(putScienceEvent(courseProgrammingExerciseId));
             }
             requestStats.add(getExerciseDetails(courseProgrammingExerciseId));
         }
+        if (isIrisEnabled) {
+            requestStats.addAll(List.of(
+                getIrisStatus(),
+                getIrisChatHistory(courseId)));
+        }
         requestStats.add(navigateIntoExam());
         requestStats.add(getTestExams());
+        requestStats.add(getExamSideBarData());
         requestStats.add(startExam());
 
         return requestStats;
@@ -205,6 +205,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         ArtemisServerInfo response = webClient.get().uri("management/info").retrieve().bodyToMono(ArtemisServerInfo.class).block();
         if (response != null) {
             isScienceFeatureEnabled = response.features().contains("Science");
+            isIrisEnabled = response.activeProfiles().contains("iris");
         }
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
@@ -221,27 +222,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
-    private RequestStat getNotificationSettings() {
+    private RequestStat getGlobalNotificationSettings() {
         long start = System.nanoTime();
-        webClient.get().uri("api/communication/notification-settings").retrieve().toBodilessEntity().block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
-    }
-
-    private RequestStat getNotifications() {
-        long start = System.nanoTime();
-        webClient
-            .get()
-            .uri(uriBuilder ->
-                uriBuilder
-                    .path("api/communication/notifications")
-                    .queryParam("page", 0)
-                    .queryParam("size", 25)
-                    .queryParam("sort", "notificationDate,desc")
-                    .build()
-            )
-            .retrieve()
-            .toBodilessEntity()
-            .block();
+        webClient.get().uri("api/communication/global-notification-settings").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -277,12 +260,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private RequestStat getCourses() {
         long start = System.nanoTime();
         webClient.get().uri("api/core/courses/for-dashboard").retrieve().toBodilessEntity().block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
-    }
-
-    private RequestStat getMutedConversations() {
-        long start = System.nanoTime();
-        webClient.get().uri("api/communication/muted-conversations").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -327,6 +304,28 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .block();
     }
 
+    public RequestStat getNotificationSettings() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "communication", "notification", courseIdString, "settings").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    public RequestStat getNotificationInfo() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "communication", "notification", "info").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
     private void getExerciseChannelAndMessages(long exerciseId) {
         Map<String, Object> channelResponse = webClient
             .get()
@@ -350,10 +349,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                 .uri(uriBuilder ->
                     uriBuilder
                         .pathSegment("api", "communication", "courses", courseIdString, "messages")
-                        .queryParam("conversationId", channelId)
-                        .queryParam("PostSortCriterion", "CREATION_DATE")
-                        .queryParam("SortingOrder", "DESCENDING")
-                        .queryParam("pagingEnabled", true)
+                        .queryParam("courseId", courseIdString)
+                        .queryParam("conversationIds", channelId)
+                        .queryParam("postSortCriterion", "CREATION_DATE")
+                        .queryParam("sortingOrder", "DESCENDING")
                         .queryParam("page", 0)
                         .queryParam("size", 50)
                         .build()
@@ -452,6 +451,17 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
+    private RequestStat getExamSideBarData() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exam", "courses", courseIdString, "real-exams-sidebar-data").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
     private RequestStat startExam() {
         long start = System.nanoTime();
         studentExam = webClient
@@ -503,6 +513,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                 requestStats.add(solveAndSubmitQuizExercise((QuizExercise) exercise));
             } else if (exercise instanceof ProgrammingExercise) {
                 requestStats.addAll(solveAndSubmitProgrammingExercise((ProgrammingExercise) exercise));
+            } else if (exercise instanceof FileUploadExercise) {
+                requestStats.addAll(solveAndSubmitFileUploadExercise((FileUploadExercise) exercise));
             }
         }
         return requestStats;
@@ -597,6 +609,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         var repositoryCloneUrl = programmingParticipation.getRepositoryUri();
         var participationId = programmingParticipation.getId();
         requestStats.add(fetchParticipationVcsAccessToken(participationId));
+        requestStats.add(fetchProgrammingIdeSettings());
+        requestStats.add(postParticipation(programmingExercise.getId()));
         try {
             long start = System.nanoTime();
 
@@ -623,6 +637,47 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return requestStats;
     }
 
+
+private List<RequestStat> solveAndSubmitFileUploadExercise(FileUploadExercise fileUploadExercise) {
+    List<RequestStat> requestStats = new ArrayList<>();
+    long start = System.nanoTime();
+    var participation = fileUploadExercise
+        .getStudentParticipations()
+        .iterator()
+        .next();
+    webClient
+        .get()
+        .uri(uriBuilder ->
+            uriBuilder.pathSegment("api", "fileupload", "participations", participation.getId().toString(), "file-upload-editor").build()
+        )
+        .retrieve()
+        .toBodilessEntity()
+        .block();
+    requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC));
+
+    int fileSizeInBytes = 1024 * 1024; // 1 MB file size for file upload exercise
+    ByteArrayResource file = FileGeneratorUtil.getDummyFile(fileSizeInBytes, "test-file.txt");
+    MultiValueMap<String, Object> multipartBody = new LinkedMultiValueMap<>();
+    multipartBody.add("file", file);
+    multipartBody.add("submission", new FileUploadSubmission());
+
+    start = System.nanoTime();
+    webClient
+        .post()
+        .uri(uriBuilder ->
+            uriBuilder.pathSegment("api", "fileupload", "exercises", fileUploadExercise.getId().toString(), "file-upload-submissions").build()
+        )
+        .contentType(MediaType.MULTIPART_FORM_DATA)
+        .body(BodyInserters.fromMultipartData(multipartBody))
+        .retrieve()
+        .toBodilessEntity()
+        .block();
+    // TODO maybe this should get a own RequestType to not skew the other submissions? File upload is likely inherently slower
+    requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE));
+
+    return requestStats;
+}
+
     private RequestStat fetchParticipationVcsAccessToken(Long participationId) {
         long start = System.nanoTime();
         this.participationVcsAccessToken = webClient
@@ -637,6 +692,17 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .bodyToMono(String.class)
             .block();
         return new RequestStat(now(), System.nanoTime() - start, FETCH_PARTICIPATION_VCS_ACCESS_TOKEN);
+    }
+
+    private RequestStat fetchProgrammingIdeSettings() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "programming", "ide-settings").build())
+            .retrieve()
+            .bodyToMono(String.class)
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private RequestStat submitStudentExam() {
@@ -1022,9 +1088,48 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .build(new JGitKeyCache());
     }
 
+    /**
+     * Create a participation for the given exercise if it does not exist yet.
+     *
+     * @param exerciseId the ID of the exercise
+     * @return the participations for the given exercise
+     */
+    public RequestStat postParticipation(long exerciseId) {
+        long start = System.nanoTime();
+        webClient
+            .post()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exercise", "exercises", String.valueOf(exerciseId), "participations").build())
+            .retrieve()
+            .bodyToMono(Participation.class)
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
     private String getSshCloneUrl(String cloneUrl) {
         var artemisServerHostname = artemisUrl.substring(artemisUrl.indexOf("//") + 2).split("/")[0].split(":")[0];
         return "ssh://git@" + artemisServerHostname + ":7921" + cloneUrl.substring(cloneUrl.indexOf("/git/"));
+    }
+
+    private RequestStat getIrisStatus() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "iris", "status").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat getIrisChatHistory(long courseId) {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "iris", "chat-history", String.valueOf(courseId), "sessions").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private UsernamePasswordCredentialsProvider getCredentialsProvider() {

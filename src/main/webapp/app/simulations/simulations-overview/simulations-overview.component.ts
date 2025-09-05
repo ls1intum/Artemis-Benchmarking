@@ -12,9 +12,9 @@ import { StatusIconComponent } from '../../layouts/status-icon/status-icon.compo
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { LogBoxComponent } from '../../layouts/log-box/log-box.component';
 import { CiStatusCardComponent } from '../../layouts/ci-status-card/ci-status-card.component';
-import { PrometheusBoxComponent } from '../../layouts/prometheus-box/prometheus-box.component';
 import { ResultBoxComponent } from '../../layouts/result-box/result-box.component';
 import { DatePipe } from '@angular/common';
+import { SimulationDetailsComponent } from '../../layouts/simulation-details/simulation-details.component';
 
 export function sortSimulations(simulations: Simulation[]): Simulation[] {
   return simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
@@ -35,6 +35,7 @@ export function sortSimulations(simulations: Simulation[]): Simulation[] {
     CiStatusCardComponent,
     ResultBoxComponent,
     DatePipe,
+    SimulationDetailsComponent,
   ],
 })
 export default class SimulationsOverviewComponent implements OnInit {
@@ -42,6 +43,7 @@ export default class SimulationsOverviewComponent implements OnInit {
 
   simulations = signal<Simulation[]>([]);
   selectedRun = signal<SimulationRun | undefined>(undefined);
+  selectedSimulation = signal<Simulation | undefined>(undefined);
   isCollapsed = true;
   cancellationInProgress = false;
 
@@ -54,12 +56,27 @@ export default class SimulationsOverviewComponent implements OnInit {
 
   ngOnInit(): void {
     const selectedRunString = this.route.snapshot.queryParamMap.get('runId');
+    const selectedSimulationString = this.route.snapshot.queryParamMap.get('simulationId');
+
     let selectedRunId = -1;
     if (selectedRunString) {
-      selectedRunId = parseInt(selectedRunString, 10);
+      selectedRunId = Number(selectedRunString);
     }
+
+    let selectedSimulationId = -1;
+    if (selectedSimulationString) {
+      selectedSimulationId = Number(selectedSimulationString);
+    }
+
     this.simulationsService.getSimulations().subscribe(simulations => {
       this.simulations.set(sortSimulations(simulations));
+
+      if (selectedSimulationId > 0) {
+        const simulation = simulations.find(s => s.id === selectedSimulationId);
+        if (simulation) {
+          this.onSelectSimulation(simulation);
+        }
+      }
 
       this.simulations().forEach(simulation => {
         simulation.runs.forEach(run => {
@@ -81,6 +98,7 @@ export default class SimulationsOverviewComponent implements OnInit {
   }
 
   selectRun(run: SimulationRun): void {
+    this.selectedSimulation.set(undefined);
     const selectedRun = this.selectedRun();
     if (selectedRun) {
       this.simulationsService.unsubscribeFromSelectedSimulationRun(selectedRun);
@@ -137,18 +155,34 @@ export default class SimulationsOverviewComponent implements OnInit {
   subscribeToRunStatus(run: SimulationRun): void {
     this.simulationsService.receiveSimulationStatus(run).subscribe(status => {
       run.status = status;
+      this.updateSelectedRun(run);
     });
   }
 
   subscribeToSelectedRun(run: SimulationRun): void {
     this.simulationsService.receiveSimulationLog(run).subscribe(logMessage => {
       run.logMessages.push(logMessage);
+      this.updateSelectedRun(run);
     });
     this.simulationsService.receiveSimulationResult(run).subscribe(stats => {
       run.stats = stats.sort((a, b) => getOrder(a) - getOrder(b));
+      this.updateSelectedRun(run);
     });
     this.simulationsService.receiveCiStatus(run).subscribe(ciStatus => {
       run.ciStatus = ciStatus;
+      this.updateSelectedRun(run);
     });
+  }
+
+  updateSelectedRun(run: SimulationRun): void {
+    if (this.selectedRun() && this.selectedRun()!.id === run.id) {
+      this.selectedRun.set(SimulationRun.of(run));
+    }
+  }
+
+  onSelectSimulation(simulation: Simulation): void {
+    this.selectedSimulation.set(simulation);
+    this.selectedRun.set(undefined);
+    this.router.navigate([], { queryParams: { simulationId: simulation.id } });
   }
 }

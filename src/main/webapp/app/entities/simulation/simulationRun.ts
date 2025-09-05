@@ -14,6 +14,19 @@ export class SimulationRun {
     public endDateTime?: Date,
     public ciStatus?: CiStatus,
   ) {}
+
+  public static of(simulationRun: SimulationRun): SimulationRun {
+    return new SimulationRun(
+      simulationRun.id,
+      simulationRun.startDateTime,
+      simulationRun.stats,
+      simulationRun.status,
+      simulationRun.simulation,
+      simulationRun.logMessages,
+      simulationRun.endDateTime,
+      simulationRun.ciStatus,
+    );
+  }
 }
 
 export enum Status {
