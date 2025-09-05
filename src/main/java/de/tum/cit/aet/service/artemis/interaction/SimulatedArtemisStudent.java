@@ -304,6 +304,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .block();
     }
 
+    /**
+     * Get the notification settings for the user in the given course.
+     * @return the request stat
+     */
     public RequestStat getNotificationSettings() {
         long start = System.nanoTime();
         webClient
@@ -315,6 +319,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
+    /**
+     * Get the notification info for the user.
+     * @return the request stat
+     */
     public RequestStat getNotificationInfo() {
         long start = System.nanoTime();
         webClient
