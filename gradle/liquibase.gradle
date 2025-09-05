@@ -8,7 +8,7 @@ dependencies {
     // Dependency required to parse options. Refer to https://github.com/liquibase/liquibase-gradle-plugin/tree/Release_2.2.0#news.
     liquibaseRuntime "info.picocli:picocli:4.7.7"
 
-    liquibaseRuntime "org.liquibase.ext:liquibase-hibernate6:${liquibaseVersion}"
+//    liquibaseRuntime "org.liquibase.ext:liquibase-hibernate6:${liquibaseVersion}"
     liquibaseRuntime "com.mysql:mysql-connector-j:${mysqlVersion}"
 }
 
