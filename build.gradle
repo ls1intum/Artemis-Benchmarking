@@ -254,7 +254,7 @@ dependencies {
     implementation "org.springframework.security:spring-security-data:${springSecurityVersion}"
 
     // use newest version of nimbus-jose-jwt to avoid security issues through outdated dependencies
-    implementation "com.nimbusds:nimbus-jose-jwt:10.4.2"
+    implementation "com.nimbusds:nimbus-jose-jwt:10.5"
 
 
     // use the latest version to avoid security vulnerabilities
