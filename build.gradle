@@ -22,14 +22,14 @@ plugins {
     id "com.gorylenko.gradle-git-properties" version "${gitPropertiesPluginVersion}"
     id "io.spring.dependency-management" version "1.1.7"
     id "org.liquibase.gradle" version "${liquibasePluginVersion}"
-    id "org.openapi.generator" version "7.14.0"
+    id "org.openapi.generator" version "7.15.0"
     id "org.sonarqube" version "${sonarqubePluginVersion}"
     id "org.springframework.boot" version "${springBootVersion}"
     // jhipster-needle-gradle-plugins - JHipster will add additional gradle plugins here
 }
 
 group = "de.tum.cit.aet"
-version = "0.3.2"
+version = "0.3.3"
 
 description = "Benchmarking Application for Performance Tests in the Artemis project"
 
@@ -192,7 +192,7 @@ dependencies {
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate6:${jacksonVersion}"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc:${jacksonVersion}"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.11"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.12"
     implementation "com.zaxxer:HikariCP:7.0.2"
     implementation "org.apache.commons:commons-lang3:3.18.0"
     implementation "org.openapitools:jackson-databind-nullable:${jacksonDatabindNullableVersion}"
