@@ -301,7 +301,7 @@ dependencies {
     implementation "org.bouncycastle:bcprov-jdk18on:1.81"
 
     // use newest version
-    implementation "io.projectreactor.netty:reactor-netty-core:1.2.9"
+    implementation "io.projectreactor.netty:reactor-netty-core:1.2.10"
     implementation "io.projectreactor.netty:reactor-netty-http:1.2.10"
 
     implementation "io.reactivex.rxjava3:rxjava:3.1.11"
