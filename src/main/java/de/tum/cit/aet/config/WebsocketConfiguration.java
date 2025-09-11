@@ -17,6 +17,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.socket.WebSocketHandler;
@@ -26,17 +27,27 @@ import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 import org.springframework.web.socket.sockjs.transport.handler.WebSocketTransportHandler;
 
 @Configuration
-@EnableWebSocketMessageBroker
-public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer {
+// See https://stackoverflow.com/a/34337731/3802758
+public class WebsocketConfiguration extends DelegatingWebSocketMessageBrokerConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(WebsocketConfiguration.class);
 
     public static final String IP_ADDRESS = "IP_ADDRESS";
 
+    private final TaskScheduler taskScheduler;
+
+    public WebsocketConfiguration(TaskScheduler taskScheduler) {
+        this.taskScheduler = taskScheduler;
+    }
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
+        // @formatter:off
         config.enableSimpleBroker("/topic")
-            .setHeartbeatValue(new long[] { 10_000, 10_000 });
+            .setHeartbeatValue(new long[] { 10_000, 10_000 })
+            // Use the custom task scheduler for the heartbeat messages
+            .setTaskScheduler(taskScheduler);
+        // @formatter:on
     }
 
     @Override
@@ -69,24 +80,19 @@ public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer 
         return new HandshakeInterceptor() {
             @Override
             public boolean beforeHandshake(
-                ServerHttpRequest request,
-                ServerHttpResponse response,
-                WebSocketHandler wsHandler,
-                Map<String, Object> attributes
+                @NotNull ServerHttpRequest request,
+                @NotNull ServerHttpResponse response,
+                @NotNull WebSocketHandler wsHandler,
+                @NotNull Map<String, Object> attributes
             ) {
-                if (request instanceof ServletServerHttpRequest) {
-                    ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
+                if (request instanceof ServletServerHttpRequest servletRequest) {
                     attributes.put(IP_ADDRESS, servletRequest.getRemoteAddress());
                 }
                 return true;
             }
 
             @Override
-            public void afterHandshake(
-                ServerHttpRequest request,
-                ServerHttpResponse response,
-                WebSocketHandler wsHandler,
-                Exception exception
+            public void afterHandshake(@NotNull ServerHttpRequest request, @NotNull ServerHttpResponse response, @NotNull WebSocketHandler wsHandler, Exception exception
             ) {}
         };
     }
