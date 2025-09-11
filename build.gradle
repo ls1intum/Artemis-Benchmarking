@@ -302,7 +302,7 @@ dependencies {
 
     // use newest version
     implementation "io.projectreactor.netty:reactor-netty-core:1.2.9"
-    implementation "io.projectreactor.netty:reactor-netty-http:1.2.9"
+    implementation "io.projectreactor.netty:reactor-netty-http:1.2.10"
 
     implementation "io.reactivex.rxjava3:rxjava:3.1.11"
     implementation "io.netty:netty-resolver-dns-native-macos:${nettyVersion}:osx-aarch_64"
