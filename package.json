@@ -39,7 +39,7 @@
     "@babel/runtime": "7.28.4",
     "braces": "3.0.3",
     "cookie": "1.0.2",
-    "debug": "4.4.1",
+    "debug": "4.4.3",
     "esbuild": "0.25.9",
     "express": "5.1.0",
     "globals": "16.4.0",
