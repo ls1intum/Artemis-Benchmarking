@@ -298,7 +298,7 @@ dependencies {
     implementation "org.apache.sshd:sshd-sftp:${sshdVersion}"
 
     implementation "org.bouncycastle:bcpkix-jdk18on:1.81"
-    implementation "org.bouncycastle:bcprov-jdk18on:1.81"
+    implementation "org.bouncycastle:bcprov-jdk18on:1.82"
 
     // use newest version
     implementation "io.projectreactor.netty:reactor-netty-core:1.2.10"
