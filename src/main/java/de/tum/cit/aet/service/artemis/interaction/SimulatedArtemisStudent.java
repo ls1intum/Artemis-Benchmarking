@@ -57,7 +57,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private Long studentExamId;
     private StudentExam studentExam;
     private String participationVcsAccessToken;
-    private ArtemisAuthMechanism authenticationMechanism;
+    private final ArtemisAuthMechanism authenticationMechanism;
 
     private final int numberOfCommitsAndPushesFrom;
     private final int numberOfCommitsAndPushesTo;
@@ -601,7 +601,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         ArtemisAuthMechanism mechanism,
         Long participationId,
         String changedFileContent
-    ) throws IOException, GitAPIException, GeneralSecurityException {
+    ) throws IOException, GitAPIException {
         switch (mechanism) {
             case ONLINE_IDE -> makeOnlineIDECommitAndPush(requestStats, participationId, changedFileContent);
             default -> makeOfflineIDECommitAndPush(requestStats);
@@ -781,7 +781,7 @@ private List<RequestStat> solveAndSubmitFileUploadExercise(FileUploadExercise fi
         return null;
     }
 
-    private RequestStat commitAndPushRepo() throws IOException, GitAPIException, GeneralSecurityException {
+    private RequestStat commitAndPushRepo() throws IOException, GitAPIException {
         var localPath = Path.of("repos", username);
         log.debug("Commit and push to " + localPath);
 
@@ -863,7 +863,7 @@ private List<RequestStat> solveAndSubmitFileUploadExercise(FileUploadExercise fi
         requestStats.add(fetchFiles(participationId));
     }
 
-    private void makeOfflineIDECommitAndPush(List<RequestStat> requestStats) throws IOException, GitAPIException, GeneralSecurityException {
+    private void makeOfflineIDECommitAndPush(List<RequestStat> requestStats) throws IOException, GitAPIException {
         requestStats.add(commitAndPushRepo());
     }
 
@@ -986,9 +986,8 @@ private List<RequestStat> solveAndSubmitFileUploadExercise(FileUploadExercise fi
      * @param repositoryUrl the URL of the repository to clone
      * @return a RequestStat containing the time taken for the clone operation
      * @throws IOException if an I/O error occurs
-     * @throws GeneralSecurityException if a security error occurs
      */
-    public RequestStat cloneRepoOverSSH(String repositoryUrl) throws IOException, GeneralSecurityException {
+    public RequestStat cloneRepoOverSSH(String repositoryUrl) throws IOException {
         log.debug("Clone " + repositoryUrl);
 
         var localPath = Path.of("repos", username);
@@ -1037,10 +1036,8 @@ private List<RequestStat> solveAndSubmitFileUploadExercise(FileUploadExercise fi
      *
      * @param privateKey the private key in PEM format
      * @return an iterable of KeyPair objects
-     * @throws IOException if an I/O error occurs
-     * @throws GeneralSecurityException if a security error occurs
      */
-    public Iterable<KeyPair> loadKeys(String privateKey) throws IOException, GeneralSecurityException {
+    public Iterable<KeyPair> loadKeys(String privateKey) {
         try {
             Object parsed = new PEMParser(new StringReader(privateKey)).readObject();
             KeyPair pair;

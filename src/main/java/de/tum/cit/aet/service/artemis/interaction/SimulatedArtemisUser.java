@@ -123,7 +123,7 @@ public abstract class SimulatedArtemisUser {
         if (header == null) {
             throw new RuntimeException("Login failed - No cookie received");
         }
-        var cookieHeader = header.get(0);
+        var cookieHeader = header.getFirst();
         authToken = AuthToken.fromResponseHeaderString(cookieHeader);
         if (artemisUser != null) {
             artemisUser.setJwtToken(authToken.jwtToken());

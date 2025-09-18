@@ -4,7 +4,7 @@ import de.tum.cit.aet.config.Constants;
 import de.tum.cit.aet.domain.Authority;
 import de.tum.cit.aet.domain.User;
 import jakarta.validation.constraints.*;
-import java.io.Serializable;
+
 import java.time.Instant;
 import java.util.Set;
 import java.util.stream.Collectors;

@@ -1,7 +1,6 @@
 package de.tum.cit.aet.service.dto;
 
 import de.tum.cit.aet.domain.User;
-import java.io.Serializable;
 
 /**
  * A DTO representing a user, with only the public attributes.

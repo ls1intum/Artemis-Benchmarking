@@ -251,11 +251,9 @@ public class SimulationExecutionService {
         int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 10, simulation.getNumberOfUsers());
         logAndSend(false, simulationRun, "Using %d threads for simulation.", threadCount);
 
-        List<RequestStat> requestStats = new ArrayList<>();
-
         try {
             logAndSend(false, simulationRun, "Logging in students...");
-            requestStats.addAll(performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].login()));
+            List<RequestStat> requestStats = new ArrayList<>(performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].login()));
 
             logAndSend(false, simulationRun, "Performing initial calls...");
             requestStats.addAll(performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].performInitialCalls()));

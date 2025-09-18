@@ -5,7 +5,6 @@ import de.tum.cit.aet.domain.Authority;
 import de.tum.cit.aet.domain.User;
 import de.tum.cit.aet.repository.AuthorityRepository;
 import de.tum.cit.aet.repository.UserRepository;
-import de.tum.cit.aet.security.AuthoritiesConstants;
 import de.tum.cit.aet.security.SecurityUtils;
 import de.tum.cit.aet.service.dto.AdminUserDTO;
 import de.tum.cit.aet.service.dto.UserDTO;

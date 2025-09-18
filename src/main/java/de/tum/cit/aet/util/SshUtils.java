@@ -83,7 +83,7 @@ public class SshUtils {
         out.write(bytes);
     }
 
-    private static void writeInt(ByteArrayOutputStream out, int value) throws IOException {
+    private static void writeInt(ByteArrayOutputStream out, int value) {
         out.write((value >> 24) & 0xFF);
         out.write((value >> 16) & 0xFF);
         out.write((value >> 8) & 0xFF);
