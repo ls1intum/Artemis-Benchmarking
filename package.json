@@ -110,7 +110,7 @@
     "prettier-plugin-java": "2.7.5",
     "prettier-plugin-packagejson": "2.5.19",
     "rimraf": "6.0.1",
-    "sass": "1.92.1",
+    "sass": "1.93.2",
     "swagger-ui-dist": "5.29.0",
     "ts-jest": "29.4.3",
     "typescript": "5.9.2",
