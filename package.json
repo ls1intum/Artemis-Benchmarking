@@ -58,7 +58,7 @@
     "yargs-parser": "22.0.0"
   },
   "dependencies": {
-    "@angular/cdk": "20.2.4",
+    "@angular/cdk": "20.2.7",
     "@angular/common": "20.3.1",
     "@angular/compiler": "20.3.1",
     "@angular/core": "20.3.1",
