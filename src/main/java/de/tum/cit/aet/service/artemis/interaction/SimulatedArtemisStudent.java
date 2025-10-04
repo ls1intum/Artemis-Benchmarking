@@ -602,9 +602,11 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         Long participationId,
         String changedFileContent
     ) throws IOException, GitAPIException {
-        switch (mechanism) {
-            case ONLINE_IDE -> makeOnlineIDECommitAndPush(requestStats, participationId, changedFileContent);
-            default -> makeOfflineIDECommitAndPush(requestStats);
+        if (Objects.requireNonNull(mechanism) == ArtemisAuthMechanism.ONLINE_IDE) {
+            makeOnlineIDECommitAndPush(requestStats, participationId, changedFileContent);
+        }
+        else {
+            makeOfflineIDECommitAndPush(requestStats);
         }
     }
 
@@ -1039,7 +1041,7 @@ private List<RequestStat> solveAndSubmitFileUploadExercise(FileUploadExercise fi
      */
     public Iterable<KeyPair> loadKeys(String privateKey) {
         try {
-            Object parsed = new PEMParser(new StringReader(privateKey)).readObject();
+            Object parsed = new PEMParser(StringReader.of(privateKey)).readObject();
             KeyPair pair;
             pair = new JcaPEMKeyConverter().getKeyPair((PEMKeyPair) parsed);
 
