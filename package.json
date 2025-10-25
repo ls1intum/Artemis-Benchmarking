@@ -103,7 +103,7 @@
     "jest-junit": "16.0.0",
     "jest-preset-angular": "14.6.1",
     "jest-sonar": "0.2.16",
-    "lint-staged": "16.2.4",
+    "lint-staged": "16.2.6",
     "patch-package": "8.0.1",
     "postinstall-postinstall": "2.1.0",
     "prettier": "3.6.2",
