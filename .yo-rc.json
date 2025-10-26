@@ -4,7 +4,7 @@
     "authenticationType": "jwt",
     "baseName": "artemis-benchmarking",
     "buildTool": "gradle",
-    "cacheProvider": "hazelcast",
+    "cacheProvider": "caffeine",
     "clientFramework": "angular",
     "clientTestFrameworks": [],
     "clientTheme": "none",
