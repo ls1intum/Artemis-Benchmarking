@@ -1,5 +1,5 @@
 dependencies {
   implementation "org.springframework.boot:spring-boot-starter-cache"
   implementation "javax.cache:cache-api"
-  implementation "com.github.ben-manes.caffeine:jcache:3.2.2"
+  implementation "com.github.ben-manes.caffeine:jcache:3.2.3"
 }
