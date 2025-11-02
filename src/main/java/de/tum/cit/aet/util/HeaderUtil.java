@@ -42,6 +42,16 @@ public final class HeaderUtil {
         return createAlert(applicationName, message, param);
     }
 
+    /**
+     * Creates an alert HttpHeaders for a failure event.
+     *
+     * @param applicationName   the name of the application
+     * @param enableTranslation whether to enable translation for the error message
+     * @param entityName        the name of the entity involved in the failure
+     * @param errorKey          the key representing the error type
+     * @param defaultMessage    the default message to use if translation is not enabled
+     * @return HttpHeaders containing the failure alert information
+     */
     public static HttpHeaders createFailureAlert(String applicationName, boolean enableTranslation, String entityName, String errorKey, String defaultMessage) {
         String message = enableTranslation ? "error." + errorKey : defaultMessage;
 

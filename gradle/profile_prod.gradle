@@ -1,6 +1,6 @@
 dependencies {
     implementation "com.mysql:mysql-connector-j:${mysqlVersion}"
-    testImplementation "org.testcontainers:mysql:${testcontainersVersion}"
+    testImplementation "org.testcontainers:testcontainers-mysql:${testcontainersVersion}"
 }
 
 ext {

@@ -1,11 +1,10 @@
-package de.tum.cit.aet.artemis.core.exception;
+package de.tum.cit.aet.web.rest.errors;
 
 import java.io.IOException;
 import java.util.List;
 
 import de.tum.cit.aet.service.UsernameAlreadyUsedException;
 import de.tum.cit.aet.util.HeaderUtil;
-import de.tum.cit.aet.web.rest.errors.*;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;

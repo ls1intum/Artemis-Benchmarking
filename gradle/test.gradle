@@ -7,7 +7,7 @@ tasks.withType(Test).configureEach {
 //    jvmArgs += "-javaagent:${configurations.mockitoAgent.asPath}"
 
     // a collection to track failedTests
-    ext.failedTests = []
+    def failedTests = [] as List<String>
 
     testLogging {
         // set options for log level LIFECYCLE

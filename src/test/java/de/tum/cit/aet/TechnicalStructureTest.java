@@ -32,7 +32,6 @@ class TechnicalStructureTest {
 
         .ignoreDependency(belongToAnyOf(ArtemisBenchmarkingApp.class), alwaysTrue())
         .ignoreDependency(alwaysTrue(), belongToAnyOf(
-            de.tum.cit.aet.config.Constants.class,
-            de.tum.cit.aet.config.ApplicationProperties.class
+            de.tum.cit.aet.config.Constants.class
         ));
 }

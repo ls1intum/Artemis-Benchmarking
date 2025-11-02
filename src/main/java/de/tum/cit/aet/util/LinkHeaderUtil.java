@@ -8,6 +8,13 @@ public class LinkHeaderUtil {
 
     private static final String HEADER_LINK_FORMAT = "<{0}>; rel=\"{1}\"";
 
+    /**
+     * Prepare Link HTTP header for pagination.
+     *
+     * @param uriBuilder UriComponentsBuilder
+     * @param page       Page object
+     * @return String for Link HTTP header
+     */
     public String prepareLinkHeaders(UriComponentsBuilder uriBuilder, Page<?> page) {
         int pageNumber = page.getNumber();
         int pageSize = page.getSize();

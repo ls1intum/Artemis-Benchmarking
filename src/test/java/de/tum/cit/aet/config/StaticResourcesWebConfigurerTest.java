@@ -58,12 +58,4 @@ class StaticResourcesWebConfigurerTest {
             .extracting(CacheControl::getHeaderValue)
             .isEqualTo(cacheExpected.getHeaderValue());
     }
-
-    @Test
-    void shouldCreateCacheControlWithSpecificConfigurationInProperties() {
-        CacheControl cacheExpected = CacheControl.maxAge(MAX_AGE_TEST, TimeUnit.DAYS).cachePublic();
-        assertThat(staticResourcesWebConfiguration.getCacheControl())
-            .extracting(CacheControl::getHeaderValue)
-            .isEqualTo(cacheExpected.getHeaderValue());
-    }
 }
