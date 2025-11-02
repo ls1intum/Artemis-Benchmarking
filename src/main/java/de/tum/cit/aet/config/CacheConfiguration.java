@@ -8,7 +8,6 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.*;
-import tech.jhipster.config.cache.PrefixedKeyGenerator;
 
 import java.time.Duration;
 
@@ -27,8 +26,8 @@ public class CacheConfiguration {
         return manager;
     }
 
-    @Bean
-    public KeyGenerator keyGenerator(GitProperties gitProperties, BuildProperties buildProperties) {
-        return new PrefixedKeyGenerator(gitProperties, buildProperties);
-    }
+//    @Bean
+//    public KeyGenerator keyGenerator(GitProperties gitProperties, BuildProperties buildProperties) {
+//        return new PrefixedKeyGenerator(gitProperties, buildProperties);
+//    }
 }

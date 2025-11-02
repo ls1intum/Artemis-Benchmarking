@@ -46,6 +46,5 @@ export const appConfig: ApplicationConfig = {
     { provide: NgbDateAdapter, useClass: NgbDateDayjsAdapter },
     httpInterceptorProviders,
     { provide: TitleStrategy, useClass: AppPageTitleStrategy },
-    // jhipster-needle-angular-add-module JHipster will add new module here
   ],
 };

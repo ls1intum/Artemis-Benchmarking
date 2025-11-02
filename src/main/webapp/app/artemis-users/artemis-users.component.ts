@@ -14,7 +14,7 @@ import { Observable, Subject, map, merge, startWith } from 'rxjs';
 import SharedModule from '../shared/shared.module';
 
 @Component({
-  selector: 'jhi-artemis-users',
+  selector: 'artemis-users',
   imports: [SharedModule, NgbCollapse, CreateUserBoxComponent, FontAwesomeModule, NgbTooltipModule, FormsModule, ReactiveFormsModule],
   templateUrl: './artemis-users.component.html',
 })

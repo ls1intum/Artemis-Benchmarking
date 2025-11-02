@@ -9,8 +9,6 @@ It can also be connected to Prometheus to collect additional metrics such as the
 
 To simplify the simulation process, the tool can create courses and exams on Artemis. It can also be used to create test users on Artemis, which are used to simulate the students.
 
-The Benchmarking-Tool is a Jhipster application. For more information about Jhipster, see the [JHipster Homepage and latest documentation].
-
 ## Setup
 
 The Benchmarking Tool is a Spring Boot application with an Angular client. It requires a MySQL database server.
@@ -39,10 +37,10 @@ For a production environment, the configuration should be set using environment 
   - `spring.mail.port`: The port of the mail server.
   - `spring.mail.username`: The username to connect to the mail server.
   - `spring.mail.password`: The password to connect to the mail server.
-  - `jhipster.mail.from`: The email address to send emails from.
-  - `jhipster.mail.base-url`: The base URL of the application.
+  - `benchmarking.mail.from`: The email address to send emails from.
+  - `benchmarking.mail.base-url`: The base URL of the application.
 - Security:
-  - `jhipster.security.authentication.jwt.base64-secret`: The base64 encoded secret to sign the JWT tokens. If the application is not reachable from the internet, the default value should be sufficient.
+  - `benchmarking.security.authentication.jwt.base64-secret`: The base64 encoded secret to sign the JWT tokens. If the application is not reachable from the internet, the default value should be sufficient.
 
 The Benchmarking Tool can be connected to a number of Artemis Servers (currently TS1, TS3, TS7, TS8, STAGING, STAGING2, PRODUCTION).
 For each server, a number of configuration values needs to be set.
@@ -199,8 +197,7 @@ The following diagram shows the current database schema:
 ### Dependency Management
 
 On the server side, the application uses Gradle for dependency management. The dependencies are defined in the `build.gradle` file.
-The versions of the most important dependencies are defined in the `gradle.properties` file. Updating them usually requires to upgrade the project to a new JHipster version.
-This is a non-trivial task and should be done with caution in accordance with the [JHipster upgrade guide](https://www.jhipster.tech/upgrading-an-application/).
+The versions of the most important dependencies are defined in the `gradle.properties` file.
 
 On the client side, the application uses NPM for dependency management. The dependencies are defined in the `package.json` file.
 
@@ -428,19 +425,10 @@ To unsubscribe, click on the respective link in the email.
 - For simulations that require instructor rights, the credentials need to be specified before creating the schedule.
 - See [Artemis User Management](#artemis-user-management) for more information.
 
-[JHipster Homepage and latest documentation]: https://www.jhipster.tech
-[JHipster 8.1.0 archive]: https://www.jhipster.tech/documentation-archive/v8.1.0
-[Using JHipster in development]: https://www.jhipster.tech/documentation-archive/v8.1.0/development/
-[Using Docker and Docker-Compose]: https://www.jhipster.tech/documentation-archive/v8.1.0/docker-compose
-[Using JHipster in production]: https://www.jhipster.tech/documentation-archive/v8.1.0/production/
-[Running tests page]: https://www.jhipster.tech/documentation-archive/v8.1.0/running-tests/
-[Code quality page]: https://www.jhipster.tech/documentation-archive/v8.1.0/code-quality/
-[Setting up Continuous Integration]: https://www.jhipster.tech/documentation-archive/v8.1.0/setting-up-ci/
 [Node.js]: https://nodejs.org/
 [NPM]: https://www.npmjs.com/
 [OpenAPI-Generator]: https://openapi-generator.tech
 [Swagger-Editor]: https://editor.swagger.io
-[Doing API-First development]: https://www.jhipster.tech/documentation-archive/v8.1.0/doing-api-first-development/
 [Webpack]: https://webpack.github.io/
 [BrowserSync]: https://www.browsersync.io/
 [Jest]: https://facebook.github.io/jest/

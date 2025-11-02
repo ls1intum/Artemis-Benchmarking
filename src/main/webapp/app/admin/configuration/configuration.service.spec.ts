@@ -27,21 +27,15 @@ describe('Logs Service', () => {
   describe('Service methods', () => {
     it('should get the config', () => {
       const bean: Bean = {
-        prefix: 'jhipster',
+        prefix: 'benchmarking',
         properties: {
           clientApp: {
-            name: 'jhipsterApp',
+            name: 'benchmarkingApp',
           },
         },
       };
       const configProps: ConfigProps = {
-        contexts: {
-          jhipster: {
-            beans: {
-              'tech.jhipster.config.JHipsterProperties': bean,
-            },
-          },
-        },
+        contexts: {},
       };
       service.getBeans().subscribe(received => (expectedResult = received));
 

@@ -3,7 +3,7 @@ import { ArtemisServer } from '../../core/util/artemisServer';
 import { NgClass } from '@angular/common';
 
 @Component({
-  selector: 'jhi-server-badge',
+  selector: 'server-badge',
   templateUrl: './server-badge.component.html',
   styleUrls: ['./server-badge.component.scss'],
   imports: [NgClass],

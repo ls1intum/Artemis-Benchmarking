@@ -4,7 +4,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import dayjs from 'dayjs/esm';
 
 @Component({
-  selector: 'jhi-footer',
+  selector: 'footer',
   templateUrl: './footer.component.html',
   imports: [FaIconComponent],
 })

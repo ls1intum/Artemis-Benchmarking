@@ -8,7 +8,7 @@ import { Level, Log, LoggersResponse } from './log.model';
 import { LogsService } from './logs.service';
 
 @Component({
-  selector: 'jhi-logs',
+  selector: 'logs',
   templateUrl: './logs.component.html',
   imports: [SharedModule, FormsModule, SortDirective, SortByDirective],
 })

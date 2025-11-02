@@ -1,283 +1,177 @@
-package de.tum.cit.aet.web.rest.errors;
+package de.tum.cit.aet.artemis.core.exception;
 
-import static org.springframework.core.annotation.AnnotatedElementUtils.findMergedAnnotation;
-
-import jakarta.servlet.http.HttpServletRequest;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collection;
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+
+import de.tum.cit.aet.service.UsernameAlreadyUsedException;
+import de.tum.cit.aet.util.HeaderUtil;
+import de.tum.cit.aet.web.rest.errors.*;
+import jakarta.annotation.Nullable;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotAllowedException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.ConcurrencyFailureException;
-import org.springframework.dao.DataAccessException;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageConversionException;
-import org.springframework.lang.Nullable;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.ErrorResponse;
-import org.springframework.web.ErrorResponseException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import tech.jhipster.config.JHipsterConstants;
-import tech.jhipster.web.rest.errors.ProblemDetailWithCause;
-import tech.jhipster.web.rest.errors.ProblemDetailWithCause.ProblemDetailWithCauseBuilder;
-import tech.jhipster.web.util.HeaderUtil;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.zalando.problem.DefaultProblem;
+import org.zalando.problem.Problem;
+import org.zalando.problem.ProblemBuilder;
+import org.zalando.problem.Status;
+import org.zalando.problem.spring.web.advice.ProblemHandling;
+import org.zalando.problem.spring.web.advice.security.SecurityAdviceTrait;
+import org.zalando.problem.violations.ConstraintViolationProblem;
 
 /**
- * Controller advice to translate the server side exceptions to client-friendly json structures.
- * The error response follows RFC7807 - Problem Details for HTTP APIs (https://tools.ietf.org/html/rfc7807).
+ * Controller advice to translate the server side exceptions to client-friendly json structures. The error response follows
+ * <a href="https://tools.ietf.org/html/rfc7807">RFC7807 - Problem Details for HTTP APIs</a>
  */
 @ControllerAdvice
-public class ExceptionTranslator extends ResponseEntityExceptionHandler {
+public class ExceptionTranslator implements ProblemHandling, SecurityAdviceTrait {
+
+    private static final Logger log = LoggerFactory.getLogger(ExceptionTranslator.class);
 
     private static final String FIELD_ERRORS_KEY = "fieldErrors";
-    private static final String MESSAGE_KEY = "message";
-    private static final String PATH_KEY = "path";
-    private static final boolean CASUAL_CHAIN_ENABLED = false;
 
-    @Value("${jhipster.clientApp.name}")
+    private static final String MESSAGE_KEY = "message";
+
+    private static final String PATH_KEY = "path";
+
+    private static final String VIOLATIONS_KEY = "violations";
+
+    @Value("${benchmarking.client-app.name}")
     private String applicationName;
 
-    private final Environment env;
+    /**
+     * Post-process the Problem payload to add the message key for the front-end if needed.
+     */
+    @Override
+    public ResponseEntity<Problem> process(@Nullable ResponseEntity<Problem> entity, @NotNull NativeWebRequest request) {
+        if (entity == null) {
+            return null;
+        }
+        Problem problem = entity.getBody();
+        if (!(problem instanceof ConstraintViolationProblem || problem instanceof DefaultProblem)) {
+            return entity;
+        }
+        ProblemBuilder builder = Problem.builder().withType(Problem.DEFAULT_TYPE.equals(problem.getType()) ? ErrorConstants.DEFAULT_TYPE : problem.getType())
+            .withStatus(problem.getStatus()).withTitle(problem.getTitle()).with(PATH_KEY, request.getNativeRequest(HttpServletRequest.class).getRequestURI());
 
-    public ExceptionTranslator(Environment env) {
-        this.env = env;
+        if (problem instanceof ConstraintViolationProblem) {
+            builder.with(VIOLATIONS_KEY, ((ConstraintViolationProblem) problem).getViolations()).with(MESSAGE_KEY, ErrorConstants.ERR_VALIDATION);
+        }
+        else {
+            builder.withCause(((DefaultProblem) problem).getCause()).withDetail(problem.getDetail()).withInstance(problem.getInstance());
+            problem.getParameters().forEach(builder::with);
+            if (!problem.getParameters().containsKey(MESSAGE_KEY) && problem.getStatus() != null) {
+                builder.with(MESSAGE_KEY, "error.http." + problem.getStatus().getStatusCode());
+            }
+        }
+        return new ResponseEntity<>(builder.build(), entity.getHeaders(), entity.getStatusCode());
+    }
+
+    @Override
+    public ResponseEntity<Problem> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, @NotNull NativeWebRequest request) {
+        BindingResult result = ex.getBindingResult();
+        List<FieldErrorVM> fieldErrors = result.getFieldErrors().stream().map(f -> new FieldErrorVM(f.getObjectName().replaceFirst("DTO$", ""), f.getField(), f.getCode()))
+            .toList();
+
+        Problem problem = Problem.builder().withType(ErrorConstants.CONSTRAINT_VIOLATION_TYPE).withTitle("Method argument not valid").withStatus(defaultConstraintViolationStatus())
+            .with(MESSAGE_KEY, ErrorConstants.ERR_VALIDATION).with(FIELD_ERRORS_KEY, fieldErrors).build();
+        return create(ex, problem, request);
     }
 
     @ExceptionHandler
-    public ResponseEntity<Object> handleAnyException(Throwable ex, NativeWebRequest request) {
-        ProblemDetailWithCause pdCause = wrapAndCustomizeProblem(ex, request);
-        return handleExceptionInternal((Exception) ex, pdCause, buildHeaders(ex), HttpStatusCode.valueOf(pdCause.getStatus()), request);
+    public ResponseEntity<Problem> handleEmailAlreadyUsedException(EmailAlreadyUsedException ex, NativeWebRequest request) {
+        EmailAlreadyUsedException problem = new EmailAlreadyUsedException();
+        return create(problem, request, HeaderUtil.createFailureAlert(applicationName, true, problem.getEntityName(), problem.getErrorKey(), problem.getMessage()));
     }
 
-    @Nullable
-    @Override
-    protected ResponseEntity<Object> handleExceptionInternal(
-        Exception ex,
-        @Nullable Object body,
-        HttpHeaders headers,
-        HttpStatusCode statusCode,
-        WebRequest request
-    ) {
-        body = body == null ? wrapAndCustomizeProblem(ex, (NativeWebRequest) request) : body;
-        return super.handleExceptionInternal(ex, body, headers, statusCode, request);
+    @ExceptionHandler
+    public ResponseEntity<Problem> handleUsernameAlreadyUsedException(UsernameAlreadyUsedException ex, NativeWebRequest request) {
+        LoginAlreadyUsedException problem = new LoginAlreadyUsedException();
+        return create(problem, request, HeaderUtil.createFailureAlert(applicationName, true, problem.getEntityName(), problem.getErrorKey(), problem.getMessage()));
     }
 
-    protected ProblemDetailWithCause wrapAndCustomizeProblem(Throwable ex, NativeWebRequest request) {
-        return customizeProblem(getProblemDetailWithCause(ex), ex, request);
+    @ExceptionHandler
+    public ResponseEntity<Problem> handlePasswordViolatesRequirementsException(PasswordViolatesRequirementsException ex, NativeWebRequest request) {
+        return create(new PasswordViolatesRequirementsException(), request);
     }
 
-    private ProblemDetailWithCause getProblemDetailWithCause(Throwable ex) {
-        if (ex instanceof de.tum.cit.aet.service.UsernameAlreadyUsedException) {
-            return (ProblemDetailWithCause) new LoginAlreadyUsedException().getBody();
-        }
-        if (ex instanceof de.tum.cit.aet.service.EmailAlreadyUsedException) {
-            return (ProblemDetailWithCause) new EmailAlreadyUsedException().getBody();
-        }
-        if (ex instanceof de.tum.cit.aet.service.InvalidPasswordException) {
-            return (ProblemDetailWithCause) new InvalidPasswordException().getBody();
-        }
-
-        if (ex instanceof ErrorResponseException exp && exp.getBody() instanceof ProblemDetailWithCause problemDetailWithCause) {
-            return problemDetailWithCause;
-        }
-        return ProblemDetailWithCauseBuilder.instance().withStatus(toStatus(ex).value()).build();
+    @ExceptionHandler
+    public ResponseEntity<Problem> handleBadRequestAlertException(BadRequestAlertException ex, NativeWebRequest request) {
+        return create(ex, request, HeaderUtil.createFailureAlert(applicationName, true, ex.getEntityName(), ex.getErrorKey(), ex.getMessage()));
     }
 
-    protected ProblemDetailWithCause customizeProblem(ProblemDetailWithCause problem, Throwable err, NativeWebRequest request) {
-        if (problem.getStatus() <= 0) {
-            problem.setStatus(toStatus(err));
-        }
-
-        if (problem.getType() == null || problem.getType().equals(URI.create("about:blank"))) {
-            problem.setType(getMappedType(err));
-        }
-
-        // higher precedence to Custom/ResponseStatus types
-        String title = extractTitle(err, problem.getStatus());
-        String problemTitle = problem.getTitle();
-        if (problemTitle == null || !problemTitle.equals(title)) {
-            problem.setTitle(title);
-        }
-
-        if (problem.getDetail() == null) {
-            // higher precedence to cause
-            problem.setDetail(getCustomizedErrorDetails(err));
-        }
-
-        Map<String, Object> problemProperties = problem.getProperties();
-        if (problemProperties == null || !problemProperties.containsKey(MESSAGE_KEY)) {
-            problem.setProperty(
-                MESSAGE_KEY,
-                getMappedMessageKey(err) != null ? getMappedMessageKey(err) : "error.http." + problem.getStatus()
-            );
-        }
-
-        if (problemProperties == null || !problemProperties.containsKey(PATH_KEY)) {
-            problem.setProperty(PATH_KEY, getPathValue(request));
-        }
-
-        if (
-            (err instanceof MethodArgumentNotValidException fieldException) &&
-            (problemProperties == null || !problemProperties.containsKey(FIELD_ERRORS_KEY))
-        ) {
-            problem.setProperty(FIELD_ERRORS_KEY, getFieldErrors(fieldException));
-        }
-
-        problem.setCause(buildCause(err.getCause(), request).orElse(null));
-
-        return problem;
+    @ExceptionHandler
+    public ResponseEntity<Problem> handleConflictException(ConflictException ex, NativeWebRequest request) {
+        Problem problem = Problem.builder().withStatus(Status.CONFLICT).with(MESSAGE_KEY, ex.getMessage()).with("X-" + applicationName + "-error", "error." + ex.getErrorKey())
+            .with("X-" + applicationName + "-params", ex.getEntityName()).build();
+        return create(ex, problem, request);
     }
 
-    private String extractTitle(Throwable err, int statusCode) {
-        return getCustomizedTitle(err) != null ? getCustomizedTitle(err) : extractTitleForResponseStatus(err, statusCode);
+    @ExceptionHandler
+    public ResponseEntity<Problem> handleConcurrencyFailure(ConcurrencyFailureException ex, NativeWebRequest request) {
+        Problem problem = Problem.builder().withStatus(Status.CONFLICT).with(MESSAGE_KEY, ErrorConstants.ERR_CONCURRENCY_FAILURE).build();
+        return create(ex, problem, request);
     }
 
-    private List<FieldErrorVM> getFieldErrors(MethodArgumentNotValidException ex) {
-        return ex
-            .getBindingResult()
-            .getFieldErrors()
-            .stream()
-            .map(f ->
-                new FieldErrorVM(
-                    f.getObjectName().replaceFirst("DTO$", ""),
-                    f.getField(),
-                    StringUtils.isNotBlank(f.getDefaultMessage()) ? f.getDefaultMessage() : f.getCode()
-                )
-            )
-            .toList();
+    @ExceptionHandler
+    public ResponseEntity<Problem> handleEntityNotFoundException(EntityNotFoundException ex, NativeWebRequest request) {
+        Problem problem = Problem.builder().withStatus(Status.NOT_FOUND).with(MESSAGE_KEY, ErrorConstants.REQ_404_REASON).build();
+        return create(ex, problem, request);
     }
 
-    private String extractTitleForResponseStatus(Throwable err, int statusCode) {
-        ResponseStatus specialStatus = extractResponseStatus(err);
-        return specialStatus == null ? HttpStatus.valueOf(statusCode).getReasonPhrase() : specialStatus.reason();
+    @ExceptionHandler
+    public ResponseEntity<Problem> handleBadRequest(BadRequestException exception, NativeWebRequest request) {
+        Problem problem = Problem.builder().withStatus(Status.BAD_REQUEST).with(MESSAGE_KEY, StringUtils.firstNonBlank(exception.getMessage(), ErrorConstants.REQ_400_REASON))
+            .build();
+        return create(exception, problem, request);
     }
 
-    private String extractURI(NativeWebRequest request) {
-        HttpServletRequest nativeRequest = request.getNativeRequest(HttpServletRequest.class);
-        return nativeRequest != null ? nativeRequest.getRequestURI() : StringUtils.EMPTY;
+    @ExceptionHandler
+    public ResponseEntity<Problem> handleNotAllowedException(NotAllowedException ex, NativeWebRequest request) {
+        Problem problem = Problem.builder().withStatus(Status.METHOD_NOT_ALLOWED).with(MESSAGE_KEY, StringUtils.firstNonBlank(ex.getMessage(), "Method not allowed")).build();
+        return create(ex, problem, request);
     }
 
-    private HttpStatus toStatus(final Throwable throwable) {
-        // Let the ErrorResponse take this responsibility
-        if (throwable instanceof ErrorResponse err) {
-            return HttpStatus.valueOf(err.getBody().getStatus());
+    /**
+     * @param e       a specific exception
+     * @param request the request
+     * @return the exception wrapped into a http entity
+     */
+    @ExceptionHandler(IOException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    // taken from https://mtyurt.net/post/spring-how-to-handle-ioexception-broken-pipe.html
+    public Object exceptionHandler(IOException e, HttpServletRequest request) {
+        if (Strings.CI.contains(ExceptionUtils.getRootCauseMessage(e), "Broken pipe")) {
+            log.info("Broken pipe IOException occurred: {}", e.getMessage());
+            // socket is closed, cannot return any response
+            return null;
         }
-
-        return Optional.ofNullable(getMappedStatus(throwable)).orElse(
-            Optional.ofNullable(resolveResponseStatus(throwable)).map(ResponseStatus::value).orElse(HttpStatus.INTERNAL_SERVER_ERROR)
-        );
-    }
-
-    private ResponseStatus extractResponseStatus(final Throwable throwable) {
-        return resolveResponseStatus(throwable);
-    }
-
-    private ResponseStatus resolveResponseStatus(final Throwable type) {
-        final ResponseStatus candidate = findMergedAnnotation(type.getClass(), ResponseStatus.class);
-        return candidate == null && type.getCause() != null ? resolveResponseStatus(type.getCause()) : candidate;
-    }
-
-    private URI getMappedType(Throwable err) {
-        if (err instanceof MethodArgumentNotValidException) {
-            return ErrorConstants.CONSTRAINT_VIOLATION_TYPE;
+        else {
+            return new HttpEntity<>(e.getMessage());
         }
-        return ErrorConstants.DEFAULT_TYPE;
     }
 
-    private String getMappedMessageKey(Throwable err) {
-        if (err instanceof MethodArgumentNotValidException) {
-            return ErrorConstants.ERR_VALIDATION;
-        } else if (err instanceof ConcurrencyFailureException || err.getCause() instanceof ConcurrencyFailureException) {
-            return ErrorConstants.ERR_CONCURRENCY_FAILURE;
-        }
-        return null;
-    }
-
-    private String getCustomizedTitle(Throwable err) {
-        if (err instanceof MethodArgumentNotValidException) {
-            return "Method argument not valid";
-        }
-        return null;
-    }
-
-    private String getCustomizedErrorDetails(Throwable err) {
-        Collection<String> activeProfiles = Arrays.asList(env.getActiveProfiles());
-        if (activeProfiles.contains(JHipsterConstants.SPRING_PROFILE_PRODUCTION)) {
-            if (err instanceof HttpMessageConversionException) {
-                return "Unable to convert http message";
-            }
-            if (err instanceof DataAccessException) {
-                return "Failure during data access";
-            }
-            if (containsPackageName(err.getMessage())) {
-                return "Unexpected runtime exception";
-            }
-        }
-        return err.getCause() != null ? err.getCause().getMessage() : err.getMessage();
-    }
-
-    private HttpStatus getMappedStatus(Throwable err) {
-        // Where we disagree with Spring defaults
-        if (err instanceof AccessDeniedException) {
-            return HttpStatus.FORBIDDEN;
-        }
-        if (err instanceof ConcurrencyFailureException) {
-            return HttpStatus.CONFLICT;
-        }
-        if (err instanceof BadCredentialsException) {
-            return HttpStatus.UNAUTHORIZED;
-        }
-        return null;
-    }
-
-    private URI getPathValue(NativeWebRequest request) {
-        if (request == null) {
-            return URI.create("about:blank");
-        }
-        return URI.create(extractURI(request));
-    }
-
-    private HttpHeaders buildHeaders(Throwable err) {
-        return err instanceof BadRequestAlertException badRequestAlertException
-            ? HeaderUtil.createFailureAlert(
-                applicationName,
-                true,
-                badRequestAlertException.getEntityName(),
-                badRequestAlertException.getErrorKey(),
-                badRequestAlertException.getMessage()
-            )
-            : null;
-    }
-
-    public Optional<ProblemDetailWithCause> buildCause(final Throwable throwable, NativeWebRequest request) {
-        if (throwable != null && isCasualChainEnabled()) {
-            return Optional.of(customizeProblem(getProblemDetailWithCause(throwable), throwable, request));
-        }
-        return Optional.empty();
-    }
-
-    private boolean isCasualChainEnabled() {
-        // Customize as per the needs
-        return CASUAL_CHAIN_ENABLED;
-    }
-
-    private boolean containsPackageName(String message) {
-        // This list is for sure not complete
-        return Strings.CS.containsAny(message, "org.", "java.", "net.", "jakarta.", "javax.", "com.", "io.", "de.", "de.tum.cit.aet");
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Problem> handleResourceNotFoundException(NoResourceFoundException ex, NativeWebRequest request) {
+        final var problem = Problem.builder().withStatus(Status.NOT_FOUND).withDetail(ex.getMessage()).build();
+        return create(ex, problem, request);
     }
 }

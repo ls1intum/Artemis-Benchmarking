@@ -6,7 +6,6 @@ import tseslint from 'typescript-eslint';
 import eslint from '@eslint/js';
 // For a detailed explanation, visit: https://github.com/angular-eslint/angular-eslint/blob/main/docs/CONFIGURING_FLAT_CONFIG.md
 import angular from 'angular-eslint';
-// jhipster-needle-eslint-add-import - JHipster will add additional import here
 
 export default tseslint.config(
   {
@@ -42,7 +41,7 @@ export default tseslint.config(
         'error',
         {
           type: 'element',
-          prefix: 'jhi',
+          prefix: '',
           style: 'kebab-case',
         },
       ],
@@ -50,7 +49,7 @@ export default tseslint.config(
         'error',
         {
           type: 'attribute',
-          prefix: 'jhi',
+          prefix: '',
           style: 'camelCase',
         },
       ],
@@ -131,6 +130,5 @@ export default tseslint.config(
     ignores: ['**/*.html'],
     extends: [prettier],
   },
-  // jhipster-needle-eslint-add-config - JHipster will add additional config here
   prettier,
 );

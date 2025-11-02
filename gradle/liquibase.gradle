@@ -32,7 +32,7 @@ liquibase {
             url = "jdbc:mysql://localhost:3306/artemis-benchmarking"
             username = "root"
             changelogFile = project.ext.diffChangelogFile
-            referenceUrl = "hibernate:spring:de.tum.cit.aet.domain?dialect=org.hibernate.dialect.MySQL8Dialect&hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
+            referenceUrl = "hibernate:spring:de.tum.cit.aet.domain?dialect=org.hibernate.dialect.MySQL8Dialect&hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.hibernate.SpringImplicitNamingStrategy"
             logLevel = "debug"
             classpath = "${layout.buildDirectory.dir("classes/java/main")}"
         }

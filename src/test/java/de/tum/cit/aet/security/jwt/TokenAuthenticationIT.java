@@ -18,7 +18,7 @@ class TokenAuthenticationIT {
     @Autowired
     private MockMvc mvc;
 
-    @Value("${jhipster.security.authentication.jwt.base64-secret}")
+    @Value("${benchmarking.security.authentication.jwt.base64-secret}")
     private String jwtKey;
 
     @Test

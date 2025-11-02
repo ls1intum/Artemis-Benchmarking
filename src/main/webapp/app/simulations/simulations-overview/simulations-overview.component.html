@@ -20,19 +20,19 @@
   </button>
 }
 <div #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
-  <jhi-create-simulation-box (simulationToCreate)="createSimulation($event)"></jhi-create-simulation-box>
+  <create-simulation-box (simulationToCreate)="createSimulation($event)"></create-simulation-box>
 </div>
 <div class="flex-container vh-90 mt-3">
   <div class="w-25 pe-3 overflow-scroll">
     @for (simulation of simulations(); track simulation) {
-      <jhi-simulation-card
+      <simulation-card
         [simulation]="simulation"
         [selectedRun]="selectedRun()"
         [selectedSimulation]="selectedSimulation()"
         (clickedRunEvent)="selectRun($event)"
         (clickedSimulationEvent)="onSelectSimulation($event)"
         (delete)="deleteSimulation(simulation)"
-      ></jhi-simulation-card>
+      ></simulation-card>
     }
   </div>
   <div class="vr"></div>
@@ -41,7 +41,7 @@
       <div class="space-between-wrapper">
         <h3>Run #{{ selectedRun.id }} - {{ selectedRun.startDateTime | date: 'dd.MM.yyyy, HH:mm' }}</h3>
         <h3 class="pe-3">
-          <jhi-status-icon class="me-3" [status]="selectedRun.status"></jhi-status-icon>
+          <status-icon class="me-3" [status]="selectedRun.status"></status-icon>
           @if (selectedRun.status === Status.RUNNING) {
             <button type="button" class="btn btn-danger mb-1" [disabled]="cancellationInProgress" (click)="cancelSelectedRun()">
               @if (cancellationInProgress) {
@@ -63,7 +63,7 @@
             <div ngbAccordionCollapse>
               <div ngbAccordionBody class="p-0">
                 <ng-template>
-                  <jhi-log-box [logMessages]="selectedRun.logMessages"></jhi-log-box>
+                  <log-box [logMessages]="selectedRun.logMessages"></log-box>
                 </ng-template>
               </div>
             </div>
@@ -79,7 +79,7 @@
               <div ngbAccordionCollapse>
                 <div ngbAccordionBody class="p-0">
                   <ng-template>
-                    <jhi-log-box [logMessages]="selectedRun.logMessages"></jhi-log-box>
+                    <log-box [logMessages]="selectedRun.logMessages"></log-box>
                   </ng-template>
                 </div>
               </div>
@@ -93,7 +93,7 @@
               <div ngbAccordionCollapse>
                 <div ngbAccordionBody class="p-0">
                   <ng-template>
-                    <jhi-ci-status-card [ciStatus]="selectedRun.ciStatus"></jhi-ci-status-card>
+                    <ci-status-card [ciStatus]="selectedRun.ciStatus"></ci-status-card>
                   </ng-template>
                 </div>
               </div>
@@ -110,7 +110,7 @@
             <div ngbAccordionBody class="p-0">
               <!--
                 <ng-template>
-                  <jhi-prometheus-box [run]="selectedRun"></jhi-prometheus-box>
+                  <prometheus-box [run]="selectedRun"></prometheus-box>
                 </ng-template>
                 -->
             </div>
@@ -120,14 +120,14 @@
       <div class="flex-wrapper">
         @for (simulationStats of selectedRun.stats; track simulationStats) {
           <div class="w-50 mb-3 ps-1 pe-1">
-            <jhi-result-box [simulationStats]="simulationStats"></jhi-result-box>
+            <result-box [simulationStats]="simulationStats"></result-box>
           </div>
         }
       </div>
     </div>
   } @else if (selectedSimulation()) {
     <div class="w-75 ms-3 pe-3">
-      <jhi-simulation-details [simulation]="selectedSimulation()!"></jhi-simulation-details>
+      <simulation-details [simulation]="selectedSimulation()!"></simulation-details>
     </div>
   } @else {
     <div class="w-75 ms-3 pe-3">

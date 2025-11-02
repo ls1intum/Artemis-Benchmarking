@@ -4,7 +4,7 @@ import SharedModule from 'app/shared/shared.module';
 import { ProcessMetrics } from 'app/admin/metrics/metrics.model';
 
 @Component({
-  selector: 'jhi-metrics-system',
+  selector: 'metrics-system',
   templateUrl: './metrics-system.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [SharedModule],

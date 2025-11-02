@@ -7,6 +7,7 @@ import de.tum.cit.aet.domain.SimulationSchedule;
 import de.tum.cit.aet.repository.ScheduleSubscriberRepository;
 import de.tum.cit.aet.repository.SimulationScheduleRepository;
 import de.tum.cit.aet.service.MailService;
+import de.tum.cit.aet.util.RandomUtil;
 import de.tum.cit.aet.web.rest.errors.BadRequestAlertException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -16,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import tech.jhipster.security.RandomUtil;
 
 @Service
 public class SimulationScheduleService {

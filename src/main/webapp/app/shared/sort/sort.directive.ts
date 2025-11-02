@@ -2,7 +2,7 @@ import { Directive, model, output } from '@angular/core';
 import { SortOrder, SortState } from './sort-state';
 
 @Directive({
-  selector: '[jhiSort]',
+  selector: '[sort]',
 })
 export class SortDirective {
   readonly sortState = model.required<SortState>();

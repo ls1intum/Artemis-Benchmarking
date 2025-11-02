@@ -8,7 +8,7 @@ import SharedModule from '../../shared/shared.module';
 import HealthModalComponent from './modal/health-modal.component';
 
 @Component({
-  selector: 'jhi-health',
+  selector: 'health',
   templateUrl: './health.component.html',
   imports: [SharedModule],
 })

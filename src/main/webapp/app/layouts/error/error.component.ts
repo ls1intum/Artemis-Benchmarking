@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import SharedModule from 'app/shared/shared.module';
 
 @Component({
-  selector: 'jhi-error',
+  selector: 'error',
   templateUrl: './error.component.html',
   imports: [SharedModule],
 })

@@ -5,7 +5,7 @@ import SharedModule from 'app/shared/shared.module';
 import { HealthDetails, HealthKey } from '../health.model';
 
 @Component({
-  selector: 'jhi-health-modal',
+  selector: 'health-modal',
   templateUrl: './health-modal.component.html',
   imports: [SharedModule],
 })

@@ -1,6 +1,7 @@
 package de.tum.cit.aet.config;
 
 import de.tum.cit.aet.security.AuthoritiesConstants;
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.security.Principal;
@@ -80,10 +81,10 @@ public class WebsocketConfiguration extends DelegatingWebSocketMessageBrokerConf
         return new HandshakeInterceptor() {
             @Override
             public boolean beforeHandshake(
-                @NotNull ServerHttpRequest request,
-                @NotNull ServerHttpResponse response,
-                @NotNull WebSocketHandler wsHandler,
-                @NotNull Map<String, Object> attributes
+                @Nonnull ServerHttpRequest request,
+                @Nonnull ServerHttpResponse response,
+                @Nonnull WebSocketHandler wsHandler,
+                @Nonnull Map<String, Object> attributes
             ) {
                 if (request instanceof ServletServerHttpRequest servletRequest) {
                     attributes.put(IP_ADDRESS, servletRequest.getRemoteAddress());
@@ -92,7 +93,7 @@ public class WebsocketConfiguration extends DelegatingWebSocketMessageBrokerConf
             }
 
             @Override
-            public void afterHandshake(@NotNull ServerHttpRequest request, @NotNull ServerHttpResponse response, @NotNull WebSocketHandler wsHandler, Exception exception
+            public void afterHandshake(@Nonnull ServerHttpRequest request, @Nonnull ServerHttpResponse response, @Nonnull WebSocketHandler wsHandler, Exception exception
             ) {}
         };
     }
@@ -100,7 +101,7 @@ public class WebsocketConfiguration extends DelegatingWebSocketMessageBrokerConf
     private DefaultHandshakeHandler defaultHandshakeHandler() {
         return new DefaultHandshakeHandler() {
             @Override
-            protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
+            protected Principal determineUser(@Nonnull ServerHttpRequest request, @Nonnull WebSocketHandler wsHandler, @Nonnull Map<String, Object> attributes) {
                 Principal principal = request.getPrincipal();
                 if (principal == null) {
                     Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
@@ -122,7 +123,7 @@ public class WebsocketConfiguration extends DelegatingWebSocketMessageBrokerConf
          * @return message that gets sent along further
          */
         @Override
-        public Message<?> preSend(@NotNull Message<?> message, @NotNull MessageChannel channel) {
+        public Message<?> preSend(@Nonnull Message<?> message, @Nonnull MessageChannel channel) {
             log.debug("preSend: {}, channel: {}", message, channel);
             StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
             Principal principal = headerAccessor.getUser();

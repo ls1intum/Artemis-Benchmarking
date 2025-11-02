@@ -97,14 +97,14 @@
   </button>
 }
 <div class="border mt-2 w-60 ps-3 pe-3 mb-3" #collapse="ngbCollapse" [(ngbCollapse)]="isCollapsed">
-  <jhi-create-user-box
+  <create-user-box
     [actionInProgress]="actionInProgress"
     [loading]="loadingCreate"
     [adminAvailable]="!!adminUser"
     (createUser)="createUser($event)"
     (createUserPattern)="createUserPattern($event)"
     (createUserCsv)="createUserCsv($event)"
-  ></jhi-create-user-box>
+  ></create-user-box>
 </div>
 
 <div class="input-group mt-3 w-25">

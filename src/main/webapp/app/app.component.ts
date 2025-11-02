@@ -8,12 +8,9 @@ import { fontAwesomeIcons } from './config/font-awesome-icons';
 import MainComponent from './layouts/main/main.component';
 
 @Component({
-  selector: 'jhi-app',
-  template: '<jhi-main></jhi-main>',
-  imports: [
-    MainComponent,
-    // jhipster-needle-angular-add-module JHipster will add new module here
-  ],
+  selector: 'app',
+  template: '<main></main>',
+  imports: [MainComponent],
 })
 export default class AppComponent {
   private readonly iconLibrary = inject(FaIconLibrary);

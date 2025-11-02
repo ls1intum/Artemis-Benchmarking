@@ -27,7 +27,6 @@
             </span>
           </a>
         </li>
-        <!-- jhipster-needle-add-element-to-menu - JHipster will add new menu items here -->
         @if (account()) {
           <li
             ngbDropdown
@@ -36,7 +35,7 @@
             routerLinkActive="active"
             [routerLinkActiveOptions]="{ exact: true }"
           >
-            <a *jhiHasAnyAuthority="'ROLE_ADMIN'" class="nav-link" routerLink="/simulations" (click)="collapseNavbar()">
+            <a *hasAnyAuthority="'ROLE_ADMIN'" class="nav-link" routerLink="/simulations" (click)="collapseNavbar()">
               <span>
                 <fa-icon [icon]="faCirclePlay"></fa-icon>
                 <span>Simulations</span>
@@ -45,7 +44,7 @@
           </li>
         }
         <li
-          *jhiHasAnyAuthority="'ROLE_ADMIN'"
+          *hasAnyAuthority="'ROLE_ADMIN'"
           ngbDropdown
           class="nav-item dropdown pointer"
           display="dynamic"
@@ -69,7 +68,7 @@
           </ul>
         </li>
         <li
-          *jhiHasAnyAuthority="'ROLE_ADMIN'"
+          *hasAnyAuthority="'ROLE_ADMIN'"
           ngbDropdown
           class="nav-item dropdown pointer"
           display="dynamic"

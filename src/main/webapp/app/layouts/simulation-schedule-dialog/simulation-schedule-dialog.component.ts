@@ -18,7 +18,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import SharedModule from '../../shared/shared.module';
 
 @Component({
-  selector: 'jhi-simulation-schedule-dialog',
+  selector: 'simulation-schedule-dialog',
   imports: [
     SharedModule,
     NgbCollapseModule,

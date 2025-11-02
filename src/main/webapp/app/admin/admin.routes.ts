@@ -7,11 +7,6 @@ const routes: Routes = [
     title: 'userManagement.home.title',
   },
   {
-    path: 'docs',
-    loadComponent: () => import('./docs/docs.component'),
-    title: 'API Documentation',
-  },
-  {
     path: 'configuration',
     loadComponent: () => import('./configuration/configuration.component'),
     title: 'Configuration',

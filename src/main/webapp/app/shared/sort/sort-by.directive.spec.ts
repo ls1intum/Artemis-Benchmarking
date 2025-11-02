@@ -13,8 +13,8 @@ import { sortStateSignal } from './sort-state';
   template: `
     <table>
       <thead>
-        <tr jhiSort [(sortState)]="sortState" (sortChange)="transition($event)">
-          <th jhiSortBy="name">
+        <tr sort [(sortState)]="sortState" (sortChange)="transition($event)">
+          <th sortBy="name">
             ID
             <fa-icon [icon]="'sort'"></fa-icon>
           </th>
@@ -59,7 +59,7 @@ describe('Directive: SortByDirective', () => {
     fixture.detectChanges();
 
     // THEN
-    expect(sortByDirective.jhiSortBy()).toEqual('name');
+    expect(sortByDirective.sortBy()).toEqual('name');
     expect(sortByDirective.iconComponent()?.icon()).toEqual(faSort.iconName);
   });
 
@@ -72,7 +72,7 @@ describe('Directive: SortByDirective', () => {
     fixture.detectChanges();
 
     // THEN
-    expect(sortByDirective.jhiSortBy()).toEqual('name');
+    expect(sortByDirective.sortBy()).toEqual('name');
     expect(sortByDirective.iconComponent()?.icon()).toEqual(faSortUp.iconName);
   });
 
@@ -85,7 +85,7 @@ describe('Directive: SortByDirective', () => {
     fixture.detectChanges();
 
     // THEN
-    expect(sortByDirective.jhiSortBy()).toEqual('name');
+    expect(sortByDirective.sortBy()).toEqual('name');
     expect(sortByDirective.iconComponent()?.icon()).toEqual(faSortDown.iconName);
   });
 
@@ -98,7 +98,7 @@ describe('Directive: SortByDirective', () => {
     fixture.detectChanges();
 
     // THEN
-    expect(sortByDirective.jhiSortBy()).toEqual('name');
+    expect(sortByDirective.sortBy()).toEqual('name');
     expect(sortByDirective.iconComponent()?.icon()).toEqual(faSort.iconName);
   });
 

@@ -15,14 +15,12 @@ import java.nio.file.Path;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import tech.jhipster.config.JHipsterConstants;
-import tech.jhipster.config.JHipsterProperties;
 
 /**
  * Unit tests for the {@link WebConfigurer} class.
@@ -31,34 +29,29 @@ class WebConfigurerTest {
 
     private WebConfigurer webConfigurer;
 
-    private MockServletContext servletContext;
-
     private MockEnvironment env;
-
-    private JHipsterProperties props;
 
     @BeforeEach
     public void setup() {
-        servletContext = spy(new MockServletContext());
+        MockServletContext servletContext = spy(new MockServletContext());
         doReturn(mock(FilterRegistration.Dynamic.class)).when(servletContext).addFilter(anyString(), any(Filter.class));
         doReturn(mock(ServletRegistration.Dynamic.class)).when(servletContext).addServlet(anyString(), any(Servlet.class));
 
         env = new MockEnvironment();
-        props = new JHipsterProperties();
 
-        webConfigurer = new WebConfigurer(env, props);
+        webConfigurer = new WebConfigurer(env);
     }
 
     @Test
     void shouldCustomizeServletContainer() {
-        env.setActiveProfiles(JHipsterConstants.SPRING_PROFILE_PRODUCTION);
+        env.setActiveProfiles(Constants.SPRING_PROFILE_PRODUCTION);
         TomcatServletWebServerFactory container = new TomcatServletWebServerFactory();
         webConfigurer.customize(container);
         assertThat(container.getMimeMappings().get("abs")).isEqualTo("audio/x-mpeg");
         assertThat(container.getMimeMappings().get("html")).isEqualTo("text/html");
         assertThat(container.getMimeMappings().get("json")).isEqualTo("application/json");
-        if (container.getDocumentRoot() != null) {
-            assertThat(container.getDocumentRoot()).isEqualTo(Path.of("build", "resources", "main", "static").toFile());
+        if (container.getSettings().getDocumentRoot() != null) {
+            assertThat(container.getSettings().getDocumentRoot()).isEqualTo(Path.of("build", "resources", "main", "static").toFile());
         }
     }
 

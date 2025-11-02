@@ -5,10 +5,10 @@ import { IconDefinition, faSort, faSortDown, faSortUp } from '@fortawesome/free-
 import { SortDirective } from './sort.directive';
 
 @Directive({
-  selector: '[jhiSortBy]',
+  selector: '[sortBy]',
 })
 export class SortByDirective {
-  readonly jhiSortBy = input.required<string>();
+  readonly sortBy = input.required<string>();
 
   iconComponent = contentChild(FaIconComponent);
 
@@ -23,7 +23,7 @@ export class SortByDirective {
       if (this.iconComponent()) {
         let icon: IconDefinition = this.sortIcon;
         const { predicate, order } = this.sort.sortState();
-        if (predicate === this.jhiSortBy() && order !== undefined) {
+        if (predicate === this.sortBy() && order !== undefined) {
           icon = order === 'asc' ? this.sortAscIcon : this.sortDescIcon;
         }
         this.iconComponent()!.icon.set(icon.iconName);
@@ -34,7 +34,7 @@ export class SortByDirective {
   @HostListener('click')
   onClick(): void {
     if (this.iconComponent()) {
-      this.sort.sort(this.jhiSortBy());
+      this.sort.sort(this.sortBy());
     }
   }
 }

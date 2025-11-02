@@ -5,7 +5,7 @@ import { RouterStateSnapshot, TitleStrategy } from '@angular/router';
 export class AppPageTitleStrategy extends TitleStrategy {
   override updateTitle(routerState: RouterStateSnapshot): void {
     let pageTitle = this.buildTitle(routerState);
-    pageTitle ??= 'Jhipster Registry';
+    pageTitle ??= 'Benchmarking Registry';
     document.title = pageTitle;
   }
 }

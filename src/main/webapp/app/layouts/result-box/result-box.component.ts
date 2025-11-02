@@ -8,7 +8,7 @@ import { NgxChartsModule, ScaleType } from '@swimlane/ngx-charts';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 @Component({
-  selector: 'jhi-result-box',
+  selector: 'result-box',
   templateUrl: './result-box.component.html',
   providers: [DatePipe],
   styleUrls: ['./result-box.component.scss'],

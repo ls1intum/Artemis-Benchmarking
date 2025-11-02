@@ -5,7 +5,7 @@ import SharedModule from 'app/shared/shared.module';
 import { PasswordResetInitService } from './password-reset-init.service';
 
 @Component({
-  selector: 'jhi-password-reset-init',
+  selector: 'password-reset-init',
   imports: [SharedModule, FormsModule, ReactiveFormsModule],
   templateUrl: './password-reset-init.component.html',
 })

@@ -20,7 +20,7 @@ enum PasswordStrengthColor {
 }
 
 @Component({
-  selector: 'jhi-password-strength-bar',
+  selector: 'password-strength-bar',
   imports: [SharedModule],
   templateUrl: './password-strength-bar.component.html',
   styleUrl: './password-strength-bar.component.scss',

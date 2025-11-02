@@ -11,7 +11,7 @@ export class MetricsService {
   private readonly applicationConfigService = inject(ApplicationConfigService);
 
   getMetrics(): Observable<Metrics> {
-    return this.http.get<Metrics>(this.applicationConfigService.getEndpointFor('management/jhimetrics'));
+    return this.http.get<Metrics>(this.applicationConfigService.getEndpointFor('management/metrics'));
   }
 
   threadDump(): Observable<ThreadDump> {

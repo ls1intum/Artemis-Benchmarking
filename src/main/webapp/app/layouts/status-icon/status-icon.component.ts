@@ -4,7 +4,7 @@ import { faCircle, faCircleCheck, faCircleNotch, faCircleXmark, faCircleExclamat
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 
 @Component({
-  selector: 'jhi-status-icon',
+  selector: 'status-icon',
   templateUrl: './status-icon.component.html',
   styleUrls: ['./status-icon.component.scss'],
   imports: [FaIconComponent],

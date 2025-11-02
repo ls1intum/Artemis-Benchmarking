@@ -4,7 +4,7 @@ import { DatePipe } from '@angular/common';
 import { ServerBadgeComponent } from '../server-badge/server-badge.component';
 
 @Component({
-  selector: 'jhi-simulation-details',
+  selector: 'simulation-details',
   templateUrl: './simulation-details.component.html',
   imports: [DatePipe, ServerBadgeComponent],
 })

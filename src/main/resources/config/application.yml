@@ -4,8 +4,6 @@
 # This configuration will be overridden by the Spring profile you use,
 # for example application-dev.yml if you use the "dev" profile.
 #
-# More information on profiles: https://www.jhipster.tech/profiles/
-# More information on configuration properties: https://www.jhipster.tech/common-application-properties/
 # ===================================================================
 
 # ===================================================================
@@ -34,8 +32,8 @@ management:
           - env
           - health
           - info
-          - jhimetrics
-          - jhiopenapigroups
+          - metrics
+          - openapigroups
           - logfile
           - loggers
           - prometheus
@@ -53,7 +51,7 @@ management:
           include: livenessState
         readiness:
           include: readinessState,db
-    jhimetrics:
+    metrics:
       enabled: true
   info:
     git:
@@ -104,6 +102,8 @@ spring:
         #- tls
   jmx:
     enabled: false
+  liquibase:
+    change-log: classpath:config/liquibase/master.xml
   data:
     jpa:
       repositories:
@@ -128,7 +128,7 @@ spring:
       ddl-auto: none
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
-        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+        implicit-strategy: org.springframework.boot.hibernate.SpringImplicitNamingStrategy
   messages:
     basename: i18n/messages
   main:
@@ -169,25 +169,20 @@ info:
   # Comma separated list of profiles that will trigger the ribbon to show
   display-ribbon-on-profiles: 'dev'
 
-# ===================================================================
-# JHipster specific properties
-#
-# Full reference is available at: https://www.jhipster.tech/common-application-properties/
-# ===================================================================
-
-jhipster:
-  clientApp:
+benchmarking:
+  client-app:
     name: 'artemisBenchmarkingApp'
   # By default CORS is disabled. Uncomment to enable.
   # cors:
   #   allowed-origins: "http://localhost:8100,http://localhost:9000"
   #   allowed-methods: "*"
   #   allowed-headers: "*"
-  #   exposed-headers: "Authorization,Link,X-Total-Count,X-${jhipster.clientApp.name}-alert,X-${jhipster.clientApp.name}-error,X-${jhipster.clientApp.name}-params"
+  #   exposed-headers: "Authorization,Link,X-Total-Count,X-${benchmarking.client-app.name}-alert,X-${benchmarking.client-app.name}-error,X-${benchmarking.client-app.name}-params"
   #   allow-credentials: true
   #   max-age: 1800
   mail:
     from: artemis-benchmarking@localhost
+    base-url: http://127.0.0.1:8080
   api-docs:
     default-include-pattern: /api/**
     management-include-pattern: /management/**
@@ -202,14 +197,6 @@ jhipster:
     license-url:
   security:
     content-security-policy: "default-src 'self'; frame-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:"
-# ===================================================================
-# Application specific properties
-# Add your own application properties here, see the ApplicationProperties class
-# to have type-safe configuration, like in the JHipsterProperties above
-#
-# More documentation is available at:
-# https://www.jhipster.tech/common-application-properties/
-# ===================================================================
 
 artemis:
   local:

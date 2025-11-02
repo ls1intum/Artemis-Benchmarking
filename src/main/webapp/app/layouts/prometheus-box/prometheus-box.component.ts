@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { Metric } from '../../entities/metric';
 
 @Component({
-  selector: 'jhi-prometheus-box',
+  selector: 'prometheus-box',
   imports: [NgxChartsModule, FormsModule],
   templateUrl: './prometheus-box.component.html',
   styleUrl: './prometheus-box.component.scss',

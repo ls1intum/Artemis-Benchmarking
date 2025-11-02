@@ -106,13 +106,13 @@ public class AccountResource {
      * {@code POST  /account/change-password} : changes the current user's password.
      *
      * @param passwordChangeDto current and new password.
-     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the new password is incorrect.
+     * @throws PasswordViolatesRequirementsException {@code 400 (Bad Request)} if the new password is incorrect.
      */
     @PostMapping(path = "/account/change-password")
     public void changePassword(@RequestBody PasswordChangeDTO passwordChangeDto) {
         log.info("REST request to change password for {}", SecurityUtils.getCurrentUserLogin());
         if (isPasswordLengthInvalid(passwordChangeDto.newPassword())) {
-            throw new InvalidPasswordException();
+            throw new PasswordViolatesRequirementsException();
         }
         userService.changePassword(passwordChangeDto.currentPassword(), passwordChangeDto.newPassword());
     }
@@ -139,14 +139,13 @@ public class AccountResource {
      * {@code POST   /account/reset-password/finish} : Finish to reset the password of the user.
      *
      * @param keyAndPassword the generated key and the new password.
-     * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
      * @throws RuntimeException {@code 500 (Internal Server Error)} if the password could not be reset.
      */
     @PostMapping(path = "/account/reset-password/finish")
     public void finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword) {
         log.info("REST request to finish password for {}", keyAndPassword.getKey());
         if (isPasswordLengthInvalid(keyAndPassword.getNewPassword())) {
-            throw new InvalidPasswordException();
+            throw new PasswordViolatesRequirementsException();
         }
         Optional<User> user = userService.completePasswordReset(keyAndPassword.getNewPassword(), keyAndPassword.getKey());
 

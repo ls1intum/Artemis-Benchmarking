@@ -8,6 +8,7 @@ import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.mail.MailException;
@@ -17,7 +18,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
-import tech.jhipster.config.JHipsterProperties;
 
 /**
  * Service for sending emails asynchronously.
@@ -33,25 +33,27 @@ public class MailService {
 
     private static final String BASE_URL = "baseUrl";
 
-    private final JHipsterProperties jHipsterProperties;
-
     private final JavaMailSender javaMailSender;
 
     private final MessageSource messageSource;
 
     private final SpringTemplateEngine templateEngine;
 
+    @Value("${benchmarking.mail.from}")
+    private String fromAddress;
+
+    @Value("${benchmarking.mail.base-url}")
+    private String baseUrl;
+
     @Autowired
     @Lazy
     private MailService self;
 
     public MailService(
-        JHipsterProperties jHipsterProperties,
         JavaMailSender javaMailSender,
         MessageSource messageSource,
         SpringTemplateEngine templateEngine
     ) {
-        this.jHipsterProperties = jHipsterProperties;
         this.javaMailSender = javaMailSender;
         this.messageSource = messageSource;
         this.templateEngine = templateEngine;
@@ -77,7 +79,7 @@ public class MailService {
         try {
             MimeMessageHelper message = new MimeMessageHelper(mimeMessage, isMultipart, StandardCharsets.UTF_8.name());
             message.setTo(to);
-            message.setFrom(jHipsterProperties.getMail().getFrom());
+            message.setFrom(fromAddress);
             message.setSubject(subject);
             message.setText(content, isHtml);
             javaMailSender.send(mimeMessage);
@@ -100,7 +102,7 @@ public class MailService {
         Locale locale = Locale.forLanguageTag(user.getLangKey());
         Context context = new Context(locale);
         context.setVariable(USER, user);
-        context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
+        context.setVariable(BASE_URL, baseUrl);
         String content = templateEngine.process(templateName, context);
         String subject = messageSource.getMessage(titleKey, null, locale);
         this.sendEmailSync(user.getEmail(), subject, content, false, true);
@@ -135,7 +137,7 @@ public class MailService {
         Locale locale = Locale.forLanguageTag("en");
         Context context = new Context(locale);
         context.setVariable("subscriber", subscriber);
-        context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
+        context.setVariable(BASE_URL, baseUrl);
         String content = templateEngine.process("mail/scheduleSubscriptionEmail", context);
         String subject = "Artemis-Benchmarking - Subscription to simulation schedule";
         self.sendEmail(subscriber.getEmail(), subject, content, false, true);
@@ -159,7 +161,7 @@ public class MailService {
         Context context = new Context(locale);
         context.setVariable("run", run);
         context.setVariable("result", result);
-        context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
+        context.setVariable(BASE_URL, baseUrl);
         String subject = "Artemis-Benchmarking - Result for scheduled run";
         schedule
             .getSubscribers()
@@ -194,7 +196,7 @@ public class MailService {
         } else {
             context.setVariable("error", "No error message found.");
         }
-        context.setVariable(BASE_URL, jHipsterProperties.getMail().getBaseUrl());
+        context.setVariable(BASE_URL, baseUrl);
         String subject = "Artemis-Benchmarking - Scheduled run failed";
         schedule
             .getSubscribers()

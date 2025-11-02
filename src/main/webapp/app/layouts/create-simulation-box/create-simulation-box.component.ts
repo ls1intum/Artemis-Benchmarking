@@ -10,7 +10,7 @@ import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { ModeExplanationComponent } from '../mode-explanation/mode-explanation.component';
 
 @Component({
-  selector: 'jhi-create-simulation-box',
+  selector: 'create-simulation-box',
   templateUrl: './create-simulation-box.component.html',
   styleUrls: ['./create-simulation-box.component.scss'],
   imports: [FormsModule, RouterLink, FaIconComponent, ModeExplanationComponent],

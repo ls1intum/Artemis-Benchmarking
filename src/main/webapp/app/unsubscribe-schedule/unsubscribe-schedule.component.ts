@@ -5,7 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApplicationConfigService } from '../core/config/application-config.service';
 
 @Component({
-  selector: 'jhi-unsubscribe-schedule',
+  selector: 'unsubscribe-schedule',
   imports: [CommonModule],
   templateUrl: './unsubscribe-schedule.component.html',
 })

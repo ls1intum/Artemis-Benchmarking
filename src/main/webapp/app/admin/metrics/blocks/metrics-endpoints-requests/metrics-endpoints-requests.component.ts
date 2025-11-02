@@ -4,7 +4,7 @@ import SharedModule from 'app/shared/shared.module';
 import { Services } from 'app/admin/metrics/metrics.model';
 
 @Component({
-  selector: 'jhi-metrics-endpoints-requests',
+  selector: 'metrics-endpoints-requests',
   templateUrl: './metrics-endpoints-requests.component.html',
   imports: [SharedModule],
 })

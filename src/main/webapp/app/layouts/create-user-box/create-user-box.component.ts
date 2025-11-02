@@ -8,7 +8,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import SharedModule from '../../shared/shared.module';
 
 @Component({
-  selector: 'jhi-create-user-box',
+  selector: 'create-user-box',
   imports: [SharedModule, FormsModule, NgbNavModule, FontAwesomeModule, NgbTooltipModule, NgbAlertModule],
   templateUrl: './create-user-box.component.html',
   styleUrl: './create-user-box.component.scss',

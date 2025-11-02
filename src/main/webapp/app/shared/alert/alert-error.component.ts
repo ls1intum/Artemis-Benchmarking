@@ -9,7 +9,7 @@ import { EventManager, EventWithContent } from 'app/core/util/event-manager.serv
 import { AlertError } from './alert-error.model';
 
 @Component({
-  selector: 'jhi-alert-error',
+  selector: 'alert-error',
   templateUrl: './alert-error.component.html',
   imports: [CommonModule, NgbModule],
 })
@@ -22,12 +22,12 @@ export class AlertErrorComponent implements OnDestroy {
   private readonly eventManager = inject(EventManager);
 
   constructor() {
-    this.errorListener = this.eventManager.subscribe('jhipsterRegistryApp.error', (response: EventWithContent<unknown> | string) => {
+    this.errorListener = this.eventManager.subscribe('benchmarkingRegistryApp.error', (response: EventWithContent<unknown> | string) => {
       this.addErrorAlert((response as EventWithContent<AlertError>).content.message);
     });
 
     this.httpErrorListener = this.eventManager.subscribe(
-      'jhipsterRegistryApp.httpError',
+      'benchmarkingRegistryApp.httpError',
       (response: EventWithContent<unknown> | string) => {
         this.handleHttpError(response);
       },
@@ -35,7 +35,7 @@ export class AlertErrorComponent implements OnDestroy {
   }
 
   setClasses(alert: Alert): Record<string, boolean> {
-    const classes = { 'jhi-toast': Boolean(alert.toast) };
+    const classes = { toast: Boolean(alert.toast) };
     if (alert.position) {
       return { ...classes, [alert.position]: true };
     }

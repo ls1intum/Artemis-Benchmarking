@@ -23,7 +23,7 @@ import org.springframework.security.oauth2.server.resource.web.DefaultBearerToke
 @Configuration
 public class SecurityJwtConfiguration {
 
-    @Value("${jhipster.security.authentication.jwt.base64-secret}")
+    @Value("${benchmarking.security.authentication.jwt.base64-secret}")
     private String jwtKey;
 
     /**

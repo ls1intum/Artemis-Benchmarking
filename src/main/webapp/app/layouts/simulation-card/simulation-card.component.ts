@@ -14,7 +14,7 @@ import { StatusIconComponent } from '../status-icon/status-icon.component';
 import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'jhi-simulation-card',
+  selector: 'simulation-card',
   templateUrl: './simulation-card.component.html',
   styleUrls: ['./simulation-card.component.scss'],
   imports: [FaIconComponent, NgbTooltip, NgClass, ServerBadgeComponent, StatusIconComponent, DatePipe, FormsModule],

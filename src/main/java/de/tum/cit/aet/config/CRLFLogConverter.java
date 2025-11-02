@@ -18,7 +18,6 @@ import org.springframework.boot.ansi.AnsiStyle;
  * CRLF characters are replaced with a red colored _ character.
  *
  * @see <a href="https://owasp.org/www-community/attacks/Log_Injection">Log Forging Description</a>
- * @see <a href="https://github.com/jhipster/generator-jhipster/issues/14949">JHipster issue</a>
  */
 public class CRLFLogConverter extends CompositeConverter<ILoggingEvent> {
 

@@ -21,7 +21,7 @@ export function sortSimulations(simulations: Simulation[]): Simulation[] {
 }
 
 @Component({
-  selector: 'jhi-simulations-overview',
+  selector: 'simulations-overview',
   templateUrl: './simulations-overview.component.html',
   styleUrls: ['./simulations-overview.component.scss'],
   imports: [

@@ -7,6 +7,9 @@ import de.tum.cit.aet.security.AuthoritiesConstants;
 import de.tum.cit.aet.service.MailService;
 import de.tum.cit.aet.service.UserService;
 import de.tum.cit.aet.service.dto.AdminUserDTO;
+import de.tum.cit.aet.util.HeaderUtil;
+import de.tum.cit.aet.util.PaginationUtil;
+import de.tum.cit.aet.util.ResponseUtil;
 import de.tum.cit.aet.web.rest.errors.BadRequestAlertException;
 import de.tum.cit.aet.web.rest.errors.EmailAlreadyUsedException;
 import de.tum.cit.aet.web.rest.errors.LoginAlreadyUsedException;
@@ -28,9 +31,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import tech.jhipster.web.util.HeaderUtil;
-import tech.jhipster.web.util.PaginationUtil;
-import tech.jhipster.web.util.ResponseUtil;
 
 /**
  * REST controller for managing users.
@@ -65,7 +65,7 @@ public class UserResource {
 
     private final Logger log = LoggerFactory.getLogger(UserResource.class);
 
-    @Value("${jhipster.clientApp.name}")
+    @Value("${benchmarking.client-app.name}")
     private String applicationName;
 
     private final UserService userService;

@@ -13,7 +13,7 @@ import { faCirclePlay, faHammer } from '@fortawesome/free-solid-svg-icons';
 import { ArtemisServer } from '../../core/util/artemisServer';
 
 @Component({
-  selector: 'jhi-navbar',
+  selector: 'navbar',
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
   imports: [RouterModule, SharedModule, HasAnyAuthorityDirective],

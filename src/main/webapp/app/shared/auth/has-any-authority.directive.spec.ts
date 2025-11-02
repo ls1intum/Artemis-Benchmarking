@@ -11,7 +11,7 @@ import HasAnyAuthorityDirective from './has-any-authority.directive';
 
 @Component({
   imports: [HasAnyAuthorityDirective],
-  template: ` <div *jhiHasAnyAuthority="'ROLE_ADMIN'" #content></div> `,
+  template: ` <div *hasAnyAuthority="'ROLE_ADMIN'" #content></div> `,
 })
 class TestHasAnyAuthorityDirectiveComponent {
   content = viewChild<ElementRef>('content');
@@ -34,7 +34,7 @@ describe('HasAnyAuthorityDirective tests', () => {
     mockAccountService.trackCurrentAccount = jest.fn(() => currentAccount);
   });
 
-  describe('set jhiHasAnyAuthority', () => {
+  describe('set hasAnyAuthority', () => {
     it('should show restricted content to user if user has required role', () => {
       // GIVEN
       mockAccountService.hasAnyAuthority = jest.fn(() => true);

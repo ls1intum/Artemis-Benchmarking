@@ -8,7 +8,7 @@ import { AccountService } from 'app/core/auth/account.service';
 import { Account } from 'app/core/auth/account.model';
 
 @Component({
-  selector: 'jhi-home',
+  selector: 'home',
   templateUrl: './home.component.html',
   imports: [SharedModule, RouterModule],
 })

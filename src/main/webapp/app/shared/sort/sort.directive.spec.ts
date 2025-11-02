@@ -10,7 +10,7 @@ import { SortState, sortStateSignal } from './sort-state';
   template: `
     <table>
       <thead>
-        <tr jhiSort [(sortState)]="sortState" (sortChange)="transition($event)"></tr>
+        <tr sort [(sortState)]="sortState" (sortChange)="transition($event)"></tr>
       </thead>
     </table>
   `,

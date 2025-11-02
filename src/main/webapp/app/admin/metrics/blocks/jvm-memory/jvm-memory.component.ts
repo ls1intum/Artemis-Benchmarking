@@ -4,7 +4,7 @@ import SharedModule from 'app/shared/shared.module';
 import { JvmMetrics } from 'app/admin/metrics/metrics.model';
 
 @Component({
-  selector: 'jhi-jvm-memory',
+  selector: 'jvm-memory',
   templateUrl: './jvm-memory.component.html',
   imports: [SharedModule],
 })

@@ -15,7 +15,7 @@
       },
       "root": "",
       "sourceRoot": "src/main/webapp",
-      "prefix": "jhi",
+      "prefix": "",
       "architect": {
         "build": {
           "builder": "@angular/build:application",

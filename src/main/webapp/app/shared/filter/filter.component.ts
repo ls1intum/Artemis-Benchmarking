@@ -3,7 +3,7 @@ import SharedModule from '../shared.module';
 import { IFilterOptions } from './filter.model';
 
 @Component({
-  selector: 'jhi-filter',
+  selector: 'filter',
   imports: [SharedModule],
   templateUrl: './filter.component.html',
 })

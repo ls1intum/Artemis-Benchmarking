@@ -54,6 +54,6 @@ module.exports = {
   ],
   testMatch: ['<rootDir>/src/main/webapp/app/**/@(*.)@(spec.ts)'],
   testEnvironmentOptions: {
-    url: 'https://jhipster.tech',
+    url: 'https://benchmarking.de',
   },
 };
