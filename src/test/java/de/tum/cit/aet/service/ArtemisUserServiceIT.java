@@ -13,7 +13,6 @@ import de.tum.cit.aet.repository.ArtemisUserRepository;
 import de.tum.cit.aet.service.artemis.ArtemisUserService;
 import de.tum.cit.aet.service.dto.ArtemisUserForCreationDTO;
 import de.tum.cit.aet.service.dto.ArtemisUserPatternDTO;
-import de.tum.cit.aet.web.rest.errors.BadRequestAlertException;
 import jakarta.transaction.Transactional;
 import java.util.LinkedList;
 import java.util.List;

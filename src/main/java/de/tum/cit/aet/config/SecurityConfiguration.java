@@ -24,18 +24,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
-import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfiguration {
-
-    // NOTE: this replaces the old @Import annotation above the class because it does not work with Spring Boot 3.3 and Spring Security 6.3 any more
-    @Bean
-    public SecurityProblemSupport securityProblemSupport(@Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
-        return new SecurityProblemSupport(resolver);
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -61,15 +54,13 @@ public class SecurityConfiguration {
      * </p>
      *
      * @param http                   The {@link HttpSecurity} object to configure security settings for HTTP requests.
-     * @param securityProblemSupport The {@link SecurityProblemSupport} instance to handle authentication entry points and access denied responses.
      * @return The configured {@link SecurityFilterChain}.
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, SecurityProblemSupport securityProblemSupport) {
+    public SecurityFilterChain filterChain(HttpSecurity http) {
         http
             .cors(withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
-            .exceptionHandling(handler -> handler.authenticationEntryPoint(securityProblemSupport).accessDeniedHandler(securityProblemSupport))
             .addFilterAfter(new SpaWebFilter(), BasicAuthenticationFilter.class)
             .headers(headers ->
                 headers

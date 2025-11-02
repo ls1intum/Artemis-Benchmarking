@@ -10,9 +10,6 @@ import de.tum.cit.aet.service.dto.AdminUserDTO;
 import de.tum.cit.aet.util.HeaderUtil;
 import de.tum.cit.aet.util.PaginationUtil;
 import de.tum.cit.aet.util.ResponseUtil;
-import de.tum.cit.aet.web.rest.errors.BadRequestAlertException;
-import de.tum.cit.aet.web.rest.errors.EmailAlreadyUsedException;
-import de.tum.cit.aet.web.rest.errors.LoginAlreadyUsedException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import java.net.URI;
@@ -30,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 /**
@@ -90,7 +88,6 @@ public class UserResource {
      * @param userDTO the user to create.
      * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new user, or with status {@code 400 (Bad Request)} if the login or email is already in use.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
-     * @throws BadRequestAlertException {@code 400 (Bad Request)} if the login or email is already in use.
      */
     @PostMapping("/users")
     @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
@@ -98,12 +95,12 @@ public class UserResource {
         log.debug("REST request to save User : {}", userDTO);
 
         if (userDTO.getId() != null) {
-            throw new BadRequestAlertException("A new user cannot already have an ID", "userManagement", "idexists");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A new user cannot already have an ID");
             // Lowercase the user login before comparing with database
         } else if (userRepository.findOneByLogin(userDTO.getLogin().toLowerCase()).isPresent()) {
-            throw new LoginAlreadyUsedException();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login already in use");
         } else if (userRepository.findOneByEmailIgnoreCase(userDTO.getEmail()).isPresent()) {
-            throw new EmailAlreadyUsedException();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already in use");
         } else {
             User newUser = userService.createUser(userDTO);
             mailService.sendCreationEmail(newUser);
@@ -120,8 +117,6 @@ public class UserResource {
      *
      * @param userDTO the user to update.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated user.
-     * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already in use.
-     * @throws LoginAlreadyUsedException {@code 400 (Bad Request)} if the login is already in use.
      */
     @PutMapping("/users")
     @PreAuthorize("hasAuthority(\"" + AuthoritiesConstants.ADMIN + "\")")
@@ -129,11 +124,11 @@ public class UserResource {
         log.debug("REST request to update User : {}", userDTO);
         Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(userDTO.getEmail());
         if (existingUser.isPresent() && (!existingUser.orElseThrow().getId().equals(userDTO.getId()))) {
-            throw new EmailAlreadyUsedException();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already in use");
         }
         existingUser = userRepository.findOneByLogin(userDTO.getLogin().toLowerCase());
         if (existingUser.isPresent() && (!existingUser.orElseThrow().getId().equals(userDTO.getId()))) {
-            throw new LoginAlreadyUsedException();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Login already in use");
         }
         Optional<AdminUserDTO> updatedUser = userService.updateUser(userDTO);
 

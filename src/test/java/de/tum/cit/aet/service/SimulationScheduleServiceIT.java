@@ -14,7 +14,6 @@ import de.tum.cit.aet.domain.SimulationSchedule;
 import de.tum.cit.aet.repository.SimulationScheduleRepository;
 import de.tum.cit.aet.service.simulation.SimulationDataService;
 import de.tum.cit.aet.service.simulation.SimulationScheduleService;
-import de.tum.cit.aet.web.rest.errors.BadRequestAlertException;
 import jakarta.transaction.Transactional;
 import java.time.ZonedDateTime;
 import org.junit.jupiter.api.BeforeEach;

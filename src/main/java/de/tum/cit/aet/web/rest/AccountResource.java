@@ -15,7 +15,9 @@ import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * REST controller for managing the current user's account.
@@ -78,7 +80,6 @@ public class AccountResource {
      * {@code POST  /account} : update the current user information.
      *
      * @param userDTO the current user information.
-     * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
      * @throws RuntimeException {@code 500 (Internal Server Error)} if the user login wasn't found.
      */
     @PostMapping("/account")
@@ -87,7 +88,7 @@ public class AccountResource {
             .orElseThrow(() -> new AccountResourceException("Current user login not found"));
         Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(userDTO.getEmail());
         if (existingUser.isPresent() && (!existingUser.orElseThrow().getLogin().equalsIgnoreCase(userLogin))) {
-            throw new EmailAlreadyUsedException();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already in use");
         }
         Optional<User> user = userRepository.findOneByLogin(userLogin);
         if (user.isEmpty()) {
@@ -106,13 +107,12 @@ public class AccountResource {
      * {@code POST  /account/change-password} : changes the current user's password.
      *
      * @param passwordChangeDto current and new password.
-     * @throws PasswordViolatesRequirementsException {@code 400 (Bad Request)} if the new password is incorrect.
      */
     @PostMapping(path = "/account/change-password")
     public void changePassword(@RequestBody PasswordChangeDTO passwordChangeDto) {
         log.info("REST request to change password for {}", SecurityUtils.getCurrentUserLogin());
         if (isPasswordLengthInvalid(passwordChangeDto.newPassword())) {
-            throw new PasswordViolatesRequirementsException();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password does not meet the length requirements");
         }
         userService.changePassword(passwordChangeDto.currentPassword(), passwordChangeDto.newPassword());
     }
@@ -145,7 +145,7 @@ public class AccountResource {
     public void finishPasswordReset(@RequestBody KeyAndPasswordVM keyAndPassword) {
         log.info("REST request to finish password for {}", keyAndPassword.getKey());
         if (isPasswordLengthInvalid(keyAndPassword.getNewPassword())) {
-            throw new PasswordViolatesRequirementsException();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password does not meet the length requirements");
         }
         Optional<User> user = userService.completePasswordReset(keyAndPassword.getNewPassword(), keyAndPassword.getKey());
 

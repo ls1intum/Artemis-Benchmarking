@@ -11,7 +11,7 @@ import de.tum.cit.aet.service.dto.ArtemisUserPatternDTO;
 import de.tum.cit.aet.util.ArtemisServer;
 import de.tum.cit.aet.util.NumberRangeParser;
 import de.tum.cit.aet.util.SshUtils;
-import de.tum.cit.aet.web.rest.errors.BadRequestAlertException;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,8 +19,10 @@ import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.util.Pair;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * Service for managing ArtemisUsers.
@@ -48,22 +50,18 @@ public class ArtemisUserService {
     public List<ArtemisUser> createArtemisUsersByPattern(ArtemisServer server, ArtemisUserPatternDTO pattern) {
         log.info("Creating ArtemisUsers by pattern for {}", server);
         if (pattern.getFrom() >= pattern.getTo() || pattern.getFrom() <= 0) {
-            throw new BadRequestAlertException("from must be smaller than to and greater than 0", "artemisUser", "invalidRange");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid range. Artemis user from must be smaller than to and greater than 0");
         } else if (!pattern.getUsernamePattern().contains("{i}")) {
-            throw new BadRequestAlertException(
-                "usernamePattern must contain {i} as placeholder for the index",
-                "artemisUser",
-                "missingPlaceholder"
-            );
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing placeholder. UsernamePattern must contain {i} as placeholder for the index");
         } else if (server == null) {
-            throw new BadRequestAlertException("server must not be null", "artemisUser", "missingServer");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing server. Server must not be null");
         }
 
         SimulatedArtemisAdmin simulatedArtemisAdmin = null;
         if (pattern.isCreateOnArtemis()) {
             ArtemisUser admin = getAdminUser(server);
             if (admin == null) {
-                throw new BadRequestAlertException("No admin user found for server", "artemisUser", "missingAdmin");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing admin. No admin user found for server");
             }
             simulatedArtemisAdmin = SimulatedArtemisUser.createArtemisAdminFromCredentials(
                 artemisConfiguration.getUrl(server),
@@ -110,7 +108,7 @@ public class ArtemisUserService {
                 }
                 // The order of operations is important here, as the user might not be created on Artemis if an exception is thrown
                 createdUsers.add(createdUser);
-            } catch (BadRequestAlertException e) {
+            } catch (ResponseStatusException e) {
                 log.debug(e.getMessage() + ". Skipping user.");
             }
         }
@@ -124,7 +122,6 @@ public class ArtemisUserService {
      * @param server the ArtemisServer to create the user for
      * @param artemisUserDTO the DTO containing the username, password and server-wide ID of the user
      * @return the created ArtemisUser
-     * @throws BadRequestAlertException if the server-wide ID is already taken, negative or the username or password is invalid
      */
     public ArtemisUser createArtemisUser(ArtemisServer server, ArtemisUserForCreationDTO artemisUserDTO) {
         log.info("Creating ArtemisUser for {}", server);
@@ -201,7 +198,7 @@ public class ArtemisUserService {
 
             artemisUserDTOs = cb.parse();
         } catch (Exception e) {
-            throw new BadRequestAlertException("Could not read CSV file", "artemisUser", "csvReadError");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "CSV read error. Could not read CSV file");
         }
         List<ArtemisUser> result = new LinkedList<>();
         for (ArtemisUserForCreationDTO artemisUserDTO : artemisUserDTOs) {
@@ -210,7 +207,7 @@ public class ArtemisUserService {
             }
             try {
                 result.add(createArtemisUser(server, artemisUserDTO));
-            } catch (BadRequestAlertException e) {
+            } catch (ResponseStatusException e) {
                 log.debug(e.getMessage() + ". Skipping user.");
             }
         }
@@ -223,7 +220,6 @@ public class ArtemisUserService {
      *
      * @param artemisUser the ArtemisUser to save
      * @return the saved ArtemisUser
-     * @throws BadRequestAlertException if the server-wide ID is already taken, negative or the username or password is invalid
      */
     private ArtemisUser saveArtemisUser(ArtemisUser artemisUser) {
         if (
@@ -232,20 +228,20 @@ public class ArtemisUserService {
                 .stream()
                 .anyMatch(user -> user.getServerWideId() == artemisUser.getServerWideId())
         ) {
-            throw new BadRequestAlertException("User with server-wide ID already exists", "artemisUser", "duplicatedServerWideId");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User with server-wide ID already exists");
         } else if (artemisUser.getServerWideId() < 0) {
-            throw new BadRequestAlertException("Server-wide ID must be positive", "artemisUser", "negativeServerWideId");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Server-wide ID must be positive");
         } else if (artemisUser.getUsername() == null || artemisUser.getUsername().isBlank()) {
-            throw new BadRequestAlertException("Username must not be empty", "artemisUser", "emptyUsername");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username must not be empty");
         } else if (artemisUser.getPassword() == null || artemisUser.getPassword().isBlank()) {
-            throw new BadRequestAlertException("Password must not be empty", "artemisUser", "emptyPassword");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must not be empty");
         } else if (
             artemisUserRepository
                 .findAllByServer(artemisUser.getServer())
                 .stream()
                 .anyMatch(user -> user.getUsername().equals(artemisUser.getUsername()))
         ) {
-            throw new BadRequestAlertException("User with username already exists", "artemisUser", "duplicatedUsername");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User with username already exists");
         }
 
         return artemisUserRepository.save(artemisUser);
@@ -261,25 +257,25 @@ public class ArtemisUserService {
     public ArtemisUser updateArtemisUser(Long id, ArtemisUser artemisUser) {
         log.info("Updating ArtemisUser with ID {}", id);
         if (!Objects.equals(id, artemisUser.getId())) {
-            throw new IllegalArgumentException("Id in path and body do not match!");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Id in path and body do not match!");
         }
 
         ArtemisUser existingUser = artemisUserRepository.findById(id).orElseThrow();
         if (existingUser.getServerWideId() != artemisUser.getServerWideId()) {
-            throw new IllegalArgumentException("Server-wide ID cannot be changed!");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Server-wide ID cannot be changed!");
         } else if (existingUser.getServer() != artemisUser.getServer()) {
-            throw new IllegalArgumentException("Server cannot be changed!");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Server cannot be changed!");
         } else if (artemisUser.getUsername() == null || artemisUser.getUsername().isBlank()) {
-            throw new BadRequestAlertException("Username must not be empty", "artemisUser", "emptyUsername");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username must not be empty");
         } else if (artemisUser.getPassword() == null || artemisUser.getPassword().isBlank()) {
-            throw new BadRequestAlertException("Password must not be empty", "artemisUser", "emptyPassword");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must not be empty");
         } else if (
             artemisUserRepository
                 .findAllByServer(artemisUser.getServer())
                 .stream()
                 .anyMatch(user -> user.getUsername().equals(artemisUser.getUsername()) && !user.getId().equals(id))
         ) {
-            throw new BadRequestAlertException("User with username already exists", "artemisUser", "duplicatedUsername");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User with username already exists");
         }
         return artemisUserRepository.save(artemisUser);
     }

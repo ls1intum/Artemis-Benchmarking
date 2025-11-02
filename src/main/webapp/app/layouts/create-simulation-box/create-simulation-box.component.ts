@@ -25,8 +25,8 @@ export class CreateSimulationBoxComponent implements OnInit {
   numberOfUsers = 0;
   courseId = 0;
   examId = 0;
-  server: ArtemisServer = ArtemisServer.TS1;
-  mode: Mode = Mode.CREATE_COURSE_AND_EXAM;
+  server = ArtemisServer.TS1;
+  mode = Mode.CREATE_COURSE_AND_EXAM;
   customizeUserRange = false;
   userRange = '';
   numberOfCommitsAndPushesFrom = 8;

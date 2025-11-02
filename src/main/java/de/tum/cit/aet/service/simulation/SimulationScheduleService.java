@@ -8,15 +8,17 @@ import de.tum.cit.aet.repository.ScheduleSubscriberRepository;
 import de.tum.cit.aet.repository.SimulationScheduleRepository;
 import de.tum.cit.aet.service.MailService;
 import de.tum.cit.aet.util.RandomUtil;
-import de.tum.cit.aet.web.rest.errors.BadRequestAlertException;
+
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class SimulationScheduleService {
@@ -46,20 +48,15 @@ public class SimulationScheduleService {
      * @param simulationId the id of the simulation
      * @param simulationSchedule the schedule to create
      * @return the created schedule
-     * @throws BadRequestAlertException if the schedule is invalid
      */
     public SimulationSchedule createSimulationSchedule(long simulationId, SimulationSchedule simulationSchedule) {
         log.debug("Creating simulation schedule for simulation {}", simulationId);
         if (simulationSchedule == null) {
-            throw new BadRequestAlertException("Simulation schedule must not be null", "simulationSchedule", "null");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Simulation schedule must not be null");
         } else if (simulationSchedule.getId() != null) {
-            throw new BadRequestAlertException("Simulation schedule must not have an id yet", "simulationSchedule", "idNotNull");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Simulation schedule must not have an id yet");
         } else if (simulationSchedule.getSimulation() != null) {
-            throw new BadRequestAlertException(
-                "Simulation schedule must not have a simulation yet",
-                "simulationSchedule",
-                "simulationNotNull"
-            );
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Simulation schedule must not have a simulation yet");
         }
         verifySchedule(simulationSchedule);
         simulationSchedule.setSimulation(simulationDataService.getSimulation(simulationId));
@@ -72,18 +69,17 @@ public class SimulationScheduleService {
      * @param simulationScheduleId the id of the schedule to update
      * @param simulationSchedule the updated schedule
      * @return the updated schedule
-     * @throws BadRequestAlertException if the schedule is invalid
      */
     public SimulationSchedule updateSimulationSchedule(long simulationScheduleId, SimulationSchedule simulationSchedule) {
         log.debug("Updating simulation schedule {}", simulationScheduleId);
         if (simulationSchedule == null) {
-            throw new BadRequestAlertException("Simulation schedule must not be null", "simulationSchedule", "null");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Simulation schedule must not be null");
         } else if (simulationScheduleId != simulationSchedule.getId()) {
-            throw new BadRequestAlertException("Invalid id!", "simulationSchedule", "invalidId");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid id in simulation schedule!");
         }
         var existingSimulationSchedule = simulationScheduleRepository.findById(simulationScheduleId).orElseThrow();
         if (simulationSchedule.getSimulation() != null) {
-            throw new BadRequestAlertException("Id of simulation must not be changed!", "simulationSchedule", "simulationIdChanged");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Id of simulation must not be changed!");
         }
         verifySchedule(simulationSchedule);
         simulationSchedule.setSimulation(existingSimulationSchedule.getSimulation());
@@ -225,24 +221,20 @@ public class SimulationScheduleService {
 
     private void verifySchedule(SimulationSchedule simulationSchedule) {
         if (simulationSchedule.getStartDateTime() == null) {
-            throw new BadRequestAlertException("Start date time must not be null", "simulationSchedule", "startDateTimeNull");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Start date time must not be null in simulation schedule");
         } else if (
             simulationSchedule.getEndDateTime() != null &&
             simulationSchedule.getEndDateTime().isBefore(simulationSchedule.getStartDateTime())
         ) {
-            throw new BadRequestAlertException(
-                "End date time must not be before start date time",
-                "simulationSchedule",
-                "endDateTimeBeforeStartDateTime"
-            );
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "End date time must not be before start date time");
         } else if (simulationSchedule.getCycle() == null) {
-            throw new BadRequestAlertException("Cycle must not be null", "simulationSchedule", "cycleNull");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cycle must not be null in simulation schedule");
         } else if (simulationSchedule.getEndDateTime() != null && simulationSchedule.getEndDateTime().isBefore(now())) {
-            throw new BadRequestAlertException("End date time must not be in the past", "simulationSchedule", "endDateTimeInPast");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "End date time must not be in the past in simulation schedule");
         } else if (simulationSchedule.getTimeOfDay() == null) {
-            throw new BadRequestAlertException("Time of day must not be null", "simulationSchedule", "timeOfDayNull");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Time of day must not be null in simulation schedule");
         } else if (simulationSchedule.getCycle() == SimulationSchedule.Cycle.WEEKLY && simulationSchedule.getDayOfWeek() == null) {
-            throw new BadRequestAlertException("Day of week must not be null", "simulationSchedule", "dayOfWeekNull");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Day of week must not be null in simulation schedule");
         }
     }
 }
