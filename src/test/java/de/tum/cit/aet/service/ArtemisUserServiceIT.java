@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.web.server.ResponseStatusException;
 
 @IntegrationTest
 @Transactional
@@ -102,7 +103,7 @@ public class ArtemisUserServiceIT {
         userDTO.setPassword("testPw");
         userDTO.setServerWideId(1);
 
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.createArtemisUser(TS1, userDTO));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.createArtemisUser(TS1, userDTO));
         verify(artemisUserRepository, times(0)).save(any());
     }
 
@@ -113,7 +114,7 @@ public class ArtemisUserServiceIT {
         userDTO.setPassword("testPw");
         userDTO.setServerWideId(-1);
 
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.createArtemisUser(TS1, userDTO));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.createArtemisUser(TS1, userDTO));
         verify(artemisUserRepository, times(0)).save(any());
     }
 
@@ -123,7 +124,7 @@ public class ArtemisUserServiceIT {
         userDTO.setUsername("");
         userDTO.setPassword("testPw");
 
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.createArtemisUser(TS1, userDTO));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.createArtemisUser(TS1, userDTO));
         verify(artemisUserRepository, times(0)).save(any());
     }
 
@@ -133,7 +134,7 @@ public class ArtemisUserServiceIT {
         userDTO.setUsername("testUn");
         userDTO.setPassword("");
 
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.createArtemisUser(TS1, userDTO));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.createArtemisUser(TS1, userDTO));
         verify(artemisUserRepository, times(0)).save(any());
     }
 
@@ -143,7 +144,7 @@ public class ArtemisUserServiceIT {
         userDTO.setUsername("testUn1");
         userDTO.setPassword("testPw");
 
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.createArtemisUser(TS1, userDTO));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.createArtemisUser(TS1, userDTO));
         verify(artemisUserRepository, times(0)).save(any());
     }
 
@@ -202,7 +203,7 @@ public class ArtemisUserServiceIT {
         pattern.setUsernamePattern("test_{i}");
         pattern.setPasswordPattern("test_pw_{i}");
 
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.createArtemisUsersByPattern(TS1, pattern));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.createArtemisUsersByPattern(TS1, pattern));
         verify(artemisUserRepository, times(0)).save(any());
     }
 
@@ -214,7 +215,7 @@ public class ArtemisUserServiceIT {
         pattern.setUsernamePattern("test_{i}");
         pattern.setPasswordPattern("test_pw_{i}");
 
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.createArtemisUsersByPattern(TS1, pattern));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.createArtemisUsersByPattern(TS1, pattern));
         verify(artemisUserRepository, times(0)).save(any());
     }
 
@@ -226,7 +227,7 @@ public class ArtemisUserServiceIT {
         pattern.setUsernamePattern("test_i");
         pattern.setPasswordPattern("test_pw_{i}");
 
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.createArtemisUsersByPattern(TS1, pattern));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.createArtemisUsersByPattern(TS1, pattern));
         verify(artemisUserRepository, times(0)).save(any());
     }
 
@@ -238,7 +239,7 @@ public class ArtemisUserServiceIT {
         pattern.setUsernamePattern("test_{i}");
         pattern.setPasswordPattern("test_pw_{i}");
 
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.createArtemisUsersByPattern(null, pattern));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.createArtemisUsersByPattern(null, pattern));
         verify(artemisUserRepository, times(0)).save(any());
     }
 
@@ -407,7 +408,7 @@ public class ArtemisUserServiceIT {
         newUser.setPassword("updatedPw");
         newUser.setServer(TS1);
 
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.updateArtemisUser(1L, newUser));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.updateArtemisUser(1L, newUser));
         verify(artemisUserRepository, times(0)).save(newUser);
     }
 
@@ -420,7 +421,7 @@ public class ArtemisUserServiceIT {
         newUser.setPassword("");
         newUser.setServer(TS1);
 
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.updateArtemisUser(1L, newUser));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.updateArtemisUser(1L, newUser));
         verify(artemisUserRepository, times(0)).save(newUser);
     }
 
@@ -433,7 +434,7 @@ public class ArtemisUserServiceIT {
         newUser.setPassword("updatedPw");
         newUser.setServer(TS1);
 
-        assertThrows(BadRequestAlertException.class, () -> artemisUserService.updateArtemisUser(1L, newUser));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.updateArtemisUser(1L, newUser));
         verify(artemisUserRepository, times(0)).save(newUser);
     }
 }

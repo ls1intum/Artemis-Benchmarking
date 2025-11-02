@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.web.server.ResponseStatusException;
 
 @IntegrationTest
 @Transactional
@@ -185,7 +186,7 @@ public class SimulationScheduleServiceIT {
 
     @Test
     public void testCreateSimulationSchedule_fail_onScheduleNull() {
-        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, null));
+        assertThrows(ResponseStatusException.class, () -> simulationScheduleService.createSimulationSchedule(1L, null));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -200,7 +201,7 @@ public class SimulationScheduleServiceIT {
         schedule.setDayOfWeek(now().getDayOfWeek());
         schedule.setId(1L);
 
-        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(ResponseStatusException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -215,7 +216,7 @@ public class SimulationScheduleServiceIT {
         schedule.setDayOfWeek(now().getDayOfWeek());
         schedule.setSimulation(simulation);
 
-        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(ResponseStatusException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -229,7 +230,7 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(now());
         schedule.setDayOfWeek(now().getDayOfWeek());
 
-        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(ResponseStatusException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -243,7 +244,7 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(now());
         schedule.setDayOfWeek(now().getDayOfWeek());
 
-        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(ResponseStatusException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -257,7 +258,7 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(now());
         schedule.setDayOfWeek(now().getDayOfWeek());
 
-        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(ResponseStatusException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -271,7 +272,7 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(now());
         schedule.setDayOfWeek(now().getDayOfWeek());
 
-        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(ResponseStatusException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -285,7 +286,7 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(null);
         schedule.setDayOfWeek(now().getDayOfWeek());
 
-        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(ResponseStatusException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -299,7 +300,7 @@ public class SimulationScheduleServiceIT {
         schedule.setTimeOfDay(now());
         schedule.setDayOfWeek(null);
 
-        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
+        assertThrows(ResponseStatusException.class, () -> simulationScheduleService.createSimulationSchedule(1L, schedule));
         verifyNoMoreInteractions(simulationDataService);
         verify(simulationScheduleRepository, times(0)).save(any());
     }
@@ -348,7 +349,7 @@ public class SimulationScheduleServiceIT {
 
         when(simulationScheduleRepository.findById(1L)).thenReturn(java.util.Optional.of(existingSchedule));
 
-        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.updateSimulationSchedule(1L, null));
+        assertThrows(ResponseStatusException.class, () -> simulationScheduleService.updateSimulationSchedule(1L, null));
         verify(simulationScheduleRepository, times(0)).save(any());
         verifyNoMoreInteractions(simulationDataService);
     }
@@ -376,7 +377,7 @@ public class SimulationScheduleServiceIT {
         ZonedDateTime time = now();
         schedule.setTimeOfDay(time.plusHours(1));
 
-        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.updateSimulationSchedule(42L, schedule));
+        assertThrows(ResponseStatusException.class, () -> simulationScheduleService.updateSimulationSchedule(42L, schedule));
         verify(simulationScheduleRepository, times(0)).save(any());
         verifyNoMoreInteractions(simulationDataService);
     }
@@ -404,7 +405,7 @@ public class SimulationScheduleServiceIT {
         ZonedDateTime time = now();
         schedule.setTimeOfDay(time.plusHours(1));
 
-        assertThrows(BadRequestAlertException.class, () -> simulationScheduleService.updateSimulationSchedule(1L, schedule));
+        assertThrows(ResponseStatusException.class, () -> simulationScheduleService.updateSimulationSchedule(1L, schedule));
         verify(simulationScheduleRepository, times(0)).save(any());
         verifyNoMoreInteractions(simulationDataService);
     }
