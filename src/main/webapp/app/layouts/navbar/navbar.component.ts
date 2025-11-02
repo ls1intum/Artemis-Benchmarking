@@ -8,7 +8,7 @@ import { LoginService } from 'app/login/login.service';
 import { ProfileService } from 'app/layouts/profiles/profile.service';
 import { EntityNavbarItems } from 'app/entities/entity-navbar-items';
 import { environment } from 'app/environments/environment';
-import NavbarItem from './navbar-item.model';
+import { NavbarItem } from './navbar-item.model';
 import { faCirclePlay, faHammer } from '@fortawesome/free-solid-svg-icons';
 import { ArtemisServer } from '../../core/util/artemisServer';
 

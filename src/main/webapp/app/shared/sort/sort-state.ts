@@ -2,7 +2,10 @@ import { Signal, WritableSignal, signal } from '@angular/core';
 
 export type SortOrder = 'asc' | 'desc';
 
-export type SortState = { predicate?: string; order?: SortOrder };
+export interface SortState {
+  predicate?: string;
+  order?: SortOrder;
+}
 
 export type SortStateSignal = Signal<SortState>;
 

@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { HealthService } from './health.service';
-import { Health, HealthDetails, HealthStatus } from './health.model';
+import { Health, HEALTH_LABELS, HEALTH_STATUS_LABELS, HealthEntry, HealthStatus } from './health.model';
 import SharedModule from '../../shared/shared.module';
 import HealthModalComponent from './modal/health-modal.component';
 
@@ -14,6 +14,9 @@ import HealthModalComponent from './modal/health-modal.component';
 })
 export default class HealthComponent implements OnInit {
   health?: Health;
+
+  readonly HEALTH_LABELS = HEALTH_LABELS;
+  readonly HEALTH_STATUS_LABELS = HEALTH_STATUS_LABELS;
 
   private readonly modalService = inject(NgbModal);
   private readonly healthService = inject(HealthService);
@@ -40,7 +43,7 @@ export default class HealthComponent implements OnInit {
     });
   }
 
-  showHealth(health: { key: string; value: HealthDetails }): void {
+  showHealth(health: HealthEntry): void {
     const modalRef = this.modalService.open(HealthModalComponent);
     modalRef.componentInstance.health = health;
   }

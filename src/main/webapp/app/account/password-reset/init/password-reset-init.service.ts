@@ -9,7 +9,7 @@ export class PasswordResetInitService {
   private readonly http = inject(HttpClient);
   private readonly applicationConfigService = inject(ApplicationConfigService);
 
-  save(mail: string): Observable<{}> {
+  save(mail: string): Observable<object> {
     return this.http.post(this.applicationConfigService.getEndpointFor('api/account/reset-password/init'), mail);
   }
 }

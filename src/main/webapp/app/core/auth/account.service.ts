@@ -21,7 +21,7 @@ export class AccountService {
   private readonly applicationConfigService = inject(ApplicationConfigService);
   private readonly webSocketService = inject(WebsocketService);
 
-  save(account: Account): Observable<{}> {
+  save(account: Account): Observable<object> {
     return this.http.post(this.applicationConfigService.getEndpointFor('api/account'), account);
   }
 

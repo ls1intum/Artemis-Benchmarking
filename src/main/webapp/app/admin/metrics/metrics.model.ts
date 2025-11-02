@@ -43,10 +43,12 @@ export interface MetricsWithPercentile {
   '0.95': number;
 }
 
+interface RequestCount {
+  count: number;
+}
+
 export interface HttpServerRequests {
-  all: {
-    count: number;
-  };
+  all: RequestCount;
   percode: Record<string, MaxMeanCount>;
 }
 

@@ -7,9 +7,9 @@ import { Login } from 'app/login/login.model';
 import { ApplicationConfigService } from '../config/application-config.service';
 import { StateStorageService } from './state-storage.service';
 
-type JwtToken = {
+interface JwtToken {
   id_token: string;
-};
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthServerProvider {

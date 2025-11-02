@@ -9,5 +9,4 @@ src/main/resources/templates/mail/**/*.html
 src/main/resources/templates/error.html
 src/main/webapp/404.html
 src/main/webapp/index.html
-src/main/webapp/swagger-ui/index.html
 

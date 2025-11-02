@@ -94,8 +94,6 @@ public class SecurityConfiguration {
                     .permitAll()
                     .requestMatchers("/content/**")
                     .permitAll()
-                    .requestMatchers("/swagger-ui/**")
-                    .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/authenticate")
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/authenticate")

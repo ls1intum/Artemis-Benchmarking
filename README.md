@@ -428,7 +428,6 @@ To unsubscribe, click on the respective link in the email.
 [Node.js]: https://nodejs.org/
 [NPM]: https://www.npmjs.com/
 [OpenAPI-Generator]: https://openapi-generator.tech
-[Swagger-Editor]: https://editor.swagger.io
 [Webpack]: https://webpack.github.io/
 [BrowserSync]: https://www.browsersync.io/
 [Jest]: https://facebook.github.io/jest/

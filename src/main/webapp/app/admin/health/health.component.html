@@ -19,24 +19,11 @@
           @for (componentHealth of health.components | keyvalue; track componentHealth.key) {
             <tr>
               <td>
-                {{
-                  {
-                    diskSpace: 'Disk space',
-                    mail: 'Email',
-                    livenessState: 'Liveness state',
-                    readinessState: 'Readiness state',
-                    ping: 'Application',
-                    db: 'Database',
-                  }[componentHealth.key] || componentHealth.key
-                }}
+                {{ HEALTH_LABELS[componentHealth.key] || componentHealth.key }}
               </td>
               <td class="text-center">
                 <span class="badge" [ngClass]="getBadgeClass(componentHealth.value!.status)">
-                  {{
-                    { UNKNOWN: 'UNKNOWN', UP: 'UP', OUT_OF_SERVICE: 'OUT_OF_SERVICE', DOWN: 'DOWN' }[
-                      componentHealth.value?.status ?? 'UNKNOWN'
-                    ]
-                  }}
+                  {{ HEALTH_STATUS_LABELS[componentHealth.value!.status] }}
                 </span>
               </td>
               <td class="text-center">

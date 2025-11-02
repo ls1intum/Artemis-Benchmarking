@@ -5,17 +5,23 @@ export interface InfoResponse {
   activeProfiles?: string[];
 }
 
-export interface GitInfo {
+interface GitUser {
+  name: string;
+}
+
+interface GitCommitId {
+  abbrev: string;
+}
+
+interface GitCommit {
+  id: GitCommitId;
+  time: string;
+  user: GitUser;
+}
+
+interface GitInfo {
   branch: string;
-  commit: {
-    id: {
-      abbrev: string;
-    };
-    time: string;
-    user: {
-      name: string;
-    };
-  };
+  commit: GitCommit;
 }
 
 export class ProfileInfo {

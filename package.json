@@ -7,7 +7,7 @@
   "author": {
     "name": "Stephan Krusche",
     "email": "krusche@tum.de",
-    "url": "https://ase.cit.tum.de/krusche"
+    "url": "https://aet.cit.tum.de/krusche"
   },
   "scripts": {
     "prebuild": "node prebuild.mjs",
@@ -58,7 +58,7 @@
     "yargs-parser": "22.0.0"
   },
   "dependencies": {
-    "@angular/cdk": "20.2.10",
+    "@angular/cdk": "20.2.11",
     "@angular/common": "20.3.9",
     "@angular/compiler": "20.3.9",
     "@angular/core": "20.3.9",
@@ -93,7 +93,7 @@
     "angular-eslint": "20.5.0",
     "buffer": "6.0.3",
     "concurrently": "9.2.1",
-    "eslint": "9.38.0",
+    "eslint": "9.39.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.4",
     "husky": "9.1.7",
@@ -110,8 +110,7 @@
     "prettier-plugin-java": "2.7.7",
     "prettier-plugin-packagejson": "2.5.19",
     "rimraf": "6.1.0",
-    "sass": "1.93.2",
-    "swagger-ui-dist": "5.30.0",
+    "sass": "1.93.3",
     "ts-jest": "29.4.5",
     "typescript": "5.9.3",
     "typescript-eslint": "8.46.2"

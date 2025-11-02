@@ -35,7 +35,19 @@ describe('Logs Service', () => {
         },
       };
       const configProps: ConfigProps = {
-        contexts: {},
+        contexts: {
+          application: {
+            beans: {
+              // bean name/key doesn't matter; service reads its value
+              'benchmarking.clientApp': {
+                prefix: 'benchmarking',
+                properties: {
+                  clientApp: { name: 'benchmarkingApp' },
+                },
+              },
+            },
+          },
+        },
       };
       service.getBeans().subscribe(received => (expectedResult = received));
 

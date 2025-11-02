@@ -2,10 +2,10 @@ import { Component, ElementRef, Renderer2, inject, input, computed, OnChanges } 
 
 import SharedModule from 'app/shared/shared.module';
 
-type StrengthColorIndex = {
+interface StrengthColorIndex {
   index: number;
   color: PasswordStrengthColor;
-};
+}
 
 /**
  * Colors representing password strength levels

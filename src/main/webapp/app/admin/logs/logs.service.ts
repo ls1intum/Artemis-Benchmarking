@@ -10,7 +10,7 @@ export class LogsService {
   private readonly http = inject(HttpClient);
   private readonly applicationConfigService = inject(ApplicationConfigService);
 
-  changeLevel(name: string, configuredLevel: Level): Observable<{}> {
+  changeLevel(name: string, configuredLevel: Level): Observable<object> {
     return this.http.post(this.applicationConfigService.getEndpointFor(`management/loggers/${name}`), { configuredLevel });
   }
 

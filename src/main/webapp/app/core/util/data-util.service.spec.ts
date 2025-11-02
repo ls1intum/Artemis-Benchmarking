@@ -14,7 +14,7 @@ describe('Data Utils Service Test', () => {
 
   describe('byteSize', () => {
     it('should return the bytesize of the text', () => {
-      expect(service.byteSize('Hello Benchmarking')).toBe(`10.5 bytes`);
+      expect(service.byteSize('Hello Benchmarking')).toBe(`13.5 bytes`);
     });
   });
 

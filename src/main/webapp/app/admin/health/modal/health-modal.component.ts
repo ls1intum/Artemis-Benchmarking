@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import SharedModule from 'app/shared/shared.module';
-import { HealthDetails, HealthKey } from '../health.model';
+import { HEALTH_LABELS, HealthEntry } from '../health.model';
 
 @Component({
   selector: 'health-modal',
@@ -10,7 +10,8 @@ import { HealthDetails, HealthKey } from '../health.model';
   imports: [SharedModule],
 })
 export default class HealthModalComponent {
-  health?: { key: HealthKey; value: HealthDetails };
+  health?: HealthEntry;
+  readonly HEALTH_LABELS = HEALTH_LABELS;
 
   private readonly activeModal = inject(NgbActiveModal);
 

@@ -52,7 +52,6 @@ spotless {
     }
 }
 
-apply from: "gradle/swagger.gradle"
 apply from: "gradle/cache.gradle"
 apply from: "gradle/liquibase.gradle"
 

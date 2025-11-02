@@ -32,7 +32,7 @@ describe('ActivateService Service', () => {
       const value = true;
 
       // WHEN
-      service.get(key).subscribe(received => {
+      service.getActivate(key).subscribe(received => {
         expectedResult = received;
       });
       const testRequest = httpMock.expectOne({
