@@ -28,7 +28,7 @@ jobs:
           node-version: 24
 
       - name: Run Server Tests
-        run: ./gradlew test -x webapp jacocoTestReport
+        run: ./gradlew test -x webapp
       - name: Install Dependencies
         run: npm install
       - name: Run Client Tests
