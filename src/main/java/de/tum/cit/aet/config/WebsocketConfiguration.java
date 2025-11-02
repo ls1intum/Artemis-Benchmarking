@@ -3,7 +3,6 @@ package de.tum.cit.aet.config;
 import de.tum.cit.aet.security.AuthoritiesConstants;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
 import java.security.Principal;
 import java.util.*;
 import org.slf4j.Logger;

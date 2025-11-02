@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, output } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject, output } from '@angular/core';
 import { getTextRepresentation, Mode, Simulation } from '../../entities/simulation/simulation';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ProfileService } from '../profiles/profile.service';
@@ -21,8 +21,8 @@ export class CreateSimulationBoxComponent implements OnInit {
 
   readonly simulationToCreate = output<Simulation>();
 
-  name = '';
-  numberOfUsers = 0;
+  name = 'new-simulation-01';
+  numberOfUsers = 10;
   courseId = 0;
   examId = 0;
   server = ArtemisServer.TS1;
@@ -54,6 +54,7 @@ export class CreateSimulationBoxComponent implements OnInit {
 
   private profileService = inject(ProfileService);
   private simulationService = inject(SimulationsService);
+  private cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
     this.profileService.getProfileInfo().subscribe(profileInfo => {
@@ -67,6 +68,10 @@ export class CreateSimulationBoxComponent implements OnInit {
     this.simulationService.getServersWithCleanupEnabled().subscribe(servers => {
       this.serversWithCleanupEnabled = servers;
     });
+  }
+
+  onAnyInput(): void {
+    this.cdr.detectChanges(); // add this
   }
 
   createSimulation(): void {

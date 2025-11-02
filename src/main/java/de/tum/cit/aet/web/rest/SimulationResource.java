@@ -65,10 +65,19 @@ public class SimulationResource {
                 simulation.setInstructorUsername("");
                 simulation.setInstructorPassword("");
             }
+            simulation.getRuns().forEach(SimulationResource::sanitizeSimulationRun);
         });
 
         log.info("Return {} simulations", simulations.size());
         return new ResponseEntity<>(simulations, HttpStatus.OK);
+    }
+
+    private static void sanitizeSimulationRun(SimulationRun run) {
+        // Reduce payload by not returning the simulation and log messages for each run
+        // TODO: use DTOs to control the returned fields
+        run.setSimulation(null);
+        run.setLogMessages(null);
+        run.setStats(null);
     }
 
     /**
@@ -86,6 +95,7 @@ public class SimulationResource {
             simulation.setInstructorUsername("");
             simulation.setInstructorPassword("");
         }
+        simulation.getRuns().forEach(SimulationResource::sanitizeSimulationRun);
         return new ResponseEntity<>(simulation, HttpStatus.OK);
     }
 
@@ -113,6 +123,7 @@ public class SimulationResource {
         @RequestBody(required = false) ArtemisAccountDTO accountDTO
     ) {
         var run = simulationDataService.createAndQueueSimulationRun(simulationId, accountDTO, null);
+        sanitizeSimulationRun(run);
         return new ResponseEntity<>(run, HttpStatus.OK);
     }
 

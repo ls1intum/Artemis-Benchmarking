@@ -14,6 +14,7 @@ import java.io.IOException;
 
 @Component
 public class ExceptionLoggingFilter extends OncePerRequestFilter {
+
     private final Logger log = LoggerFactory.getLogger(ExceptionLoggingFilter.class);
 
     @Override
