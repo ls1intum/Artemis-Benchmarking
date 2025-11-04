@@ -173,7 +173,7 @@ dependencies {
     annotationProcessor "org.glassfish.jaxb:jaxb-runtime:${jaxbRuntimeVersion}"
 
     implementation "jakarta.annotation:jakarta.annotation-api:3.0.0"
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.13"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:2.8.14"
     implementation "com.zaxxer:HikariCP:7.0.2"
     implementation "org.apache.commons:commons-lang3:${commonsLangVersion}"
     implementation "org.openapitools:jackson-databind-nullable:${jacksonDatabindNullableVersion}"
