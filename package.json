@@ -36,9 +36,9 @@
     "default_environment": "prod"
   },
   "overrides": {
-    "@angular/build": "21.0.0-rc.0",
+    "@angular/build": "21.0.0",
     "@angular-builders/jest": {
-      "@angular-devkit/build-angular": "21.0.0-rc.0",
+      "@angular-devkit/build-angular": "21.0.0",
       "@angular/compiler-cli": "21.0.0-rc.0",
       "@angular/core": "21.0.0-rc.0",
       "@angular/platform-browser-dynamic": "21.0.0-rc.0"
@@ -125,9 +125,9 @@
   },
   "devDependencies": {
     "@angular-builders/jest": "20.0.0",
-    "@angular-devkit/build-angular": "21.0.0-rc.0",
-    "@angular/build": "21.0.0-rc.0",
-    "@angular/cli": "21.0.0-rc.0",
+    "@angular-devkit/build-angular": "21.0.0",
+    "@angular/build": "21.0.0",
+    "@angular/cli": "21.0.0",
     "@angular/compiler-cli": "21.0.0-rc.0",
     "@types/d3-scale": "4.0.9",
     "@types/d3-selection": "3.0.11",
