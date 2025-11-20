@@ -13,7 +13,7 @@ pluginManagement {
         id "com.google.cloud.tools.jib" version "${jibPluginVersion}"
         id "com.gorylenko.gradle-git-properties" version "${gitPropertiesPluginVersion}"
         id "org.sonarqube" version "${sonarqubePluginVersion}"
-        id "org.springframework.boot" version "4.0.0-RC1"
+        id "org.springframework.boot" version "4.0.0"
         id "org.liquibase.gradle" version "${liquibasePluginVersion}"
         id "org.openapi.generator" version "${openapiPluginVersion}"
     }
