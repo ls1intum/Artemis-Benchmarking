@@ -28,7 +28,6 @@
       "extensions": [
         "angular.ng-template",
         "christian-kohler.npm-intellisense",
-        "firsttris.vscode-jest-runner",
         "ms-vscode.vscode-typescript-tslint-plugin",
         "dbaeumer.vscode-eslint",
         "vscjava.vscode-java-pack",
