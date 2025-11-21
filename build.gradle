@@ -24,7 +24,7 @@ plugins {
     id "org.liquibase.gradle" version "${liquibasePluginVersion}"
     id "org.openapi.generator" version "${openapiPluginVersion}"
     id "org.sonarqube" version "${sonarqubePluginVersion}"
-    id "org.springframework.boot" version "4.0.0"
+    id "org.springframework.boot" version "${springBootVersion}"
 }
 
 group = "de.tum.cit.aet"
