@@ -13,6 +13,13 @@ public class GlobalExceptionHandler {
 
     private final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    /**
+     * Handle any unhandled exceptions in the application.
+     *
+     * @param ex  The exception that was thrown.
+     * @param req The web request during which the exception was thrown.
+     * @return A generic internal server error response.
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleAny(Exception ex, WebRequest req) {
         log.error(
