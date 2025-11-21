@@ -13,8 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.liquibase.autoconfigure.LiquibaseProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.liquibase.autoconfigure.LiquibaseProperties;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -40,10 +40,7 @@ public class ArtemisBenchmarkingApp {
     @PostConstruct
     public void initApplication() {
         Collection<String> activeProfiles = Arrays.asList(env.getActiveProfiles());
-        if (
-            activeProfiles.contains(Constants.SPRING_PROFILE_DEVELOPMENT) &&
-            activeProfiles.contains(Constants.SPRING_PROFILE_PRODUCTION)
-        ) {
+        if (activeProfiles.contains(Constants.SPRING_PROFILE_DEVELOPMENT) && activeProfiles.contains(Constants.SPRING_PROFILE_PRODUCTION)) {
             log.error(
                 "You have misconfigured your application! It should not run " + "with both the 'dev' and 'prod' profiles at the same time."
             );
@@ -62,7 +59,9 @@ public class ArtemisBenchmarkingApp {
     }
 
     private static void logApplicationStartup(Environment env) {
-        String protocol = Optional.ofNullable(env.getProperty("server.ssl.key-store")).map(_ -> "https").orElse("http");
+        String protocol = Optional.ofNullable(env.getProperty("server.ssl.key-store"))
+            .map(_ -> "https")
+            .orElse("http");
         String applicationName = env.getProperty("spring.application.name");
         String serverPort = env.getProperty("server.port");
         String contextPath = Optional.ofNullable(env.getProperty("server.servlet.context-path"))

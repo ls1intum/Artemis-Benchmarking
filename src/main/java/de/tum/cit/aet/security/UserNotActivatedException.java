@@ -1,8 +1,7 @@
 package de.tum.cit.aet.security;
 
-import org.springframework.security.core.AuthenticationException;
-
 import java.io.Serial;
+import org.springframework.security.core.AuthenticationException;
 
 /**
  * This exception is thrown in case of a not activated user trying to authenticate.

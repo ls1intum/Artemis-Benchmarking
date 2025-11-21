@@ -320,11 +320,7 @@ tasks.register("webapp_test", NpmTask) {
         .withPropertyName("webapp-source-dir")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 
-    outputs.dir("build/test-results/jest/")
-        .withPropertyName("jest-result-dir")
-    outputs.file("build/test-results/TESTS-results-jest.xml")
-        .withPropertyName("jest-result")
-        outputs.file("build/test-results/clover.xml")
+    outputs.file("build/test-results/clover.xml")
         .withPropertyName("clover-result")
 
     dependsOn(tasks.named("npmInstall"), tasks.named("compileTestJava"))

@@ -253,7 +253,9 @@ public class SimulationExecutionService {
 
         try {
             logAndSend(false, simulationRun, "Logging in students...");
-            List<RequestStat> requestStats = new ArrayList<>(performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].login()));
+            List<RequestStat> requestStats = new ArrayList<>(
+                performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].login())
+            );
 
             logAndSend(false, simulationRun, "Performing initial calls...");
             requestStats.addAll(performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].performInitialCalls()));

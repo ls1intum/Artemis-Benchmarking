@@ -6,13 +6,12 @@ import static org.mockito.Mockito.when;
 import de.tum.cit.aet.IntegrationTest;
 import de.tum.cit.aet.domain.User;
 import de.tum.cit.aet.repository.UserRepository;
+import de.tum.cit.aet.util.RandomUtil;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
-
-import de.tum.cit.aet.util.RandomUtil;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

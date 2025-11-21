@@ -76,16 +76,28 @@ public class SimulationResultService {
             submitExerciseStats,
             submitStudentExamStats,
             miscStats,
-            simulation.getOnlineIdePercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.PROGRAMMING_EXERCISE_RESULT, simulationRun) : null,
-            simulation.getOnlineIdePercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.REPOSITORY_INFO, simulationRun) : null,
-            simulation.getOnlineIdePercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.REPOSITORY_FILES, simulationRun) : null,
+            simulation.getOnlineIdePercentage() > 0
+                ? calculateStatsForRequestType(requestStats, RequestType.PROGRAMMING_EXERCISE_RESULT, simulationRun)
+                : null,
+            simulation.getOnlineIdePercentage() > 0
+                ? calculateStatsForRequestType(requestStats, RequestType.REPOSITORY_INFO, simulationRun)
+                : null,
+            simulation.getOnlineIdePercentage() > 0
+                ? calculateStatsForRequestType(requestStats, RequestType.REPOSITORY_FILES, simulationRun)
+                : null,
             simulation.getSshPercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.CLONE_SSH, simulationRun) : null,
             simulation.getSshPercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.PUSH_SSH, simulationRun) : null,
             simulation.getTokenPercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.CLONE_TOKEN, simulationRun) : null,
             simulation.getTokenPercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.PUSH_TOKEN, simulationRun) : null,
-            simulation.getPasswordPercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.CLONE_PASSWORD, simulationRun) : null,
-            simulation.getPasswordPercentage() > 0 ? calculateStatsForRequestType(requestStats, RequestType.PUSH_PASSWORD, simulationRun) : null
-        ).filter(Objects::nonNull).collect(Collectors.toSet());
+            simulation.getPasswordPercentage() > 0
+                ? calculateStatsForRequestType(requestStats, RequestType.CLONE_PASSWORD, simulationRun)
+                : null,
+            simulation.getPasswordPercentage() > 0
+                ? calculateStatsForRequestType(requestStats, RequestType.PUSH_PASSWORD, simulationRun)
+                : null
+        )
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
 
         simulationRun.setStats(stats);
         return simulationRun;
@@ -93,7 +105,10 @@ public class SimulationResultService {
 
     private SimulationStats calculateStatsForRequestType(List<RequestStat> requestStats, RequestType type, SimulationRun simulationRun) {
         SimulationStats simulationStats = new SimulationStats();
-        List<RequestStat> filteredRequestStats = requestStats.stream().filter(stat -> stat.type() == type).toList();
+        List<RequestStat> filteredRequestStats = requestStats
+            .stream()
+            .filter(stat -> stat.type() == type)
+            .toList();
         simulationStats.setNumberOfRequests(filteredRequestStats.size());
         simulationStats.setAvgResponseTime(getAverage(filteredRequestStats));
         simulationStats.setRequestType(type);

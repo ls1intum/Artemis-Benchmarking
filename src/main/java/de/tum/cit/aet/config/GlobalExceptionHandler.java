@@ -13,13 +13,24 @@ public class GlobalExceptionHandler {
 
     private final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(Exception.class) public ResponseEntity<Object> handleAny(Exception ex, WebRequest req) {
-        log.error("Unhandled exception at {} {}", ((ServletWebRequest) req).getHttpMethod(), ((ServletWebRequest) req).getRequest().getRequestURI(), ex);
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleAny(Exception ex, WebRequest req) {
+        log.error(
+            "Unhandled exception at {} {}",
+            ((ServletWebRequest) req).getHttpMethod(),
+            ((ServletWebRequest) req).getRequest().getRequestURI(),
+            ex
+        );
         return ResponseEntity.internalServerError().build();
     }
 
-    @ExceptionHandler({ org.springframework.http.converter.HttpMessageNotWritableException.class,
-        com.fasterxml.jackson.databind.exc.InvalidDefinitionException.class }) public ResponseEntity<Object> handleSerialization(Exception ex, WebRequest req) {
+    @ExceptionHandler(
+        {
+            org.springframework.http.converter.HttpMessageNotWritableException.class,
+            com.fasterxml.jackson.databind.exc.InvalidDefinitionException.class,
+        }
+    )
+    public ResponseEntity<Object> handleSerialization(Exception ex, WebRequest req) {
         log.error("Serialization error: {}", ex.getMessage(), ex);
         return ResponseEntity.internalServerError().build();
     }

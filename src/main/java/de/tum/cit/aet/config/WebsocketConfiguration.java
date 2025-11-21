@@ -92,7 +92,11 @@ public class WebsocketConfiguration extends DelegatingWebSocketMessageBrokerConf
             }
 
             @Override
-            public void afterHandshake(@Nonnull ServerHttpRequest request, @Nonnull ServerHttpResponse response, @Nonnull WebSocketHandler wsHandler, Exception exception
+            public void afterHandshake(
+                @Nonnull ServerHttpRequest request,
+                @Nonnull ServerHttpResponse response,
+                @Nonnull WebSocketHandler wsHandler,
+                Exception exception
             ) {}
         };
     }
@@ -100,7 +104,11 @@ public class WebsocketConfiguration extends DelegatingWebSocketMessageBrokerConf
     private DefaultHandshakeHandler defaultHandshakeHandler() {
         return new DefaultHandshakeHandler() {
             @Override
-            protected Principal determineUser(@Nonnull ServerHttpRequest request, @Nonnull WebSocketHandler wsHandler, @Nonnull Map<String, Object> attributes) {
+            protected Principal determineUser(
+                @Nonnull ServerHttpRequest request,
+                @Nonnull WebSocketHandler wsHandler,
+                @Nonnull Map<String, Object> attributes
+            ) {
                 Principal principal = request.getPrincipal();
                 if (principal == null) {
                     Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();

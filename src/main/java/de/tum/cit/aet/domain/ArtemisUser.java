@@ -4,10 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.opencsv.bean.CsvBindByName;
 import de.tum.cit.aet.util.ArtemisServer;
 import jakarta.persistence.*;
-
 import java.security.*;
 import java.time.ZonedDateTime;
-
 import org.springframework.data.util.Pair;
 
 @Entity

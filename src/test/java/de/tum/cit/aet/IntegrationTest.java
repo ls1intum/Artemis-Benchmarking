@@ -17,5 +17,4 @@ import org.springframework.test.annotation.DirtiesContext;
 @SpringBootTest(classes = { ArtemisBenchmarkingApp.class, AsyncSyncConfiguration.class })
 @EmbeddedSQL
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public @interface IntegrationTest {
-}
+public @interface IntegrationTest {}

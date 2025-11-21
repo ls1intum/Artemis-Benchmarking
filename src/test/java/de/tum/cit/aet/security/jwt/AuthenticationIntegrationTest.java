@@ -29,5 +29,4 @@ import org.springframework.test.annotation.DirtiesContext;
     }
 )
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public @interface AuthenticationIntegrationTest {
-}
+public @interface AuthenticationIntegrationTest {}

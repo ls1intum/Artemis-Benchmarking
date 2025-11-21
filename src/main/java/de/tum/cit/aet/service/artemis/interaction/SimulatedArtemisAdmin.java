@@ -349,7 +349,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         var fileUploadExerciseGroup = new ExerciseGroup("File Upload Exercise Group", true, exam);
         fileUploadExerciseGroup = postExerciseGroup(exam, fileUploadExerciseGroup);
 
-        var fileUploadExercise = new FileUploadExercise(fileUploadExerciseGroup,"File Upload Exercise",1.0, "pdf,txt" );
+        var fileUploadExercise = new FileUploadExercise(fileUploadExerciseGroup, "File Upload Exercise", 1.0, "pdf,txt");
         webClient
             .post()
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "fileupload", "file-upload-exercises").build())
@@ -370,7 +370,15 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .post()
             .uri(uriBuilder ->
                 uriBuilder
-                    .pathSegment("api", "exam", "courses", String.valueOf(exam.getCourse().getId()), "exams", exam.getId().toString(), "exercise-groups")
+                    .pathSegment(
+                        "api",
+                        "exam",
+                        "courses",
+                        String.valueOf(exam.getCourse().getId()),
+                        "exams",
+                        exam.getId().toString(),
+                        "exercise-groups"
+                    )
                     .build()
             )
             .bodyValue(exerciseGroup)

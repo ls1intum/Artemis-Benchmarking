@@ -11,7 +11,6 @@ import de.tum.cit.aet.service.dto.ArtemisUserPatternDTO;
 import de.tum.cit.aet.util.ArtemisServer;
 import de.tum.cit.aet.util.NumberRangeParser;
 import de.tum.cit.aet.util.SshUtils;
-
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -50,9 +49,15 @@ public class ArtemisUserService {
     public List<ArtemisUser> createArtemisUsersByPattern(ArtemisServer server, ArtemisUserPatternDTO pattern) {
         log.info("Creating ArtemisUsers by pattern for {}", server);
         if (pattern.getFrom() >= pattern.getTo() || pattern.getFrom() <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid range. Artemis user from must be smaller than to and greater than 0");
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Invalid range. Artemis user from must be smaller than to and greater than 0"
+            );
         } else if (!pattern.getUsernamePattern().contains("{i}")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing placeholder. UsernamePattern must contain {i} as placeholder for the index");
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Missing placeholder. UsernamePattern must contain {i} as placeholder for the index"
+            );
         } else if (server == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing server. Server must not be null");
         }

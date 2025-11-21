@@ -152,7 +152,12 @@ public class SimulationDataService {
      * @throws IllegalArgumentException if the simulation has a running simulation run
      */
     public void deleteSimulation(long id) {
-        if (simulationRunRepository.findAllBySimulationId(id).stream().anyMatch(run -> run.getStatus() == SimulationRun.Status.RUNNING)) {
+        if (
+            simulationRunRepository
+                .findAllBySimulationId(id)
+                .stream()
+                .anyMatch(run -> run.getStatus() == SimulationRun.Status.RUNNING)
+        ) {
             throw new IllegalArgumentException("Cannot delete a simulation with a running simulation run!");
         }
         simulationRepository.deleteById(id);

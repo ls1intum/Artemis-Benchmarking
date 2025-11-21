@@ -49,11 +49,7 @@ public class MailService {
     @Lazy
     private MailService self;
 
-    public MailService(
-        JavaMailSender javaMailSender,
-        MessageSource messageSource,
-        SpringTemplateEngine templateEngine
-    ) {
+    public MailService(JavaMailSender javaMailSender, MessageSource messageSource, SpringTemplateEngine templateEngine) {
         this.javaMailSender = javaMailSender;
         this.messageSource = messageSource;
         this.templateEngine = templateEngine;
