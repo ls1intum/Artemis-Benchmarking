@@ -1,18 +1,16 @@
 package de.tum.cit.aet.util;
 
-import org.springframework.http.HttpHeaders;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import org.springframework.http.HttpHeaders;
 
 /**
  * Utility class for HTTP headers creation.
  */
 public final class HeaderUtil {
 
-    private HeaderUtil() {
-    }
+    private HeaderUtil() {}
 
     public static HttpHeaders createAlert(String applicationName, String message, String param) {
         HttpHeaders headers = new HttpHeaders();
@@ -21,7 +19,12 @@ public final class HeaderUtil {
         return headers;
     }
 
-    public static HttpHeaders createEntityCreationAlert(String applicationName, boolean enableTranslation, String entityName, String param) {
+    public static HttpHeaders createEntityCreationAlert(
+        String applicationName,
+        boolean enableTranslation,
+        String entityName,
+        String param
+    ) {
         String message = enableTranslation
             ? applicationName + "." + entityName + ".created"
             : "A new " + entityName + " is created with identifier " + param;
@@ -35,7 +38,12 @@ public final class HeaderUtil {
         return createAlert(applicationName, message, param);
     }
 
-    public static HttpHeaders createEntityDeletionAlert(String applicationName, boolean enableTranslation, String entityName, String param) {
+    public static HttpHeaders createEntityDeletionAlert(
+        String applicationName,
+        boolean enableTranslation,
+        String entityName,
+        String param
+    ) {
         String message = enableTranslation
             ? applicationName + "." + entityName + ".deleted"
             : "A " + entityName + " is deleted with identifier " + param;
@@ -52,7 +60,13 @@ public final class HeaderUtil {
      * @param defaultMessage    the default message to use if translation is not enabled
      * @return HttpHeaders containing the failure alert information
      */
-    public static HttpHeaders createFailureAlert(String applicationName, boolean enableTranslation, String entityName, String errorKey, String defaultMessage) {
+    public static HttpHeaders createFailureAlert(
+        String applicationName,
+        boolean enableTranslation,
+        String entityName,
+        String errorKey,
+        String defaultMessage
+    ) {
         String message = enableTranslation ? "error." + errorKey : defaultMessage;
 
         HttpHeaders headers = new HttpHeaders();

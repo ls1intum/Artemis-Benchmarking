@@ -430,7 +430,6 @@ To unsubscribe, click on the respective link in the email.
 [OpenAPI-Generator]: https://openapi-generator.tech
 [Webpack]: https://webpack.github.io/
 [BrowserSync]: https://www.browsersync.io/
-[Jest]: https://facebook.github.io/jest/
 [Leaflet]: https://leafletjs.com/
 [DefinitelyTyped]: https://definitelytyped.org/
 [Angular CLI]: https://cli.angular.io/

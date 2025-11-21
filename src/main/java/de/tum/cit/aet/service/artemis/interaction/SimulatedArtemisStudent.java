@@ -105,14 +105,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
         }
 
-        return List.of(
-            getInfo(),
-            getSystemNotifications(),
-            getAccount(),
-            getGlobalNotificationSettings(),
-            getCourses(),
-            configureSSH()
-        );
+        return List.of(getInfo(), getSystemNotifications(), getAccount(), getGlobalNotificationSettings(), getCourses(), configureSSH());
     }
 
     /**
@@ -166,9 +159,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             requestStats.add(getExerciseDetails(courseProgrammingExerciseId));
         }
         if (isIrisEnabled) {
-            requestStats.addAll(List.of(
-                getIrisStatus(),
-                getIrisChatHistory(courseId)));
+            requestStats.addAll(List.of(getIrisStatus(), getIrisChatHistory(courseId)));
         }
         requestStats.add(navigateIntoExam());
         requestStats.add(getTestExams());
@@ -604,8 +595,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     ) throws IOException, GitAPIException {
         if (Objects.requireNonNull(mechanism) == ArtemisAuthMechanism.ONLINE_IDE) {
             makeOnlineIDECommitAndPush(requestStats, participationId, changedFileContent);
-        }
-        else {
+        } else {
             makeOfflineIDECommitAndPush(requestStats);
         }
     }
@@ -647,46 +637,46 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return requestStats;
     }
 
+    private List<RequestStat> solveAndSubmitFileUploadExercise(FileUploadExercise fileUploadExercise) {
+        List<RequestStat> requestStats = new ArrayList<>();
+        long start = System.nanoTime();
+        var participation = fileUploadExercise.getStudentParticipations().iterator().next();
+        webClient
+            .get()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .pathSegment("api", "fileupload", "participations", participation.getId().toString(), "file-upload-editor")
+                    .build()
+            )
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC));
 
-private List<RequestStat> solveAndSubmitFileUploadExercise(FileUploadExercise fileUploadExercise) {
-    List<RequestStat> requestStats = new ArrayList<>();
-    long start = System.nanoTime();
-    var participation = fileUploadExercise
-        .getStudentParticipations()
-        .iterator()
-        .next();
-    webClient
-        .get()
-        .uri(uriBuilder ->
-            uriBuilder.pathSegment("api", "fileupload", "participations", participation.getId().toString(), "file-upload-editor").build()
-        )
-        .retrieve()
-        .toBodilessEntity()
-        .block();
-    requestStats.add(new RequestStat(now(), System.nanoTime() - start, MISC));
+        int fileSizeInBytes = 1024 * 1024; // 1 MB file size for file upload exercise
+        ByteArrayResource file = FileGeneratorUtil.getDummyFile(fileSizeInBytes, "test-file.txt");
+        MultiValueMap<String, Object> multipartBody = new LinkedMultiValueMap<>();
+        multipartBody.add("file", file);
+        multipartBody.add("submission", new FileUploadSubmission());
 
-    int fileSizeInBytes = 1024 * 1024; // 1 MB file size for file upload exercise
-    ByteArrayResource file = FileGeneratorUtil.getDummyFile(fileSizeInBytes, "test-file.txt");
-    MultiValueMap<String, Object> multipartBody = new LinkedMultiValueMap<>();
-    multipartBody.add("file", file);
-    multipartBody.add("submission", new FileUploadSubmission());
+        start = System.nanoTime();
+        webClient
+            .post()
+            .uri(uriBuilder ->
+                uriBuilder
+                    .pathSegment("api", "fileupload", "exercises", fileUploadExercise.getId().toString(), "file-upload-submissions")
+                    .build()
+            )
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(multipartBody))
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        // TODO maybe this should get a own RequestType to not skew the other submissions? File upload is likely inherently slower
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE));
 
-    start = System.nanoTime();
-    webClient
-        .post()
-        .uri(uriBuilder ->
-            uriBuilder.pathSegment("api", "fileupload", "exercises", fileUploadExercise.getId().toString(), "file-upload-submissions").build()
-        )
-        .contentType(MediaType.MULTIPART_FORM_DATA)
-        .body(BodyInserters.fromMultipartData(multipartBody))
-        .retrieve()
-        .toBodilessEntity()
-        .block();
-    // TODO maybe this should get a own RequestType to not skew the other submissions? File upload is likely inherently slower
-    requestStats.add(new RequestStat(now(), System.nanoTime() - start, SUBMIT_EXERCISE));
-
-    return requestStats;
-}
+        return requestStats;
+    }
 
     private RequestStat fetchParticipationVcsAccessToken(Long participationId) {
         long start = System.nanoTime();
@@ -823,8 +813,7 @@ private List<RequestStat> solveAndSubmitFileUploadExercise(FileUploadExercise fi
         // TODO: produce larger and more realistic commits
         var bubbleSort = Path.of("repos", username, "src", "de", "tum", "in", "ase", "BubbleSort.java");
         log.debug("Change file  " + bubbleSort);
-        var newContent =
-            """
+        var newContent = """
             package de.tum.in.ase;
 
 
@@ -894,8 +883,8 @@ private List<RequestStat> solveAndSubmitFileUploadExercise(FileUploadExercise fi
             .get()
             .uri(
                 "api/programming/programming-exercise-participations/" +
-                participationId +
-                "/latest-result-with-feedbacks?withSubmission=true"
+                    participationId +
+                    "/latest-result-with-feedbacks?withSubmission=true"
             )
             .retrieve()
             .toBodilessEntity()

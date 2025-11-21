@@ -31,5 +31,6 @@ jobs:
         run: ./gradlew test -x webapp
       - name: Install Dependencies
         run: npm install
-      - name: Run Client Tests
-        run: npm test
+# Temporarily disabled client tests until we switch to Vitest
+#      - name: Run Client Tests
+#        run: npm test

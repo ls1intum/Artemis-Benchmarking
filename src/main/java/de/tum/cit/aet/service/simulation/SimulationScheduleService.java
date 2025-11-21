@@ -8,7 +8,6 @@ import de.tum.cit.aet.repository.ScheduleSubscriberRepository;
 import de.tum.cit.aet.repository.SimulationScheduleRepository;
 import de.tum.cit.aet.service.MailService;
 import de.tum.cit.aet.util.RandomUtil;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
@@ -115,7 +114,12 @@ public class SimulationScheduleService {
     public void subscribeToSchedule(long scheduleId, String email) {
         log.debug("Subscribing {} to schedule {}", email, scheduleId);
         var schedule = simulationScheduleRepository.findById(scheduleId).orElseThrow();
-        if (schedule.getSubscribers().stream().anyMatch(subscriber -> subscriber.getEmail().equals(email))) {
+        if (
+            schedule
+                .getSubscribers()
+                .stream()
+                .anyMatch(subscriber -> subscriber.getEmail().equals(email))
+        ) {
             log.debug("Subscriber {} already subscribed to schedule {}", email, scheduleId);
             return;
         }

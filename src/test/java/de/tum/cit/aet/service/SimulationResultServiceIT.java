@@ -93,7 +93,12 @@ public class SimulationResultServiceIT {
     @Test
     public void calculateAndSaveResult() {
         simulationResultService.calculateAndSaveResult(simulationRun, requestStats);
-        var totalStats = simulationRun.getStats().stream().filter(stats -> stats.getRequestType() == TOTAL).findFirst().orElseThrow();
+        var totalStats = simulationRun
+            .getStats()
+            .stream()
+            .filter(stats -> stats.getRequestType() == TOTAL)
+            .findFirst()
+            .orElseThrow();
         var authStats = simulationRun
             .getStats()
             .stream()
@@ -148,9 +153,24 @@ public class SimulationResultServiceIT {
             .filter(stats -> stats.getRequestType() == PUSH_TOKEN)
             .findFirst()
             .orElseThrow();
-        simulationRun.getStats().stream().filter(stats -> stats.getRequestType() == CLONE_SSH).findFirst().orElseThrow();
-        simulationRun.getStats().stream().filter(stats -> stats.getRequestType() == PUSH_SSH).findFirst().orElseThrow();
-        var miscStats = simulationRun.getStats().stream().filter(stats -> stats.getRequestType() == MISC).findFirst().orElseThrow();
+        simulationRun
+            .getStats()
+            .stream()
+            .filter(stats -> stats.getRequestType() == CLONE_SSH)
+            .findFirst()
+            .orElseThrow();
+        simulationRun
+            .getStats()
+            .stream()
+            .filter(stats -> stats.getRequestType() == PUSH_SSH)
+            .findFirst()
+            .orElseThrow();
+        var miscStats = simulationRun
+            .getStats()
+            .stream()
+            .filter(stats -> stats.getRequestType() == MISC)
+            .findFirst()
+            .orElseThrow();
 
         // TOTAL
         assertEquals(40, totalStats.getNumberOfRequests());

@@ -2,9 +2,8 @@ package de.tum.cit.aet.web.rest;
 
 import de.tum.cit.aet.service.UserService;
 import de.tum.cit.aet.service.dto.UserDTO;
-import java.util.*;
-
 import de.tum.cit.aet.util.PaginationUtil;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -20,7 +19,15 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequestMapping("/api")
 public class PublicUserResource {
 
-    private static final List<String> ALLOWED_ORDERED_PROPERTIES = List.of("id", "login", "firstName", "lastName", "email", "activated", "langKey");
+    private static final List<String> ALLOWED_ORDERED_PROPERTIES = List.of(
+        "id",
+        "login",
+        "firstName",
+        "lastName",
+        "email",
+        "activated",
+        "langKey"
+    );
 
     private final Logger log = LoggerFactory.getLogger(PublicUserResource.class);
 

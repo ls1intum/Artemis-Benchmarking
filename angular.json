@@ -27,7 +27,6 @@
             },
             "index": "src/main/webapp/index.html",
             "browser": "src/main/webapp/main.ts",
-            "polyfills": ["@angular/localize/init"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -103,13 +102,6 @@
             }
           },
           "defaultConfiguration": "development"
-        },
-        "test": {
-          "builder": "@angular-builders/jest:run",
-          "options": {
-            "configPath": "jest.conf.js",
-            "tsConfig": "tsconfig.spec.json"
-          }
         }
       }
     }

@@ -60,7 +60,11 @@ class AccountResourceIT {
     @WithMockUser(TEST_USER_LOGIN)
     void testAuthenticatedUser() throws Exception {
         restAccountMockMvc
-            .perform(get("/api/authenticate").with(request -> request).accept(MediaType.APPLICATION_JSON))
+            .perform(
+                get("/api/authenticate")
+                    .with(request -> request)
+                    .accept(MediaType.APPLICATION_JSON)
+            )
             .andExpect(status().isOk())
             .andExpect(content().string(TEST_USER_LOGIN));
     }

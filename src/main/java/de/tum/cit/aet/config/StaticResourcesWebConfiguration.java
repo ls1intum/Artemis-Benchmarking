@@ -1,8 +1,7 @@
 package de.tum.cit.aet.config;
 
-import java.util.concurrent.TimeUnit;
-
 import jakarta.annotation.Nonnull;
+import java.util.concurrent.TimeUnit;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.CacheControl;
@@ -46,5 +45,4 @@ public class StaticResourcesWebConfiguration implements WebMvcConfigurer {
     protected CacheControl getCacheControl() {
         return CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic();
     }
-
 }

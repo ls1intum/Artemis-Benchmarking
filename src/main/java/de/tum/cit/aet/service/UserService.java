@@ -8,12 +8,11 @@ import de.tum.cit.aet.repository.UserRepository;
 import de.tum.cit.aet.security.SecurityUtils;
 import de.tum.cit.aet.service.dto.AdminUserDTO;
 import de.tum.cit.aet.service.dto.UserDTO;
+import de.tum.cit.aet.util.RandomUtil;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import de.tum.cit.aet.util.RandomUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.CacheManager;

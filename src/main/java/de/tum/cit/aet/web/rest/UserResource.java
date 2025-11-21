@@ -15,7 +15,6 @@ import jakarta.validation.constraints.Pattern;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,8 +57,19 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequestMapping("/api/admin")
 public class UserResource {
 
-    private static final List<String> ALLOWED_ORDERED_PROPERTIES = List.of("id", "login", "firstName", "lastName", "email", "activated", "langKey", "createdBy", "createdDate",
-        "lastModifiedBy", "lastModifiedDate");
+    private static final List<String> ALLOWED_ORDERED_PROPERTIES = List.of(
+        "id",
+        "login",
+        "firstName",
+        "lastName",
+        "email",
+        "activated",
+        "langKey",
+        "createdBy",
+        "createdDate",
+        "lastModifiedBy",
+        "lastModifiedDate"
+    );
 
     private final Logger log = LoggerFactory.getLogger(UserResource.class);
 
