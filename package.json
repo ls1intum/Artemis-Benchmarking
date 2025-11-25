@@ -84,7 +84,7 @@
     "@fortawesome/fontawesome-svg-core": "7.1.0",
     "@fortawesome/free-solid-svg-icons": "7.1.0",
     "@ng-bootstrap/ng-bootstrap": "19.0.1",
-    "@stomp/rx-stomp": "2.2.0",
+    "@stomp/rx-stomp": "2.3.0",
     "@swimlane/ngx-charts": "23.1.0",
     "bootstrap": "5.3.8",
     "dayjs": "1.11.19",
