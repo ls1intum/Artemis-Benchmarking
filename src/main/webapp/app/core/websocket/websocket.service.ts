@@ -229,14 +229,4 @@ export class WebsocketService implements OnDestroy {
     });
     this.stompSubscriptions.set(channel, subscription);
   }
-
-  /**
-   * Create a new observable and store the corresponding subscriber so that we can invoke it when a new message was received
-   * @param channel The channel to listen on.
-   */
-  private createObservable<T>(channel: string): Observable<T> {
-    return new Observable((subscriber: Subscriber<T>) => {
-      this.subscribers.set(channel, subscriber);
-    });
-  }
 }
