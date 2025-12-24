@@ -3,7 +3,7 @@ import { Simulation } from '../../entities/simulation/simulation';
 import { SimulationsService } from '../simulations.service';
 import { SimulationRun, Status } from '../../entities/simulation/simulationRun';
 import { getOrder } from '../../entities/simulation/simulationStats';
-import { NgbAccordionModule, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbAccordionModule, NgbCollapse, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CreateSimulationBoxComponent } from '../../layouts/create-simulation-box/create-simulation-box.component';
@@ -25,7 +25,7 @@ export function sortSimulations(simulations: Simulation[]): Simulation[] {
   templateUrl: './simulations-overview.component.html',
   styleUrls: ['./simulations-overview.component.scss'],
   imports: [
-    NgbModule,
+    NgbCollapse,
     NgbAccordionModule,
     CreateSimulationBoxComponent,
     SimulationCardComponent,
