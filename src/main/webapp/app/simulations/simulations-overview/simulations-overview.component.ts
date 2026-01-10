@@ -175,7 +175,7 @@ export default class SimulationsOverviewComponent implements OnInit {
   }
 
   updateSelectedRun(run: SimulationRun): void {
-    if (this.selectedRun() && this.selectedRun()!.id === run.id) {
+    if (this.selectedRun()?.id === run.id) {
       this.selectedRun.set(SimulationRun.of(run));
     }
   }
