@@ -170,7 +170,7 @@ dependencies {
     annotationProcessor "org.glassfish.jaxb:jaxb-runtime:${jaxbRuntimeVersion}"
 
     implementation "jakarta.annotation:jakarta.annotation-api:3.0.0"
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.0"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.1"
     implementation "com.zaxxer:HikariCP:7.0.2"
     implementation "org.apache.commons:commons-lang3:${commonsLangVersion}"
     implementation "org.openapitools:jackson-databind-nullable:${jacksonDatabindNullableVersion}"
@@ -204,12 +204,12 @@ dependencies {
     implementation "org.springframework.security:spring-security-data"
 
     // use newest version of nimbus-jose-jwt to avoid security issues through outdated dependencies
-    implementation "com.nimbusds:nimbus-jose-jwt:10.6"
+    implementation "com.nimbusds:nimbus-jose-jwt:10.7"
 
 
     implementation "io.micrometer:micrometer-registry-prometheus:1.16.1"
     // Prometheus requires the protobuf-java dependency, but we explicitly use the latest version to avoid security vulnerabilities
-    implementation "com.google.protobuf:protobuf-java:4.33.2"
+    implementation "com.google.protobuf:protobuf-java:4.33.3"
 
     implementation "io.dropwizard.metrics:metrics-core:4.2.37"
     implementation "org.springframework.security:spring-security-messaging"
