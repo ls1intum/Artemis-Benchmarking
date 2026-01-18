@@ -100,7 +100,7 @@
     "postinstall-postinstall": "2.1.0",
     "prettier": "3.7.4",
     "prettier-plugin-java": "2.8.1",
-    "prettier-plugin-packagejson": "2.5.20",
+    "prettier-plugin-packagejson": "2.5.22",
     "rimraf": "6.1.2",
     "sass": "1.97.2",
     "typescript": "5.9.3",
