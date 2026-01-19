@@ -58,7 +58,7 @@
     "webpack-dev-middleware": "7.4.5",
     "webpack-dev-server": "5.2.2",
     "word-wrap": "1.2.5",
-    "ws": "8.18.3",
+    "ws": "8.19.0",
     "yargs-parser": "22.0.0"
   },
   "dependencies": {
