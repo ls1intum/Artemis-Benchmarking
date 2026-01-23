@@ -207,9 +207,9 @@ dependencies {
     implementation "com.nimbusds:nimbus-jose-jwt:10.7"
 
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.16.1"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.16.2"
     // Prometheus requires the protobuf-java dependency, but we explicitly use the latest version to avoid security vulnerabilities
-    implementation "com.google.protobuf:protobuf-java:4.33.3"
+    implementation "com.google.protobuf:protobuf-java:4.33.4"
 
     implementation "io.dropwizard.metrics:metrics-core:4.2.37"
     implementation "org.springframework.security:spring-security-messaging"
@@ -232,8 +232,8 @@ dependencies {
     implementation "org.bouncycastle:bcprov-jdk18on:1.83"
 
     // use newest version
-    implementation "io.projectreactor.netty:reactor-netty-core:1.3.1"
-    implementation "io.projectreactor.netty:reactor-netty-http:1.3.1"
+    implementation "io.projectreactor.netty:reactor-netty-core:1.3.2"
+    implementation "io.projectreactor.netty:reactor-netty-http:1.3.2"
 
     implementation "io.reactivex.rxjava3:rxjava:3.1.12"
     // TODO: we should remove this dependency once we have migrated to org.apache.commons:csv
@@ -293,7 +293,7 @@ tasks.register("cleanResources", Delete) {
 }
 
 wrapper {
-    gradleVersion = "9.2.1"
+    gradleVersion = "9.3.0"
 }
 
 tasks.register("webapp_test", NpmTask) {
