@@ -4,6 +4,7 @@ import de.tum.cit.aet.domain.Simulation;
 import de.tum.cit.aet.domain.SimulationRun;
 import de.tum.cit.aet.domain.SimulationSchedule;
 import de.tum.cit.aet.security.AuthoritiesConstants;
+import de.tum.cit.aet.service.dto.SimulationRunDTO;
 import de.tum.cit.aet.service.simulation.SimulationDataService;
 import de.tum.cit.aet.service.simulation.SimulationScheduleService;
 import de.tum.cit.aet.util.ArtemisAccountDTO;
@@ -117,13 +118,12 @@ public class SimulationResource {
      * @return the ResponseEntity with status 200 (OK) and with body the queued simulation run, or with status 404 (Not Found) if the simulation does not exist
      */
     @PostMapping("/{simulationId}/run")
-    public ResponseEntity<SimulationRun> runSimulation(
+    public ResponseEntity<SimulationRunDTO> runSimulation(
         @PathVariable long simulationId,
         @RequestBody(required = false) ArtemisAccountDTO accountDTO
     ) {
         var run = simulationDataService.createAndQueueSimulationRun(simulationId, accountDTO, null);
-        sanitizeSimulationRun(run);
-        return new ResponseEntity<>(run, HttpStatus.OK);
+        return new ResponseEntity<>(new SimulationRunDTO(run), HttpStatus.OK);
     }
 
     /**
