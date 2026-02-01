@@ -54,8 +54,10 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         this.authenticated =
             authorities.contains("ROLE_ADMIN") ||
             authorities.contains("ROLE_INSTRUCTOR") ||
+            authorities.contains("ROLE_SUPER_ADMIN") ||
             authorities.contains("ADMIN") ||
-            authorities.contains("INSTRUCTOR");
+            authorities.contains("INSTRUCTOR") ||
+            authorities.contains("SUPER_ADMIN");
         if (!this.authenticated) {
             log.warn("User {} does not have admin/instructor roles. Authorities: {}", username, authorities);
         }
