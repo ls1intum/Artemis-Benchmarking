@@ -1,0 +1,113 @@
+<div>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div>
+      <h2 id="server-configurations-heading" data-cy="serverConfigurationsHeading">Server configurations</h2>
+      <p class="text-muted mb-0">Overview of configured Artemis environments and monitoring endpoints.</p>
+    </div>
+    <button type="button" class="btn btn-outline-primary btn-sm" (click)="reload()" [disabled]="isLoading()">Refresh</button>
+  </div>
+
+  @if (hasError()) {
+    <div class="alert alert-danger mt-3" role="alert">Failed to load server configurations.</div>
+  }
+
+  @if (isLoading()) {
+    <div class="alert alert-info mt-3" role="status">Loading server configurations...</div>
+  } @else {
+    @if (sortedConfigurations().length === 0) {
+      <div class="alert alert-warning mt-3" role="alert">No server configurations available.</div>
+    } @else {
+      <div class="table-responsive mt-3">
+        <table class="table table-striped table-bordered align-middle" aria-describedby="server-configurations-heading">
+          <thead>
+            <tr>
+              <th scope="col">Server</th>
+              <th scope="col">URL</th>
+              <th scope="col">Cleanup</th>
+              <th scope="col">Local</th>
+              <th scope="col">Prometheus (Artemis)</th>
+              <th scope="col">Prometheus (VCS)</th>
+              <th scope="col">Prometheus (CI)</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (config of sortedConfigurations(); track config.server) {
+              <tr>
+                <td class="fw-semibold">{{ config.server }}</td>
+                <td>
+                  @if (config.url) {
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                      <a class="server-configurations__link" [href]="config.url" target="_blank" rel="noopener noreferrer">
+                        {{ formatEnvironmentUrl(config.url) }}
+                      </a>
+                      <a
+                        class="btn btn-outline-primary btn-icon-xs"
+                        [href]="config.url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Open environment in a new tab"
+                      >
+                        <fa-icon [icon]="faArrowUpRightFromSquare"></fa-icon>
+                      </a>
+                    </div>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="config.cleanupEnabled ? 'bg-success' : 'bg-secondary'">
+                    {{ config.cleanupEnabled ? 'Enabled' : 'Disabled' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="config.isLocal ? 'bg-info text-dark' : 'bg-secondary'">
+                    {{ config.isLocal ? 'Yes' : 'No' }}
+                  </span>
+                </td>
+                <td>
+                  @if (hasInstances(config.prometheusInstancesArtemis)) {
+                    <ul class="list-unstyled mb-0">
+                      @for (instance of config.prometheusInstancesArtemis; track instance) {
+                        <li>
+                          <code>{{ instance }}</code>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+                <td>
+                  @if (hasInstances(config.prometheusInstancesVcs)) {
+                    <ul class="list-unstyled mb-0">
+                      @for (instance of config.prometheusInstancesVcs; track instance) {
+                        <li>
+                          <code>{{ instance }}</code>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+                <td>
+                  @if (hasInstances(config.prometheusInstancesCi)) {
+                    <ul class="list-unstyled mb-0">
+                      @for (instance of config.prometheusInstancesCi; track instance) {
+                        <li>
+                          <code>{{ instance }}</code>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>

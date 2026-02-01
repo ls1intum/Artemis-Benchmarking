@@ -107,6 +107,12 @@
               </a>
             </li>
             <li>
+              <a class="dropdown-item" routerLink="/admin/server-configurations" routerLinkActive="active" (click)="collapseNavbar()">
+                <fa-icon icon="cloud" [fixedWidth]="true"></fa-icon>
+                <span>Server configurations</span>
+              </a>
+            </li>
+            <li>
               <a class="dropdown-item" routerLink="/admin/logs" routerLinkActive="active" (click)="collapseNavbar()">
                 <fa-icon icon="tasks" [fixedWidth]="true"></fa-icon>
                 <span>Logs</span>

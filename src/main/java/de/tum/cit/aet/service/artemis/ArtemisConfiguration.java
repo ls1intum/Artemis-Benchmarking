@@ -1,6 +1,9 @@
 package de.tum.cit.aet.service.artemis;
 
+import de.tum.cit.aet.service.dto.ArtemisServerConfigurationDTO;
 import de.tum.cit.aet.util.ArtemisServer;
+import java.util.Arrays;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -287,5 +290,24 @@ public class ArtemisConfiguration {
             case DEVCLUSTER -> devclusterIsLocal;
             case PRODUCTION -> productionIsLocal;
         };
+    }
+
+    public ArtemisServerConfigurationDTO getServerConfiguration(ArtemisServer server) {
+        return new ArtemisServerConfigurationDTO(
+            server,
+            getUrl(server),
+            getCleanup(server),
+            getIsLocal(server),
+            toList(getPrometheusInstancesArtemis(server)),
+            toList(getPrometheusInstancesVcs(server)),
+            toList(getPrometheusInstancesCi(server))
+        );
+    }
+
+    private List<String> toList(String[] values) {
+        if (values == null) {
+            return List.of();
+        }
+        return Arrays.stream(values).filter(value -> value != null && !value.isBlank()).toList();
     }
 }

@@ -5,13 +5,23 @@ import { SimulationsService } from '../../simulations/simulations.service';
 import { NgbModal, NgbTooltip } from '@ng-bootstrap/ng-bootstrap';
 import { ArtemisServer } from '../../core/util/artemisServer';
 import { ArtemisAccountDTO } from '../../simulations/artemisAccountDTO';
-import { faCalendarDays, faChevronRight, faClock, faEye, faEyeSlash, faTrashCan, faUserTie } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowUpRightFromSquare,
+  faCalendarDays,
+  faChevronRight,
+  faClock,
+  faEye,
+  faEyeSlash,
+  faTrashCan,
+  faUserTie,
+} from '@fortawesome/free-solid-svg-icons';
 import { SimulationScheduleDialogComponent } from '../simulation-schedule-dialog/simulation-schedule-dialog.component';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { DatePipe, NgClass } from '@angular/common';
 import { ServerBadgeComponent } from '../server-badge/server-badge.component';
 import { StatusIconComponent } from '../status-icon/status-icon.component';
 import { FormsModule } from '@angular/forms';
+import { ArtemisServerConfiguration } from 'app/admin/server-configurations/server-configuration.model';
 
 @Component({
   selector: 'simulation-card',
@@ -27,13 +37,20 @@ export class SimulationCardComponent implements OnInit {
   faUserTie = faUserTie;
   faEye = faEye;
   faEyeSlash = faEyeSlash;
+  faArrowUpRightFromSquare = faArrowUpRightFromSquare;
 
   simulation = input.required<Simulation>();
   selectedRun = input<SimulationRun>();
   selectedSimulation = input<Simulation | undefined>(undefined);
+  serverConfigurations = input<ArtemisServerConfiguration[] | undefined>(undefined);
 
   isSelected = computed(() => {
     return this.selectedSimulation()?.id === this.simulation().id;
+  });
+
+  serverConfiguration = computed(() => {
+    const configs = this.serverConfigurations() ?? [];
+    return configs.find(config => config.server === this.simulation().server);
   });
 
   runs = signal<SimulationRun[]>([]);
@@ -218,5 +235,10 @@ export class SimulationCardComponent implements OnInit {
 
   clickedSimulation(): void {
     this.clickedSimulationEvent.emit(this.simulation());
+  }
+
+  formatEnvironmentUrl(url: string): string {
+    const withoutProtocol = url.replace(/^https?:\/\//, '');
+    return withoutProtocol.replace(/\/$/, '');
   }
 }

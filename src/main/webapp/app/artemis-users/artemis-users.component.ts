@@ -6,12 +6,14 @@ import { ArtemisUsersService } from './artemis-users.service';
 import { ArtemisUserForCreationDTO } from './artemisUserForCreationDTO';
 import { NgbCollapse, NgbModal, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { CreateUserBoxComponent } from '../layouts/create-user-box/create-user-box.component';
-import { faCircleInfo, faEye, faEyeSlash, faMagnifyingGlass, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faArrowUpRightFromSquare, faCircleInfo, faEye, faEyeSlash, faMagnifyingGlass, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ArtemisUserPatternDTO } from './artemisUserPatternDTO';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Observable, Subject, map, merge, startWith } from 'rxjs';
 import SharedModule from '../shared/shared.module';
+import { ServerConfigurationsService } from 'app/admin/server-configurations/server-configurations.service';
+import { ArtemisServerConfiguration } from 'app/admin/server-configurations/server-configuration.model';
 
 @Component({
   selector: 'artemis-users',
@@ -24,6 +26,7 @@ export default class ArtemisUsersComponent implements OnInit {
   faCircleInfo = faCircleInfo;
   faMagnifyingGlass = faMagnifyingGlass;
   faSpinner = faSpinner;
+  faArrowUpRightFromSquare = faArrowUpRightFromSquare;
 
   server: ArtemisServer = ArtemisServer.TS1;
   users: ArtemisUser[] = [];
@@ -34,6 +37,7 @@ export default class ArtemisUsersComponent implements OnInit {
   editedUser?: ArtemisUser;
   adminUser?: ArtemisUser;
   adminUserEdit = signal<ArtemisUser | undefined>(undefined);
+  serverConfiguration = signal<ArtemisServerConfiguration | undefined>(undefined);
   showAdminPassword = false;
   showEditUserPassword = false;
   actionInProgress = false;
@@ -49,6 +53,7 @@ export default class ArtemisUsersComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private artemisUsersService = inject(ArtemisUsersService);
+  private serverConfigurationsService = inject(ServerConfigurationsService);
   private modalService = inject(NgbModal);
 
   constructor() {
@@ -67,6 +72,7 @@ export default class ArtemisUsersComponent implements OnInit {
       if (!Object.values(ArtemisServer).includes(this.server)) {
         this.router.navigate(['/404']);
       }
+      this.loadServerConfiguration();
       this.artemisUsersService.getUsers(this.server).subscribe((users: ArtemisUser[]) => {
         this.users = users.filter(u => u.serverWideId !== 0).sort((a, b) => a.serverWideId - b.serverWideId);
         this.adminUser = users.find(user => user.serverWideId === 0);
@@ -254,8 +260,24 @@ export default class ArtemisUsersComponent implements OnInit {
     }, 3000);
   }
 
+  formatEnvironmentUrl(url: string): string {
+    const withoutProtocol = url.replace(/^https?:\/\//, '');
+    return withoutProtocol.replace(/\/$/, '');
+  }
+
   search(text: string): ArtemisUser[] {
     text = text.toLowerCase();
     return this.users.filter(user => user.username.toLowerCase().includes(text) || user.serverWideId.toString().includes(text));
+  }
+
+  private loadServerConfiguration(): void {
+    this.serverConfigurationsService.getServerConfigurations().subscribe({
+      next: configs => {
+        this.serverConfiguration.set(configs.find(config => config.server === this.server));
+      },
+      error: () => {
+        this.serverConfiguration.set(undefined);
+      },
+    });
   }
 }

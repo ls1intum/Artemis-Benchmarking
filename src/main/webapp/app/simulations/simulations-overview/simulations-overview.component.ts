@@ -15,6 +15,8 @@ import { CiStatusCardComponent } from '../../layouts/ci-status-card/ci-status-ca
 import { ResultBoxComponent } from '../../layouts/result-box/result-box.component';
 import { DatePipe } from '@angular/common';
 import { SimulationDetailsComponent } from '../../layouts/simulation-details/simulation-details.component';
+import { ServerConfigurationsService } from 'app/admin/server-configurations/server-configurations.service';
+import { ArtemisServerConfiguration } from 'app/admin/server-configurations/server-configuration.model';
 
 export function sortSimulations(simulations: Simulation[]): Simulation[] {
   return simulations.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime());
@@ -46,15 +48,26 @@ export default class SimulationsOverviewComponent implements OnInit {
   selectedSimulation = signal<Simulation | undefined>(undefined);
   isCollapsed = true;
   cancellationInProgress = false;
+  serverConfigurations = signal<ArtemisServerConfiguration[] | undefined>(undefined);
 
   protected readonly Status = Status;
 
   private simulationsService = inject(SimulationsService);
+  private serverConfigurationsService = inject(ServerConfigurationsService);
   private modalService = inject(NgbModal);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
   ngOnInit(): void {
+    this.serverConfigurationsService.getServerConfigurations().subscribe({
+      next: configs => {
+        this.serverConfigurations.set(configs);
+      },
+      error: () => {
+        this.serverConfigurations.set(undefined);
+      },
+    });
+
     const selectedRunString = this.route.snapshot.queryParamMap.get('runId');
     const selectedSimulationString = this.route.snapshot.queryParamMap.get('simulationId');
 

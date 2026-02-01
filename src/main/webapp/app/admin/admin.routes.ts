@@ -12,6 +12,11 @@ const routes: Routes = [
     title: 'Configuration',
   },
   {
+    path: 'server-configurations',
+    loadComponent: () => import('./server-configurations/server-configurations.component'),
+    title: 'Server configurations',
+  },
+  {
     path: 'health',
     loadComponent: () => import('./health/health.component'),
     title: 'Health',

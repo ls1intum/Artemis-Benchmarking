@@ -42,6 +42,13 @@
         <p>
           <strong>{{ getTextRepresentation(simulation().mode) }}</strong>
         </p>
+        @if (serverConfiguration()?.url) {
+          <div class="simulation-card__env mb-1">
+            <a class="simulation-card__env-link" [href]="serverConfiguration()!.url" target="_blank" rel="noopener noreferrer">
+              {{ formatEnvironmentUrl(serverConfiguration()!.url) }}
+            </a>
+          </div>
+        }
         <p class="mb-1">
           @if (simulation().customizeUserRange) {
             Users: {{ simulation().userRange }} (Total: {{ simulation().numberOfUsers }})

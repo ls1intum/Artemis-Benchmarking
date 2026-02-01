@@ -6,6 +6,24 @@
 
 <h2>{{ server.charAt(0) + server.slice(1).toLowerCase() }} Users</h2>
 
+@if (serverConfiguration()?.url) {
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
+    <span class="text-muted">Environment URL:</span>
+    <a class="link-primary fw-semibold" [href]="serverConfiguration()!.url" target="_blank" rel="noopener noreferrer">
+      {{ formatEnvironmentUrl(serverConfiguration()!.url) }}
+    </a>
+    <a
+      class="btn btn-outline-primary btn-icon-xs"
+      [href]="serverConfiguration()!.url"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Open environment in a new tab"
+    >
+      <fa-icon [icon]="faArrowUpRightFromSquare"></fa-icon>
+    </a>
+  </div>
+}
+
 @if (server !== ArtemisServer.PRODUCTION) {
   <h3 class="mb-0 mt-5">Admin Account</h3>
   <table class="table table-striped mb-5">
