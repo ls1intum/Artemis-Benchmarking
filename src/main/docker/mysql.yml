@@ -2,7 +2,7 @@
 name: artemis-benchmarking
 services:
   mysql:
-    image: mysql:9.3.0
+    image: mysql:9.6.0
     volumes:
       - ./config/mysql:/etc/mysql/conf.d
     environment:
