@@ -36,8 +36,29 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
     @Override
     protected void checkAccess() {
         var response = webClient.get().uri("api/core/public/account").retrieve().bodyToMono(User.class).block();
+        if (response == null) {
+            this.authenticated = false;
+            return;
+        }
+
+        var authorities = response.getAuthorities();
+        if (authorities == null || authorities.isEmpty()) {
+            log.warn(
+                "Account response for user {} contains no authorities. Assuming authenticated; server will enforce access rights.",
+                username
+            );
+            this.authenticated = true;
+            return;
+        }
+
         this.authenticated =
-            response != null && (response.getAuthorities().contains("ROLE_ADMIN") || response.getAuthorities().contains("ROLE_INSTRUCTOR"));
+            authorities.contains("ROLE_ADMIN") ||
+            authorities.contains("ROLE_INSTRUCTOR") ||
+            authorities.contains("ADMIN") ||
+            authorities.contains("INSTRUCTOR");
+        if (!this.authenticated) {
+            log.warn("User {} does not have admin/instructor roles. Authorities: {}", username, authorities);
+        }
     }
 
     /**

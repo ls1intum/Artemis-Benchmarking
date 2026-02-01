@@ -311,9 +311,34 @@ public class SimulationExecutionService {
         logAndSend(false, simulationRun, "Initializing admin...");
         Simulation simulation = simulationRun.getSimulation();
         try {
-            return simulation.getServer() == ArtemisServer.PRODUCTION
-                ? initializeAdminWithAccount(simulation.getServer(), accountDTO)
-                : initializeAdminFromUserManagement(simulation.getServer());
+            if (simulation.getServer() == ArtemisServer.PRODUCTION) {
+                if (accountDTO == null || accountDTO.getUsername() == null || accountDTO.getUsername().isBlank()) {
+                    logAndSend(true, simulationRun, "No admin account provided for production server.");
+                } else {
+                    logAndSend(
+                        false,
+                        simulationRun,
+                        "Using provided admin account '%s' for %s.",
+                        accountDTO.getUsername(),
+                        simulation.getServer()
+                    );
+                }
+                return initializeAdminWithAccount(simulation.getServer(), accountDTO);
+            }
+
+            var adminAccount = artemisUserService.getAdminUser(simulation.getServer());
+            if (adminAccount == null) {
+                logAndSend(true, simulationRun, "No admin user found in user management for %s.", simulation.getServer());
+            } else {
+                logAndSend(
+                    false,
+                    simulationRun,
+                    "Using admin account '%s' from user management for %s.",
+                    adminAccount.getUsername(),
+                    simulation.getServer()
+                );
+            }
+            return initializeAdminFromUserManagement(simulation.getServer(), adminAccount);
         } catch (Exception e) {
             logAndSend(true, simulationRun, "Error while initializing admin: %s", e.getMessage());
             failSimulationRun(simulationRun);
@@ -329,6 +354,10 @@ public class SimulationExecutionService {
      */
     private SimulatedArtemisAdmin initializeAdminFromUserManagement(ArtemisServer server) {
         var adminAccount = artemisUserService.getAdminUser(server);
+        return initializeAdminFromUserManagement(server, adminAccount);
+    }
+
+    private SimulatedArtemisAdmin initializeAdminFromUserManagement(ArtemisServer server, ArtemisUser adminAccount) {
         if (adminAccount == null) {
             throw new IllegalStateException("No admin account found for server " + server.name());
         }

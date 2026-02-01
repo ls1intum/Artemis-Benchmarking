@@ -98,6 +98,11 @@ public abstract class SimulatedArtemisUser {
             if (authenticated) {
                 return List.of();
             }
+            log.warn(
+                "Cached token invalid or insufficient for user {} (expires at {}). Re-authenticating.",
+                username,
+                artemisUser.getTokenExpirationDate()
+            );
             // If the cached token is invalid, we will try to log in again...
         }
 
@@ -138,6 +143,9 @@ public abstract class SimulatedArtemisUser {
             .defaultHeader("Cookie", authToken.jwtToken())
             .build();
         checkAccess();
+        if (!authenticated) {
+            log.warn("User {} failed access check after login.", username);
+        }
         log.debug("Logged in as {}", username);
         return requestStats;
     }
