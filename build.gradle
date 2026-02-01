@@ -105,6 +105,7 @@ checkstyleMain.source = "src/main/java"
 
 configurations {
     providedRuntime
+    mockitoAgent
 }
 
 repositories {
@@ -282,6 +283,11 @@ dependencies {
     testImplementation "org.junit.platform:junit-platform-commons:${junitVersion}"
     testImplementation "org.junit.platform:junit-platform-engine:${junitVersion}"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitVersion}"
+
+    def mockitoAgentVersion = dependencyManagement.importedProperties["mockito.version"] ?: "5.20.0"
+    mockitoAgent("org.mockito:mockito-core:${mockitoAgentVersion}") {
+        transitive = false
+    }
 }
 
 
