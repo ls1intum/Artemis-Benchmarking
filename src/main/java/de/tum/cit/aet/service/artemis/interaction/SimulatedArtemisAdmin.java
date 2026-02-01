@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -335,6 +336,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "text", "text-exercises").build())
             .bodyValue(textExercise)
             .retrieve()
+            .onStatus(HttpStatusCode::isError, response -> logRequestError("Text exercise creation", response))
             .toBodilessEntity()
             .block();
 
@@ -350,6 +352,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "modeling", "modeling-exercises").build())
             .bodyValue(modelingExercise)
             .retrieve()
+            .onStatus(HttpStatusCode::isError, response -> logRequestError("Modeling exercise creation", response))
             .toBodilessEntity()
             .block();
 
@@ -370,6 +373,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "programming", "programming-exercises", "setup").build())
             .bodyValue(programmingExercise)
             .retrieve()
+            .onStatus(HttpStatusCode::isError, response -> logRequestError("Programming exercise creation", response))
             .toBodilessEntity()
             .block();
 
@@ -401,6 +405,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData("exercise", quizExercise))
             .retrieve()
+            .onStatus(HttpStatusCode::isError, response -> logRequestError("Quiz exercise creation", response))
             .toBodilessEntity()
             .block();
 
@@ -419,6 +424,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "fileupload", "file-upload-exercises").build())
             .bodyValue(fileUploadExercise)
             .retrieve()
+            .onStatus(HttpStatusCode::isError, response -> logRequestError("File upload exercise creation", response))
             .toBodilessEntity()
             .block();
     }
@@ -447,6 +453,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             )
             .bodyValue(exerciseGroup)
             .retrieve()
+            .onStatus(HttpStatusCode::isError, response -> logRequestError("Exercise group creation", response))
             .bodyToMono(ExerciseGroup.class)
             .block();
     }
@@ -474,6 +481,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "programming", "programming-exercises", "setup").build())
             .bodyValue(programmingExercise)
             .retrieve()
+            .onStatus(HttpStatusCode::isError, response -> logRequestError("Course programming exercise creation", response))
             .bodyToMono(ProgrammingExercise.class)
             .block();
     }
@@ -684,5 +692,12 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .retrieve()
             .bodyToMono(Exam.class)
             .block();
+    }
+
+    private Mono<? extends Throwable> logRequestError(String action, ClientResponse response) {
+        return response.bodyToMono(String.class).defaultIfEmpty("").flatMap(body -> {
+            log.error("{} failed with status {}. Response body: {}", action, response.statusCode(), body);
+            return Mono.error(new IllegalStateException(action + " failed with status " + response.statusCode() + ": " + body));
+        });
     }
 }
