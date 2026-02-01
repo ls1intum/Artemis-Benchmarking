@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public record ProgrammingExerciseCreateDTO(
+    String type,
     String title,
     Double maxPoints,
     ExerciseMode mode,
@@ -29,6 +30,7 @@ public record ProgrammingExerciseCreateDTO(
         String packageName
     ) {
         return new ProgrammingExerciseCreateDTO(
+            "programming",
             title,
             5.0,
             ExerciseMode.INDIVIDUAL,
@@ -56,6 +58,7 @@ public record ProgrammingExerciseCreateDTO(
         String packageName
     ) {
         return new ProgrammingExerciseCreateDTO(
+            "programming",
             title,
             1.0,
             ExerciseMode.INDIVIDUAL,

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public record FileUploadExerciseCreateDTO(
+    String type,
     String title,
     Double maxPoints,
     ExerciseMode mode,
@@ -13,6 +14,7 @@ public record FileUploadExerciseCreateDTO(
 ) {
     public static FileUploadExerciseCreateDTO forBenchmarking(String title, Long exerciseGroupId, String filePattern) {
         return new FileUploadExerciseCreateDTO(
+            "file-upload",
             title,
             1.0,
             ExerciseMode.INDIVIDUAL,

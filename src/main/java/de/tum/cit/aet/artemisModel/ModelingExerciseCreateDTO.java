@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public record ModelingExerciseCreateDTO(
+    String type,
     String title,
     Double maxPoints,
     ExerciseMode mode,
@@ -12,6 +13,7 @@ public record ModelingExerciseCreateDTO(
 ) {
     public static ModelingExerciseCreateDTO forBenchmarking(String title, Long exerciseGroupId) {
         return new ModelingExerciseCreateDTO(
+            "modeling",
             title,
             1.0,
             ExerciseMode.INDIVIDUAL,
