@@ -630,7 +630,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
                 commitAndPush(requestStats, this.authenticationMechanism, participationId, changedFileContent);
             }
-            log.debug("    Clone and commit+push done in " + formatDurationFrom(start));
+            log.debug("    Clone and commit+push done in {}", formatDurationFrom(start));
         } catch (Exception e) {
             log.error("Error while handling programming exercise for {{}}: {{}}", username, e.getMessage());
         }
@@ -775,7 +775,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat commitAndPushRepo() throws IOException, GitAPIException {
         var localPath = Path.of("repos", username);
-        log.debug("Commit and push to " + localPath);
+        log.debug("Commit and push to {}", localPath);
 
         var git = Git.open(localPath.toFile());
         git.add().addFilepattern("src").call();
@@ -812,7 +812,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private String changeFiles(boolean invalidChange, boolean writeToFile) throws IOException {
         // TODO: produce larger and more realistic commits
         var bubbleSort = Path.of("repos", username, "src", "de", "tum", "in", "ase", "BubbleSort.java");
-        log.debug("Change file  " + bubbleSort);
+        log.debug("Change file  {}", bubbleSort);
         var newContent = """
             package de.tum.in.ase;
 
@@ -864,7 +864,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         var fileName = String.join("/", "src", "progforbenchtemp", "BubbleSort.java");
         requestStats.add(fetchFile(participationId, fileName));
 
-        log.debug("Commit and push to " + fileName);
+        log.debug("Commit and push to {}", fileName);
         long start = System.nanoTime();
         webClient
             .put()
@@ -925,7 +925,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     }
 
     private RequestStat cloneRepo(String repositoryUrl) throws IOException {
-        log.debug("Clone " + repositoryUrl);
+        log.debug("Clone {}", repositoryUrl);
 
         var localPath = Path.of("repos", username);
         FileUtils.deleteDirectory(localPath.toFile());
@@ -951,7 +951,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
                 var duration = System.nanoTime() - start;
                 git.close();
-                log.debug("Done " + repositoryUrl);
+                log.debug("Done {}", repositoryUrl);
                 return switch (authenticationMechanism) {
                     case PASSWORD -> new RequestStat(now(), duration, CLONE_PASSWORD);
                     case PARTICIPATION_TOKEN -> new RequestStat(now(), duration, CLONE_TOKEN);
@@ -979,7 +979,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
      * @throws IOException if an I/O error occurs
      */
     public RequestStat cloneRepoOverSSH(String repositoryUrl) throws IOException {
-        log.debug("Clone " + repositoryUrl);
+        log.debug("Clone {}", repositoryUrl);
 
         var localPath = Path.of("repos", username);
         FileUtils.deleteDirectory(localPath.toFile());

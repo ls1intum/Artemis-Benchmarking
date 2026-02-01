@@ -38,16 +38,6 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         log = LoggerFactory.getLogger(SimulatedArtemisAdmin.class);
     }
 
-    SimulatedArtemisAdmin(
-        String artemisUrl,
-        ArtemisUser artemisUser,
-        ArtemisUserService artemisUserService,
-        Supplier<WebClient.Builder> webClientBuilderSupplier
-    ) {
-        super(artemisUrl, artemisUser, artemisUserService, webClientBuilderSupplier);
-        log = LoggerFactory.getLogger(SimulatedArtemisAdmin.class);
-    }
-
     SimulatedArtemisAdmin(String artemisUrl, String username, String password, Supplier<WebClient.Builder> webClientBuilderSupplier) {
         super(artemisUrl, username, password, webClientBuilderSupplier);
         log = LoggerFactory.getLogger(SimulatedArtemisAdmin.class);

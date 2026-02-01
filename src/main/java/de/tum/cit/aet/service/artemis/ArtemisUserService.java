@@ -114,7 +114,7 @@ public class ArtemisUserService {
                 // The order of operations is important here, as the user might not be created on Artemis if an exception is thrown
                 createdUsers.add(createdUser);
             } catch (ResponseStatusException e) {
-                log.debug(e.getMessage() + ". Skipping user.");
+                log.debug("{}. Skipping user.", e.getMessage());
             }
         }
         log.info("Created {} ArtemisUsers by pattern", createdUsers.size());
@@ -213,7 +213,7 @@ public class ArtemisUserService {
             try {
                 result.add(createArtemisUser(server, artemisUserDTO));
             } catch (ResponseStatusException e) {
-                log.debug(e.getMessage() + ". Skipping user.");
+                log.debug("{}. Skipping user.", e.getMessage());
             }
         }
         log.info("Created {} ArtemisUsers from CSV", result.size());
