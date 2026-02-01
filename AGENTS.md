@@ -20,7 +20,7 @@
 - Client formatting: Prettier (`npm run prettier:format`) with single quotes and 140 char print width; linting via `npm run lint`.
 - Server formatting: Spotless (`./gradlew spotlessCheck` / `./gradlew spotlessApply -x webapp`) and Checkstyle (`./gradlew checkstyleMain -x webapp`).
 - Naming: Java classes in `UpperCamelCase`, methods/fields in `lowerCamelCase`; Angular files follow `*.component.ts`, `*.service.ts`, etc.
-- DTOs: Prefer Java `record` types for DTOs and avoid classes unless a record is not viable.
+- DTOs: Always use Java `record` types for DTOs and avoid classes.
 
 ## Testing Guidelines
 - Server tests use JUnit 5 in `src/test/java`.

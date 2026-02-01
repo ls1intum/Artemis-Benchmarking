@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import javax.net.ssl.SSLException;
 import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
@@ -44,6 +45,7 @@ public abstract class SimulatedArtemisUser {
     protected boolean authenticated = false;
     private ArtemisUser artemisUser;
     private ArtemisUserService artemisUserService;
+    private final Supplier<WebClient.Builder> webClientBuilderSupplier;
 
     /**
      * Create a new SimulatedArtemisUser.
@@ -54,13 +56,7 @@ public abstract class SimulatedArtemisUser {
      * @param artemisUserService the ArtemisUserService to use to update the ArtemisUser entity
      */
     public SimulatedArtemisUser(String artemisUrl, ArtemisUser artemisUser, ArtemisUserService artemisUserService) {
-        this.username = artemisUser.getUsername();
-        this.password = artemisUser.getPassword();
-        this.artemisUrl = artemisUrl;
-        this.artemisUser = artemisUser;
-        this.artemisUserService = artemisUserService;
-        this.privateKeyString = artemisUser.getPrivateKey();
-        this.publicKeyString = artemisUser.getPublicKey();
+        this(artemisUrl, artemisUser, artemisUserService, null);
     }
 
     /**
@@ -72,9 +68,35 @@ public abstract class SimulatedArtemisUser {
      * @param password the password to use for logging in
      */
     public SimulatedArtemisUser(String artemisUrl, String username, String password) {
+        this(artemisUrl, username, password, null);
+    }
+
+    protected SimulatedArtemisUser(
+        String artemisUrl,
+        ArtemisUser artemisUser,
+        ArtemisUserService artemisUserService,
+        Supplier<WebClient.Builder> webClientBuilderSupplier
+    ) {
+        this.username = artemisUser.getUsername();
+        this.password = artemisUser.getPassword();
+        this.artemisUrl = artemisUrl;
+        this.artemisUser = artemisUser;
+        this.artemisUserService = artemisUserService;
+        this.privateKeyString = artemisUser.getPrivateKey();
+        this.publicKeyString = artemisUser.getPublicKey();
+        this.webClientBuilderSupplier = webClientBuilderSupplier;
+    }
+
+    protected SimulatedArtemisUser(
+        String artemisUrl,
+        String username,
+        String password,
+        Supplier<WebClient.Builder> webClientBuilderSupplier
+    ) {
         this.username = username;
         this.password = password;
         this.artemisUrl = artemisUrl;
+        this.webClientBuilderSupplier = webClientBuilderSupplier;
     }
 
     /**
@@ -87,8 +109,7 @@ public abstract class SimulatedArtemisUser {
         if (artemisUser != null && artemisUser.getJwtToken() != null && artemisUser.getTokenExpirationDate().isAfter(now())) {
             log.debug("Using cached token for user {}", username);
             authToken = new AuthToken(artemisUser.getJwtToken(), null, null, artemisUser.getTokenExpirationDate());
-            webClient = WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
+            webClient = createWebClientBuilder()
                 .baseUrl(artemisUrl)
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -108,8 +129,7 @@ public abstract class SimulatedArtemisUser {
 
         log.info("Logging in as {{}}", username);
         List<RequestStat> requestStats = new ArrayList<>();
-        WebClient webClient = WebClient.builder()
-            .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
+        WebClient webClient = createWebClientBuilder()
             .baseUrl(artemisUrl)
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -135,8 +155,7 @@ public abstract class SimulatedArtemisUser {
             artemisUser.setTokenExpirationDate(authToken.expireDate());
             artemisUser = artemisUserService.updateArtemisUser(artemisUser.getId(), artemisUser);
         }
-        this.webClient = WebClient.builder()
-            .clientConnector(new ReactorClientHttpConnector(createHttpClient()))
+        this.webClient = createWebClientBuilder()
             .baseUrl(artemisUrl)
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -151,6 +170,13 @@ public abstract class SimulatedArtemisUser {
     }
 
     protected abstract void checkAccess();
+
+    protected WebClient.Builder createWebClientBuilder() {
+        if (webClientBuilderSupplier != null) {
+            return webClientBuilderSupplier.get();
+        }
+        return WebClient.builder().clientConnector(new ReactorClientHttpConnector(createHttpClient()));
+    }
 
     /**
      * Get the JWT token for this user.

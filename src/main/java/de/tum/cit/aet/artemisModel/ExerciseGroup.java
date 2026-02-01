@@ -12,12 +12,14 @@ public class ExerciseGroup extends DomainObject {
 
     private String title;
 
-    private boolean mandatory;
+    private Boolean mandatory;
 
     @JsonIgnoreProperties(value = "exerciseGroup", allowSetters = true)
     private Set<Exercise> exercises = new HashSet<>();
 
-    public ExerciseGroup(String title, boolean mandatory, Exam exam) {
+    public ExerciseGroup() {}
+
+    public ExerciseGroup(String title, Boolean mandatory, Exam exam) {
         this.title = title;
         this.mandatory = mandatory;
         this.exam = exam;
@@ -47,11 +49,11 @@ public class ExerciseGroup extends DomainObject {
         this.title = title;
     }
 
-    public boolean isMandatory() {
+    public Boolean getMandatory() {
         return mandatory;
     }
 
-    public void setMandatory(boolean mandatory) {
+    public void setMandatory(Boolean mandatory) {
         this.mandatory = mandatory;
     }
 }

@@ -14,10 +14,12 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 /**
@@ -32,6 +34,21 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
     public SimulatedArtemisAdmin(String artemisUrl, String username, String password) {
         super(artemisUrl, username, password);
+        log = LoggerFactory.getLogger(SimulatedArtemisAdmin.class);
+    }
+
+    SimulatedArtemisAdmin(
+        String artemisUrl,
+        ArtemisUser artemisUser,
+        ArtemisUserService artemisUserService,
+        Supplier<WebClient.Builder> webClientBuilderSupplier
+    ) {
+        super(artemisUrl, artemisUser, artemisUserService, webClientBuilderSupplier);
+        log = LoggerFactory.getLogger(SimulatedArtemisAdmin.class);
+    }
+
+    SimulatedArtemisAdmin(String artemisUrl, String username, String password, Supplier<WebClient.Builder> webClientBuilderSupplier) {
+        super(artemisUrl, username, password, webClientBuilderSupplier);
         log = LoggerFactory.getLogger(SimulatedArtemisAdmin.class);
     }
 
@@ -105,7 +122,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         webClient
             .put()
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "exam", "courses", courseIdString, "exams").build())
-            .bodyValue(exam)
+            .bodyValue(ExamUpdateDTO.fromExam(exam))
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -187,7 +204,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         webClient
             .put()
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "exam", "courses", courseIdString, "exams").build())
-            .bodyValue(exam)
+            .bodyValue(ExamUpdateDTO.fromExam(exam))
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -270,22 +287,19 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
-        var exam = new Exam();
         var randomInt = (int) (Math.random() * 10_0000);
-        exam.setTitle("Temporary Benchmarking Exam" + randomInt);
-        exam.setStartDate(ZonedDateTime.now().plusDays(1L));
-        exam.setVisibleDate(ZonedDateTime.now());
-        exam.setEndDate(ZonedDateTime.now().plusDays(1L).plusHours(2L));
-        exam.setNumberOfExercisesInExam(4);
-        exam.setExamMaxPoints(4);
-        exam.setNumberOfCorrectionRoundsInExam(1);
-        exam.setWorkingTime(2 * 60 * 60);
-        exam.setCourse(course);
+        var examDto = ExamCreateDTO.forBenchmarking(
+            "Temporary Benchmarking Exam" + randomInt,
+            course.getId(),
+            ZonedDateTime.now(),
+            ZonedDateTime.now().plusDays(1L),
+            ZonedDateTime.now().plusDays(1L).plusHours(2L)
+        );
 
         return webClient
             .post()
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "exam", "courses", course.getId().toString(), "exams").build())
-            .bodyValue(exam)
+            .bodyValue(examDto)
             .retrieve()
             .onStatus(HttpStatusCode::isError,
                 response ->
@@ -309,13 +323,12 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
-        var textExerciseGroup = new ExerciseGroup("Text Exercise Group", true, exam);
-        textExerciseGroup = postExerciseGroup(exam, textExerciseGroup);
-
-        var textExercise = new TextExercise();
-        textExercise.setExerciseGroup(textExerciseGroup);
-        textExercise.setTitle("Text Exercise");
-        textExercise.setMaxPoints(1.0);
+        var textExerciseGroup = postExerciseGroup(
+            courseId,
+            exam,
+            ExerciseGroupCreateDTO.forBenchmarking("Text Exercise Group", exam.getId())
+        );
+        var textExercise = TextExerciseCreateDTO.forBenchmarking("Text Exercise", textExerciseGroup.getId());
 
         webClient
             .post()
@@ -325,13 +338,12 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .toBodilessEntity()
             .block();
 
-        var modelingExerciseGroup = new ExerciseGroup("Modeling Exercise Group", true, exam);
-        modelingExerciseGroup = postExerciseGroup(exam, modelingExerciseGroup);
-
-        var modelingExercise = new ModelingExercise();
-        modelingExercise.setExerciseGroup(modelingExerciseGroup);
-        modelingExercise.setTitle("Modeling Exercise");
-        modelingExercise.setMaxPoints(1.0);
+        var modelingExerciseGroup = postExerciseGroup(
+            courseId,
+            exam,
+            ExerciseGroupCreateDTO.forBenchmarking("Modeling Exercise Group", exam.getId())
+        );
+        var modelingExercise = ModelingExerciseCreateDTO.forBenchmarking("Modeling Exercise", modelingExerciseGroup.getId());
 
         webClient
             .post()
@@ -341,16 +353,17 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .toBodilessEntity()
             .block();
 
-        var programmingExerciseGroup = new ExerciseGroup("Programming Exercise Group", true, exam);
-
-        programmingExerciseGroup = postExerciseGroup(exam, programmingExerciseGroup);
-
-        var programmingExercise = new ProgrammingExercise();
-        programmingExercise.setExerciseGroup(programmingExerciseGroup);
-        programmingExercise.setTitle("Programming Exercise for " + exam.getTitle());
-        programmingExercise.setMaxPoints(1.0);
-        programmingExercise.setShortName("progForBenchTemp" + exam.getId());
-        programmingExercise.setPackageName("progforbenchtemp");
+        var programmingExerciseGroup = postExerciseGroup(
+            courseId,
+            exam,
+            ExerciseGroupCreateDTO.forBenchmarking("Programming Exercise Group", exam.getId())
+        );
+        var programmingExercise = ProgrammingExerciseCreateDTO.forExamBenchmarking(
+            "Programming Exercise for " + exam.getTitle(),
+            programmingExerciseGroup.getId(),
+            "progForBenchTemp" + exam.getId(),
+            "progforbenchtemp"
+        );
 
         webClient
             .post()
@@ -360,40 +373,47 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .toBodilessEntity()
             .block();
 
-        var quizExerciseGroup = new ExerciseGroup("Quiz Exercise Group", true, exam);
-
-        quizExerciseGroup = postExerciseGroup(exam, quizExerciseGroup);
-
-        var quizExercise = new QuizExercise();
-        quizExercise.setExerciseGroup(quizExerciseGroup);
-        quizExercise.setTitle("Quiz Exercise");
-        var question1 = new MultipleChoiceQuestion();
-        question1.setTitle("Question 1");
-        question1.setText("What is the answer to life, the universe and everything?");
-        question1.setPoints(2.0);
-        var answer1 = new AnswerOption();
-        answer1.setText("42");
-        answer1.setIsCorrect(true);
-        question1.getAnswerOptions().add(answer1);
-        var answer2 = new AnswerOption();
-        answer2.setText("12");
-        answer2.setIsCorrect(false);
-        question1.getAnswerOptions().add(answer2);
-        quizExercise.getQuizQuestions().add(question1);
+        var quizExerciseGroup = postExerciseGroup(
+            courseId,
+            exam,
+            ExerciseGroupCreateDTO.forBenchmarking("Quiz Exercise Group", exam.getId())
+        );
+        var quizExercise = QuizExerciseCreateDTO.forBenchmarking(
+            "Quiz Exercise",
+            List.of(
+                MultipleChoiceQuestionCreateDTO.forBenchmarking(
+                    "Question 1",
+                    "What is the answer to life, the universe and everything?",
+                    2.0,
+                    List.of(
+                        AnswerOptionCreateDTO.correct("42"),
+                        AnswerOptionCreateDTO.incorrect("12")
+                    )
+                )
+            )
+        );
 
         webClient
             .post()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "quiz", "quiz-exercises").build())
+            .uri(uriBuilder ->
+                uriBuilder.pathSegment("api", "quiz", "exercise-groups", String.valueOf(quizExerciseGroup.getId()), "quiz-exercises").build()
+            )
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData("exercise", quizExercise))
             .retrieve()
             .toBodilessEntity()
             .block();
 
-        var fileUploadExerciseGroup = new ExerciseGroup("File Upload Exercise Group", true, exam);
-        fileUploadExerciseGroup = postExerciseGroup(exam, fileUploadExerciseGroup);
-
-        var fileUploadExercise = new FileUploadExercise(fileUploadExerciseGroup, "File Upload Exercise", 1.0, "pdf,txt");
+        var fileUploadExerciseGroup = postExerciseGroup(
+            courseId,
+            exam,
+            ExerciseGroupCreateDTO.forBenchmarking("File Upload Exercise Group", exam.getId())
+        );
+        var fileUploadExercise = FileUploadExerciseCreateDTO.forBenchmarking(
+            "File Upload Exercise",
+            fileUploadExerciseGroup.getId(),
+            "pdf,txt"
+        );
         webClient
             .post()
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "fileupload", "file-upload-exercises").build())
@@ -409,8 +429,8 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
      * @param exerciseGroup the exercise group to post
      * @return the created exercise group
      */
-    private ExerciseGroup postExerciseGroup(Exam exam, ExerciseGroup exerciseGroup) {
-        exerciseGroup = webClient
+    private ExerciseGroup postExerciseGroup(long courseId, Exam exam, ExerciseGroupCreateDTO exerciseGroup) {
+        return webClient
             .post()
             .uri(uriBuilder ->
                 uriBuilder
@@ -418,7 +438,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
                         "api",
                         "exam",
                         "courses",
-                        String.valueOf(exam.getCourse().getId()),
+                        String.valueOf(courseId),
                         "exams",
                         exam.getId().toString(),
                         "exercise-groups"
@@ -429,7 +449,6 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .retrieve()
             .bodyToMono(ExerciseGroup.class)
             .block();
-        return exerciseGroup;
     }
 
     /**
@@ -442,13 +461,13 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
-        var programmingExercise = new ProgrammingExercise();
         var randomInt = (int) (Math.random() * 1000);
-        programmingExercise.setTitle("Temporary Benchmarking Programming Exercise " + course.getId() + "-" + randomInt);
-        programmingExercise.setCourse(course);
-        programmingExercise.setMaxPoints(5.0);
-        programmingExercise.setShortName("course" + course.getId() + "prog" + randomInt);
-        programmingExercise.setPackageName("progForBenchTemp");
+        var programmingExercise = ProgrammingExerciseCreateDTO.forCourseBenchmarking(
+            "Temporary Benchmarking Programming Exercise " + course.getId() + "-" + randomInt,
+            course.getId(),
+            "course" + course.getId() + "prog" + randomInt,
+            "progForBenchTemp"
+        );
 
         return webClient
             .post()
@@ -598,12 +617,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         if (!authenticated) {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
-        var user = new ArtemisUserDTO();
-        user.setLogin(username);
-        user.setPassword(password);
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setEmail(email);
+        var user = ArtemisUserDTO.forCreation(username, password, firstName, lastName, email);
         webClient.post().uri("api/core/admin/users").bodyValue(user).retrieve().toBodilessEntity().block();
     }
 
