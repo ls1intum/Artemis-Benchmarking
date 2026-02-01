@@ -15,8 +15,10 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
+import reactor.core.publisher.Mono;
 
 /**
  * A simulated Artemis admin or instructor user that can be used to interact with the Artemis server.
@@ -201,14 +203,23 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         }
 
         var randomInt = (int) (Math.random() * 10_0000);
-        var course = new Course("Temporary Benchmarking Course " + randomInt, "benchmark" + randomInt);
+        var courseDto = CourseCreateDTO.forBenchmarking("Temporary Benchmarking Course " + randomInt, "benchmark" + randomInt);
 
         return webClient
             .post()
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "core", "admin", "courses").build())
             .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData("course", course))
+            .body(BodyInserters.fromMultipartData("course", courseDto))
             .retrieve()
+            .onStatus(HttpStatusCode::isError,
+                response ->
+                    response.bodyToMono(String.class).defaultIfEmpty("").flatMap(body -> {
+                        log.error("Course creation failed with status {}. Response body: {}", response.statusCode(), body);
+                        return Mono.error(
+                            new IllegalStateException("Course creation failed with status " + response.statusCode() + ": " + body)
+                        );
+                    })
+            )
             .bodyToMono(Course.class)
             .block();
     }
@@ -265,8 +276,9 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         exam.setStartDate(ZonedDateTime.now().plusDays(1L));
         exam.setVisibleDate(ZonedDateTime.now());
         exam.setEndDate(ZonedDateTime.now().plusDays(1L).plusHours(2L));
-        exam.setNumberOfExercisesInExam(5);
-        exam.setExamMaxPoints(6);
+        exam.setNumberOfExercisesInExam(4);
+        exam.setExamMaxPoints(4);
+        exam.setNumberOfCorrectionRoundsInExam(1);
         exam.setWorkingTime(2 * 60 * 60);
         exam.setCourse(course);
 
@@ -275,6 +287,15 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "exam", "courses", course.getId().toString(), "exams").build())
             .bodyValue(exam)
             .retrieve()
+            .onStatus(HttpStatusCode::isError,
+                response ->
+                    response.bodyToMono(String.class).defaultIfEmpty("").flatMap(body -> {
+                        log.error("Exam creation failed with status {}. Response body: {}", response.statusCode(), body);
+                        return Mono.error(
+                            new IllegalStateException("Exam creation failed with status " + response.statusCode() + ": " + body)
+                        );
+                    })
+            )
             .bodyToMono(Exam.class)
             .block();
     }
