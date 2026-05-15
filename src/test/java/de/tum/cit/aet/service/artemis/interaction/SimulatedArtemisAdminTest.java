@@ -37,9 +37,8 @@ class SimulatedArtemisAdminTest {
         RouterFunction<ServerResponse> router = RouterFunctions.route()
             .POST("/api/core/public/authenticate", request -> captureWithoutBody(request, captured, loginResponse()))
             .GET("/api/core/public/account", request -> captureWithoutBody(request, captured, accountResponse()))
-            .POST(
-                "/api/core/admin/courses",
-                request -> captureMultipart(request, captured, "course", HttpStatus.CREATED, "{\"id\":1,\"title\":\"Temporary Benchmarking Course\"}")
+            .POST("/api/core/admin/courses", request ->
+                captureMultipart(request, captured, "course", HttpStatus.CREATED, "{\"id\":1,\"title\":\"Temporary Benchmarking Course\"}")
             )
             .build();
 
@@ -67,9 +66,8 @@ class SimulatedArtemisAdminTest {
         RouterFunction<ServerResponse> router = RouterFunctions.route()
             .POST("/api/core/public/authenticate", request -> captureWithoutBody(request, captured, loginResponse()))
             .GET("/api/core/public/account", request -> captureWithoutBody(request, captured, accountResponse()))
-            .POST(
-                "/api/exam/courses/1/exams",
-                request -> captureJson(request, captured, HttpStatus.CREATED, "{\"id\":10,\"title\":\"Temporary Exam\"}")
+            .POST("/api/exam/courses/1/exams", request ->
+                captureJson(request, captured, HttpStatus.CREATED, "{\"id\":10,\"title\":\"Temporary Exam\"}")
             )
             .build();
 
@@ -101,25 +99,29 @@ class SimulatedArtemisAdminTest {
         RouterFunction<ServerResponse> router = RouterFunctions.route()
             .POST("/api/core/public/authenticate", request -> captureWithoutBody(request, captured, loginResponse()))
             .GET("/api/core/public/account", request -> captureWithoutBody(request, captured, accountResponse()))
-            .POST(
-                "/api/exam/courses/1/exams/2/exercise-groups",
-                request -> {
-                    int index = exerciseGroupCount.incrementAndGet();
-                    String responseBody =
-                        index == 1
-                            ? "{\"id\":1,\"title\":\"Text Exercise Group\",\"mandatory\":true,\"exam\":{\"id\":2,\"course\":{\"id\":1},\"exerciseGroups\":[{\"id\":10,\"title\":\"Nested\",\"mandatory\":null}]}}"
-                            : "{\"id\":" + index + ",\"title\":\"Exercise Group " + index + "\",\"mandatory\":true}";
-                    return captureJson(request, captured, HttpStatus.CREATED, responseBody);
-                }
+            .POST("/api/exam/courses/1/exams/2/exercise-groups", request -> {
+                int index = exerciseGroupCount.incrementAndGet();
+                String responseBody =
+                    index == 1
+                        ? "{\"id\":1,\"title\":\"Text Exercise Group\",\"mandatory\":true,\"exam\":{\"id\":2,\"course\":{\"id\":1},\"exerciseGroups\":[{\"id\":10,\"title\":\"Nested\",\"mandatory\":null}]}}"
+                        : "{\"id\":" + index + ",\"title\":\"Exercise Group " + index + "\",\"mandatory\":true}";
+                return captureJson(request, captured, HttpStatus.CREATED, responseBody);
+            })
+            .POST("/api/text/text-exercises", request ->
+                captureWithoutBody(request, captured, ServerResponse.status(HttpStatus.CREATED).build())
             )
-            .POST("/api/text/text-exercises", request -> captureWithoutBody(request, captured, ServerResponse.status(HttpStatus.CREATED).build()))
-            .POST("/api/modeling/modeling-exercises", request -> captureWithoutBody(request, captured, ServerResponse.status(HttpStatus.CREATED).build()))
-            .POST("/api/programming/programming-exercises/setup", request -> captureWithoutBody(request, captured, ServerResponse.status(HttpStatus.CREATED).build()))
-            .POST(
-                "/api/quiz/exercise-groups/{exerciseGroupId}/quiz-exercises",
-                request -> captureWithoutBody(request, captured, ServerResponse.status(HttpStatus.CREATED).build())
+            .POST("/api/modeling/modeling-exercises", request ->
+                captureWithoutBody(request, captured, ServerResponse.status(HttpStatus.CREATED).build())
             )
-            .POST("/api/fileupload/file-upload-exercises", request -> captureWithoutBody(request, captured, ServerResponse.status(HttpStatus.CREATED).build()))
+            .POST("/api/programming/programming-exercises/setup", request ->
+                captureWithoutBody(request, captured, ServerResponse.status(HttpStatus.CREATED).build())
+            )
+            .POST("/api/quiz/exercise-groups/{exerciseGroupId}/quiz-exercises", request ->
+                captureWithoutBody(request, captured, ServerResponse.status(HttpStatus.CREATED).build())
+            )
+            .POST("/api/fileupload/file-upload-exercises", request ->
+                captureWithoutBody(request, captured, ServerResponse.status(HttpStatus.CREATED).build())
+            )
             .build();
 
         SimulatedArtemisAdmin admin = new SimulatedArtemisAdmin("http://localhost", "admin", "admin", webClientSupplier(router));
@@ -167,7 +169,9 @@ class SimulatedArtemisAdminTest {
         return request
             .bodyToMono(String.class)
             .defaultIfEmpty("")
-            .doOnNext(body -> captured.add(new CapturedRequest(request.method().name(), request.path(), request.headers().asHttpHeaders(), body)))
+            .doOnNext(body ->
+                captured.add(new CapturedRequest(request.method().name(), request.path(), request.headers().asHttpHeaders(), body))
+            )
             .then(ServerResponse.status(status).contentType(MediaType.APPLICATION_JSON).bodyValue(responseBody));
     }
 
@@ -180,27 +184,35 @@ class SimulatedArtemisAdminTest {
     ) {
         return extractMultipartPart(request, partName)
             .defaultIfEmpty("")
-            .doOnNext(body -> captured.add(new CapturedRequest(request.method().name(), request.path(), request.headers().asHttpHeaders(), body)))
+            .doOnNext(body ->
+                captured.add(new CapturedRequest(request.method().name(), request.path(), request.headers().asHttpHeaders(), body))
+            )
             .then(ServerResponse.status(status).contentType(MediaType.APPLICATION_JSON).bodyValue(responseBody));
     }
 
     private static Mono<String> extractMultipartPart(ServerRequest request, String partName) {
-        return request.body(BodyExtractors.toMultipartData()).flatMap(parts -> {
-            Part part = parts.getFirst(partName);
-            if (part == null) {
-                return Mono.just("");
-            }
-            return DataBufferUtils.join(part.content()).map(buffer -> {
-                byte[] bytes = new byte[buffer.readableByteCount()];
-                buffer.read(bytes);
-                DataBufferUtils.release(buffer);
-                return new String(bytes, StandardCharsets.UTF_8);
+        return request
+            .body(BodyExtractors.toMultipartData())
+            .flatMap(parts -> {
+                Part part = parts.getFirst(partName);
+                if (part == null) {
+                    return Mono.just("");
+                }
+                return DataBufferUtils.join(part.content()).map(buffer -> {
+                    byte[] bytes = new byte[buffer.readableByteCount()];
+                    buffer.read(bytes);
+                    DataBufferUtils.release(buffer);
+                    return new String(bytes, StandardCharsets.UTF_8);
+                });
             });
-        });
     }
 
     private static CapturedRequest findRequest(Queue<CapturedRequest> captured, String path) {
-        return captured.stream().filter(req -> req.path().equals(path)).findFirst().orElse(null);
+        return captured
+            .stream()
+            .filter(req -> req.path().equals(path))
+            .findFirst()
+            .orElse(null);
     }
 
     private record CapturedRequest(String method, String path, HttpHeaders headers, String body) {}

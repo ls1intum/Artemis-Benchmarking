@@ -88,13 +88,13 @@ The application will be available on http://localhost:9000 with Angular's live-r
 You can build a Docker image of the application by running
 
 ```
-npm run java:docker
+./gradlew -Pprod bootJar jibDockerBuild
 ```
 
 or
 
 ```
-npm run java:docker:arm64
+./gradlew -Pprod bootJar jibDockerBuild -PjibArchitecture=arm64
 ```
 
 for arm64 processors like Mac with the M1 processor family.
@@ -199,7 +199,7 @@ The following diagram shows the current database schema:
 On the server side, the application uses Gradle for dependency management. The dependencies are defined in the `build.gradle` file.
 The versions of the most important dependencies are defined in the `gradle.properties` file.
 
-On the client side, the application uses NPM for dependency management. The dependencies are defined in the `package.json` file.
+On the client side, the application uses pnpm for dependency management. The dependencies are defined in the `package.json` file, and the resolved versions are locked in `pnpm-lock.yaml`.
 
 We use the GitHub Dependabot to keep the dependencies up to date. It creates pull requests with updated dependencies once per week. The configuration is located in the `.github/dependabot.yml` file.
 
@@ -426,7 +426,7 @@ To unsubscribe, click on the respective link in the email.
 - See [Artemis User Management](#artemis-user-management) for more information.
 
 [Node.js]: https://nodejs.org/
-[NPM]: https://www.npmjs.com/
+[pnpm]: https://pnpm.io/
 [OpenAPI-Generator]: https://openapi-generator.tech
 [Webpack]: https://webpack.github.io/
 [BrowserSync]: https://www.browsersync.io/

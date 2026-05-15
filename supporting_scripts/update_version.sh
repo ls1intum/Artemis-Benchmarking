@@ -69,23 +69,16 @@ awk -v old_version="$CURRENT_VERSION" -v new_version="$NEW_VERSION" '
     {print}
 ' package.json > package.json.tmp && mv package.json.tmp package.json
 
-# Update package-lock.json to only update the version when the previous line is `"name": "artemis-benchmarking"`
-awk -v old_version="$CURRENT_VERSION" -v new_version="$NEW_VERSION" '
-    BEGIN {found_name = 0}
-    /"name": "artemis-benchmarking"/ {found_name = 1}
-    found_name && /"version": ".*"/ {
-        sub("\"version\": \"" old_version "\"", "\"version\": \"" new_version "\"")
-        found_name = 0
-    }
-    {print}
-' package-lock.json > package-lock.json.tmp && mv package-lock.json.tmp package-lock.json
+# Refresh pnpm-lock.yaml so the embedded project version stays consistent
+echo "Updating pnpm-lock.yaml..."
+pnpm install --lockfile-only
 
 # Update README.md
 sed -i '' "s/artemis-benchmarking-$CURRENT_VERSION.war/artemis-benchmarking-$NEW_VERSION.war/" README.md
 
 # Add changes to git and commit
 echo "Staging changes for git..."
-git add build.gradle package.json README.md package-lock.json
+git add build.gradle package.json README.md pnpm-lock.yaml
 
 echo "Creating git commit..."
 git commit -m "Development: Bump version to $NEW_VERSION ($INCREMENT_TYPE update)"

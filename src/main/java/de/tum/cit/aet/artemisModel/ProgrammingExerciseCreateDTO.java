@@ -23,12 +23,7 @@ public record ProgrammingExerciseCreateDTO(
     CourseRef course,
     ExerciseGroupRef exerciseGroup
 ) {
-    public static ProgrammingExerciseCreateDTO forCourseBenchmarking(
-        String title,
-        Long courseId,
-        String shortName,
-        String packageName
-    ) {
+    public static ProgrammingExerciseCreateDTO forCourseBenchmarking(String title, Long courseId, String shortName, String packageName) {
         return new ProgrammingExerciseCreateDTO(
             "programming",
             title,

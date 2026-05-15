@@ -10,7 +10,7 @@ const userTemplate = {} as IUser;
 
 const newUser: IUser = {
   activated: true,
-} as IUser;
+};
 
 @Component({
   selector: 'user-mgmt-update',

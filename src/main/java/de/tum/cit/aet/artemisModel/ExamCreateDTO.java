@@ -25,19 +25,6 @@ public record ExamCreateDTO(
         ZonedDateTime startDate,
         ZonedDateTime endDate
     ) {
-        return new ExamCreateDTO(
-            title,
-            false,
-            visibleDate,
-            startDate,
-            endDate,
-            180,
-            2 * 60 * 60,
-            4,
-            false,
-            4,
-            1,
-            new CourseRef(courseId)
-        );
+        return new ExamCreateDTO(title, false, visibleDate, startDate, endDate, 180, 2 * 60 * 60, 4, false, 4, 1, new CourseRef(courseId));
     }
 }

@@ -308,6 +308,8 @@ public class ArtemisConfiguration {
         if (values == null) {
             return List.of();
         }
-        return Arrays.stream(values).filter(value -> value != null && !value.isBlank()).toList();
+        return Arrays.stream(values)
+            .filter(value -> value != null && !value.isBlank())
+            .toList();
     }
 }
