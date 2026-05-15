@@ -85,50 +85,7 @@
   "packageManager": "pnpm@11.1.2",
   "engines": {
     "node": ">=24.15.0",
-    "pnpm": ">=11.0.0"
-  },
-  "pnpm": {
-    "peerDependencyRules": {
-      "allowedVersions": {
-        "@swimlane/ngx-charts>@angular/animations": "21",
-        "@swimlane/ngx-charts>@angular/cdk": "21",
-        "@swimlane/ngx-charts>@angular/common": "21",
-        "@swimlane/ngx-charts>@angular/core": "21",
-        "@swimlane/ngx-charts>@angular/forms": "21",
-        "@swimlane/ngx-charts>@angular/platform-browser": "21",
-        "@swimlane/ngx-charts>@angular/platform-browser-dynamic": "21"
-      }
-    },
-    "overrides": {
-      "@swimlane/ngx-charts>@angular/animations": "^21.2.13",
-      "@swimlane/ngx-charts>@angular/cdk": "^21.2.13",
-      "@swimlane/ngx-charts>@angular/common": "^21.2.13",
-      "@swimlane/ngx-charts>@angular/compiler": "^21.2.13",
-      "@swimlane/ngx-charts>@angular/core": "^21.2.13",
-      "@swimlane/ngx-charts>@angular/forms": "^21.2.13",
-      "@swimlane/ngx-charts>@angular/platform-browser": "^21.2.13",
-      "@swimlane/ngx-charts>@angular/platform-browser-dynamic": "^21.2.13",
-      "@swimlane/ngx-charts>@angular/router": "^21.2.13",
-      "@swimlane/ngx-charts>rxjs": "^7.8.2",
-      "braces": "3.0.3",
-      "cookie": "1.1.1",
-      "debug": "4.4.3",
-      "esbuild": "0.27.2",
-      "express": "5.2.1",
-      "globals": "17.6.0",
-      "lodash": "4.17.23",
-      "lodash-es": "4.17.23",
-      "postcss": "8.5.6",
-      "punycode": "2.3.1",
-      "rimraf": "6.1.3",
-      "tough-cookie": "6.0.0",
-      "webpack": "5.104.1",
-      "webpack-dev-middleware": "7.4.5",
-      "webpack-dev-server": "5.2.3",
-      "word-wrap": "1.2.5",
-      "ws": "8.19.0",
-      "yargs-parser": "22.0.0"
-    }
+    "pnpm": ">=11.1.0 <12.0.0"
   },
   "cacheDirectories": [
     "node_modules"

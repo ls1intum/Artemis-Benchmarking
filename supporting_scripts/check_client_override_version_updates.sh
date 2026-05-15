@@ -1,19 +1,25 @@
 #!/bin/bash
 
-# This script checks your package.json pnpm.overrides and only reports updates when the major or minor version changes.
-# Patch-level differences in packages that use a caret (^) prefix are ignored.
+# This script checks the pnpm-workspace.yaml `overrides` block and only reports
+# updates when the major or minor version changes. Patch-level differences in
+# packages that use a caret (^) prefix are ignored.
 
-PACKAGE_JSON="package.json"
+WORKSPACE_YAML="pnpm-workspace.yaml"
 
-if [ ! -f "$PACKAGE_JSON" ]; then
-  echo "package.json not found!"
+if [ ! -f "$WORKSPACE_YAML" ]; then
+  echo "pnpm-workspace.yaml not found!"
+  exit 1
+fi
+
+if ! command -v yq >/dev/null 2>&1; then
+  echo "yq is required (https://github.com/mikefarah/yq). Install via 'brew install yq'." >&2
   exit 1
 fi
 
 echo "Checking for updates..." >&2
 
 # Extract the top-level override keys.
-OVERRIDES=$(jq -r '.pnpm.overrides | keys[]' "$PACKAGE_JSON")
+OVERRIDES=$(yq -r '.overrides | keys | .[]' "$WORKSPACE_YAML")
 
 check_dep() {
   local DEP_NAME="$1"
@@ -52,7 +58,7 @@ check_dep() {
 }
 
 for PACKAGE in $OVERRIDES; do
-  CUR_VALUE=$(jq -r ".pnpm.overrides[\"$PACKAGE\"]" "$PACKAGE_JSON")
+  CUR_VALUE=$(yq -r ".overrides[\"$PACKAGE\"]" "$WORKSPACE_YAML")
 
   # pnpm overrides use "parent>child" syntax for nested overrides; check the
   # rightmost segment so we look up the actual package being overridden.

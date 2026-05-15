@@ -236,7 +236,7 @@ The following diagram shows the current database schema:
 
 On the server side, the application uses Gradle for dependency management. Direct dependencies are declared in `build.gradle`; versions of the most-frequently-bumped dependencies are pulled from `gradle.properties` so Renovate can update them in isolation. Spring Boot's BOM (`io.spring.dependency-management`) manages most transitive versions — only deps that need a security pin or a newer version than the BOM provides are listed with an explicit version in `build.gradle`.
 
-On the client side, the application uses [pnpm] for dependency management. Direct dependencies are declared in `package.json`; resolved versions for the entire tree are locked in `pnpm-lock.yaml`. Transitive overrides (for example, forcing the Angular peer-dep range of `@swimlane/ngx-charts` up to 21.x) live in the `pnpm.overrides` block of `package.json`.
+On the client side, the application uses [pnpm] for dependency management. Direct dependencies are declared in `package.json`; resolved versions for the entire tree are locked in `pnpm-lock.yaml`. pnpm settings (linker mode, peer-dependency rules, transitive overrides, allowed install scripts) live in `pnpm-workspace.yaml` — `pnpm` 11+ no longer reads these from the `pnpm` block in `package.json` or from `.npmrc`, so add new overrides there, e.g. to force the Angular peer-dep range of `@swimlane/ngx-charts` up to 21.x.
 
 We use [Renovate](https://docs.renovatebot.com/) to keep the dependencies up to date — it opens pull requests for outdated dependencies on a recurring schedule. The configuration lives in `renovate.json`.
 

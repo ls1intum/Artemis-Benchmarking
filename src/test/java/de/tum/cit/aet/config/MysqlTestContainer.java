@@ -23,7 +23,7 @@ public class MysqlTestContainer implements SqlTestContainer {
     @Override
     public void afterPropertiesSet() {
         if (null == mysqlContainer) {
-            mysqlContainer = new MySQLContainer("mysql:9.6.0")
+            mysqlContainer = new MySQLContainer("mysql:9.7.0")
                 .withDatabaseName("artemis-benchmarking")
                 .withTmpFs(Collections.singletonMap("/testtmpfs", "rw"))
                 .withLogConsumer(new Slf4jLogConsumer(log))

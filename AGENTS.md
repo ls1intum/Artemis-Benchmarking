@@ -11,7 +11,7 @@
 
 ## Build, Test, and Development Commands
 
-The client toolchain uses **pnpm** (replaced npm in early 2026). Install it with `corepack enable` (preferred — picks up the `packageManager` field automatically) or `npm install -g pnpm@11.1.2`. Run `pnpm install` after pulling changes; CI uses `pnpm install --frozen-lockfile`. Do not run `npm install` — it would write a stale `package-lock.json` and miss the `pnpm.overrides` / `peerDependencyRules` blocks.
+The client toolchain uses **pnpm** (replaced npm in early 2026). Install it with `corepack enable` (preferred — picks up the `packageManager` field automatically) or `npm install -g pnpm@11.1.2`. Run `pnpm install` after pulling changes; CI uses `pnpm install --frozen-lockfile`. Do not run `npm install` — it would write a stale `package-lock.json` and bypass `pnpm-workspace.yaml` (where the `overrides` / `peerDependencyRules` / `allowBuilds` live; pnpm 11 ignores the legacy `pnpm` block in `package.json` and `.npmrc`).
 
 - `pnpm install`: install client dependencies (uses `pnpm-lock.yaml`).
 - `pnpm run start`: run the Angular dev server with HMR on port 9000 (proxy configured in `proxy.conf.mjs`).
