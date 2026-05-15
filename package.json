@@ -99,12 +99,6 @@
         "@swimlane/ngx-charts>@angular/platform-browser-dynamic": "21"
       }
     },
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "esbuild",
-      "lmdb",
-      "msgpackr-extract"
-    ],
     "overrides": {
       "@swimlane/ngx-charts>@angular/animations": "^21.2.13",
       "@swimlane/ngx-charts>@angular/cdk": "^21.2.13",

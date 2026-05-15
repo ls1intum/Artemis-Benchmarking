@@ -18,6 +18,17 @@ To start a MySQL server in a Docker container, run:
 docker compose -f src/main/docker/mysql.yml up -d
 ```
 
+### Prerequisites
+
+To build and run the project locally, you need:
+
+- **Java 25** — for example via [SDKMAN!](https://sdkman.io/) (`sdk install java 25-zulu`) or the [Azul Zulu OpenJDK 25 installer](https://www.azul.com/downloads/?package=jdk). The Gradle wrapper (`./gradlew`) is checked in, so no separate Gradle install is needed.
+- **Node.js 24.15.0+** — install via [nvm](https://github.com/nvm-sh/nvm) (`nvm install 24 && nvm use 24`) or the [official Node.js installer](https://nodejs.org/).
+- **pnpm 11.1.2+** — used for client dependency management (replaces npm). Two install options:
+  - **Recommended:** `corepack enable` — Corepack reads the `packageManager` field in `package.json` and installs the exact pnpm version on first use.
+  - **Alternative:** `npm install -g pnpm@11.1.2` (or any of the other [install methods](https://pnpm.io/installation)).
+- **Docker** (for the MySQL / Prometheus / Grafana containers under `src/main/docker/`).
+
 ### Configuration
 
 Before running the application, you need to specify some configuration options. The configuration files are located in `src/main/resources/config/`.
@@ -174,7 +185,34 @@ The following diagram shows the hierarchy of the services involved in the simula
 
 ### Client
 
-The client is an Angular application written in TypeScript. The Angular Components are structured as follows:
+The client is an Angular application written in TypeScript, located in `src/main/webapp/`.
+
+#### Working on the client with pnpm
+
+We use [pnpm] as the package manager (replaced npm in early 2026). Resolved dependency versions live in `pnpm-lock.yaml`, which is committed alongside `package.json`; both must be updated together. After pulling changes that touch `package.json` or the lockfile, run `pnpm install` — it is significantly faster than `npm install` on a warm store and respects the lockfile by default.
+
+| Task                                                | Command                                              |
+| --------------------------------------------------- | ---------------------------------------------------- |
+| Install dependencies                                | `pnpm install` (use `--frozen-lockfile` in CI)       |
+| Add a runtime dependency                            | `pnpm add <package>`                                 |
+| Add a dev dependency                                | `pnpm add -D <package>`                              |
+| Remove a dependency                                 | `pnpm remove <package>`                              |
+| Run a `package.json` script                         | `pnpm run <script>` (or just `pnpm <script>`)        |
+| Start the dev server (HMR on http://localhost:9000) | `pnpm run start`                                     |
+| Development build                                   | `pnpm run webapp:build`                              |
+| Production build                                    | `pnpm run build`                                     |
+| Lint with ESLint                                    | `pnpm run lint` (`pnpm run lint:fix` to apply fixes) |
+| Check Prettier formatting                           | `pnpm run prettier:check`                            |
+| Reformat with Prettier                              | `pnpm run prettier:format`                           |
+| Run client tests (currently disabled in CI)         | `pnpm run test`                                      |
+
+The Husky `pre-commit` hook runs `lint-staged`, which applies Prettier and ESLint to staged files automatically — no manual reformatting needed before committing.
+
+The Gradle build invokes the client tooling for you: `./gradlew -Pprod bootJar` and `./gradlew -Pprod -Pwar bootWar` produce production artifacts that bundle the compiled webapp. Internally these depend on the `pnpmInstall` and `webapp` tasks provided by the [gradle-node-plugin](https://github.com/node-gradle/gradle-node-plugin); Gradle downloads its own Node and pnpm into `.gradle/nodejs/`, so the CI build does not depend on a system-wide pnpm install.
+
+#### Architecture
+
+The Angular Components are structured as follows:
 
 The "Simulations" page is the most important page of the application. It is represented by the `SimulationsOverviewComponent`.
 This component uses the `SimulationsService` to interact with the server.
@@ -196,12 +234,11 @@ The following diagram shows the current database schema:
 
 ### Dependency Management
 
-On the server side, the application uses Gradle for dependency management. The dependencies are defined in the `build.gradle` file.
-The versions of the most important dependencies are defined in the `gradle.properties` file.
+On the server side, the application uses Gradle for dependency management. Direct dependencies are declared in `build.gradle`; versions of the most-frequently-bumped dependencies are pulled from `gradle.properties` so Renovate can update them in isolation. Spring Boot's BOM (`io.spring.dependency-management`) manages most transitive versions — only deps that need a security pin or a newer version than the BOM provides are listed with an explicit version in `build.gradle`.
 
-On the client side, the application uses pnpm for dependency management. The dependencies are defined in the `package.json` file, and the resolved versions are locked in `pnpm-lock.yaml`.
+On the client side, the application uses [pnpm] for dependency management. Direct dependencies are declared in `package.json`; resolved versions for the entire tree are locked in `pnpm-lock.yaml`. Transitive overrides (for example, forcing the Angular peer-dep range of `@swimlane/ngx-charts` up to 21.x) live in the `pnpm.overrides` block of `package.json`.
 
-We use the GitHub Dependabot to keep the dependencies up to date. It creates pull requests with updated dependencies once per week. The configuration is located in the `.github/dependabot.yml` file.
+We use [Renovate](https://docs.renovatebot.com/) to keep the dependencies up to date — it opens pull requests for outdated dependencies on a recurring schedule. The configuration lives in `renovate.json`.
 
 ### CI/CD
 

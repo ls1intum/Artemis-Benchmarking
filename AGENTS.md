@@ -11,6 +11,9 @@
 
 ## Build, Test, and Development Commands
 
+The client toolchain uses **pnpm** (replaced npm in early 2026). Install it with `corepack enable` (preferred — picks up the `packageManager` field automatically) or `npm install -g pnpm@11.1.2`. Run `pnpm install` after pulling changes; CI uses `pnpm install --frozen-lockfile`. Do not run `npm install` — it would write a stale `package-lock.json` and miss the `pnpm.overrides` / `peerDependencyRules` blocks.
+
+- `pnpm install`: install client dependencies (uses `pnpm-lock.yaml`).
 - `pnpm run start`: run the Angular dev server with HMR on port 9000 (proxy configured in `proxy.conf.mjs`).
 - `./gradlew bootRun`: start the Spring Boot server locally.
 - `pnpm run webapp:build`: development build of the client; `pnpm run build` for production client build.
