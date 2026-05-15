@@ -19,8 +19,8 @@ bootRun {
     args = ["--spring.profiles.active=${springProfiles}"]
 }
 
-tasks.register("webapp", NpmTask) {
-    dependsOn npmInstall
+tasks.register("webapp", PnpmTask) {
+    dependsOn pnpmInstall
     args = ["run", "webapp:prod"]
     environment = [APP_VERSION: project.version]
 }

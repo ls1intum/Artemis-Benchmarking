@@ -16,7 +16,7 @@ plugins {
     id "jacoco"
     id "com.diffplug.spotless" version "${spotlessPluginVersion}"
     id "com.github.andygoossens.gradle-modernizer-plugin" version "${modernizerPluginVersion}"
-    id "com.github.ben-manes.versions" version "0.53.0"
+    id "com.github.ben-manes.versions" version "0.54.0"
     id "com.github.node-gradle.node" version "${gradleNodePluginVersion}"
     id "com.google.cloud.tools.jib" version "${jibPluginVersion}"
     id "com.gorylenko.gradle-git-properties" version "${gitPropertiesPluginVersion}"
@@ -170,9 +170,7 @@ dependencies {
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     annotationProcessor "org.glassfish.jaxb:jaxb-runtime:${jaxbRuntimeVersion}"
 
-    implementation "jakarta.annotation:jakarta.annotation-api:3.0.0"
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.1"
-    implementation "com.zaxxer:HikariCP:7.0.2"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.3"
     implementation "org.apache.commons:commons-lang3:${commonsLangVersion}"
     implementation "org.openapitools:jackson-databind-nullable:${jacksonDatabindNullableVersion}"
 
@@ -205,16 +203,16 @@ dependencies {
     implementation "org.springframework.security:spring-security-data"
 
     // use newest version of nimbus-jose-jwt to avoid security issues through outdated dependencies
-    implementation "com.nimbusds:nimbus-jose-jwt:10.7"
+    implementation "com.nimbusds:nimbus-jose-jwt:10.9"
 
 
-    implementation "io.micrometer:micrometer-registry-prometheus:1.16.2"
+    implementation "io.micrometer:micrometer-registry-prometheus"
     // Prometheus requires the protobuf-java dependency, but we explicitly use the latest version to avoid security vulnerabilities
-    implementation "com.google.protobuf:protobuf-java:4.33.5"
+    implementation "com.google.protobuf:protobuf-java:4.34.1"
 
     implementation "io.dropwizard.metrics:metrics-core:4.2.38"
     implementation "org.springframework.security:spring-security-messaging"
-    implementation "commons-io:commons-io:2.21.0"
+    implementation "commons-io:commons-io:2.22.0"
     implementation "com.thedeanda:lorem:2.2"
     implementation "org.eclipse.jgit:org.eclipse.jgit:${jgitVersion}"
     // https://search.maven.org/artifact/org.eclipse.jgit/org.eclipse.jgit
@@ -229,12 +227,11 @@ dependencies {
     implementation "org.apache.sshd:sshd-osgi:${sshdVersion}"
     implementation "org.apache.sshd:sshd-sftp:${sshdVersion}"
 
-    implementation "org.bouncycastle:bcpkix-jdk18on:1.83"
-    implementation "org.bouncycastle:bcprov-jdk18on:1.83"
+    implementation "org.bouncycastle:bcpkix-jdk18on:1.84"
+    implementation "org.bouncycastle:bcprov-jdk18on:1.84"
 
-    // use newest version
-    implementation "io.projectreactor.netty:reactor-netty-core:1.3.2"
-    implementation "io.projectreactor.netty:reactor-netty-http:1.3.2"
+    implementation "io.projectreactor.netty:reactor-netty-core"
+    implementation "io.projectreactor.netty:reactor-netty-http"
 
     implementation "io.reactivex.rxjava3:rxjava:3.1.12"
     // TODO: we should remove this dependency once we have migrated to org.apache.commons:csv
@@ -299,13 +296,13 @@ tasks.register("cleanResources", Delete) {
 }
 
 wrapper {
-    gradleVersion = "9.3.1"
+    gradleVersion = "9.5.1"
 }
 
-tasks.register("webapp_test", NpmTask) {
+tasks.register("webapp_test", PnpmTask) {
     inputs.property("appVersion", project.version)
-    inputs.files("package-lock.json")
-        .withPropertyName("package-lock")
+    inputs.files("pnpm-lock.yaml")
+        .withPropertyName("pnpm-lock")
         .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.files("build.gradle")
         .withPropertyName("build.gradle")
@@ -323,28 +320,15 @@ tasks.register("webapp_test", NpmTask) {
     outputs.file("build/test-results/clover.xml")
         .withPropertyName("clover-result")
 
-    dependsOn(tasks.named("npmInstall"), tasks.named("compileTestJava"))
+    dependsOn(tasks.named("pnpmInstall"), tasks.named("compileTestJava"))
     args = ["run", "test"]
 }
 
 node {
     download = true
     version = "${node_version}"
-    npmVersion = "${npm_version}"
+    pnpmVersion = "${pnpm_version}"
 }
-
-// Copy local node and npm to a fixed location for npmw
-def fixedNode = tasks.register("fixedNode", Copy) {
-    from nodeSetup
-    into "build/node"
-}
-tasks.named("nodeSetup").configure { finalizedBy fixedNode }
-
-def fixedNpm = tasks.register("fixedNpm", Copy) {
-    from npmSetup
-    into "build/node"
-}
-tasks.named("npmSetup").configure { finalizedBy fixedNpm }
 
 
 compileJava.dependsOn processResources

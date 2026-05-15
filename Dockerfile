@@ -1,10 +1,10 @@
-FROM azul/zulu-openjdk:25.0.2-jdk AS build
+FROM azul/zulu-openjdk:25.0.3-jdk AS build
 
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN ./gradlew -Pprod -Pwar --no-daemon clean bootwar
 
-FROM azul/zulu-openjdk:25.0.2-jre
+FROM azul/zulu-openjdk:25.0.3-jre
 
 RUN mkdir /app
 COPY --from=build /home/gradle/src/build/libs/*.war /app/app.war

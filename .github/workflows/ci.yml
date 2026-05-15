@@ -1,7 +1,3 @@
-# You can enable the CI workflow by uncommenting the following lines.
-# This will compile, lint and test the code on every push to the main branch and for pull requests.
-# Currently, the CI will fail as there are linting errors in the code.
-
 name: Continuous Integration
 
 on:
@@ -22,15 +18,29 @@ jobs:
           distribution: 'zulu'
           java-version: '25'
           cache: 'gradle'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.1.2
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: '24.15.0'
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Run Server Tests
         run: ./gradlew test -x webapp
-      - name: Install Dependencies
-        run: npm install
+
+      - name: Check Client Formatting
+        run: pnpm run prettier:check
+
+      - name: Lint Client
+        run: pnpm run lint
 # Temporarily disabled client tests until we switch to Vitest
 #      - name: Run Client Tests
-#        run: npm test
+#        run: pnpm test

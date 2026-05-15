@@ -219,9 +219,11 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData("course", courseDto))
             .retrieve()
-            .onStatus(HttpStatusCode::isError,
-                response ->
-                    response.bodyToMono(String.class).defaultIfEmpty("").flatMap(body -> {
+            .onStatus(HttpStatusCode::isError, response ->
+                response
+                    .bodyToMono(String.class)
+                    .defaultIfEmpty("")
+                    .flatMap(body -> {
                         log.error("Course creation failed with status {}. Response body: {}", response.statusCode(), body);
                         return Mono.error(
                             new IllegalStateException("Course creation failed with status " + response.statusCode() + ": " + body)
@@ -292,9 +294,11 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .uri(uriBuilder -> uriBuilder.pathSegment("api", "exam", "courses", course.getId().toString(), "exams").build())
             .bodyValue(examDto)
             .retrieve()
-            .onStatus(HttpStatusCode::isError,
-                response ->
-                    response.bodyToMono(String.class).defaultIfEmpty("").flatMap(body -> {
+            .onStatus(HttpStatusCode::isError, response ->
+                response
+                    .bodyToMono(String.class)
+                    .defaultIfEmpty("")
+                    .flatMap(body -> {
                         log.error("Exam creation failed with status {}. Response body: {}", response.statusCode(), body);
                         return Mono.error(
                             new IllegalStateException("Exam creation failed with status " + response.statusCode() + ": " + body)
@@ -379,10 +383,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
                     "Question 1",
                     "What is the answer to life, the universe and everything?",
                     2.0,
-                    List.of(
-                        AnswerOptionCreateDTO.correct("42"),
-                        AnswerOptionCreateDTO.incorrect("12")
-                    )
+                    List.of(AnswerOptionCreateDTO.correct("42"), AnswerOptionCreateDTO.incorrect("12"))
                 )
             )
         );
@@ -390,7 +391,9 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         webClient
             .post()
             .uri(uriBuilder ->
-                uriBuilder.pathSegment("api", "quiz", "exercise-groups", String.valueOf(quizExerciseGroup.getId()), "quiz-exercises").build()
+                uriBuilder
+                    .pathSegment("api", "quiz", "exercise-groups", String.valueOf(quizExerciseGroup.getId()), "quiz-exercises")
+                    .build()
             )
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData("exercise", quizExercise))
@@ -430,15 +433,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .post()
             .uri(uriBuilder ->
                 uriBuilder
-                    .pathSegment(
-                        "api",
-                        "exam",
-                        "courses",
-                        String.valueOf(courseId),
-                        "exams",
-                        exam.getId().toString(),
-                        "exercise-groups"
-                    )
+                    .pathSegment("api", "exam", "courses", String.valueOf(courseId), "exams", exam.getId().toString(), "exercise-groups")
                     .build()
             )
             .bodyValue(exerciseGroup)
@@ -685,9 +680,12 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
     }
 
     private Mono<? extends Throwable> logRequestError(String action, ClientResponse response) {
-        return response.bodyToMono(String.class).defaultIfEmpty("").flatMap(body -> {
-            log.error("{} failed with status {}. Response body: {}", action, response.statusCode(), body);
-            return Mono.error(new IllegalStateException(action + " failed with status " + response.statusCode() + ": " + body));
-        });
+        return response
+            .bodyToMono(String.class)
+            .defaultIfEmpty("")
+            .flatMap(body -> {
+                log.error("{} failed with status {}. Response body: {}", action, response.statusCode(), body);
+                return Mono.error(new IllegalStateException(action + " failed with status " + response.statusCode() + ": " + body));
+            });
     }
 }

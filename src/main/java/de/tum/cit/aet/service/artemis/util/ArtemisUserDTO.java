@@ -15,17 +15,6 @@ public record ArtemisUserDTO(
     String visibleRegistrationNumber
 ) {
     public static ArtemisUserDTO forCreation(String login, String password, String firstName, String lastName, String email) {
-        return new ArtemisUserDTO(
-            true,
-            List.of("ROLE_USER"),
-            List.of(),
-            List.of(),
-            email,
-            firstName,
-            lastName,
-            login,
-            password,
-            null
-        );
+        return new ArtemisUserDTO(true, List.of("ROLE_USER"), List.of(), List.of(), email, firstName, lastName, login, password, null);
     }
 }

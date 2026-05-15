@@ -26,7 +26,7 @@ enum PasswordStrengthColor {
   styleUrl: './password-strength-bar.component.scss',
 })
 export default class PasswordStrengthBarComponent implements OnChanges {
-  readonly passwordStrengthColors: PasswordStrengthColor[] = Object.values(PasswordStrengthColor) as PasswordStrengthColor[];
+  readonly passwordStrengthColors: PasswordStrengthColor[] = Object.values(PasswordStrengthColor);
 
   readonly passwordToCheck = input<string | undefined>();
   readonly strength = computed(() => this.measurePasswordStrength(this.passwordToCheck() ?? ''));
