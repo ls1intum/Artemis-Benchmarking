@@ -11,6 +11,13 @@ public record TextExerciseCreateDTO(
     IncludedInOverallScore includedInOverallScore,
     ExerciseGroupRef exerciseGroup
 ) {
+    /**
+     * Create a text exercise DTO pre-filled with default benchmarking values.
+     *
+     * @param title           the title of the exercise.
+     * @param exerciseGroupId the id of the exercise group the exercise belongs to.
+     * @return a new {@link TextExerciseCreateDTO} for benchmarking.
+     */
     public static TextExerciseCreateDTO forBenchmarking(String title, Long exerciseGroupId) {
         return new TextExerciseCreateDTO(
             "text",

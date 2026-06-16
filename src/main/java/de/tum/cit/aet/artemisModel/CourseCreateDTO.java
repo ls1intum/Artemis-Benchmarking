@@ -42,6 +42,13 @@ public record CourseCreateDTO(
     String timeZone,
     String courseInformationSharingConfiguration
 ) {
+    /**
+     * Create a course DTO pre-filled with default benchmarking values.
+     *
+     * @param title     the title of the course.
+     * @param shortName the short name of the course.
+     * @return a new {@link CourseCreateDTO} for benchmarking.
+     */
     public static CourseCreateDTO forBenchmarking(String title, String shortName) {
         return new CourseCreateDTO(
             title,

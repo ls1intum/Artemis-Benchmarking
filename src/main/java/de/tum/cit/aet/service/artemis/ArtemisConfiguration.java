@@ -292,6 +292,12 @@ public class ArtemisConfiguration {
         };
     }
 
+    /**
+     * Get the configuration of the given Artemis server.
+     *
+     * @param server the Artemis server.
+     * @return the server configuration of the Artemis server.
+     */
     public ArtemisServerConfigurationDTO getServerConfiguration(ArtemisServer server) {
         return new ArtemisServerConfigurationDTO(
             server,

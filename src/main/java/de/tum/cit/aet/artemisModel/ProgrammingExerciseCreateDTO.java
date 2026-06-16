@@ -23,6 +23,15 @@ public record ProgrammingExerciseCreateDTO(
     CourseRef course,
     ExerciseGroupRef exerciseGroup
 ) {
+    /**
+     * Create a course programming exercise DTO pre-filled with default benchmarking values.
+     *
+     * @param title       the title of the exercise.
+     * @param courseId    the id of the course the exercise belongs to.
+     * @param shortName   the short name of the exercise.
+     * @param packageName the package name of the exercise.
+     * @return a new {@link ProgrammingExerciseCreateDTO} for benchmarking.
+     */
     public static ProgrammingExerciseCreateDTO forCourseBenchmarking(String title, Long courseId, String shortName, String packageName) {
         return new ProgrammingExerciseCreateDTO(
             "programming",
@@ -46,6 +55,15 @@ public record ProgrammingExerciseCreateDTO(
         );
     }
 
+    /**
+     * Create an exam programming exercise DTO pre-filled with default benchmarking values.
+     *
+     * @param title           the title of the exercise.
+     * @param exerciseGroupId the id of the exercise group the exercise belongs to.
+     * @param shortName       the short name of the exercise.
+     * @param packageName     the package name of the exercise.
+     * @return a new {@link ProgrammingExerciseCreateDTO} for benchmarking.
+     */
     public static ProgrammingExerciseCreateDTO forExamBenchmarking(
         String title,
         Long exerciseGroupId,

@@ -20,6 +20,11 @@ public record ProgrammingExerciseBuildConfigDTO(
     String branchRegex,
     String buildPlanAccessSecret
 ) {
+    /**
+     * Create a programming exercise build configuration DTO pre-filled with default benchmarking values.
+     *
+     * @return a new {@link ProgrammingExerciseBuildConfigDTO} for benchmarking.
+     */
     public static ProgrammingExerciseBuildConfigDTO forBenchmarking() {
         return new ProgrammingExerciseBuildConfigDTO(
             null,
