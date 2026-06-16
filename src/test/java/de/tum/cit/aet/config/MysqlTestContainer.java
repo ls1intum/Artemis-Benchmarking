@@ -1,6 +1,6 @@
 package de.tum.cit.aet.config;
 
-import java.util.Collections;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.JdbcDatabaseContainer;
@@ -25,7 +25,7 @@ public class MysqlTestContainer implements SqlTestContainer {
         if (null == mysqlContainer) {
             mysqlContainer = new MySQLContainer("mysql:9.7.0")
                 .withDatabaseName("artemis-benchmarking")
-                .withTmpFs(Collections.singletonMap("/testtmpfs", "rw"))
+                .withTmpFs(Map.of("/testtmpfs", "rw"))
                 .withLogConsumer(new Slf4jLogConsumer(log))
                 .withReuse(true);
         }

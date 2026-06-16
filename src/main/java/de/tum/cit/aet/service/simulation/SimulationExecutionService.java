@@ -743,7 +743,7 @@ public class SimulationExecutionService {
         if (Thread.currentThread().isInterrupted()) {
             return;
         }
-        var message = String.format(format, args);
+        var message = format.formatted(args);
         if (error) {
             log.error(message);
         } else {
