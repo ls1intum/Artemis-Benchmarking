@@ -15,6 +15,15 @@ public record MultipleChoiceQuestionCreateDTO(
     List<AnswerOptionCreateDTO> answerOptions,
     Boolean singleChoice
 ) {
+    /**
+     * Create a multiple choice question DTO pre-filled with default benchmarking values.
+     *
+     * @param title         the title of the question.
+     * @param text          the question text.
+     * @param points        the points awarded for the question.
+     * @param answerOptions the answer options of the question.
+     * @return a new {@link MultipleChoiceQuestionCreateDTO} for benchmarking.
+     */
     public static MultipleChoiceQuestionCreateDTO forBenchmarking(
         String title,
         String text,

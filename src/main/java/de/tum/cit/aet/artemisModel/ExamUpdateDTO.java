@@ -31,6 +31,12 @@ public record ExamUpdateDTO(
     CourseRef course,
     String examArchivePath
 ) {
+    /**
+     * Create an exam update DTO populated from the given exam entity.
+     *
+     * @param exam the exam to convert.
+     * @return a new {@link ExamUpdateDTO} populated from the given exam.
+     */
     public static ExamUpdateDTO fromExam(Exam exam) {
         Course course = exam.getCourse();
         CourseRef courseRef = course == null ? null : new CourseRef(course.getId());

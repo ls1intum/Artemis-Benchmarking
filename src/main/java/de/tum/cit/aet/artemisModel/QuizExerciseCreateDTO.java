@@ -13,6 +13,13 @@ public record QuizExerciseCreateDTO(
     Boolean randomizeQuestionOrder,
     List<MultipleChoiceQuestionCreateDTO> quizQuestions
 ) {
+    /**
+     * Create a quiz exercise DTO pre-filled with default benchmarking values.
+     *
+     * @param title     the title of the exercise.
+     * @param questions the multiple choice questions of the quiz.
+     * @return a new {@link QuizExerciseCreateDTO} for benchmarking.
+     */
     public static QuizExerciseCreateDTO forBenchmarking(String title, List<MultipleChoiceQuestionCreateDTO> questions) {
         return new QuizExerciseCreateDTO(
             title,
