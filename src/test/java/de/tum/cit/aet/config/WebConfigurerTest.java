@@ -61,9 +61,9 @@ class WebConfigurerTest {
 
     @Test
     void shouldCorsFilterOnOtherPath() throws Exception {
-        corsConfiguration.setAllowedOrigins(Collections.singletonList("*"));
+        corsConfiguration.setAllowedOrigins(List.of("*"));
         corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
-        corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
+        corsConfiguration.setAllowedHeaders(List.of("*"));
         corsConfiguration.setMaxAge(1800L);
         corsConfiguration.setAllowCredentials(true);
 

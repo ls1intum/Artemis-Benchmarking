@@ -842,7 +842,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
         newContent = newContent.replace("$$1", String.valueOf(new Random().nextInt(100)));
         if (writeToFile) {
-            FileUtils.writeStringToFile(bubbleSort.toFile(), newContent, Charset.defaultCharset());
+            Files.writeString(bubbleSort, newContent, Charset.defaultCharset());
         }
         return newContent;
     }
@@ -1034,7 +1034,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             KeyPair pair;
             pair = new JcaPEMKeyConverter().getKeyPair((PEMKeyPair) parsed);
 
-            return Collections.singleton(pair);
+            return Set.of(pair);
         } catch (Exception e) {
             throw new RuntimeException("Failed to load SSH keys", e);
         }
@@ -1065,7 +1065,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                 new ServerKeyDatabase() {
                     @Override
                     public List<PublicKey> lookup(String connectAddress, InetSocketAddress remoteAddress, Configuration config) {
-                        return Collections.emptyList();
+                        return List.of();
                     }
 
                     @Override

@@ -49,6 +49,6 @@ public class TimeLogUtil {
     }
 
     private static String roundOffTo2DecPlaces(double val) {
-        return String.format("%.2f", val);
+        return "%.2f".formatted(val);
     }
 }

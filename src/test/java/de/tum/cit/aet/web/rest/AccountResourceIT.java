@@ -147,7 +147,7 @@ class AccountResourceIT {
         userDTO.setActivated(false);
         userDTO.setImageUrl("http://placehold.it/50x50");
         userDTO.setLangKey(Constants.DEFAULT_LANGUAGE);
-        userDTO.setAuthorities(Collections.singleton(AuthoritiesConstants.ADMIN));
+        userDTO.setAuthorities(Set.of(AuthoritiesConstants.ADMIN));
 
         restAccountMockMvc
             .perform(post("/api/account").contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(userDTO)))
@@ -184,7 +184,7 @@ class AccountResourceIT {
         userDTO.setActivated(false);
         userDTO.setImageUrl("http://placehold.it/50x50");
         userDTO.setLangKey(Constants.DEFAULT_LANGUAGE);
-        userDTO.setAuthorities(Collections.singleton(AuthoritiesConstants.ADMIN));
+        userDTO.setAuthorities(Set.of(AuthoritiesConstants.ADMIN));
 
         restAccountMockMvc
             .perform(post("/api/account").contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(userDTO)))
@@ -220,7 +220,7 @@ class AccountResourceIT {
         userDTO.setActivated(false);
         userDTO.setImageUrl("http://placehold.it/50x50");
         userDTO.setLangKey(Constants.DEFAULT_LANGUAGE);
-        userDTO.setAuthorities(Collections.singleton(AuthoritiesConstants.ADMIN));
+        userDTO.setAuthorities(Set.of(AuthoritiesConstants.ADMIN));
 
         restAccountMockMvc
             .perform(post("/api/account").contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(userDTO)))
@@ -249,7 +249,7 @@ class AccountResourceIT {
         userDTO.setActivated(false);
         userDTO.setImageUrl("http://placehold.it/50x50");
         userDTO.setLangKey(Constants.DEFAULT_LANGUAGE);
-        userDTO.setAuthorities(Collections.singleton(AuthoritiesConstants.ADMIN));
+        userDTO.setAuthorities(Set.of(AuthoritiesConstants.ADMIN));
 
         restAccountMockMvc
             .perform(post("/api/account").contentType(MediaType.APPLICATION_JSON).content(TestUtil.convertObjectToJsonBytes(userDTO)))

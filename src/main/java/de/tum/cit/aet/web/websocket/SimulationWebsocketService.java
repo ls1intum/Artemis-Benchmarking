@@ -26,7 +26,7 @@ public class SimulationWebsocketService {
      * @param run the simulation run that was completed
      */
     public void sendSimulationResult(SimulationRun run) {
-        messagingTemplate.convertAndSend(String.format(TOPIC_SIMULATION_RESULT, run.getId()), run.getStats());
+        messagingTemplate.convertAndSend(TOPIC_SIMULATION_RESULT.formatted(run.getId()), run.getStats());
     }
 
     /**
@@ -34,7 +34,7 @@ public class SimulationWebsocketService {
      * @param run the simulation run whose status was updated
      */
     public void sendRunStatusUpdate(SimulationRun run) {
-        messagingTemplate.convertAndSend(String.format(TOPIC_RUN_STATUS_UPDATE, run.getId()), run.getStatus());
+        messagingTemplate.convertAndSend(TOPIC_RUN_STATUS_UPDATE.formatted(run.getId()), run.getStatus());
     }
 
     /**
@@ -43,14 +43,14 @@ public class SimulationWebsocketService {
      * @param logMessage the log message to send
      */
     public void sendRunLogMessage(SimulationRun run, LogMessage logMessage) {
-        messagingTemplate.convertAndSend(String.format(TOPIC_RUN_LOG_MESSAGE, run.getId()), logMessage);
+        messagingTemplate.convertAndSend(TOPIC_RUN_LOG_MESSAGE.formatted(run.getId()), logMessage);
     }
 
     public void sendNewRun(SimulationRun run) {
-        messagingTemplate.convertAndSend(String.format(TOPIC_NEW_RUN, run.getSimulation().getId()), run);
+        messagingTemplate.convertAndSend(TOPIC_NEW_RUN.formatted(run.getSimulation().getId()), run);
     }
 
     public void sendRunCiUpdate(long runId, CiStatus status) {
-        messagingTemplate.convertAndSend(String.format(TOPIC_RUN_CI_UPDATE, runId), status);
+        messagingTemplate.convertAndSend(TOPIC_RUN_CI_UPDATE.formatted(runId), status);
     }
 }
