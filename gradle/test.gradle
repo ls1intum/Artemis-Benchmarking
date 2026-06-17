@@ -94,3 +94,21 @@ test {
     minHeapSize = "2g" // initial heap size
     maxHeapSize = "6g" // maximum heap size
 }
+
+// Execute only the integration tests: ./gradlew integrationTest
+// The `test` task above excludes "**/*IT*"; CI runs this task separately (it needs Docker for the
+// PostgreSQL Testcontainer) so the integration suite cannot silently rot again.
+tasks.register("integrationTest", Test) {
+    useJUnitPlatform()
+    include "**/*IT*", "**/*IntTest*"
+    testClassesDirs = testing.suites.test.sources.output.classesDirs
+    classpath = testing.suites.test.sources.runtimeClasspath
+    shouldRunAfter(tasks.named("test"))
+    testLogging {
+        events "FAILED", "SKIPPED"
+    }
+    testLogging.showStandardStreams = true
+    reports.html.required = false
+    minHeapSize = "2g"
+    maxHeapSize = "6g"
+}

@@ -7,8 +7,10 @@ services:
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
       - SPRING_PROFILES_ACTIVE=prod,api-docs
       - MANAGEMENT_PROMETHEUS_METRICS_EXPORT_ENABLED=true
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/artemis-benchmarking?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true
-      - SPRING_LIQUIBASE_URL=jdbc:mysql://mysql:3306/artemis-benchmarking?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/benchmarking
+      - SPRING_DATASOURCE_USERNAME=benchmarking
+      - SPRING_DATASOURCE_PASSWORD=benchmarking
+      - SPRING_LIQUIBASE_URL=jdbc:postgresql://postgres:5432/benchmarking
     ports:
       - 127.0.0.1:8080:8080
     healthcheck:
@@ -21,9 +23,9 @@ services:
       timeout: 5s
       retries: 40
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
-  mysql:
+  postgres:
     extends:
-      file: ./mysql.yml
-      service: mysql
+      file: ./postgresql.yml
+      service: postgres

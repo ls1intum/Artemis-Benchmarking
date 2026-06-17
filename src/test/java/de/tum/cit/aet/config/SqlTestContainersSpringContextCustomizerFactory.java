@@ -30,7 +30,7 @@ public class SqlTestContainersSpringContextCustomizerFactory implements ContextC
                 if (null == prodTestContainer) {
                     try {
                         Class<? extends SqlTestContainer> containerClass = (Class<? extends SqlTestContainer>) Class.forName(
-                            this.getClass().getPackageName() + ".MysqlTestContainer"
+                            this.getClass().getPackageName() + ".PostgreSqlTestContainer"
                         );
                         prodTestContainer = beanFactory.createBean(containerClass);
                         beanFactory.registerSingleton(containerClass.getName(), prodTestContainer);
@@ -39,11 +39,7 @@ public class SqlTestContainersSpringContextCustomizerFactory implements ContextC
                         throw new RuntimeException(e);
                     }
                 }
-                testValues = testValues.and(
-                    "spring.datasource.url=" +
-                        prodTestContainer.getTestContainer().getJdbcUrl() +
-                        "?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true"
-                );
+                testValues = testValues.and("spring.datasource.url=" + prodTestContainer.getTestContainer().getJdbcUrl());
                 testValues = testValues.and("spring.datasource.username=" + prodTestContainer.getTestContainer().getUsername());
                 testValues = testValues.and("spring.datasource.password=" + prodTestContainer.getTestContainer().getPassword());
             }

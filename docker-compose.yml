@@ -12,21 +12,20 @@ services:
       start_period: 600s
       interval: 1s
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     restart: always
 
-  mysql:
-    image: mysql:9.7.1
+  postgres:
+    image: postgres:18-alpine
     volumes:
-      - artemis-mysql-data:/var/lib/mysql
+      - artemis-postgres-data:/var/lib/postgresql
     env_file:
-      - config/mysql.env
+      - config/postgres.env
     expose:
-      - '3306'
-    command: mysqld --lower_case_table_names=1 --tls-version='' --character_set_server=utf8mb4  --collation-server=utf8mb4_unicode_ci --explicit_defaults_for_timestamp
+      - '5432'
     healthcheck:
-      test: mysqladmin ping -h 127.0.0.1 -u root --silent
+      test: pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
       interval: 5s
       timeout: 3s
       retries: 30
@@ -34,5 +33,5 @@ services:
     restart: always
 
 volumes:
-  artemis-mysql-data:
-    name: artemis-mysql-data
+  artemis-postgres-data:
+    name: artemis-postgres-data

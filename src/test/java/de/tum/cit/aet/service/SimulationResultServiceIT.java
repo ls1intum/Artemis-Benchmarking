@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import de.tum.cit.aet.IntegrationTest;
 import de.tum.cit.aet.domain.RequestStat;
+import de.tum.cit.aet.domain.Simulation;
 import de.tum.cit.aet.domain.SimulationRun;
 import de.tum.cit.aet.repository.SimulationStatsRepository;
 import de.tum.cit.aet.repository.StatsByMinuteRepository;
@@ -87,7 +88,13 @@ public class SimulationResultServiceIT {
             new RequestStat(nowMinute.plusMinutes(7).plus(720, ChronoUnit.MILLIS), 500L, MISC),
             new RequestStat(nowMinute.plusMinutes(7).plus(720, ChronoUnit.MILLIS), 480L, MISC)
         );
+        Simulation simulation = new Simulation();
+        simulation.setOnlineIdePercentage(0);
+        simulation.setPasswordPercentage(50);
+        simulation.setTokenPercentage(25);
+        simulation.setSshPercentage(25);
         simulationRun = new SimulationRun();
+        simulationRun.setSimulation(simulation);
     }
 
     @Test

@@ -1,0 +1,18 @@
+# This configuration is intended for development purpose, it's **your** responsibility to harden it for production
+name: artemis-benchmarking
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      - POSTGRES_DB=benchmarking
+      - POSTGRES_USER=benchmarking
+      - POSTGRES_PASSWORD=benchmarking
+    # If you want to expose these ports outside your dev PC,
+    # remove the "127.0.0.1:" prefix
+    ports:
+      - 127.0.0.1:5432:5432
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U benchmarking -d benchmarking']
+      interval: 5s
+      timeout: 5s
+      retries: 10

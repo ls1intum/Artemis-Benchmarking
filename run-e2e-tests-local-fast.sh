@@ -5,20 +5,20 @@ set -euo pipefail
 # Fast Local E2E Test Runner — Artemis Benchmarking
 # =============================================================================
 # Runs the server (./gradlew bootRun) and client (pnpm start) directly on the
-# host, with MySQL in a small throwaway container. No production image build,
+# host, with PostgreSQL in a small throwaway container. No production image build,
 # so it is much faster than ./run-e2e-tests-local.sh. Services are left running
 # between runs, so re-runs (with --skip-*) take only seconds.
 #
-# If you already have a MySQL on localhost:3307 (db "artemis-benchmarking",
-# empty root password — matching the dev profile), use --skip-db to run with
-# no Docker at all.
+# If you already have a PostgreSQL on localhost:5432 (db "benchmarking",
+# user/password "benchmarking" — matching the dev profile), use --skip-db to run
+# with no Docker at all.
 #
 # Usage:
 #   ./run-e2e-tests-local-fast.sh [options] [-- <extra playwright args>]
 #
 # Options:
-#   --stop           Kill the server, client and MySQL container; then exit
-#   --skip-db        Reuse an already-running MySQL on localhost:3307
+#   --stop           Kill the server, client and PostgreSQL container; then exit
+#   --skip-db        Reuse an already-running PostgreSQL on localhost:5432
 #   --skip-server    Reuse an already-running server on :8080
 #   --skip-client    Reuse an already-running client on :9000
 #   --ui             Open the Playwright UI
@@ -35,7 +35,7 @@ warn() { echo -e "${YELLOW}[e2e]${NC} $*"; }
 err() { echo -e "${RED}[e2e]${NC} $*"; }
 
 LOCAL_DIR=".e2e-local"
-MYSQL_CONTAINER="benchmarking-e2e-mysql"
+POSTGRES_CONTAINER="benchmarking-e2e-postgres"
 SERVER_PORT=8080
 CLIENT_PORT=9000
 export E2E_BASE_URL="http://localhost:${CLIENT_PORT}"
@@ -103,7 +103,7 @@ if [ "$STOP" = true ]; then
   log "Stopping all fast e2e services..."
   kill_pidfile "client"; free_port "$CLIENT_PORT" "client"
   kill_pidfile "server"; free_port "$SERVER_PORT" "server"
-  docker rm -f "$MYSQL_CONTAINER" >/dev/null 2>&1 || true
+  docker rm -f "$POSTGRES_CONTAINER" >/dev/null 2>&1 || true
   rm -rf "$LOCAL_DIR"
   ok "All services stopped."
   exit 0
@@ -115,27 +115,26 @@ for cmd in docker java node pnpm curl; do
 done
 mkdir -p "$LOCAL_DIR"
 
-# --- MySQL (port 3307, matching the dev profile) -----------------------------
+# --- PostgreSQL (port 5432, matching the dev profile) ------------------------
 if [ "$SKIP_DB" = true ]; then
-  warn "Skipping MySQL (--skip-db) — expecting one on localhost:3307."
-elif lsof -nP -iTCP:3307 -sTCP:LISTEN >/dev/null 2>&1; then
-  log "MySQL already listening on localhost:3307 — using the existing instance."
+  warn "Skipping PostgreSQL (--skip-db) — expecting one on localhost:5432."
+elif lsof -nP -iTCP:5432 -sTCP:LISTEN >/dev/null 2>&1; then
+  log "PostgreSQL already listening on localhost:5432 — using the existing instance."
 else
-  log "Starting MySQL container ($MYSQL_CONTAINER) on localhost:3307..."
-  docker rm -f "$MYSQL_CONTAINER" >/dev/null 2>&1 || true
-  docker run -d --name "$MYSQL_CONTAINER" -p 127.0.0.1:3307:3306 \
-    -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_DATABASE=artemis-benchmarking \
-    mysql:9.7.1 mysqld --lower_case_table_names=1 --tls-version='' \
-    --character_set_server=utf8mb4 --explicit_defaults_for_timestamp >/dev/null
+  log "Starting PostgreSQL container ($POSTGRES_CONTAINER) on localhost:5432..."
+  docker rm -f "$POSTGRES_CONTAINER" >/dev/null 2>&1 || true
+  docker run -d --name "$POSTGRES_CONTAINER" -p 127.0.0.1:5432:5432 \
+    -e POSTGRES_DB=benchmarking -e POSTGRES_USER=benchmarking -e POSTGRES_PASSWORD=benchmarking \
+    postgres:18-alpine >/dev/null
   elapsed=0
-  until docker exec "$MYSQL_CONTAINER" mysqladmin ping -h 127.0.0.1 --silent >/dev/null 2>&1; do
-    if [ "$elapsed" -ge 120 ]; then err "MySQL not ready after 120s"; exit 1; fi
+  until docker exec "$POSTGRES_CONTAINER" pg_isready -U benchmarking -d benchmarking >/dev/null 2>&1; do
+    if [ "$elapsed" -ge 120 ]; then err "PostgreSQL not ready after 120s"; exit 1; fi
     sleep 3; elapsed=$((elapsed + 3))
   done
-  ok "MySQL ready (${elapsed}s)"
+  ok "PostgreSQL ready (${elapsed}s)"
 fi
 
-# --- Server (Spring Boot, dev profile -> MySQL on 3307) ----------------------
+# --- Server (Spring Boot, dev profile -> PostgreSQL on 5432) -----------------
 if [ "$SKIP_SERVER" = false ]; then
   kill_pidfile "server"; free_port "$SERVER_PORT" "server"
   log "Starting server (./gradlew bootRun); log: $LOCAL_DIR/server.log"

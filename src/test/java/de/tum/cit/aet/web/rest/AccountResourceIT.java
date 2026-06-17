@@ -9,6 +9,7 @@ import de.tum.cit.aet.config.Constants;
 import de.tum.cit.aet.domain.User;
 import de.tum.cit.aet.repository.UserRepository;
 import de.tum.cit.aet.security.AuthoritiesConstants;
+import de.tum.cit.aet.security.WithMockJwt;
 import de.tum.cit.aet.service.UserService;
 import de.tum.cit.aet.service.dto.AdminUserDTO;
 import de.tum.cit.aet.service.dto.PasswordChangeDTO;
@@ -22,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,7 +57,7 @@ class AccountResourceIT {
     }
 
     @Test
-    @WithMockUser(TEST_USER_LOGIN)
+    @WithMockJwt(TEST_USER_LOGIN)
     void testAuthenticatedUser() throws Exception {
         restAccountMockMvc
             .perform(
@@ -70,7 +70,7 @@ class AccountResourceIT {
     }
 
     @Test
-    @WithMockUser(TEST_USER_LOGIN)
+    @WithMockJwt(TEST_USER_LOGIN)
     void testGetExistingAccount() throws Exception {
         Set<String> authorities = new HashSet<>();
         authorities.add(AuthoritiesConstants.ADMIN);
@@ -130,7 +130,7 @@ class AccountResourceIT {
 
     @Test
     @Transactional
-    @WithMockUser("save-account")
+    @WithMockJwt("save-account")
     void testSaveAccount() throws Exception {
         User user = new User();
         user.setLogin("save-account");
@@ -166,7 +166,7 @@ class AccountResourceIT {
 
     @Test
     @Transactional
-    @WithMockUser("save-invalid-email")
+    @WithMockJwt("save-invalid-email")
     void testSaveInvalidEmail() throws Exception {
         User user = new User();
         user.setLogin("save-invalid-email");
@@ -195,7 +195,7 @@ class AccountResourceIT {
 
     @Test
     @Transactional
-    @WithMockUser("save-existing-email")
+    @WithMockJwt("save-existing-email")
     void testSaveExistingEmail() throws Exception {
         User user = new User();
         user.setLogin("save-existing-email");
@@ -232,7 +232,7 @@ class AccountResourceIT {
 
     @Test
     @Transactional
-    @WithMockUser("save-existing-email-and-login")
+    @WithMockJwt("save-existing-email-and-login")
     void testSaveExistingEmailAndLogin() throws Exception {
         User user = new User();
         user.setLogin("save-existing-email-and-login");
@@ -261,7 +261,7 @@ class AccountResourceIT {
 
     @Test
     @Transactional
-    @WithMockUser("change-password-wrong-existing-password")
+    @WithMockJwt("change-password-wrong-existing-password")
     void testChangePasswordWrongExistingPassword() throws Exception {
         User user = new User();
         String currentPassword = RandomStringUtils.secure().nextAlphanumeric(60);
@@ -285,7 +285,7 @@ class AccountResourceIT {
 
     @Test
     @Transactional
-    @WithMockUser("change-password")
+    @WithMockJwt("change-password")
     void testChangePassword() throws Exception {
         User user = new User();
         String currentPassword = RandomStringUtils.secure().nextAlphanumeric(60);
@@ -308,7 +308,7 @@ class AccountResourceIT {
 
     @Test
     @Transactional
-    @WithMockUser("change-password-too-small")
+    @WithMockJwt("change-password-too-small")
     void testChangePasswordTooSmall() throws Exception {
         User user = new User();
         String currentPassword = RandomStringUtils.secure().nextAlphanumeric(60);
@@ -333,7 +333,7 @@ class AccountResourceIT {
 
     @Test
     @Transactional
-    @WithMockUser("change-password-too-long")
+    @WithMockJwt("change-password-too-long")
     void testChangePasswordTooLong() throws Exception {
         User user = new User();
         String currentPassword = RandomStringUtils.secure().nextAlphanumeric(60);
@@ -358,7 +358,7 @@ class AccountResourceIT {
 
     @Test
     @Transactional
-    @WithMockUser("change-password-empty")
+    @WithMockJwt("change-password-empty")
     void testChangePasswordEmpty() throws Exception {
         User user = new User();
         String currentPassword = RandomStringUtils.secure().nextAlphanumeric(60);

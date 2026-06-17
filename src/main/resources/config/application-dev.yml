@@ -29,9 +29,9 @@ spring:
       indent-output: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:mysql://localhost:3307/artemis-benchmarking?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true
-    username: root
-    password:
+    url: jdbc:postgresql://localhost:5432/benchmarking
+    username: benchmarking
+    password: benchmarking
     hikari:
       poolName: Hikari
       auto-commit: false

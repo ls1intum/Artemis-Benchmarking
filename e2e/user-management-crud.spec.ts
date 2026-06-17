@@ -2,7 +2,7 @@ import { test, expect, Page } from '@playwright/test';
 import { login } from './helpers';
 
 // Full-vertical CRUD against User Management: every action goes through the
-// Angular UI -> Spring Boot REST API -> MySQL. The block is serial because the
+// Angular UI -> Spring Boot REST API -> PostgreSQL. The block is serial because the
 // steps build on the same user record (create -> read -> update -> delete).
 test.describe.configure({ mode: 'serial' });
 

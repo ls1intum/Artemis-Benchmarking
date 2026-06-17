@@ -382,7 +382,7 @@ public class ArtemisUserServiceIT {
         newUser.setPassword("updatedPw");
         newUser.setServer(TS1);
 
-        assertThrows(IllegalArgumentException.class, () -> artemisUserService.updateArtemisUser(1L, newUser));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.updateArtemisUser(1L, newUser));
         verify(artemisUserRepository, times(0)).save(newUser);
     }
 
@@ -395,7 +395,7 @@ public class ArtemisUserServiceIT {
         newUser.setPassword("updatedPw");
         newUser.setServer(TS3);
 
-        assertThrows(IllegalArgumentException.class, () -> artemisUserService.updateArtemisUser(1L, newUser));
+        assertThrows(ResponseStatusException.class, () -> artemisUserService.updateArtemisUser(1L, newUser));
         verify(artemisUserRepository, times(0)).save(newUser);
     }
 

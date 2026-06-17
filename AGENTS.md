@@ -45,4 +45,4 @@ The client toolchain uses **pnpm** (replaced npm in early 2026). Install it with
 ## Configuration & Security Tips
 
 - Use `src/main/resources/config/application-local.yml` for local secrets (gitignored). Do not commit credentials.
-- Docker environment values live in `config/benchmarking.env` and `config/mysql.env`.
+- Docker environment values live in `config/benchmarking.env` and `config/postgres.env`.

@@ -5,7 +5,7 @@ set -euo pipefail
 # Local E2E Test Runner (Docker) — Artemis Benchmarking
 # =============================================================================
 # Builds the production WAR, wraps it in a runtime image, and runs the full
-# stack (Spring Boot server + MySQL) via docker compose, then runs the
+# stack (Spring Boot server + PostgreSQL) via docker compose, then runs the
 # Playwright e2e suite against it. Slower than the fast runner but realistic:
 # it exercises the production artifact in a container with a real database.
 #
@@ -101,7 +101,7 @@ else
   warn "Skipping build (reusing $IMAGE)."
 fi
 
-log "Starting stack (server + MySQL) via docker compose..."
+log "Starting stack (server + PostgreSQL) via docker compose..."
 docker compose up -d --wait --wait-timeout 600
 ok "Stack is healthy."
 

@@ -7,6 +7,14 @@
                         http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
     <!--
+        Consolidated initial schema (PostgreSQL).
+
+        This single changelog folds together the full history of the application (formerly a
+        series of incremental MySQL-oriented changesets). It represents the final state of the
+        schema and is intended for a fresh install; there is no migration from older databases.
+    -->
+
+    <!--
         JHipster core tables.
         The initial schema has the '00000000000001' id, so that it is over-written if we re-generate it.
     -->
@@ -18,7 +26,9 @@
             <column name="login" type="varchar(50)">
                 <constraints unique="true" nullable="false" uniqueConstraintName="ux_user_login"/>
             </column>
-            <column name="password_hash" type="varchar(60)"/>
+            <column name="password_hash" type="varchar(60)">
+                <constraints nullable="false"/>
+            </column>
             <column name="first_name" type="varchar(50)"/>
             <column name="last_name" type="varchar(50)"/>
             <column name="email" type="varchar(191)">
@@ -71,9 +81,6 @@
                                  referencedColumnNames="id"
                                  referencedTableName="jhi_user"/>
 
-        <addNotNullConstraint   columnName="password_hash"
-                                columnDataType="varchar(60)"
-                                tableName="jhi_user"/>
         <loadData
                   file="config/liquibase/data/authority.csv"
                   separator=";"
@@ -96,7 +103,6 @@
                   usePreparedStatements="true">
             <column name="user_id" type="numeric"/>
         </loadData>
-        <dropDefaultValue tableName="jhi_user" columnName="created_date" columnDataType="${datetimeType}"/>
     </changeSet>
 
     <changeSet author="jhipster" id="00000000000002" context="test">
@@ -111,6 +117,180 @@
             <column name="local_time" type="time"/>
             <column name="offset_time" type="time"/>
             <column name="local_date" type="date"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Application tables (folded from all later changesets into their final shape). -->
+    <changeSet id="00000000000003" author="benchmarking">
+        <createTable tableName="simulation">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="number_of_users" type="int"/>
+            <column name="exam_id" type="bigint"/>
+            <column name="course_id" type="bigint"/>
+            <column name="server" type="varchar(256)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mode" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creation_date" type="timestamp" defaultValueComputed="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="customize_user_range" type="boolean" defaultValueBoolean="false"/>
+            <column name="user_range" type="varchar(255)"/>
+            <column name="number_of_commits_and_pushes_from" type="int" defaultValueNumeric="8"/>
+            <column name="number_of_commits_and_pushes_to" type="int" defaultValueNumeric="15"/>
+            <column name="instructor_username" type="varchar(255)"/>
+            <column name="instructor_password" type="varchar(255)"/>
+            <column name="ide_type" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="onlineIde_percentage" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password_percentage" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_percentage" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ssh_percentage" type="double">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="simulation_run">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="start_date_time" type="timestamp"/>
+            <column name="status" type="varchar(255)"/>
+            <column name="simulation_id" type="bigint"/>
+            <column name="end_date_time" type="timestamp"/>
+        </createTable>
+
+        <createTable tableName="simulation_stats">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="number_of_requests" type="int"/>
+            <column name="avg_response_time" type="bigint"/>
+            <column name="simulation_run_id" type="bigint"/>
+            <column name="request_type" type="varchar(255)"/>
+        </createTable>
+
+        <createTable tableName="stats_by_minute">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="number_of_requests" type="int"/>
+            <column name="avg_response_time" type="bigint"/>
+            <column name="simulation_stats_id" type="bigint"/>
+            <column name="date_time" type="timestamp"/>
+        </createTable>
+
+        <createTable tableName="stats_by_second">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="number_of_requests" type="int"/>
+            <column name="avg_response_time" type="bigint"/>
+            <column name="simulation_stats_id" type="bigint"/>
+            <column name="date_time" type="timestamp"/>
+        </createTable>
+
+        <createTable tableName="log_message">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="message" type="varchar(255)"/>
+            <column name="is_error" type="boolean"/>
+            <column name="timestamp" type="timestamp(3)"/>
+            <column name="simulation_run_id" type="bigint"/>
+        </createTable>
+
+        <createTable tableName="artemis_user">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="server_wide_id" type="int"/>
+            <column name="username" type="varchar(255)"/>
+            <column name="password" type="varchar(255)"/>
+            <column name="server" type="varchar(255)"/>
+            <column name="jwt_token" type="varchar(800)"/>
+            <column name="token_expiration_date" type="timestamp"/>
+            <column name="public_ssh_key" type="varchar(1000)"/>
+            <column name="private_ssh_key" type="varchar(5000)"/>
+        </createTable>
+
+        <createTable tableName="simulation_schedule">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="start_date_time" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_date_time" type="timestamp"/>
+            <column name="cycle" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="simulation_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="next_run" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="time_of_day" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="day_of_week" type="varchar(30)"/>
+        </createTable>
+
+        <createTable tableName="schedule_subscriber">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="schedule_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="subscription_key" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="ci_status">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="is_finished" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+            <column name="queued_jobs" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_jobs" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="time_in_minutes" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="avg_jobs_per_minute" type="double">
+                <constraints nullable="false"/>
+            </column>
+            <column name="simulation_run_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_time_nanos" type="bigint">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 </databaseChangeLog>

@@ -11,11 +11,11 @@ To simplify the simulation process, the tool can create courses and exams on Art
 
 ## Setup
 
-The Benchmarking Tool is a Spring Boot application with an Angular client. It requires a MySQL database server.
-To start a MySQL server in a Docker container, run:
+The Benchmarking Tool is a Spring Boot application with an Angular client. It requires a PostgreSQL database server.
+To start a PostgreSQL server in a Docker container, run:
 
 ```
-docker compose -f src/main/docker/mysql.yml up -d
+docker compose -f src/main/docker/postgresql.yml up -d
 ```
 
 ### Prerequisites
@@ -27,7 +27,7 @@ To build and run the project locally, you need:
 - **pnpm 11.1.2+** — used for client dependency management (replaces npm). Two install options:
   - **Recommended:** `corepack enable` — Corepack reads the `packageManager` field in `package.json` and installs the exact pnpm version on first use.
   - **Alternative:** `npm install -g pnpm@11.1.2` (or any of the other [install methods](https://pnpm.io/installation)).
-- **Docker** (for the MySQL / Prometheus / Grafana containers under `src/main/docker/`).
+- **Docker** (for the PostgreSQL / Prometheus / Grafana containers under `src/main/docker/`).
 
 ### Configuration
 
@@ -112,7 +112,7 @@ for arm64 processors like Mac with the M1 processor family.
 
 This will create a Docker image named `artemis-benchmarking` in the production profile.
 To run the Docker image, you can use the docker-compose file `src/main/docker/app.yml`.
-This will also start a MySQL server.
+This will also start a PostgreSQL server.
 
 After starting the containers with
 
@@ -129,9 +129,9 @@ To start a container with that image, you can use the docker-compose file `docke
 docker compose up -d
 ```
 
-This will also start a MySQL server.
+This will also start a PostgreSQL server.
 The application will be available on http://localhost:8080.
-When using this docker-compose file, you can set the environment variables in the files `config/benchmarking.env` and `config/mysql.env`.
+When using this docker-compose file, you can set the environment variables in the files `config/benchmarking.env` and `config/postgres.env`.
 The published Docker image is not compatible with arm64 processors and will not work on Mac with the M1 processor family.
 
 ### User Management
@@ -225,7 +225,7 @@ The entities of the application are located in the `entities` directory.
 
 ### Database
 
-The application uses a MySQL database. The database schema is managed by Liquibase. The changelog files are located in the `src/main/resources/config/liquibase` directory.
+The application uses a PostgreSQL database. The database schema is managed by Liquibase. The changelog files are located in the `src/main/resources/config/liquibase` directory.
 When creating a new changeset, orientate yourself on the existing changesets and follow the naming convention. Add the new changeset to the `master.xml` file.
 
 The following diagram shows the current database schema:
