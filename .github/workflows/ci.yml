@@ -44,3 +44,52 @@ jobs:
 # Temporarily disabled client tests until we switch to Vitest
 #      - name: Run Client Tests
 #        run: pnpm test
+
+  e2e:
+    runs-on: ubuntu-latest
+    # Only run the full-stack e2e suite once the fast checks pass.
+    needs: test
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '25'
+          cache: 'gradle'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.7.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24.16.0'
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Runs the server (gradlew bootRun) and client (pnpm start) on the runner
+      # against MySQL in a container, then runs Playwright. Same path as the
+      # local fast runner; avoids the docker-image client-packaging issue.
+      - name: Run E2E tests
+        run: ./run-e2e-tests-local-fast.sh
+
+      - name: Dump server/client logs on failure
+        if: failure()
+        run: tail -n 200 .e2e-local/server.log .e2e-local/client.log 2>/dev/null || true
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

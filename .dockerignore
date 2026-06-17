@@ -17,3 +17,10 @@ Dockerfile.*
 *.log
 .vscode/
 node_modules/
+
+e2e/
+playwright.config.ts
+playwright-report/
+test-results/
+run-e2e-tests-local*.sh
+.e2e-local/

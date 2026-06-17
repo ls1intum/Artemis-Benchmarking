@@ -17,6 +17,7 @@ export default tseslint.config(
   },
   { ignores: ['src/main/docker/'] },
   { ignores: ['build/resources/main/static/', 'build/'] },
+  { ignores: ['e2e/**', 'playwright.config.ts', 'playwright-report/', 'test-results/'] },
   eslint.configs.recommended,
   {
     files: ['**/*.{js,cjs,mjs}'],
