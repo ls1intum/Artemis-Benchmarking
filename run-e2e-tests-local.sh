@@ -4,10 +4,16 @@ set -euo pipefail
 # =============================================================================
 # Local E2E Test Runner (Docker) — Artemis Benchmarking
 # =============================================================================
-# Builds the production image and brings up the full stack (Spring Boot server
-# + MySQL) via docker compose, then runs the Playwright e2e suite against it.
-# This mirrors the CI "e2e" job: slow (full production image build) but the
-# most realistic — it exercises the exact artifact that gets deployed.
+# Builds the production WAR, wraps it in a runtime image, and runs the full
+# stack (Spring Boot server + MySQL) via docker compose, then runs the
+# Playwright e2e suite against it. Slower than the fast runner but realistic:
+# it exercises the production artifact in a container with a real database.
+#
+# The WAR is built on the host (gradlew bootWar) and wrapped in a thin image,
+# rather than via `docker build .`. A clean in-container build drops the bundled
+# Angular client from the WAR — in production the client is served by nginx
+# (see docker-compose.prod.yml), but the local docker-compose.yml has no nginx,
+# so the app itself must serve the client. The host build packages it reliably.
 #
 # For a fast, host-based loop instead, use ./run-e2e-tests-local-fast.sh
 #
@@ -43,7 +49,7 @@ while [[ $# -gt 0 ]]; do
     --skip-build) SKIP_BUILD=true; shift ;;
     --ui) PLAYWRIGHT_ARGS+=(--ui); shift ;;
     --headed) PLAYWRIGHT_ARGS+=(--headed); shift ;;
-    --help) head -28 "$0" | tail -23; exit 0 ;;
+    --help) head -34 "$0" | tail -29; exit 0 ;;
     --) shift; PLAYWRIGHT_ARGS+=("$@"); break ;;
     *) PLAYWRIGHT_ARGS+=("$1"); shift ;;
   esac
@@ -58,16 +64,41 @@ fi
 
 # Ensure pnpm is available (Corepack ships with Node >= 24).
 command -v corepack >/dev/null 2>&1 && corepack enable >/dev/null 2>&1 || true
-for cmd in docker node pnpm; do
+for cmd in docker java node pnpm; do
   command -v "$cmd" >/dev/null 2>&1 || { err "Missing required command: $cmd"; exit 1; }
 done
+docker info >/dev/null 2>&1 || { err "Docker does not appear to be running. Start Docker and retry."; exit 1; }
 
 if [ "$SKIP_BUILD" = false ]; then
-  log "Building production image ($IMAGE) — this takes a few minutes..."
-  docker build -t "$IMAGE" .
-  ok "Image built."
+  log "Building the production WAR on the host (gradlew -Pprod -Pwar bootWar)..."
+  ./gradlew -Pprod -Pwar clean bootWar
+  WAR_FILE=$(ls build/libs/*.war 2>/dev/null | head -1)
+  [ -n "$WAR_FILE" ] || { err "No WAR produced in build/libs/."; exit 1; }
+
+  # Guard: the WAR must contain the bundled client, otherwise the app returns
+  # 404 for the SPA and every test fails. (A clean in-container build drops it.)
+  if ! { jar tf "$WAR_FILE" 2>/dev/null || unzip -l "$WAR_FILE" 2>/dev/null; } | grep -q 'static/index.html'; then
+    err "The built WAR does not contain the Angular client (static/index.html) — aborting."
+    exit 1
+  fi
+  ok "WAR built with bundled client."
+
+  log "Wrapping the WAR in a runtime image ($IMAGE)..."
+  BUILD_CTX=$(mktemp -d)
+  cp "$WAR_FILE" "$BUILD_CTX/app.war"
+  cat >"$BUILD_CTX/Dockerfile" <<'DOCKERFILE'
+FROM azul/zulu-openjdk:25.0.3-jre
+RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/*
+RUN mkdir /app
+COPY app.war /app/app.war
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "/app/app.war"]
+DOCKERFILE
+  docker build -t "$IMAGE" "$BUILD_CTX"
+  rm -rf "$BUILD_CTX"
+  ok "Runtime image built."
 else
-  warn "Skipping image build (reusing $IMAGE)."
+  warn "Skipping build (reusing $IMAGE)."
 fi
 
 log "Starting stack (server + MySQL) via docker compose..."
