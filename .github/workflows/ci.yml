@@ -36,6 +36,11 @@ jobs:
       - name: Run Server Tests
         run: ./gradlew test -x webapp
 
+      # Integration tests (*IT) boot the full Spring context against a PostgreSQL Testcontainer.
+      # They are excluded from the `test` task, so run them explicitly (ubuntu-latest provides Docker).
+      - name: Run Integration Tests
+        run: ./gradlew integrationTest -x webapp
+
       - name: Check Client Formatting
         run: pnpm run prettier:check
 
@@ -77,7 +82,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       # Runs the server (gradlew bootRun) and client (pnpm start) on the runner
-      # against MySQL in a container, then runs Playwright. Same path as the
+      # against PostgreSQL in a container, then runs Playwright. Same path as the
       # local fast runner; avoids the docker-image client-packaging issue.
       - name: Run E2E tests
         run: ./run-e2e-tests-local-fast.sh

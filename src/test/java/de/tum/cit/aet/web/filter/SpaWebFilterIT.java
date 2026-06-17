@@ -6,14 +6,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import de.tum.cit.aet.IntegrationTest;
 import de.tum.cit.aet.security.AuthoritiesConstants;
+import de.tum.cit.aet.security.WithMockJwt;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
-@WithMockUser
+@WithMockJwt
 @IntegrationTest
 class SpaWebFilterIT {
 
@@ -31,7 +31,7 @@ class SpaWebFilterIT {
     }
 
     @Test
-    @WithMockUser(authorities = AuthoritiesConstants.ADMIN)
+    @WithMockJwt(authorities = AuthoritiesConstants.ADMIN)
     void testFilterDoesNotForwardToIndexForV3ApiDocs() throws Exception {
         mockMvc.perform(get("/v3/api-docs")).andExpect(status().isOk()).andExpect(forwardedUrl(null));
     }

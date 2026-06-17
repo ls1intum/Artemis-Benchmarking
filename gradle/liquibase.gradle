@@ -9,7 +9,7 @@ dependencies {
     liquibaseRuntime "info.picocli:picocli:4.7.7"
 
     liquibaseRuntime "org.liquibase.ext:liquibase-hibernate6:${liquibaseVersion}"
-    liquibaseRuntime "com.mysql:mysql-connector-j:${mysqlVersion}"
+    liquibaseRuntime "org.postgresql:postgresql:${postgresqlVersion}"
 }
 
 project.ext.diffChangelogFile = "src/main/resources/config/liquibase/changelog/" + new Date().format("yyyyMMddHHmmss") + "_changelog.xml"
@@ -20,19 +20,21 @@ if (!project.hasProperty("runList")) {
 liquibase {
     activities {
         register("main") {
-            driver = "com.mysql.cj.jdbc.Driver"
-            url = "jdbc:mysql://localhost:3306/artemis-benchmarking"
-            username = "root"
+            driver = "org.postgresql.Driver"
+            url = "jdbc:postgresql://localhost:5432/benchmarking"
+            username = "benchmarking"
+            password = "benchmarking"
             changelogFile = "src/main/resources/config/liquibase/master.xml"
             logLevel = "debug"
             classpath = "src/main/resources/"
         }
         register("diffLog") {
-            driver = "com.mysql.cj.jdbc.Driver"
-            url = "jdbc:mysql://localhost:3306/artemis-benchmarking"
-            username = "root"
+            driver = "org.postgresql.Driver"
+            url = "jdbc:postgresql://localhost:5432/benchmarking"
+            username = "benchmarking"
+            password = "benchmarking"
             changelogFile = project.ext.diffChangelogFile
-            referenceUrl = "hibernate:spring:de.tum.cit.aet.domain?dialect=org.hibernate.dialect.MySQL8Dialect&hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.hibernate.SpringImplicitNamingStrategy"
+            referenceUrl = "hibernate:spring:de.tum.cit.aet.domain?dialect=org.hibernate.dialect.PostgreSQLDialect&hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy&hibernate.implicit_naming_strategy=org.springframework.boot.hibernate.SpringImplicitNamingStrategy"
             logLevel = "debug"
             classpath = "${layout.buildDirectory.dir("classes/java/main")}"
         }

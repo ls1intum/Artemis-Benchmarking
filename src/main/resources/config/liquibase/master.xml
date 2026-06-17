@@ -3,31 +3,5 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
-    <property name="now" value="now()" dbms="mysql"/>
-    <property name="floatType" value="float" dbms="mysql"/>
-    <property name="clobType" value="clob" dbms="mysql"/>
-    <property name="blobType" value="longblob" dbms="mysql"/>
-    <property name="uuidType" value="varchar(36)" dbms="mysql"/>
-    <property name="datetimeType" value="datetime(6)" dbms="mysql"/>
-
     <include file="config/liquibase/changelog/00000000000000_initial_schema.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000002_simulation_persistency.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000004_add_simulation_mode.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000005_add_simulation_creation_date.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000006_add_artemis_users.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000007_add_user_range.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000008_add_commit_range.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000009_increase_token_length.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000010_add_simulation_schedule.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000011_add_next_scheduled_run.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000012_add_schedule_subscriber.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000013_add_instructor_credentials.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000014_add_run_end_date.xml" relativeToChangelogFile="false"/>
-    <include file="config/liquibase/changelog/00000000000015_add_local_ci_status.xml" relativeToChangelogFile="false"/>
-    <include file="/config/liquibase/changelog/00000000000016_add_stats_by_second.xml" relativeToChangelogFile="false"/>
-    <include file="/config/liquibase/changelog/00000000000017_rename_ci_status.xml" relativeToChangelogFile="false"/>
-    <include file="/config/liquibase/changelog/00000000000018_add_ide_type.xml" relativeToChangelogFile="false"/>
-    <include file="/config/liquibase/changelog/00000000000019_add_token_SSH_key_to_user.xml" relativeToChangelogFile="false"/>
-    <include file="/config/liquibase/changelog/00000000000020_add_participation_mode_percentages.xml" relativeToChangelogFile="false"/>
-    <include file="/config/liquibase/changelog/00000000000021_add_ci_status_start_time.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

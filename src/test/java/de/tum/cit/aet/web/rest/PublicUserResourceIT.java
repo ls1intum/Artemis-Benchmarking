@@ -9,6 +9,7 @@ import de.tum.cit.aet.IntegrationTest;
 import de.tum.cit.aet.domain.User;
 import de.tum.cit.aet.repository.UserRepository;
 import de.tum.cit.aet.security.AuthoritiesConstants;
+import de.tum.cit.aet.security.WithMockJwt;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Integration tests for the {@link PublicUserResource} REST controller.
  */
 @AutoConfigureMockMvc
-@WithMockUser(authorities = AuthoritiesConstants.ADMIN)
+@WithMockJwt(authorities = AuthoritiesConstants.ADMIN)
 @IntegrationTest
 class PublicUserResourceIT {
 

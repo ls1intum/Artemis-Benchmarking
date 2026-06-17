@@ -1,7 +1,7 @@
 # End-to-end tests
 
 [Playwright](https://playwright.dev) end-to-end tests that drive the real application
-(Angular client → Spring Boot server → MySQL) in a browser. They verify that the
+(Angular client → Spring Boot server → PostgreSQL) in a browser. They verify that the
 deployed app actually works, not just that it compiles.
 
 - Specs live in `e2e/*.spec.ts`, shared helpers in `e2e/helpers.ts`.
@@ -14,7 +14,7 @@ deployed app actually works, not just that it compiles.
 - **Node** ≥ 24.15.0 and **pnpm** (`corepack enable` activates the pinned version).
 - **Java 25** (to build/run the server).
 - **Docker** — required by the docker runner, and by the fast runner unless you already
-  have a local MySQL on `:3307`.
+  have a local PostgreSQL on `:5432`.
 - Client dependencies and the Chromium browser:
   ```bash
   pnpm install
@@ -31,7 +31,7 @@ arguments to Playwright (`--ui`, `--headed`, a test filter, …).
 ### Realistic (Docker) — `./run-e2e-tests-local.sh`
 
 Builds the production WAR, wraps it in a runtime image, and runs the stack (server +
-MySQL) via `docker compose`; tests run against `http://127.0.0.1:8080`. Slower, but it
+PostgreSQL) via `docker compose`; tests run against `http://127.0.0.1:8080`. Slower, but it
 exercises the production artifact.
 
 ```bash
@@ -48,7 +48,7 @@ exercises the production artifact.
 ### Fast (host) — `./run-e2e-tests-local-fast.sh`
 
 Runs the server (`gradlew bootRun`) and client (`pnpm start`) directly on the host
-against MySQL on `:3307` (an existing instance is reused, otherwise a throwaway
+against PostgreSQL on `:5432` (an existing instance is reused, otherwise a throwaway
 container is started); tests run against `http://localhost:9000`. Much faster, and
 services stay up between runs.
 
@@ -79,7 +79,7 @@ HTML report as an artifact.
 - The seeded admin login is **`admin` / `admin`** (`user` / `user` also exists); see
   `src/main/resources/config/liquibase/data/user.csv`.
 - The Docker stack uses the `prod` profile and a fresh database each run; the fast runner
-  uses the `dev` profile against your local `:3307` MySQL.
+  uses the `dev` profile against your local `:5432` PostgreSQL.
 
 ## Writing new tests
 
@@ -104,7 +104,7 @@ HTML report as an artifact.
   sign-in.
 - _Authenticated_ (`authenticated.spec.ts`): admin navigation after login; the
   simulations page loads cleanly; the metrics page renders live JVM data.
-- _Full-vertical CRUD_ (`user-management-crud.spec.ts`, UI → REST → MySQL): create a user,
+- _Full-vertical CRUD_ (`user-management-crud.spec.ts`, UI → REST → PostgreSQL): create a user,
   list it, persist across reload, view its detail, edit its name, grant the admin
   authority, deactivate, reactivate, cancel a delete, and delete it.
 

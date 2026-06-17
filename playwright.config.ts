@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// The e2e suite runs against a full stack (Angular client + Spring Boot server + MySQL).
+// The e2e suite runs against a full stack (Angular client + Spring Boot server + PostgreSQL).
 // Locally and in CI the stack is started via docker compose before the tests run; override
 // the target with E2E_BASE_URL if needed.
 const baseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:8080';

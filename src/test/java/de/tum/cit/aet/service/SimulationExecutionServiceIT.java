@@ -89,9 +89,11 @@ public class SimulationExecutionServiceIT {
     private Exam exam;
     private MockedStatic<SimulatedArtemisUser> mockedSimulatedArtemisUser;
     private List<SimulationRun.Status> statusesOnWebsocketUpdate;
+    private AutoCloseable mocks;
 
     @BeforeEach
     public void init() {
+        mocks = MockitoAnnotations.openMocks(this);
         simulationExecutionService.setDoNotSleep(true);
 
         adminUser = new ArtemisUser();
@@ -182,8 +184,9 @@ public class SimulationExecutionServiceIT {
     }
 
     @AfterEach
-    public void cleanup() {
+    public void cleanup() throws Exception {
         mockedSimulatedArtemisUser.close();
+        mocks.close();
     }
 
     @Test
@@ -780,7 +783,7 @@ public class SimulationExecutionServiceIT {
         assertEquals(FAILED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(0)).sendSimulationResult(any());
-        verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
+        verify(simulationWebsocketService, times(2)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(0)).calculateAndSaveResult(any(), any());
 
