@@ -14,31 +14,31 @@ allowBuilds:
   lmdb: true
   msgpackr-extract: true
 
-# Relax @swimlane/ngx-charts' Angular peer-dep range so Angular 21 satisfies it.
-# (ngx-charts declares 18.x || 19.x || 20.x, but works fine on 21.x.)
+# Relax @swimlane/ngx-charts' Angular peer-dep range so Angular 22 satisfies it.
+# (ngx-charts declares 19.x || 20.x || 21.x, but works fine on 22.x.)
 peerDependencyRules:
   allowedVersions:
-    '@swimlane/ngx-charts>@angular/animations': '21'
-    '@swimlane/ngx-charts>@angular/cdk': '21'
-    '@swimlane/ngx-charts>@angular/common': '21'
-    '@swimlane/ngx-charts>@angular/core': '21'
-    '@swimlane/ngx-charts>@angular/forms': '21'
-    '@swimlane/ngx-charts>@angular/platform-browser': '21'
-    '@swimlane/ngx-charts>@angular/platform-browser-dynamic': '21'
+    '@swimlane/ngx-charts>@angular/animations': '22'
+    '@swimlane/ngx-charts>@angular/cdk': '22'
+    '@swimlane/ngx-charts>@angular/common': '22'
+    '@swimlane/ngx-charts>@angular/core': '22'
+    '@swimlane/ngx-charts>@angular/forms': '22'
+    '@swimlane/ngx-charts>@angular/platform-browser': '22'
+    '@swimlane/ngx-charts>@angular/platform-browser-dynamic': '22'
 
 # Transitive dependency overrides for known vulnerable or otherwise undesirable
 # versions. Keep this list pruned — overrides outlive the security fix that
 # motivated them and can block legitimate upstream upgrades.
 overrides:
-  '@swimlane/ngx-charts>@angular/animations': ^21.2.13
-  '@swimlane/ngx-charts>@angular/cdk': ^21.2.13
-  '@swimlane/ngx-charts>@angular/common': ^21.2.13
-  '@swimlane/ngx-charts>@angular/compiler': ^21.2.13
-  '@swimlane/ngx-charts>@angular/core': ^21.2.13
-  '@swimlane/ngx-charts>@angular/forms': ^21.2.13
-  '@swimlane/ngx-charts>@angular/platform-browser': ^21.2.13
-  '@swimlane/ngx-charts>@angular/platform-browser-dynamic': ^21.2.13
-  '@swimlane/ngx-charts>@angular/router': ^21.2.13
+  '@swimlane/ngx-charts>@angular/animations': ^22.0.0
+  '@swimlane/ngx-charts>@angular/cdk': ^22.0.0
+  '@swimlane/ngx-charts>@angular/common': ^22.0.0
+  '@swimlane/ngx-charts>@angular/compiler': ^22.0.0
+  '@swimlane/ngx-charts>@angular/core': ^22.0.0
+  '@swimlane/ngx-charts>@angular/forms': ^22.0.0
+  '@swimlane/ngx-charts>@angular/platform-browser': ^22.0.0
+  '@swimlane/ngx-charts>@angular/platform-browser-dynamic': ^22.0.0
+  '@swimlane/ngx-charts>@angular/router': ^22.0.0
   '@swimlane/ngx-charts>rxjs': ^7.8.2
   braces: 3.0.3
   cookie: 1.1.1
