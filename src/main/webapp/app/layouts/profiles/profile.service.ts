@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map, shareReplay } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { catchError, map, shareReplay } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
 
 import { ApplicationConfigService } from 'app/core/config/application-config.service';
 import { InfoResponse, ProfileInfo } from './profile-info.model';
@@ -36,6 +36,10 @@ export class ProfileService {
         }
         return profileInfo;
       }),
+      // If the management/info endpoint is unavailable (e.g. backend not reachable),
+      // degrade gracefully to default profile info instead of letting the error
+      // propagate uncaught to every subscriber (navbar, footer, page-ribbon, ...).
+      catchError(() => of(new ProfileInfo())),
       shareReplay(),
     );
     return this.profileInfo$;
