@@ -209,10 +209,11 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
         verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
-        verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(
-            1,
-            new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
-        );
+        verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(1, new SimulatedArtemisStudent[] {
+            simulatedArtemisStudent1,
+            simulatedArtemisStudent2,
+            simulatedArtemisStudent3,
+        });
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
 
@@ -281,10 +282,11 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
         verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
-        verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(
-            1,
-            new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
-        );
+        verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(1, new SimulatedArtemisStudent[] {
+            simulatedArtemisStudent1,
+            simulatedArtemisStudent2,
+            simulatedArtemisStudent3,
+        });
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
         verify(simulatedArtemisAdmin, timeout(1000).times(0)).deleteCourse(anyLong());
@@ -627,10 +629,11 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(1)).createExam(course);
         verify(simulatedArtemisAdmin, times(1)).createExamExercises(1, exam);
-        verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(
-            1,
-            new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
-        );
+        verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(1, new SimulatedArtemisStudent[] {
+            simulatedArtemisStudent1,
+            simulatedArtemisStudent2,
+            simulatedArtemisStudent3,
+        });
         verify(simulatedArtemisAdmin, times(1)).registerStudentsForExam(1, 1);
         verify(simulatedArtemisAdmin, times(1)).prepareExam(1, 1);
         verify(simulatedArtemisAdmin, timeout(1000).times(1)).deleteCourse(1);
@@ -888,10 +891,11 @@ public class SimulationExecutionServiceIT {
         verify(simulatedArtemisAdmin, times(0)).getCourse(anyLong());
         verify(simulatedArtemisAdmin, times(0)).createExam(any());
         verify(simulatedArtemisAdmin, times(0)).createExamExercises(anyLong(), any());
-        verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(
-            1,
-            new SimulatedArtemisStudent[] { simulatedArtemisStudent1, simulatedArtemisStudent2, simulatedArtemisStudent3 }
-        );
+        verify(simulatedArtemisAdmin, times(1)).registerStudentsForCourse(1, new SimulatedArtemisStudent[] {
+            simulatedArtemisStudent1,
+            simulatedArtemisStudent2,
+            simulatedArtemisStudent3,
+        });
         verify(simulatedArtemisAdmin, times(0)).registerStudentsForExam(anyLong(), anyLong());
         verify(simulatedArtemisAdmin, times(0)).prepareExam(anyLong(), anyLong());
         verify(simulatedArtemisAdmin, timeout(1000).times(1)).deleteCourse(1);

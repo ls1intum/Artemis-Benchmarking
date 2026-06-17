@@ -159,14 +159,12 @@ public class MailService {
         context.setVariable("result", result);
         context.setVariable(BASE_URL, baseUrl);
         String subject = "Artemis-Benchmarking - Result for scheduled run";
-        schedule
-            .getSubscribers()
-            .forEach(subscriber -> {
-                context.setVariable("subscriber", subscriber);
-                String content = templateEngine.process("mail/subscriptionResultEmail", context);
-                log.debug("Sending run result email to '{}'", subscriber.getEmail());
-                self.sendEmail(subscriber.getEmail(), subject, content, false, true);
-            });
+        schedule.getSubscribers().forEach(subscriber -> {
+            context.setVariable("subscriber", subscriber);
+            String content = templateEngine.process("mail/subscriptionResultEmail", context);
+            log.debug("Sending run result email to '{}'", subscriber.getEmail());
+            self.sendEmail(subscriber.getEmail(), subject, content, false, true);
+        });
     }
 
     /**
@@ -194,13 +192,11 @@ public class MailService {
         }
         context.setVariable(BASE_URL, baseUrl);
         String subject = "Artemis-Benchmarking - Scheduled run failed";
-        schedule
-            .getSubscribers()
-            .forEach(subscriber -> {
-                context.setVariable("subscriber", subscriber);
-                String content = templateEngine.process("mail/subscriptionFailureEmail", context);
-                log.debug("Sending run failure result email to '{}'", subscriber.getEmail());
-                self.sendEmail(subscriber.getEmail(), subject, content, false, true);
-            });
+        schedule.getSubscribers().forEach(subscriber -> {
+            context.setVariable("subscriber", subscriber);
+            String content = templateEngine.process("mail/subscriptionFailureEmail", context);
+            log.debug("Sending run failure result email to '{}'", subscriber.getEmail());
+            self.sendEmail(subscriber.getEmail(), subject, content, false, true);
+        });
     }
 }

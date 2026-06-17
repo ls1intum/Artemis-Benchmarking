@@ -191,20 +191,18 @@ class SimulatedArtemisAdminTest {
     }
 
     private static Mono<String> extractMultipartPart(ServerRequest request, String partName) {
-        return request
-            .body(BodyExtractors.toMultipartData())
-            .flatMap(parts -> {
-                Part part = parts.getFirst(partName);
-                if (part == null) {
-                    return Mono.just("");
-                }
-                return DataBufferUtils.join(part.content()).map(buffer -> {
-                    byte[] bytes = new byte[buffer.readableByteCount()];
-                    buffer.read(bytes);
-                    DataBufferUtils.release(buffer);
-                    return new String(bytes, StandardCharsets.UTF_8);
-                });
+        return request.body(BodyExtractors.toMultipartData()).flatMap(parts -> {
+            Part part = parts.getFirst(partName);
+            if (part == null) {
+                return Mono.just("");
+            }
+            return DataBufferUtils.join(part.content()).map(buffer -> {
+                byte[] bytes = new byte[buffer.readableByteCount()];
+                buffer.read(bytes);
+                DataBufferUtils.release(buffer);
+                return new String(bytes, StandardCharsets.UTF_8);
             });
+        });
     }
 
     private static CapturedRequest findRequest(Queue<CapturedRequest> captured, String path) {

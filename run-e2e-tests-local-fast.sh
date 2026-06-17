@@ -125,7 +125,7 @@ else
   docker rm -f "$MYSQL_CONTAINER" >/dev/null 2>&1 || true
   docker run -d --name "$MYSQL_CONTAINER" -p 127.0.0.1:3307:3306 \
     -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_DATABASE=artemis-benchmarking \
-    mysql:9.7.0 mysqld --lower_case_table_names=1 --tls-version='' \
+    mysql:9.7.1 mysqld --lower_case_table_names=1 --tls-version='' \
     --character_set_server=utf8mb4 --explicit_defaults_for_timestamp >/dev/null
   elapsed=0
   until docker exec "$MYSQL_CONTAINER" mysqladmin ping -h 127.0.0.1 --silent >/dev/null 2>&1; do

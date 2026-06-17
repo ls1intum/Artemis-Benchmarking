@@ -31,12 +31,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.internalServerError().build();
     }
 
-    @ExceptionHandler(
-        {
-            org.springframework.http.converter.HttpMessageNotWritableException.class,
-            com.fasterxml.jackson.databind.exc.InvalidDefinitionException.class,
-        }
-    )
+    @ExceptionHandler({
+        org.springframework.http.converter.HttpMessageNotWritableException.class,
+        com.fasterxml.jackson.databind.exc.InvalidDefinitionException.class,
+    })
     public ResponseEntity<Object> handleSerialization(Exception ex, WebRequest req) {
         log.error("Serialization error: {}", ex.getMessage(), ex);
         return ResponseEntity.internalServerError().build();

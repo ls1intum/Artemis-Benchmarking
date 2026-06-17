@@ -10,14 +10,12 @@ import java.util.Set;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 // Annotation necessary to distinguish between concrete implementations of Exercise when deserializing from JSON
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(value = StudentParticipation.class, name = "student"),
-        @JsonSubTypes.Type(value = ProgrammingExerciseStudentParticipation.class, name = "programming"),
-        @JsonSubTypes.Type(value = TemplateProgrammingExerciseParticipation.class, name = "template"),
-        @JsonSubTypes.Type(value = SolutionProgrammingExerciseParticipation.class, name = "solution"),
-    }
-)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = StudentParticipation.class, name = "student"),
+    @JsonSubTypes.Type(value = ProgrammingExerciseStudentParticipation.class, name = "programming"),
+    @JsonSubTypes.Type(value = TemplateProgrammingExerciseParticipation.class, name = "template"),
+    @JsonSubTypes.Type(value = SolutionProgrammingExerciseParticipation.class, name = "solution"),
+})
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Participation extends DomainObject {
 
