@@ -60,16 +60,14 @@ public class UserService {
      */
     public Optional<User> activateRegistration(String key) {
         log.debug("Activating user for activation key {}", key);
-        return userRepository
-            .findOneByActivationKey(key)
-            .map(user -> {
-                // activate given user for the registration key.
-                user.setActivated(true);
-                user.setActivationKey(null);
-                this.clearUserCaches(user);
-                log.debug("Activated user: {}", user);
-                return user;
-            });
+        return userRepository.findOneByActivationKey(key).map(user -> {
+            // activate given user for the registration key.
+            user.setActivated(true);
+            user.setActivationKey(null);
+            this.clearUserCaches(user);
+            log.debug("Activated user: {}", user);
+            return user;
+        });
     }
 
     /**
@@ -196,13 +194,11 @@ public class UserService {
      * @param login the login of the user to delete.
      */
     public void deleteUser(String login) {
-        userRepository
-            .findOneByLogin(login)
-            .ifPresent(user -> {
-                userRepository.delete(user);
-                this.clearUserCaches(user);
-                log.debug("Deleted User: {}", user);
-            });
+        userRepository.findOneByLogin(login).ifPresent(user -> {
+            userRepository.delete(user);
+            this.clearUserCaches(user);
+            log.debug("Deleted User: {}", user);
+        });
     }
 
     /**

@@ -788,8 +788,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             case ONLINE_IDE -> throw new IllegalStateException("Cannot push to Online IDE via jgit");
             case PASSWORD -> git.push().setCredentialsProvider(getCredentialsProvider()).call();
             case PARTICIPATION_TOKEN -> git.push().setCredentialsProvider(getCredentialsProviderWithToken()).call();
-            case SSH -> git
-                .push()
+            case SSH -> git.push()
                 .setTransportConfigCallback(transport -> {
                     SshTransport sshTransport = (SshTransport) transport;
                     sshTransport.setSshSessionFactory(getSessionFactory(keyPair));
@@ -894,7 +893,12 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat fetchRepository(Long participationId) {
         long start = System.nanoTime();
-        webClient.get().uri("api/programming/repository/" + participationId).retrieve().toBodilessEntity().block();
+        webClient
+            .get()
+            .uri("api/programming/repository/" + participationId)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
         return new RequestStat(now(), System.nanoTime() - start, REPOSITORY_INFO);
     }
 
@@ -912,7 +916,12 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat fetchFiles(Long participationId) {
         long start = System.nanoTime();
-        webClient.get().uri("api/programming/repository/" + participationId + "/files").retrieve().toBodilessEntity().block();
+        webClient
+            .get()
+            .uri("api/programming/repository/" + participationId + "/files")
+            .retrieve()
+            .toBodilessEntity()
+            .block();
         return new RequestStat(now(), System.nanoTime() - start, REPOSITORY_FILES);
     }
 
@@ -920,7 +929,12 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         String plantUmlString =
             "%40startuml%0A%0Aclass%20Client%20%7B%0A%7D%0A%0Aclass%20Policy%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2Bconfigure()%3C%2Fcolor%3E%0A%7D%0A%0Aclass%20Context%20%7B%0A%20%20%3Ccolor%3Agrey%3E-dates%3A%20List%3CDate%3E%3C%2Fcolor%3E%0A%20%20%3Ccolor%3Agrey%3E%2Bsort()%3C%2Fcolor%3E%0A%7D%0A%0Ainterface%20SortStrategy%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2BperformSort(List%3CDate%3E)%3C%2Fcolor%3E%0A%7D%0A%0Aclass%20BubbleSort%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2BperformSort(List%3CDate%3E)%3C%2Fcolor%3E%0A%7D%0A%0Aclass%20MergeSort%20%7B%0A%20%20%3Ccolor%3Agrey%3E%2BperformSort(List%3CDate%3E)%3C%2Fcolor%3E%0A%7D%0A%0AMergeSort%20-up-%7C%3E%20SortStrategy%20%23grey%0ABubbleSort%20-up-%7C%3E%20SortStrategy%20%23grey%0APolicy%20-right-%3E%20Context%20%23grey%3A%20context%0AContext%20-right-%3E%20SortStrategy%20%23grey%3A%20sortAlgorithm%0AClient%20.down.%3E%20Policy%0AClient%20.down.%3E%20Context%0A%0Ahide%20empty%20fields%0Ahide%20empty%20methods%0A%0A%40enduml&useDarkTheme=true";
-        webClient.get().uri("api/programming/plantuml/svg?plantuml=" + plantUmlString).retrieve().toBodilessEntity().block();
+        webClient
+            .get()
+            .uri("api/programming/plantuml/svg?plantuml=" + plantUmlString)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -1102,7 +1116,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     }
 
     private String getSshCloneUrl(String cloneUrl) {
-        var artemisServerHostname = artemisUrl.substring(artemisUrl.indexOf("//") + 2).split("/")[0].split(":")[0];
+        var artemisServerHostname = artemisUrl
+            .substring(artemisUrl.indexOf("//") + 2)
+            .split("/")[0]
+            .split(":")[0];
         return "ssh://git@" + artemisServerHostname + ":7921" + cloneUrl.substring(cloneUrl.indexOf("/git/"));
     }
 

@@ -252,8 +252,7 @@ public abstract class SimulatedArtemisUser {
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30 * 1000)
             .secure(spec -> {
                 try {
-                    spec
-                        .sslContext(TcpSslContextSpec.forClient().sslContext())
+                    spec.sslContext(TcpSslContextSpec.forClient().sslContext())
                         .handshakeTimeout(Duration.ofSeconds(30))
                         .closeNotifyFlushTimeout(Duration.ofSeconds(30))
                         .closeNotifyReadTimeout(Duration.ofSeconds(30));

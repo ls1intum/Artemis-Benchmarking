@@ -241,7 +241,7 @@ public class SimulationDataService {
             switch (simulation.getMode()) {
                 case CREATE_COURSE_AND_EXAM -> true;
                 case EXISTING_COURSE_UNPREPARED_EXAM, EXISTING_COURSE_PREPARED_EXAM -> simulation.getCourseId() > 0 &&
-                simulation.getExamId() > 0;
+                    simulation.getExamId() > 0;
                 case EXISTING_COURSE_CREATE_EXAM -> simulation.getCourseId() > 0;
             }
         );
