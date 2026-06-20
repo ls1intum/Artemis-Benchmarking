@@ -11,6 +11,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -215,7 +216,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
         return webClient
             .post()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "core", "admin", "courses").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "admin", "courses").build())
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData("course", courseDto))
             .retrieve()
@@ -246,7 +247,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
         webClient
             .delete()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "core", "admin", "cancel-all-queued-jobs").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "admin", "cancel-all-queued-jobs").build())
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -264,7 +265,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
         webClient
             .delete()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "core", "admin", "cancel-all-running-jobs").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "admin", "cancel-all-running-jobs").build())
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -495,7 +496,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
                             .post()
                             .uri(uriBuilder ->
                                 uriBuilder
-                                    .pathSegment("api", "core", "courses", String.valueOf(courseId), "students", students[i].username)
+                                    .pathSegment("api", "course", "courses", String.valueOf(courseId), "students", students[i].username)
                                     .build()
                             )
                             .retrieve()
@@ -554,7 +555,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         }
         return webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "core", "courses", String.valueOf(courseId)).build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "course", "courses", String.valueOf(courseId)).build())
             .retrieve()
             .bodyToMono(Course.class)
             .block();
@@ -571,7 +572,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
 
         webClient
             .delete()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "core", "admin", "courses", String.valueOf(courseId)).build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "admin", "courses", String.valueOf(courseId)).build())
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -611,7 +612,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
         var user = ArtemisUserDTO.forCreation(username, password, firstName, lastName, email);
-        webClient.post().uri("api/core/admin/users").bodyValue(user).retrieve().toBodilessEntity().block();
+        webClient.post().uri("api/account/admin/users").bodyValue(user).retrieve().toBodilessEntity().block();
     }
 
     /**
@@ -624,7 +625,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
     public List<DomainObject> getBuildQueue(long courseId) {
         return webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "programming", "courses", String.valueOf(courseId), "queued-jobs").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "localci", "courses", String.valueOf(courseId), "queued-jobs").build())
             .retrieve()
             .bodyToFlux(DomainObject.class)
             .collectList()
@@ -638,13 +639,44 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
      * @return the participations for the given exercise
      */
     public List<Participation> getParticipations(long exerciseId) {
-        return webClient
-            .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exercise", "exercises", String.valueOf(exerciseId), "participations").build())
-            .retrieve()
-            .bodyToFlux(Participation.class)
-            .collectList()
-            .block();
+        // Artemis removed the unpaged GET .../participations; instructor retrieval is now the paged
+        // management endpoint. We only need the participation ids, so we page through all of them.
+        List<Participation> participations = new ArrayList<>();
+        final int pageSize = 200;
+        int page = 0; // Artemis uses 0-indexed pages (Spring PageRequest)
+        while (true) {
+            final int currentPage = page;
+            List<ParticipationManagementDTO> pageContent = webClient
+                .get()
+                .uri(uriBuilder ->
+                    uriBuilder
+                        .pathSegment("api", "exercise", "exercises", String.valueOf(exerciseId), "participations", "page")
+                        .queryParam("page", currentPage)
+                        .queryParam("pageSize", pageSize)
+                        .queryParam("sortingOrder", "ASCENDING")
+                        .queryParam("sortedColumn", "id")
+                        .queryParam("searchTerm", "")
+                        .build()
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, response -> logRequestError("Get participations", response))
+                .bodyToFlux(ParticipationManagementDTO.class)
+                .collectList()
+                .block();
+            if (pageContent == null || pageContent.isEmpty()) {
+                break;
+            }
+            for (var dto : pageContent) {
+                var participation = new Participation();
+                participation.setId(dto.participationId());
+                participations.add(participation);
+            }
+            if (pageContent.size() < pageSize) {
+                break;
+            }
+            page++;
+        }
+        return participations;
     }
 
     /**

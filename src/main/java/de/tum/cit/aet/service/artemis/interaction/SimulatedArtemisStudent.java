@@ -159,7 +159,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             requestStats.add(getExerciseDetails(courseProgrammingExerciseId));
         }
         if (isIrisEnabled) {
-            requestStats.addAll(List.of(getIrisStatus(), getIrisChatHistory(courseId)));
+            requestStats.addAll(List.of(getIrisStatus(courseId), getIrisChatHistory(courseId)));
         }
         requestStats.add(navigateIntoExam());
         requestStats.add(getTestExams());
@@ -203,7 +203,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat getSystemNotifications() {
         long start = System.nanoTime();
-        webClient.get().uri("api/core/public/system-notifications/active").retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/notification/public/system-notifications/active").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -215,7 +215,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat getGlobalNotificationSettings() {
         long start = System.nanoTime();
-        webClient.get().uri("api/communication/global-notification-settings").retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/notification/global-notification-settings").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -250,7 +250,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat getCourses() {
         long start = System.nanoTime();
-        webClient.get().uri("api/core/courses/for-dashboard").retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/course/courses/for-dashboard").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -258,7 +258,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         CourseDashboardDTO courseDashboard = webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "core", "courses", courseIdString, "for-dashboard").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "course", "courses", courseIdString, "for-dashboard").build())
             .retrieve()
             .bodyToMono(CourseDashboardDTO.class)
             .block();
@@ -303,7 +303,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "communication", "notification", courseIdString, "settings").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "notification", "courses", courseIdString, "settings").build())
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -318,7 +318,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "communication", "notification", "info").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "notification", "courses", "info").build())
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -383,7 +383,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat getCoursesDropdown() {
         long start = System.nanoTime();
-        webClient.get().uri("api/core/courses/for-dropdown").retrieve().toBodilessEntity().block();
+        webClient.get().uri("api/course/courses/for-dropdown").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -684,7 +684,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .get()
             .uri(uriBuilder ->
                 uriBuilder
-                    .pathSegment("api", "core", "account", "participation-vcs-access-token")
+                    .pathSegment("api", "account", "participation-vcs-access-token")
                     .queryParam("participationId", participationId)
                     .build()
             )
@@ -1123,11 +1123,11 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return "ssh://git@" + artemisServerHostname + ":7921" + cloneUrl.substring(cloneUrl.indexOf("/git/"));
     }
 
-    private RequestStat getIrisStatus() {
+    private RequestStat getIrisStatus(long courseId) {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "iris", "status").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "iris", "courses", String.valueOf(courseId), "status").build())
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -1138,7 +1138,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "iris", "chat-history", String.valueOf(courseId), "sessions").build())
+            .uri(uriBuilder ->
+                uriBuilder.pathSegment("api", "iris", "chat", "courses", String.valueOf(courseId), "sessions", "overview").build()
+            )
             .retrieve()
             .toBodilessEntity()
             .block();

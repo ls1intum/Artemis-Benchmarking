@@ -37,7 +37,7 @@ class SimulatedArtemisAdminTest {
         RouterFunction<ServerResponse> router = RouterFunctions.route()
             .POST("/api/core/public/authenticate", request -> captureWithoutBody(request, captured, loginResponse()))
             .GET("/api/core/public/account", request -> captureWithoutBody(request, captured, accountResponse()))
-            .POST("/api/core/admin/courses", request ->
+            .POST("/api/admin/courses", request ->
                 captureMultipart(request, captured, "course", HttpStatus.CREATED, "{\"id\":1,\"title\":\"Temporary Benchmarking Course\"}")
             )
             .build();
@@ -48,7 +48,7 @@ class SimulatedArtemisAdminTest {
 
         assertNotNull(created);
 
-        CapturedRequest createCourseRequest = findRequest(captured, "/api/core/admin/courses");
+        CapturedRequest createCourseRequest = findRequest(captured, "/api/admin/courses");
         assertNotNull(createCourseRequest);
 
         String body = createCourseRequest.body();
