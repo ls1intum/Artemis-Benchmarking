@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+      The `simulation` table column was originally created as `onlineIde_percentage` (mixed case).
+      This was harmless on case-insensitive MySQL, but on PostgreSQL Liquibase quotes mixed-case
+      identifiers, so the column did not match the entity's lowercase mapping
+      (Simulation.onlineIdePercentage -> "onlineide_percentage"). As a result Hibernate's
+      `select ... onlineide_percentage ... from simulation` failed with
+      "column onlineide_percentage does not exist", breaking `GET /api/simulations`.
+
+      Rename the column to lowercase so it matches the entity on PostgreSQL. The precondition
+      makes this idempotent: it only runs where the mixed-case column still exists (fresh installs
+      and not-yet-migrated environments), and is marked as ran elsewhere.
+    -->
+    <changeSet id="20260620120000-fix-onlineide-percentage-case" author="benchmarking">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                SELECT count(*) FROM information_schema.columns
+                WHERE table_name = 'simulation' AND column_name = 'onlineIde_percentage'
+            </sqlCheck>
+        </preConditions>
+        <renameColumn tableName="simulation"
+                      oldColumnName="onlineIde_percentage"
+                      newColumnName="onlineide_percentage"
+                      columnDataType="double"/>
+    </changeSet>
+</databaseChangeLog>
