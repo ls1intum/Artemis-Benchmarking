@@ -1,0 +1,52 @@
+name: Artemis Endpoint Smoke Test
+
+# Periodically verifies that the REST endpoints the benchmark calls still exist on a live
+# Artemis server. Artemis occasionally moves/renames endpoints (e.g. the API modularization),
+# and the unit tests mostly mock the HTTP layer, so only a live call catches the drift.
+#
+# Configure the target + credentials as repository secrets (a stable account on a test server,
+# e.g. an admin on TS3). Without them the job skips, so it stays green until configured:
+#   secrets: ARTEMIS_SMOKE_URL, ARTEMIS_SMOKE_USER, ARTEMIS_SMOKE_PASSWORD
+#            (optional) ARTEMIS_SMOKE_ADMIN_USER, ARTEMIS_SMOKE_ADMIN_PASSWORD
+#   vars:    (optional) ARTEMIS_SMOKE_COURSE_ID  # a course the account can see, to exercise
+#                                                # course-scoped endpoints
+
+on:
+  schedule:
+    - cron: '17 6 * * *' # daily at 06:17 UTC
+  workflow_dispatch:
+    inputs:
+      artemis_url:
+        description: 'Override Artemis base URL (defaults to the ARTEMIS_SMOKE_URL secret)'
+        required: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check configuration
+        id: cfg
+        env:
+          ARTEMIS_URL: ${{ github.event.inputs.artemis_url || secrets.ARTEMIS_SMOKE_URL }}
+          SMOKE_USER: ${{ secrets.ARTEMIS_SMOKE_USER }}
+          SMOKE_PASSWORD: ${{ secrets.ARTEMIS_SMOKE_PASSWORD }}
+        run: |
+          if [ -z "$ARTEMIS_URL" ] || [ -z "$SMOKE_USER" ] || [ -z "$SMOKE_PASSWORD" ]; then
+            echo "::notice::Smoke test not configured (set ARTEMIS_SMOKE_URL/USER/PASSWORD secrets); skipping."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run endpoint smoke test
+        if: steps.cfg.outputs.configured == 'true'
+        env:
+          ARTEMIS_URL: ${{ github.event.inputs.artemis_url || secrets.ARTEMIS_SMOKE_URL }}
+          SMOKE_USER: ${{ secrets.ARTEMIS_SMOKE_USER }}
+          SMOKE_PASSWORD: ${{ secrets.ARTEMIS_SMOKE_PASSWORD }}
+          SMOKE_ADMIN_USER: ${{ secrets.ARTEMIS_SMOKE_ADMIN_USER }}
+          SMOKE_ADMIN_PASSWORD: ${{ secrets.ARTEMIS_SMOKE_ADMIN_PASSWORD }}
+          SMOKE_COURSE_ID: ${{ vars.ARTEMIS_SMOKE_COURSE_ID }}
+        run: ./artemis-endpoint-smoke-test.sh
