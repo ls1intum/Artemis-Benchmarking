@@ -740,7 +740,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .bodyValue(studentExam)
             .retrieve()
             .toBodilessEntity()
-        .block();
+            .block();
         return new RequestStat(now(), System.nanoTime() - start, SUBMIT_STUDENT_EXAM);
     }
 
