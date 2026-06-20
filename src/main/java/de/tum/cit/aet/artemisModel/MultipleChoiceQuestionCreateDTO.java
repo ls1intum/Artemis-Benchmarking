@@ -5,6 +5,7 @@ import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public record MultipleChoiceQuestionCreateDTO(
+    String type,
     String title,
     String text,
     String hint,
@@ -31,6 +32,7 @@ public record MultipleChoiceQuestionCreateDTO(
         List<AnswerOptionCreateDTO> answerOptions
     ) {
         return new MultipleChoiceQuestionCreateDTO(
+            "multiple-choice",
             title,
             text,
             null,

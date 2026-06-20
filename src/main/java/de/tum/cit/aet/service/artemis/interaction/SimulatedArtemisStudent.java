@@ -124,6 +124,11 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
         List<RequestStat> requestStats = new ArrayList<>();
 
+        requestStats.addAll(ensureStudentExamLoaded());
+        if (studentExam == null) {
+            log.warn("Skipping exam participation for {}: student exam not available.", username);
+            return requestStats;
+        }
         requestStats.add(fetchLiveEvents());
         requestStats.addAll(handleExercises());
 
@@ -166,6 +171,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         requestStats.add(getExamSideBarData());
         requestStats.add(startExam());
 
+        if (studentExam == null) {
+            log.warn("Student exam not available after start for {}", username);
+        }
+
         return requestStats;
     }
 
@@ -185,7 +194,15 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
         List<RequestStat> requestStats = new ArrayList<>();
 
-        requestStats.add(submitStudentExam());
+        requestStats.addAll(ensureStudentExamLoaded());
+        if (studentExam == null) {
+            log.warn("Skipping exam submission for {}: student exam not available.", username);
+            return requestStats;
+        }
+        RequestStat submitStat = submitStudentExam();
+        if (submitStat != null) {
+            requestStats.add(submitStat);
+        }
         requestStats.add(loadExamSummary());
 
         return requestStats;
@@ -503,6 +520,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private List<RequestStat> handleExercises() {
         List<RequestStat> requestStats = new ArrayList<>();
+        if (studentExam == null || studentExam.getExercises() == null || studentExam.getExercises().isEmpty()) {
+            log.warn("No exercises available for {} to handle.", username);
+            return requestStats;
+        }
         for (var exercise : studentExam.getExercises()) {
             if (exercise instanceof ModelingExercise) {
                 requestStats.add(solveAndSubmitModelingExercise((ModelingExercise) exercise));
@@ -706,6 +727,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     }
 
     private RequestStat submitStudentExam() {
+        if (studentExam == null) {
+            log.warn("Cannot submit exam for {}: student exam missing.", username);
+            return null;
+        }
         long start = System.nanoTime();
         webClient
             .post()
@@ -715,8 +740,28 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .bodyValue(studentExam)
             .retrieve()
             .toBodilessEntity()
-            .block();
+        .block();
         return new RequestStat(now(), System.nanoTime() - start, SUBMIT_STUDENT_EXAM);
+    }
+
+    private List<RequestStat> ensureStudentExamLoaded() {
+        List<RequestStat> requestStats = new ArrayList<>();
+        if (studentExam != null) {
+            return requestStats;
+        }
+        if (studentExamId == null) {
+            log.debug("Student exam id missing for {}, fetching own student exam.", username);
+            requestStats.add(navigateIntoExam());
+        }
+        if (studentExamId == null) {
+            log.warn("Student exam id still missing for {}", username);
+            return requestStats;
+        }
+        requestStats.add(startExam());
+        if (studentExam == null) {
+            log.warn("Student exam conduction returned no data for {} (studentExamId={})", username, studentExamId);
+        }
+        return requestStats;
     }
 
     private RequestStat loadExamSummary() {

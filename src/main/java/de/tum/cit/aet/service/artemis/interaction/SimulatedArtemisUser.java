@@ -23,6 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpSslContextSpec;
 
@@ -172,10 +173,44 @@ public abstract class SimulatedArtemisUser {
     protected abstract void checkAccess();
 
     protected WebClient.Builder createWebClientBuilder() {
-        if (webClientBuilderSupplier != null) {
-            return webClientBuilderSupplier.get();
-        }
-        return WebClient.builder().clientConnector(new ReactorClientHttpConnector(createHttpClient()));
+        WebClient.Builder builder = webClientBuilderSupplier != null
+            ? webClientBuilderSupplier.get()
+            : WebClient.builder().clientConnector(new ReactorClientHttpConnector(createHttpClient()));
+        return builder.filter(logErrorResponses());
+    }
+
+    private ExchangeFilterFunction logErrorResponses() {
+        return (request, next) ->
+            next.exchange(request).flatMap(response -> {
+                if (!response.statusCode().isError()) {
+                    return reactor.core.publisher.Mono.just(response);
+                }
+                return response
+                    .bodyToMono(String.class)
+                    .defaultIfEmpty("")
+                    .flatMap(body -> {
+                        Logger logger = log != null ? log : org.slf4j.LoggerFactory.getLogger(SimulatedArtemisUser.class);
+                        logger.error(
+                            "Artemis request failed: {} {} -> {}. Response body: {}",
+                            request.method(),
+                            request.url(),
+                            response.statusCode(),
+                            body
+                        );
+                        return reactor.core.publisher.Mono.error(
+                            new IllegalStateException(
+                                "Artemis request failed: " +
+                                    request.method() +
+                                    " " +
+                                    request.url() +
+                                    " -> " +
+                                    response.statusCode() +
+                                    ": " +
+                                    body
+                            )
+                        );
+                    });
+            });
     }
 
     /**

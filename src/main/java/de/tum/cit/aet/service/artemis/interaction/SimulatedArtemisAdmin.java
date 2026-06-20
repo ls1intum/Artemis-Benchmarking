@@ -104,6 +104,29 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             return;
         }
 
+        var configuration = calculateExamConfiguration(examId);
+        if (configuration != null) {
+            if (
+                exam.getNumberOfExercisesInExam() == null ||
+                !exam.getNumberOfExercisesInExam().equals(configuration.numberOfExercisesInExam())
+            ) {
+                log.info(
+                    "Updating exam numberOfExercisesInExam from {} to {} based on created exercise groups",
+                    exam.getNumberOfExercisesInExam(),
+                    configuration.numberOfExercisesInExam()
+                );
+            }
+            if (exam.getExamMaxPoints() == null || !exam.getExamMaxPoints().equals(configuration.examMaxPoints())) {
+                log.info(
+                    "Updating examMaxPoints from {} to {} based on created exercise points",
+                    exam.getExamMaxPoints(),
+                    configuration.examMaxPoints()
+                );
+            }
+            exam.setNumberOfExercisesInExam(configuration.numberOfExercisesInExam());
+            exam.setExamMaxPoints(configuration.examMaxPoints());
+        }
+
         // Set start and end date to future
         exam.setVisibleDate(ZonedDateTime.now());
         exam.setStartDate(ZonedDateTime.now().plusDays(1L));
@@ -383,7 +406,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
                 MultipleChoiceQuestionCreateDTO.forBenchmarking(
                     "Question 1",
                     "What is the answer to life, the universe and everything?",
-                    2.0,
+                    1.0,
                     List.of(AnswerOptionCreateDTO.correct("42"), AnswerOptionCreateDTO.incorrect("12"))
                 )
             )
@@ -406,7 +429,7 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
         var fileUploadExerciseGroup = postExerciseGroup(
             courseId,
             exam,
-            ExerciseGroupCreateDTO.forBenchmarking("File Upload Exercise Group", exam.getId())
+            ExerciseGroupCreateDTO.forBenchmarking("File Upload Exercise Group", exam.getId(), false)
         );
         var fileUploadExercise = FileUploadExerciseCreateDTO.forBenchmarking(
             "File Upload Exercise",
@@ -710,6 +733,75 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             .bodyToMono(Exam.class)
             .block();
     }
+
+    private ExamConfiguration calculateExamConfiguration(long examId) {
+        Exam examWithExercises = getExamWithExercises(examId);
+        if (examWithExercises == null || examWithExercises.getExerciseGroups() == null || examWithExercises.getExerciseGroups().isEmpty()) {
+            log.warn("Cannot calculate exam configuration: exam or exercise groups missing for exam {}", examId);
+            return null;
+        }
+
+        int totalGroups = examWithExercises.getExerciseGroups().size();
+        long mandatoryGroups = examWithExercises
+            .getExerciseGroups()
+            .stream()
+            .filter(group -> Boolean.TRUE.equals(group.getMandatory()))
+            .count();
+
+        double pointsReachable = 0.0;
+        double pointsMandatory = 0.0;
+        for (var group : examWithExercises.getExerciseGroups()) {
+            if (group.getExercises() == null || group.getExercises().isEmpty()) {
+                log.warn("Cannot calculate exam configuration: exercise group {} has no exercises", group.getTitle());
+                return null;
+            }
+            Exercise representative = group.getExercises().iterator().next();
+            pointsReachable += representative.getMaxPoints();
+            if (Boolean.TRUE.equals(group.getMandatory())) {
+                pointsMandatory += representative.getMaxPoints();
+            }
+        }
+
+        int numberOfExercisesInExam = totalGroups;
+        int examMaxPoints = (int) Math.round(pointsMandatory);
+        if (examMaxPoints < pointsMandatory) {
+            examMaxPoints = (int) Math.ceil(pointsMandatory);
+        }
+        if (examMaxPoints > pointsReachable) {
+            int floor = (int) Math.floor(pointsReachable);
+            if (floor >= pointsMandatory) {
+                examMaxPoints = floor;
+            } else {
+                log.warn(
+                    "Exam {} has non-integer max points (mandatory={}, reachable={}); using reachable floor {}",
+                    examId,
+                    pointsMandatory,
+                    pointsReachable,
+                    floor
+                );
+                examMaxPoints = floor;
+            }
+        }
+
+        if (examMaxPoints <= 0) {
+            log.warn("Calculated examMaxPoints {} is invalid for exam {}", examMaxPoints, examId);
+            return null;
+        }
+
+        if (mandatoryGroups > numberOfExercisesInExam) {
+            log.warn(
+                "Calculated numberOfExercisesInExam {} is smaller than mandatory group count {} for exam {}",
+                numberOfExercisesInExam,
+                mandatoryGroups,
+                examId
+            );
+            return null;
+        }
+
+        return new ExamConfiguration(numberOfExercisesInExam, examMaxPoints);
+    }
+
+    private record ExamConfiguration(int numberOfExercisesInExam, int examMaxPoints) {}
 
     private Mono<? extends Throwable> logRequestError(String action, ClientResponse response) {
         return response
