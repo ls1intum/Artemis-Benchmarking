@@ -24,3 +24,4 @@ playwright-report/
 test-results/
 run-e2e-tests-local*.sh
 .e2e-local/
+artemis-endpoint-smoke-test.sh
