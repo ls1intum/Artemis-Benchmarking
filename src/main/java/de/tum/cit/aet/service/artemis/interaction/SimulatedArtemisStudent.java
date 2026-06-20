@@ -855,10 +855,12 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private String changeFiles(boolean invalidChange, boolean writeToFile) throws IOException {
         // TODO: produce larger and more realistic commits
-        var bubbleSort = Path.of("repos", username, "src", "de", "tum", "in", "ase", "BubbleSort.java");
+        // Must match the exam programming exercise's packageName (see SimulatedArtemisAdmin#createExamExercises
+        // and the online-IDE path below); the template repo places sources under src/progforbenchtemp.
+        var bubbleSort = Path.of("repos", username, "src", "progforbenchtemp", "BubbleSort.java");
         log.debug("Change file  {}", bubbleSort);
         var newContent = """
-            package de.tum.in.ase;
+            package progforbenchtemp;
 
 
             import java.util.*;
