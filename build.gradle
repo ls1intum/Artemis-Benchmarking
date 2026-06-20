@@ -296,7 +296,7 @@ tasks.register("cleanResources", Delete) {
 }
 
 wrapper {
-    gradleVersion = "9.5.1"
+    gradleVersion = "9.6.0"
 }
 
 tasks.register("webapp_test", PnpmTask) {
