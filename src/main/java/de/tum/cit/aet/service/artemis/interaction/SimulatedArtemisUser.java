@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpSslContextSpec;
 
@@ -173,9 +173,10 @@ public abstract class SimulatedArtemisUser {
     protected abstract void checkAccess();
 
     protected WebClient.Builder createWebClientBuilder() {
-        WebClient.Builder builder = webClientBuilderSupplier != null
-            ? webClientBuilderSupplier.get()
-            : WebClient.builder().clientConnector(new ReactorClientHttpConnector(createHttpClient()));
+        WebClient.Builder builder =
+            webClientBuilderSupplier != null
+                ? webClientBuilderSupplier.get()
+                : WebClient.builder().clientConnector(new ReactorClientHttpConnector(createHttpClient()));
         return builder.filter(logErrorResponses());
     }
 
