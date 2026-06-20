@@ -9,10 +9,24 @@ bootWar {
                    "Implementation-Version": version)
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    // Guard against shipping a WAR without the Angular webapp (see the webapp/processResources
+    // wiring in profile_*.gradle). Fails the build loudly instead of deploying a broken artifact.
+    doLast {
+        def archive = archiveFile.get().asFile
+        def hasIndex = new java.util.zip.ZipFile(archive).withCloseable { zip ->
+            zip.entries().any { it.name.endsWith("static/index.html") }
+        }
+        if (!hasIndex) {
+            throw new GradleException("Webapp missing from ${archive.name}: no '**/static/index.html' " +
+                "entry found. The Angular build was not packaged into the WAR — refusing to produce a broken artifact.")
+        }
+        logger.lifecycle("Verified the Angular webapp is packaged in ${archive.name}")
+    }
 }
 
 war {
-    webAppDirectory = file("build/resources/main/static/")
+    webAppDirectory = file("build/webapp")
     includes = ["WEB-INF/**", "META-INF/**"]
     webXml = file("${project.rootDir}/src/main/webapp/WEB-INF/web.xml")
     enabled = true

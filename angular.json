@@ -22,7 +22,7 @@
           "options": {
             "allowedCommonJsDependencies": ["rfdc", "@stomp/rx-stomp", "@stomp/stompjs"],
             "outputPath": {
-              "base": "build/resources/main/static/",
+              "base": "build/webapp",
               "browser": ""
             },
             "index": "src/main/webapp/index.html",
