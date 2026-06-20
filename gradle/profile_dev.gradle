@@ -34,7 +34,9 @@ tasks.register("webapp", PnpmTask) {
     inputs.dir("src/main/webapp/")
         .withPropertyName("webapp-source-dir")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.dir("build/resources/main/static/")
+    // Build into a dedicated directory so it never overlaps with processResources' output
+    // dir (build/resources/main); otherwise the static webapp is wiped on clean CI builds.
+    outputs.dir("build/webapp")
         .withPropertyName("webapp-build-dir")
 
     dependsOn pnpmInstall
@@ -44,6 +46,11 @@ tasks.register("webapp", PnpmTask) {
 }
 
 processResources {
+    dependsOn webapp
+    // Copy the compiled webapp in as a Spring Boot static resource.
+    from("build/webapp") {
+        into "static"
+    }
     inputs.property("version", version)
     inputs.property("springProfiles", springProfiles)
     filesMatching("**/application.yml") {
@@ -56,5 +63,4 @@ processResources {
     }
 }
 
-processResources.dependsOn webapp
 bootJar.dependsOn processResources
