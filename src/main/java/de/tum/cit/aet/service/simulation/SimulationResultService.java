@@ -67,6 +67,10 @@ public class SimulationResultService {
 
         SimulationStats miscStats = calculateStatsForRequestType(requestStats, RequestType.MISC, simulationRun);
 
+        SimulationStats serverTimeStats = calculateStatsForRequestType(requestStats, RequestType.SERVER_TIME, simulationRun);
+
+        SimulationStats websocketStats = calculateStatsForRequestType(requestStats, RequestType.WEBSOCKET, simulationRun);
+
         Simulation simulation = simulationRun.getSimulation();
         Set<SimulationStats> stats = Stream.of(
             totalStats,
@@ -76,6 +80,8 @@ public class SimulationResultService {
             submitExerciseStats,
             submitStudentExamStats,
             miscStats,
+            serverTimeStats,
+            websocketStats,
             simulation.getOnlineIdePercentage() > 0
                 ? calculateStatsForRequestType(requestStats, RequestType.PROGRAMMING_EXERCISE_RESULT, simulationRun)
                 : null,
