@@ -1,0 +1,14 @@
+# Optional overlay that publishes Git-over-SSH (port 7921) on the host.
+#
+# Used together with multi-node-artemis.yml ONLY when host port 7921 is free, because the benchmark
+# hardcodes ssh://git@<host>:7921 for SSH clones/pushes. run-load-test.sh adds this file
+# automatically when SSH students are requested and 7921 is available; otherwise SSH is skipped.
+#
+#   docker compose -f multi-node-artemis.yml -f multi-node-ssh.yml up -d
+
+name: artemis-loadtest
+
+services:
+  artemis-app-node-1:
+    ports:
+      - "7921:7921"

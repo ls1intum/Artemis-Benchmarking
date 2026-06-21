@@ -102,6 +102,8 @@ services:
   artemis-app-node-1:
     <<: *artemis-node
     hostname: artemis-app-node-1
+    # Git-over-SSH (port 7921) is added conditionally by multi-node-ssh.yml when the host port is
+    # free (see run-load-test.sh). The SSH server itself starts automatically on every localvc node.
     env_file:
       - ${ARTEMIS_DIR}/docker/artemis/config/prod-multinode.env
       - ${ARTEMIS_DIR}/docker/artemis/config/node1.env

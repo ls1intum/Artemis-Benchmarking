@@ -20,10 +20,16 @@ set -euo pipefail
 # Configuration (override via environment variables)
 # --------------------------------------------------------------------------------------------------
 NUM_USERS="${NUM_USERS:-500}"
-ONLINE_IDE_PCT="${ONLINE_IDE_PCT:-0}"        # % of students using the online IDE
-PASSWORD_PCT="${PASSWORD_PCT:-100}"          # % of students using offline git over password
-TOKEN_PCT="${TOKEN_PCT:-0}"
-SSH_PCT="${SSH_PCT:-0}"
+
+# --- Work mix (two independent dimensions) ---------------------------------------------------------
+# 1) IDE: what share of ALL students use the online code editor (REST commits) vs. the offline IDE
+#    (real git clone + git push). ONLINE_IDE_PCT is the online share; the rest are offline.
+ONLINE_IDE_PCT="${ONLINE_IDE_PCT:-50}"       # 50% online code editor, 50% offline IDE (git)
+# 2) Git auth: how the OFFLINE (git) students split across auth mechanisms. Must sum to 100.
+OFFLINE_TOKEN_PCT="${OFFLINE_TOKEN_PCT:-70}"      # 70% participation token
+OFFLINE_PASSWORD_PCT="${OFFLINE_PASSWORD_PCT:-20}" # 20% password
+OFFLINE_SSH_PCT="${OFFLINE_SSH_PCT:-10}"          # 10% SSH (requires host port 7921 to be free)
+
 COMMITS_FROM="${COMMITS_FROM:-1}"            # random commits/pushes per student in [from, to)
 COMMITS_TO="${COMMITS_TO:-2}"
 
@@ -84,6 +90,47 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # --------------------------------------------------------------------------------------------------
+# Translate the two-dimension work mix into the four absolute mechanism percentages the simulation
+# expects (onlineIde + token + password + ssh = 100). In the benchmark, "online IDE" is itself one
+# of the four mechanisms, so the offline auth split is applied to the (100 - online) offline share.
+# Results are exposed as ONLINE_ABS / TOKEN_ABS / PASSWORD_ABS / SSH_ABS.
+# --------------------------------------------------------------------------------------------------
+port_in_use() { (exec 3<>"/dev/tcp/127.0.0.1/$1") >/dev/null 2>&1; }
+
+# SSH git needs host port 7921 (the benchmark hardcodes it). Enable the SSH overlay only if SSH
+# students are requested AND 7921 is free; otherwise fold the SSH share into token so the run still
+# completes the requested number of users.
+decide_ssh() {
+  local offline=$(( 100 - ONLINE_IDE_PCT ))
+  if (( OFFLINE_SSH_PCT > 0 && offline > 0 )); then
+    if port_in_use 7921; then
+      warn "Host port 7921 is already in use (a local Artemis instance?); SSH git cannot be exposed."
+      warn "Folding the ${OFFLINE_SSH_PCT}% SSH share into token auth for this run. Free 7921 to test SSH."
+      OFFLINE_TOKEN_PCT=$(( OFFLINE_TOKEN_PCT + OFFLINE_SSH_PCT ))
+      OFFLINE_SSH_PCT=0
+    else
+      COMPOSE+=(-f "$SCRIPT_DIR/multi-node-ssh.yml")
+      log "SSH git enabled (host port 7921 is free)"
+    fi
+  fi
+}
+
+compute_mix() {
+  (( ONLINE_IDE_PCT >= 0 && ONLINE_IDE_PCT <= 100 )) || die "ONLINE_IDE_PCT must be between 0 and 100 (is $ONLINE_IDE_PCT)"
+  local offline=$(( 100 - ONLINE_IDE_PCT ))
+  if (( offline > 0 )); then
+    (( OFFLINE_TOKEN_PCT + OFFLINE_PASSWORD_PCT + OFFLINE_SSH_PCT == 100 )) ||
+      die "OFFLINE_TOKEN_PCT + OFFLINE_PASSWORD_PCT + OFFLINE_SSH_PCT must sum to 100 (is $((OFFLINE_TOKEN_PCT+OFFLINE_PASSWORD_PCT+OFFLINE_SSH_PCT)))"
+  fi
+  ONLINE_ABS=$ONLINE_IDE_PCT
+  TOKEN_ABS=$(( offline * OFFLINE_TOKEN_PCT / 100 ))
+  PASSWORD_ABS=$(( offline * OFFLINE_PASSWORD_PCT / 100 ))
+  SSH_ABS=$(( offline - TOKEN_ABS - PASSWORD_ABS ))   # remainder, so the four always sum to exactly 100
+  (( ONLINE_ABS + TOKEN_ABS + PASSWORD_ABS + SSH_ABS == 100 )) || die "internal error: computed mix does not sum to 100"
+  log "Work mix: ${NUM_USERS} users | online-IDE ${ONLINE_ABS}% | token ${TOKEN_ABS}% | password ${PASSWORD_ABS}% | ssh ${SSH_ABS}%"
+}
+
+# --------------------------------------------------------------------------------------------------
 # Preflight
 # --------------------------------------------------------------------------------------------------
 preflight() {
@@ -104,6 +151,8 @@ preflight() {
     log "Docker memory: ${mem_gb} GB"
   fi
   mkdir -p "$RESULTS_DIR"
+  decide_ssh
+  compute_mix
 }
 
 # --------------------------------------------------------------------------------------------------
@@ -213,8 +262,8 @@ run_simulation() {
     -X POST "$BENCH_URL/api/simulations" --data "$(cat <<JSON
 {"name":"local-loadtest-${TS}","numberOfUsers":$NUM_USERS,"examId":0,"courseId":0,"server":"LOCAL",
  "mode":"CREATE_COURSE_AND_EXAM","customizeUserRange":false,
- "ideType":"OFFLINE","onlineIdePercentage":$ONLINE_IDE_PCT,"passwordPercentage":$PASSWORD_PCT,
- "tokenPercentage":$TOKEN_PCT,"sshPercentage":$SSH_PCT,
+ "ideType":"OFFLINE","onlineIdePercentage":$ONLINE_ABS,"passwordPercentage":$PASSWORD_ABS,
+ "tokenPercentage":$TOKEN_ABS,"sshPercentage":$SSH_ABS,
  "numberOfCommitsAndPushesFrom":$COMMITS_FROM,"numberOfCommitsAndPushesTo":$COMMITS_TO}
 JSON
 )" | python3 -c 'import sys,json; print(json.load(sys.stdin)["id"])')"
@@ -257,7 +306,9 @@ collect_results() {
     echo "=============================================="
     echo "Timestamp        : $TS"
     echo "Users            : $NUM_USERS"
-    echo "Auth mix         : online-IDE ${ONLINE_IDE_PCT}% | password ${PASSWORD_PCT}% | token ${TOKEN_PCT}% | ssh ${SSH_PCT}%"
+    echo "IDE split        : online code editor ${ONLINE_IDE_PCT}% | offline IDE / git $((100 - ONLINE_IDE_PCT))%"
+    echo "Offline git auth : token ${OFFLINE_TOKEN_PCT}% | password ${OFFLINE_PASSWORD_PCT}% | ssh ${OFFLINE_SSH_PCT}% (of the offline share)"
+    echo "Mechanism mix    : online-IDE ${ONLINE_ABS}% | token ${TOKEN_ABS}% | password ${PASSWORD_ABS}% | ssh ${SSH_ABS}% (of all students)"
     echo "Commits/student  : [$COMMITS_FROM, $COMMITS_TO)"
     echo "Artemis topology : 2 core nodes + 1 build agent, nginx LB, shared Postgres + ActiveMQ broker + registry"
     echo "Wall clock (run) : ${run_secs:-?} s"
