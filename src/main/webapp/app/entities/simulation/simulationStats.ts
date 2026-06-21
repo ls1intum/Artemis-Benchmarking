@@ -52,5 +52,9 @@ export function getOrder(simulationStats: SimulationStats): number {
       return 16;
     case RequestType.MISC:
       return 17;
+    case RequestType.SERVER_TIME:
+      return 18;
+    case RequestType.WEBSOCKET:
+      return 19;
   }
 }

@@ -57,6 +57,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private Long studentExamId;
     private StudentExam studentExam;
     private String participationVcsAccessToken;
+    private Long latestResultId;
+    private SimulatedArtemisWebsocket websocket;
     private final ArtemisAuthMechanism authenticationMechanism;
 
     private final int numberOfCommitsAndPushesFrom;
@@ -105,7 +107,16 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
         }
 
-        return List.of(getInfo(), getSystemNotifications(), getAccount(), getGlobalNotificationSettings(), getCourses(), configureSSH());
+        return List.of(
+            getInfo(),
+            getServerTime(),
+            getSystemNotifications(),
+            getAccount(),
+            getGlobalNotificationSettings(),
+            getCourses(),
+            getCalendarSubscriptionToken(),
+            configureSSH()
+        );
     }
 
     /**
@@ -129,6 +140,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             log.warn("Skipping exam participation for {}: student exam not available.", username);
             return requestStats;
         }
+        requestStats.add(getServerTime());
         requestStats.add(fetchLiveEvents());
         requestStats.addAll(handleExercises());
 
@@ -153,6 +165,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         List<RequestStat> requestStats = new ArrayList<>();
 
         requestStats.add(getCourseDashboard(courseProgrammingExerciseId));
+        requestStats.add(getServerTime());
         requestStats.add(getCoursesDropdown());
         requestStats.add(getScienceSettings());
         requestStats.add(getNotificationSettings());
@@ -162,6 +175,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                 requestStats.add(putScienceEvent(courseProgrammingExerciseId));
             }
             requestStats.add(getExerciseDetails(courseProgrammingExerciseId));
+            requestStats.add(getExerciseContributions(courseProgrammingExerciseId));
         }
         if (isIrisEnabled) {
             requestStats.addAll(List.of(getIrisStatus(courseId), getIrisChatHistory(courseId)));
@@ -174,6 +188,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         if (studentExam == null) {
             log.warn("Student exam not available after start for {}", username);
         }
+
+        // Mirror the real client: open the exam websocket and subscribe to the exam live-event topics.
+        // The connection is kept open across the participation phases and closed in submitAndEndExam.
+        requestStats.add(connectAndSubscribeExamWebsocket(examId));
 
         return requestStats;
     }
@@ -197,13 +215,18 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         requestStats.addAll(ensureStudentExamLoaded());
         if (studentExam == null) {
             log.warn("Skipping exam submission for {}: student exam not available.", username);
+            disconnectWebsocket();
             return requestStats;
         }
+        requestStats.add(getServerTime());
         RequestStat submitStat = submitStudentExam();
         if (submitStat != null) {
             requestStats.add(submitStat);
         }
         requestStats.add(loadExamSummary());
+
+        // End of the exam session: close the websocket the same way the real client does on hand-in.
+        disconnectWebsocket();
 
         return requestStats;
     }
@@ -269,6 +292,99 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient.get().uri("api/course/courses/for-dashboard").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    /**
+     * Fetch the current server time. Real clients poll this endpoint periodically to keep the exam countdown in
+     * sync; it is therefore one of the hottest endpoints during an exam and tracked under its own request type.
+     *
+     * @return the request stat
+     */
+    private RequestStat getServerTime() {
+        long start = System.nanoTime();
+        try {
+            webClient.get().uri("api/public/time").retrieve().toBodilessEntity().block();
+        } catch (Exception e) {
+            log.debug("Could not fetch server time for {}: {}", username, e.getMessage());
+        }
+        return new RequestStat(now(), System.nanoTime() - start, SERVER_TIME);
+    }
+
+    private RequestStat getCalendarSubscriptionToken() {
+        long start = System.nanoTime();
+        try {
+            // This endpoint returns a raw token as text/plain, so we must not request application/json (-> 406).
+            webClient
+                .get()
+                .uri(uriBuilder -> uriBuilder.pathSegment("api", "calendar", "subscription-token").build())
+                .accept(MediaType.TEXT_PLAIN)
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+        } catch (Exception e) {
+            log.debug("Could not fetch calendar subscription token for {}: {}", username, e.getMessage());
+        }
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    private RequestStat getExerciseContributions(long exerciseId) {
+        long start = System.nanoTime();
+        try {
+            webClient
+                .get()
+                .uri(uriBuilder -> uriBuilder.pathSegment("api", "atlas", "exercises", String.valueOf(exerciseId), "contributions").build())
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+        } catch (Exception e) {
+            log.debug("Could not fetch exercise contributions for {}: {}", username, e.getMessage());
+        }
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
+    /**
+     * Open the exam websocket and subscribe to the exam live-event topics, mirroring the real exam client.
+     * Best-effort: a websocket failure is logged and never aborts the participation.
+     *
+     * @param examId the ID of the exam
+     * @return the request stat for the websocket connect
+     */
+    private RequestStat connectAndSubscribeExamWebsocket(long examId) {
+        long start = System.nanoTime();
+        try {
+            this.websocket = new SimulatedArtemisWebsocket(artemisUrl, authToken != null ? authToken.jwtToken() : null);
+            if (websocket.connect()) {
+                if (studentExamId != null) {
+                    websocket.subscribe("/topic/exam-participation/studentExam/" + studentExamId + "/events");
+                }
+                websocket.subscribe("/topic/exam-participation/exam/" + examId + "/events");
+            } else {
+                log.warn("Websocket did not connect for {}", username);
+            }
+        } catch (Exception e) {
+            log.warn("Could not establish exam websocket for {}: {}", username, e.getMessage());
+        }
+        return new RequestStat(now(), System.nanoTime() - start, WEBSOCKET);
+    }
+
+    /**
+     * Subscribe to the personal programming submission/result topics over the open exam websocket, mirroring the
+     * real programming-exercise client (build results are pushed, not polled).
+     */
+    private void subscribeProgrammingWebsocketTopics() {
+        if (websocket == null || !websocket.isConnected()) {
+            return;
+        }
+        websocket.subscribe("/user/topic/newSubmissions");
+        websocket.subscribe("/user/topic/submissionProcessing");
+        websocket.subscribe("/user/topic/newResults");
+    }
+
+    private void disconnectWebsocket() {
+        if (websocket != null) {
+            websocket.disconnect();
+            websocket = null;
+        }
     }
 
     private RequestStat getCourseDashboard(long exerciseId) {
@@ -632,6 +748,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         requestStats.add(fetchParticipationVcsAccessToken(participationId));
         requestStats.add(fetchProgrammingIdeSettings());
         requestStats.add(postParticipation(programmingExercise.getId()));
+        // Mirror the real client: subscribe to the personal programming submission/result topics so build
+        // results are pushed over the open exam websocket instead of being polled.
+        subscribeProgrammingWebsocketTopics();
         try {
             long start = System.nanoTime();
 
@@ -895,6 +1014,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private void makeInitialProgrammingExerciseOnlineIDECalls(List<RequestStat> requestStats, Long participationId) {
         requestStats.add(getLatestResultWithFeedback(participationId));
+        if (latestResultId != null) {
+            requestStats.add(getResultDetails(participationId, latestResultId));
+        }
         requestStats.add(fetchRepository(participationId));
         requestStats.add(fetchPlantUml());
         requestStats.add(fetchFiles(participationId));
@@ -914,7 +1036,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .put()
-            .uri("api/programming/repository/" + participationId + "/files?commit=yes")
+            .uri("api/programming/participations/" + participationId + "/repository/files?commit=yes")
             .bodyValue(List.of(new OnlineIdeFileSubmission(fileName, changedFileContent)))
             .retrieve()
             .toBodilessEntity()
@@ -925,16 +1047,51 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
     private RequestStat getLatestResultWithFeedback(Long participationId) {
         long start = System.nanoTime();
-        webClient
-            .get()
-            .uri(
-                "api/programming/programming-exercise-participations/" +
-                    participationId +
-                    "/latest-result-with-feedbacks?withSubmission=true"
-            )
-            .retrieve()
-            .toBodilessEntity()
-            .block();
+        this.latestResultId = null;
+        try {
+            Map<String, Object> result = webClient
+                .get()
+                .uri(
+                    "api/programming/programming-exercise-participations/" +
+                        participationId +
+                        "/latest-result-with-feedbacks?withSubmission=true"
+                )
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .block();
+            if (result != null && result.get("id") instanceof Number resultId) {
+                this.latestResultId = resultId.longValue();
+            }
+        } catch (Exception e) {
+            log.debug("Could not fetch latest result with feedback for {}: {}", username, e.getMessage());
+        }
+        return new RequestStat(now(), System.nanoTime() - start, PROGRAMMING_EXERCISE_RESULT);
+    }
+
+    private RequestStat getResultDetails(long participationId, long resultId) {
+        long start = System.nanoTime();
+        try {
+            webClient
+                .get()
+                .uri(uriBuilder ->
+                    uriBuilder
+                        .pathSegment(
+                            "api",
+                            "assessment",
+                            "participations",
+                            String.valueOf(participationId),
+                            "results",
+                            String.valueOf(resultId),
+                            "details"
+                        )
+                        .build()
+                )
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+        } catch (Exception e) {
+            log.debug("Could not fetch result details for {}: {}", username, e.getMessage());
+        }
         return new RequestStat(now(), System.nanoTime() - start, PROGRAMMING_EXERCISE_RESULT);
     }
 
@@ -942,7 +1099,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri("api/programming/repository/" + participationId)
+            .uri("api/programming/participations/" + participationId + "/repository")
             .retrieve()
             .toBodilessEntity()
             .block();
@@ -953,7 +1110,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri("api/programming/repository/" + participationId + "/file?file=" + fileName)
+            .uri("api/programming/participations/" + participationId + "/repository/file?file=" + fileName)
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .retrieve()
             .toBodilessEntity()
@@ -965,7 +1122,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         webClient
             .get()
-            .uri("api/programming/repository/" + participationId + "/files")
+            .uri("api/programming/participations/" + participationId + "/repository/files")
             .retrieve()
             .toBodilessEntity()
             .block();
