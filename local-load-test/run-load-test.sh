@@ -30,8 +30,10 @@ OFFLINE_TOKEN_PCT="${OFFLINE_TOKEN_PCT:-70}"      # 70% participation token
 OFFLINE_PASSWORD_PCT="${OFFLINE_PASSWORD_PCT:-20}" # 20% password
 OFFLINE_SSH_PCT="${OFFLINE_SSH_PCT:-10}"          # 10% SSH (requires host port 7921 to be free)
 
-COMMITS_FROM="${COMMITS_FROM:-1}"            # random commits/pushes per student in [from, to)
-COMMITS_TO="${COMMITS_TO:-2}"
+# Random commits/pushes per programming student in the half-open range [from, to).
+# Default [2, 5) => 2, 3 or 4 commits per student.
+COMMITS_FROM="${COMMITS_FROM:-2}"
+COMMITS_TO="${COMMITS_TO:-5}"
 
 ARTEMIS_DIR="${ARTEMIS_DIR:-/Users/krusche/Projects/Artemis}"
 ARTEMIS_BUILD_ARCH="${ARTEMIS_BUILD_ARCH:-arm64}"   # arm64 (Apple Silicon) or amd64 (Intel)

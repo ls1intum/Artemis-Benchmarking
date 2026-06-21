@@ -146,7 +146,7 @@ See [The work mix explained](#the-work-mix-explained) for exactly how these comb
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `COMMITS_FROM` / `COMMITS_TO` | `1` / `2` | random number of commits+pushes per programming student, in the half-open range `[from, to)` |
+| `COMMITS_FROM` / `COMMITS_TO` | `2` / `5` | random number of commits+pushes per programming student, in the half-open range `[from, to)` — i.e. **2–4** by default |
 
 ### Infrastructure / advanced
 
