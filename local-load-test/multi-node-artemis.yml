@@ -1,0 +1,160 @@
+# Self-contained multi-node Artemis cluster for local load testing of the benchmark.
+#
+# Topology (mirrors the official test-server-multi-node-postgresql-localci, but over plain HTTP
+# so a host-side benchmark can drive REST + git + websockets without self-signed-cert plumbing):
+#   - artemis-app-node-1  core + scheduling + localvc + localci   (serves REST/web + git)
+#   - artemis-app-node-2  core + buildagent + localvc + localci   (serves REST/web + git)
+#   - artemis-app-node-3  dedicated build agent
+#   - nginx-lb            plain-HTTP load balancer over node-1 + node-2 (host :18080)
+#   - artemis-postgres    shared database
+#   - artemis-activemq-broker  STOMP relay that distributes websocket messages across nodes
+#   - artemis-jhipster-registry  Eureka/Hazelcast clustering
+#
+# The cluster wiring (profiles, Hazelcast, Eureka, broker) is reused verbatim from Artemis' own
+# env files via ${ARTEMIS_DIR}; only the host-reachable public URLs are overridden here.
+#
+# NOTE: services are named after the hostnames the Artemis env files expect; Compose exposes the
+# service name as a network alias on this project's private network. We deliberately do NOT set
+# container_name (and instead set `hostname:`), so this stack never collides with another local
+# Artemis stack that owns the same global container names.
+
+name: artemis-loadtest
+
+x-artemis-node: &artemis-node
+  image: ghcr.io/ls1intum/artemis:${ARTEMIS_DOCKER_TAG:-latest}
+  pull_policy: missing
+  restart: unless-stopped
+  environment: &artemis-node-env
+    # Public URL the host-side benchmark and the generated student git clone URLs must reach.
+    SERVER_URL: http://localhost:18080
+    ARTEMIS_VERSIONCONTROL_URL: http://localhost:18080
+    ARTEMIS_CONTINUOUSINTEGRATION_IMAGEARCHITECTURE: ${ARTEMIS_BUILD_ARCH:-arm64}
+    HOST_HOSTNAME: host.docker.internal
+    # Required by the prod profile (PropertiesConfigurationGuard) for the /about page + telemetry.
+    INFO_OPERATORNAME: ${ARTEMIS_OPERATOR_NAME:-Local Load Test}
+    _JAVA_OPTIONS: -Xmx${ARTEMIS_NODE_XMX:-2560m}
+  volumes:
+    - artemis-data:/opt/artemis/data
+    - /var/run/docker.sock:/var/run/docker.sock
+  healthcheck:
+    test: wget -q -t1 -T5 -O - http://localhost:8080/management/health/readiness | grep -xq '{"status":"UP"}' || exit 1
+    start_period: 600s
+    interval: 5s
+    timeout: 6s
+    retries: 180
+  networks:
+    - artemis
+
+services:
+  artemis-postgres:
+    hostname: artemis-postgres
+    image: postgres:${POSTGRES_VERSION:-18.4-alpine}
+    user: postgres
+    command: ["postgres", "-c", "max_connections=2000"]
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: Artemis
+      POSTGRES_DB: Artemis
+      PGDATA: /var/lib/postgresql/pgdata
+    volumes:
+      - artemis-postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: pg_isready -U Artemis -d Artemis
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    shm_size: 256m
+    networks:
+      - artemis
+
+  artemis-jhipster-registry:
+    hostname: artemis-jhipster-registry
+    image: jhipster/jhipster-registry:${JHIPSTER_REGISTRY_VERSION:-v7.5.0}
+    volumes:
+      - ${ARTEMIS_DIR}/docker/registry:/central-config:ro
+    environment:
+      _JAVA_OPTIONS: -Xmx512m -Xms256m
+      SPRING_PROFILES_ACTIVE: dev,openapi
+      SPRING_SECURITY_USER_PASSWORD: admin
+      JHIPSTER_REGISTRY_PASSWORD: admin
+      SPRING_CLOUD_CONFIG_SERVER_COMPOSITE_0_TYPE: native
+      SPRING_CLOUD_CONFIG_SERVER_COMPOSITE_0_SEARCH_LOCATIONS: file:./central-config/localhost-config/
+    healthcheck:
+      test: wget -nv -t1 --spider http://localhost:8761/actuator/health || exit 1
+      start_period: 600s
+      interval: 5s
+    networks:
+      - artemis
+
+  artemis-activemq-broker:
+    hostname: artemis-activemq-broker
+    image: apache/artemis:${ACTIVEMQ_VERSION:-2.54.0}
+    environment:
+      ARTEMIS_USER: guest
+      ARTEMIS_PASSWORD: guest
+      EXTRA_ARGS: --http-host 0.0.0.0 --relax-jolokia --nio
+    # No healthcheck: this image ships without wget/netstat, so an in-container probe is unreliable.
+    # The broker's acceptors come up within seconds and Artemis' STOMP relay retries, so dependents
+    # wait on service_started instead.
+    networks:
+      - artemis
+
+  artemis-app-node-1:
+    <<: *artemis-node
+    hostname: artemis-app-node-1
+    env_file:
+      - ${ARTEMIS_DIR}/docker/artemis/config/prod-multinode.env
+      - ${ARTEMIS_DIR}/docker/artemis/config/node1.env
+      - ${ARTEMIS_DIR}/docker/artemis/config/postgres.env
+    depends_on:
+      artemis-postgres:
+        condition: service_healthy
+      artemis-jhipster-registry:
+        condition: service_healthy
+      artemis-activemq-broker:
+        condition: service_started
+
+  artemis-app-node-2:
+    <<: *artemis-node
+    hostname: artemis-app-node-2
+    env_file:
+      - ${ARTEMIS_DIR}/docker/artemis/config/prod-multinode.env
+      - ${ARTEMIS_DIR}/docker/artemis/config/node2.env
+      - ${ARTEMIS_DIR}/docker/artemis/config/postgres.env
+    depends_on:
+      artemis-app-node-1:
+        condition: service_healthy
+
+  artemis-app-node-3:
+    <<: *artemis-node
+    hostname: artemis-app-node-3
+    env_file:
+      - ${ARTEMIS_DIR}/docker/artemis/config/prod-multinode.env
+      - ${ARTEMIS_DIR}/docker/artemis/config/node3.env
+      - ${ARTEMIS_DIR}/docker/artemis/config/postgres.env
+    depends_on:
+      artemis-app-node-1:
+        condition: service_healthy
+
+  nginx-lb:
+    hostname: artemis-loadtest-lb
+    image: nginx:alpine
+    volumes:
+      - ./nginx-lb.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "18080:80"
+    depends_on:
+      - artemis-app-node-1
+      - artemis-app-node-2
+    networks:
+      - artemis
+
+networks:
+  artemis:
+    name: artemis-loadtest-net
+
+volumes:
+  artemis-data:
+    name: artemis-loadtest-data
+  artemis-postgres-data:
+    name: artemis-loadtest-postgres-data
