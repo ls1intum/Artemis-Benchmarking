@@ -12,7 +12,9 @@ import de.tum.cit.aet.domain.OnlineIdeFileSubmission;
 import de.tum.cit.aet.domain.RequestStat;
 import de.tum.cit.aet.service.artemis.ArtemisUserService;
 import de.tum.cit.aet.service.artemis.util.ArtemisServerInfo;
-import de.tum.cit.aet.service.artemis.util.CourseDashboardDTO;
+import de.tum.cit.aet.service.artemis.util.CourseAvailableTabsDTO;
+import de.tum.cit.aet.service.artemis.util.CourseExercisesForOverviewDTO;
+import de.tum.cit.aet.service.artemis.util.CourseForOverviewDTO;
 import de.tum.cit.aet.service.artemis.util.ScienceEventDTO;
 import de.tum.cit.aet.service.artemis.util.UserSshPublicKeyDTO;
 import de.tum.cit.aet.util.FileGeneratorUtil;
@@ -164,7 +166,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
         List<RequestStat> requestStats = new ArrayList<>();
 
-        requestStats.add(getCourseDashboard(courseProgrammingExerciseId));
+        requestStats.add(getCourseOverview(courseProgrammingExerciseId));
         requestStats.add(getServerTime());
         requestStats.add(getCoursesDropdown());
         requestStats.add(getScienceSettings());
@@ -387,33 +389,67 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         }
     }
 
-    private RequestStat getCourseDashboard(long exerciseId) {
+    /**
+     * Simulate a student entering the course overview.
+     *
+     * <p>Mirrors what the Artemis web client does since PR #12999 ("Load course overview content per tab instead of all
+     * at once"): the shell, the available tabs and the exercises tab are fetched separately, rather than pulling the
+     * whole course from {@code courses/&#123;courseId&#125;/for-dashboard}. That endpoint is deprecated and is kept only
+     * for the native clients, and it costs 16 database queries and ~37 KB against ~6 queries for this split, so a
+     * simulation that still called it would be measuring a load pattern no web user produces.
+     *
+     * @param exerciseId the programming exercise whose channel the student would open
+     * @return the request stat covering the whole course-entry interaction
+     */
+    private RequestStat getCourseOverview(long exerciseId) {
         long start = System.nanoTime();
-        CourseDashboardDTO courseDashboard = webClient
+
+        CourseAvailableTabsDTO availableTabs = webClient
             .get()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "course", "courses", courseIdString, "for-dashboard").build())
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "course", "courses", courseIdString, "available-tabs").build())
             .retrieve()
-            .bodyToMono(CourseDashboardDTO.class)
+            .bodyToMono(CourseAvailableTabsDTO.class)
             .block();
 
-        if (courseDashboard == null) {
+        CourseForOverviewDTO course = webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "course", "courses", courseIdString, "for-overview").build())
+            .retrieve()
+            .bodyToMono(CourseForOverviewDTO.class)
+            .block();
+
+        // The student lands on the exercises tab, which is also what carries the participation results.
+        CourseExercisesForOverviewDTO exercises = webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "course", "courses", courseIdString, "exercises-for-overview").build())
+            .retrieve()
+            .bodyToMono(CourseExercisesForOverviewDTO.class)
+            .block();
+
+        if (course == null && exercises == null) {
             return new RequestStat(now(), System.nanoTime() - start, MISC);
         }
 
         try {
-            if (!courseDashboard.course().getCourseInformationSharingConfiguration().equals("DISABLED")) {
+            // available-tabs is the single source of truth for tab visibility; fall back to the course's own
+            // configuration when an older Artemis version does not serve it yet.
+            boolean communicationEnabled = availableTabs != null ? availableTabs.communication()
+                    : course != null && course.courseInformationSharingConfiguration() != null
+                            && !"DISABLED".equals(course.courseInformationSharingConfiguration());
+
+            if (communicationEnabled) {
                 getUnreadMessages();
                 getExerciseChannelAndMessages(exerciseId);
             }
 
-            if (courseDashboard.participationResults() != null) {
-                for (CourseDashboardDTO.ParticipationResultDTO result : courseDashboard.participationResults()) {
-                    long participationId = result.participationId();
-                    getLatestResult(participationId);
+            if (exercises != null && exercises.participationResults() != null) {
+                for (CourseExercisesForOverviewDTO.ParticipationResultDTO result : exercises.participationResults()) {
+                    getLatestResult(result.participationId());
                 }
             }
-        } catch (Exception e) {
-            log.error("Error while getting course dashboard for {{}}: {{}}", username, e.getMessage());
+        }
+        catch (Exception e) {
+            log.error("Error while getting course overview for {{}}: {{}}", username, e.getMessage());
         }
 
         return new RequestStat(now(), System.nanoTime() - start, MISC);
