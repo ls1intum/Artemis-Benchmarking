@@ -295,6 +295,32 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
     }
 
     /**
+     * Cancel the queued and running build jobs of a single course.
+     * <p>
+     * Preferred over the two server-wide variants above for anything a simulation does automatically. It is scoped to
+     * the course the run created, so it cannot disturb other work on a shared server, and it needs only instructor
+     * rights, so it works on a deployment that requires a passkey for administrator features.
+     *
+     * @param courseId the course whose build jobs should be cancelled
+     */
+    public void cancelBuildJobsOfCourse(long courseId) {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
+        }
+
+        // Running first: cancelling only the queue would let the jobs currently on the agents finish and re-populate
+        // nothing, but the agents would stay busy for another build cycle.
+        for (String endpoint : List.of("cancel-all-running-jobs", "cancel-all-queued-jobs")) {
+            webClient
+                .delete()
+                .uri(uriBuilder -> uriBuilder.pathSegment("api", "localci", "courses", String.valueOf(courseId), endpoint).build())
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+        }
+    }
+
+    /**
      * Create an exam for benchmarking.
      * @param course the course for which to create the exam
      * @return the created exam

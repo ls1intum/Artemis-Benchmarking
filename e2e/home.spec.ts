@@ -12,6 +12,14 @@ test.describe('Public pages', () => {
     expect(errors, `unexpected console errors:\n${errors.join('\n')}`).toEqual([]);
   });
 
+  test('footer shows the git branch and commit', async ({ page }) => {
+    await page.goto('/');
+
+    // Regression guard: the footer reads /management/info asynchronously, and with zoneless change
+    // detection it stays empty unless the values reach the template through signals.
+    await expect(page.locator('.footer')).toContainText(/Branch: \S+, Commit: [0-9a-f]{7,} \(/);
+  });
+
   test('user can sign in as admin', async ({ page }) => {
     await login(page);
 

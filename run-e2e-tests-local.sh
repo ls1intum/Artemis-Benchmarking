@@ -87,7 +87,7 @@ if [ "$SKIP_BUILD" = false ]; then
   BUILD_CTX=$(mktemp -d)
   cp "$WAR_FILE" "$BUILD_CTX/app.war"
   cat >"$BUILD_CTX/Dockerfile" <<'DOCKERFILE'
-FROM azul/zulu-openjdk:25.0.3-jre
+FROM azul/zulu-openjdk:25.0.4.1-jre
 RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/*
 RUN mkdir /app
 COPY app.war /app/app.war

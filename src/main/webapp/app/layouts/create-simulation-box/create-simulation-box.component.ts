@@ -31,6 +31,7 @@ export class CreateSimulationBoxComponent implements OnInit {
   userRange = '';
   numberOfCommitsAndPushesFrom = 8;
   numberOfCommitsAndPushesTo = 15;
+  cancelBuildJobsAfterRun = false;
   instructorUsername = '';
   instructorPassword = '';
   passwordPercentage = 100;
@@ -93,6 +94,7 @@ export class CreateSimulationBoxComponent implements OnInit {
         this.passwordPercentage,
         this.tokenPercentage,
         this.sshPercentage,
+        this.cancelBuildJobsAfterRun,
         this.userRange,
         this.instructorUsername.length > 0 ? this.instructorUsername : undefined,
         this.instructorPassword.length > 0 ? this.instructorPassword : undefined,

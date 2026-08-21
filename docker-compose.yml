@@ -3,6 +3,20 @@ services:
     image: ls1tum/artemis-benchmarking:latest
     env_file:
       - config/benchmarking.env
+    environment:
+      # The image entrypoint is a bare `java -jar`, so without this the JVM takes its default maximum
+      # heap of 25% of available memory: 1.9 GB on an 8 GB host, leaving three quarters of the machine
+      # unused. A 500-student simulation exhausted that and died with OutOfMemoryError, including one
+      # thrown from the http-nio acceptor thread, which left the app accepting connections but never
+      # answering: unresponsive at 2% CPU rather than visibly crashed.
+      # A percentage rather than a fixed -Xmx so the setting still makes sense if the host is resized.
+      # The remainder is not spare: simulated students clone git repositories to disk, so the page cache
+      # earns its keep, and Postgres runs alongside on the same host.
+      # The heap dump makes a future exhaustion diagnosable instead of guesswork.
+      JDK_JAVA_OPTIONS: >-
+        -XX:MaxRAMPercentage=65
+        -XX:+HeapDumpOnOutOfMemoryError
+        -XX:HeapDumpPath=/tmp
     ports:
       - '127.0.0.1:8080:8080'
     expose:
