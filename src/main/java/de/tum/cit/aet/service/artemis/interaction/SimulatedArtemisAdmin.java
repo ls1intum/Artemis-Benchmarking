@@ -7,14 +7,10 @@ import de.tum.cit.aet.artemisModel.*;
 import de.tum.cit.aet.domain.ArtemisUser;
 import de.tum.cit.aet.service.artemis.ArtemisUserService;
 import de.tum.cit.aet.service.artemis.util.ArtemisUserDTO;
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Scheduler;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import de.tum.cit.aet.util.SimulationConcurrency;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatusCode;
@@ -531,36 +527,22 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
         }
 
-        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 10, students.length);
-        ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadCount);
-        Scheduler scheduler = Schedulers.from(threadPoolExecutor);
-
-        try {
-            Flowable.range(0, students.length)
-                .parallel(threadCount)
-                .runOn(scheduler)
-                .doOnNext(i -> {
-                    try {
-                        webClient
-                            .post()
-                            .uri(uriBuilder ->
-                                uriBuilder
-                                    .pathSegment("api", "course", "courses", String.valueOf(courseId), "students", students[i].username)
-                                    .build()
-                            )
-                            .retrieve()
-                            .toBodilessEntity()
-                            .block();
-                    } catch (Exception e) {
-                        log.warn("Could not register student {{}} for course: {{}}", students[i].username, e.getMessage());
-                    }
-                })
-                .sequential()
-                .blockingSubscribe();
-        } finally {
-            threadPoolExecutor.shutdownNow();
-            scheduler.shutdown();
-        }
+        SimulationConcurrency.forEachIndex(SimulationConcurrency.concurrencyFor(students.length), students.length, i -> {
+            try {
+                webClient
+                    .post()
+                    .uri(uriBuilder ->
+                        uriBuilder
+                            .pathSegment("api", "course", "courses", String.valueOf(courseId), "students", students[i].username)
+                            .build()
+                    )
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+            } catch (Exception e) {
+                log.warn("Could not register student {} for course: {}", students[i].username, e.getMessage());
+            }
+        });
     }
 
     /**

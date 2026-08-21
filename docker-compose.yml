@@ -17,6 +17,17 @@ services:
         -XX:MaxRAMPercentage=65
         -XX:+HeapDumpOnOutOfMemoryError
         -XX:HeapDumpPath=/tmp
+    tmpfs:
+      # Simulated students clone into /repos, one working copy each. Those clones are small (a thousand
+      # students came to 321 MB) but they are written as a great many tiny files, and that random I/O was
+      # keeping the host disk 82% busy at only 5.3 MB/s during a 1000-student run. Virtual threads raise how
+      # many students can be in flight, but file I/O still occupies its carrier thread for the duration, so
+      # a slow working directory would simply become the new ceiling. RAM has neither the seek cost nor the
+      # IOPS limit.
+      # tmpfs only consumes what is actually stored, so the size is a cap and not a reservation. It does
+      # compete with the JVM heap configured above, so check free memory before pushing concurrency far
+      # past a thousand students on a host this size.
+      - /repos:size=1g,mode=1777
     ports:
       - '127.0.0.1:8080:8080'
     expose:

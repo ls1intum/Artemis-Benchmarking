@@ -19,18 +19,15 @@ import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisUser;
 import de.tum.cit.aet.service.artemis.passkey.ArtemisPasskeyService;
 import de.tum.cit.aet.util.ArtemisAccountDTO;
 import de.tum.cit.aet.util.ArtemisServer;
+import de.tum.cit.aet.util.SimulationConcurrency;
 import de.tum.cit.aet.web.websocket.SimulationWebsocketService;
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Scheduler;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -40,6 +37,15 @@ import org.springframework.stereotype.Service;
 public class SimulationExecutionService {
 
     private final Logger log = LoggerFactory.getLogger(SimulationExecutionService.class);
+
+    /**
+     * Ceiling on how many simulated students may be in flight at once, regardless of how many a run asks for.
+     * <p>
+     * Raise it to push a deployment harder than the documented ladder goes, lower it to find the point at which a
+     * system starts to bend. See {@link SimulationConcurrency} for why the previous core count based limit was wrong.
+     */
+    @Value("${benchmarking.simulation.max-concurrency:" + SimulationConcurrency.DEFAULT_MAX_CONCURRENCY + "}")
+    private int maxConcurrency;
 
     private final SimulationWebsocketService simulationWebsocketService;
     private final ArtemisUserService artemisUserService;
@@ -281,21 +287,21 @@ public class SimulationExecutionService {
         logAndSend(false, simulationRun, "Starting simulation...");
         Simulation simulation = simulationRun.getSimulation();
 
-        int threadCount = Integer.min(Runtime.getRuntime().availableProcessors() * 10, simulation.getNumberOfUsers());
-        logAndSend(false, simulationRun, "Using %d threads for simulation.", threadCount);
+        int concurrency = SimulationConcurrency.concurrencyFor(simulation.getNumberOfUsers(), maxConcurrency);
+        logAndSend(false, simulationRun, "Simulating up to %d students at the same time.", concurrency);
 
         try {
             logAndSend(false, simulationRun, "Logging in students...");
             List<RequestStat> requestStats = new ArrayList<>(
-                performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].login())
+                performActionWithAll(concurrency, simulation.getNumberOfUsers(), i -> students[i].login())
             );
 
             logAndSend(false, simulationRun, "Performing initial calls...");
-            requestStats.addAll(performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].performInitialCalls()));
+            requestStats.addAll(performActionWithAll(concurrency, simulation.getNumberOfUsers(), i -> students[i].performInitialCalls()));
 
             logAndSend(false, simulationRun, "Participating in exam...");
             requestStats.addAll(
-                performActionWithAll(threadCount, simulation.getNumberOfUsers(), i ->
+                performActionWithAll(concurrency, simulation.getNumberOfUsers(), i ->
                     students[i].startExamParticipation(courseId, examId, programmingExerciseId)
                 )
             );
@@ -305,10 +311,10 @@ public class SimulationExecutionService {
             simulationRun.setCiStatus(status);
 
             requestStats.addAll(
-                performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].participateInExam(courseId, examId))
+                performActionWithAll(concurrency, simulation.getNumberOfUsers(), i -> students[i].participateInExam(courseId, examId))
             );
             requestStats.addAll(
-                performActionWithAll(threadCount, simulation.getNumberOfUsers(), i -> students[i].submitAndEndExam(courseId, examId))
+                performActionWithAll(concurrency, simulation.getNumberOfUsers(), i -> students[i].submitAndEndExam(courseId, examId))
             );
 
             return requestStats;
@@ -675,28 +681,17 @@ public class SimulationExecutionService {
      * @param action        the action to perform
      * @return a list of request stats for all performed actions
      */
-    private List<RequestStat> performActionWithAll(int threadCount, int numberOfUsers, Function<Integer, List<RequestStat>> action) {
-        ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadCount);
-        Scheduler scheduler = Schedulers.from(threadPoolExecutor);
+    private List<RequestStat> performActionWithAll(int concurrency, int numberOfUsers, Function<Integer, List<RequestStat>> action) {
         List<RequestStat> requestStats = Collections.synchronizedList(new ArrayList<>());
 
-        try {
-            Flowable.range(0, numberOfUsers)
-                .parallel(threadCount)
-                .runOn(scheduler)
-                .doOnNext(i -> {
-                    try {
-                        requestStats.addAll(action.apply(i));
-                    } catch (Exception e) {
-                        log.warn("Error while performing action for user {{}}: {{}}", i + 1, e.getMessage());
-                    }
-                })
-                .sequential()
-                .blockingSubscribe();
-        } finally {
-            threadPoolExecutor.shutdownNow();
-            scheduler.shutdown();
-        }
+        SimulationConcurrency.forEachIndex(concurrency, numberOfUsers, i -> {
+            try {
+                requestStats.addAll(action.apply(i));
+            } catch (Exception e) {
+                log.warn("Error while performing action for user {}: {}", i + 1, e.getMessage());
+            }
+        });
+
         return requestStats;
     }
 
