@@ -1017,28 +1017,28 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         var bubbleSort = Path.of("repos", username, "src", "progforbenchtemp", "BubbleSort.java");
         log.debug("Change file  {}", bubbleSort);
         var newContent = """
-            package progforbenchtemp;
+        package progforbenchtemp;
 
 
-            import java.util.*;
+        import java.util.*;
 
 
-            public class BubbleSort {
+        public class BubbleSort {
 
-                /**
-                 * BubbleSort
-                 *
-                 * @param BubbleSort
-                 */
-                public void performSort(final List<Date> input) {
-
-
-                    //TODO: implement BubbleSort NOW $$1
+            /**
+             * BubbleSort
+             *
+             * @param BubbleSort
+             */
+            public void performSort(final List<Date> input) {
 
 
-                }
+                //TODO: implement BubbleSort NOW $$1
+
+
             }
-            """;
+        }
+        """;
         if (invalidChange) {
             newContent += "}";
         }
@@ -1312,32 +1312,34 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             throw new RuntimeException("Failed to create temporary directory", e);
         }
 
-        return new SshdSessionFactoryBuilder()
-            .setPreferredAuthentications("publickey")
-            .setDefaultKeysProvider(ignoredSshDirBecauseWeUseAnInMemorySetOfKeyPairs -> keyPairs)
-            .setHomeDirectory(temporaryDirectory.toFile())
-            .setSshDirectory(temporaryDirectory.toFile())
-            .setServerKeyDatabase((ignoredHomeDir, ignoredSshDir) ->
-                new ServerKeyDatabase() {
-                    @Override
-                    public List<PublicKey> lookup(String connectAddress, InetSocketAddress remoteAddress, Configuration config) {
-                        return List.of();
-                    }
+        return (
+            new SshdSessionFactoryBuilder()
+                .setPreferredAuthentications("publickey")
+                .setDefaultKeysProvider(ignoredSshDirBecauseWeUseAnInMemorySetOfKeyPairs -> keyPairs)
+                .setHomeDirectory(temporaryDirectory.toFile())
+                .setSshDirectory(temporaryDirectory.toFile())
+                .setServerKeyDatabase((ignoredHomeDir, ignoredSshDir) ->
+                    new ServerKeyDatabase() {
+                        @Override
+                        public List<PublicKey> lookup(String connectAddress, InetSocketAddress remoteAddress, Configuration config) {
+                            return List.of();
+                        }
 
-                    @Override
-                    public boolean accept(
-                        String connectAddress,
-                        InetSocketAddress remoteAddress,
-                        PublicKey serverKey,
-                        Configuration config,
-                        CredentialsProvider provider
-                    ) {
-                        return true;
+                        @Override
+                        public boolean accept(
+                            String connectAddress,
+                            InetSocketAddress remoteAddress,
+                            PublicKey serverKey,
+                            Configuration config,
+                            CredentialsProvider provider
+                        ) {
+                            return true;
+                        }
                     }
-                }
-            )
-            //The JGitKeyCache handles the caching of keys to avoid unnecessary disk I/O and improve performance
-            .build(new JGitKeyCache());
+                )
+                //The JGitKeyCache handles the caching of keys to avoid unnecessary disk I/O and improve performance
+                .build(new JGitKeyCache())
+        );
     }
 
     /**

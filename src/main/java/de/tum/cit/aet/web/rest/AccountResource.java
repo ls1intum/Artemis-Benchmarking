@@ -88,7 +88,7 @@ public class AccountResource {
             new AccountResourceException("Current user login not found")
         );
         Optional<User> existingUser = userRepository.findOneByEmailIgnoreCase(userDTO.getEmail());
-        if (existingUser.isPresent() && (!existingUser.orElseThrow().getLogin().equalsIgnoreCase(userLogin))) {
+        if (existingUser.isPresent() && !existingUser.orElseThrow().getLogin().equalsIgnoreCase(userLogin)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already in use");
         }
         Optional<User> user = userRepository.findOneByLogin(userLogin);
