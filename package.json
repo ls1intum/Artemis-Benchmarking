@@ -52,7 +52,7 @@
     "@fortawesome/free-solid-svg-icons": "7.2.0",
     "@ng-bootstrap/ng-bootstrap": "21.0.0",
     "@stomp/rx-stomp": "2.4.0",
-    "@swimlane/ngx-charts": "24.0.0",
+    "@swimlane/ngx-charts": "24.0.2",
     "bootstrap": "5.3.8",
     "dayjs": "1.11.21",
     "rxjs": "7.8.2",
