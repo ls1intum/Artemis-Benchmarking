@@ -93,8 +93,9 @@ public class ArtemisUserResource {
      * Register a passkey on Artemis for an ArtemisUser.
      * <p>
      * Needed where Artemis requires a passkey for administrator features: a password login authenticates but is
-     * refused by every admin endpoint. Run this once per admin or instructor user, then have a super admin
-     * approve the credential in Artemis.
+     * refused by every admin endpoint. Run this once per admin or instructor user. Artemis approves the credential
+     * on registration for a {@code ROLE_SUPER_ADMIN} account; for a merely {@code ROLE_ADMIN} one, a super admin
+     * has to approve it afterwards.
      *
      * @param id the id of the ArtemisUser to register a passkey for
      * @return the updated ArtemisUser

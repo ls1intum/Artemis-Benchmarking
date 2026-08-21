@@ -49,8 +49,9 @@ public class ArtemisUserService {
      * Register a passkey on Artemis for the given user, so it can authenticate where Artemis requires a passkey
      * for administrator features.
      * <p>
-     * Only needed once per user. The credential still has to be approved by a super admin in Artemis afterwards:
-     * administrator endpoints check for an approved passkey, not merely a passkey.
+     * Only needed once per user. Administrator endpoints check for an approved passkey rather than merely a
+     * passkey, and Artemis grants that approval on registration when the account holds {@code ROLE_SUPER_ADMIN};
+     * a merely {@code ROLE_ADMIN} account needs a super admin to approve the credential once.
      *
      * @param id the id of the ArtemisUser to register a passkey for
      * @return the updated ArtemisUser

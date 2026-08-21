@@ -25,9 +25,10 @@ import org.springframework.web.reactive.function.client.WebClient;
  * self-service: the simulation logs in with its password once, registers a credential it generated itself, and
  * uses the passkey from then on.
  * <p>
- * One step stays manual. A freshly registered credential is not super-admin approved, and
- * {@code @EnforceAdmin} also requires {@code is-passkey-super-admin-approved}, so a human super-admin has to
- * approve the credential once before admin calls succeed. {@link #registerPasskey} says so in its log output.
+ * Approval is usually automatic. {@code @EnforceAdmin} also requires {@code is-passkey-super-admin-approved},
+ * and Artemis grants that on registration when the registering account holds {@code ROLE_SUPER_ADMIN}
+ * (see {@code ArtemisUserCredentialRepository}). An internal admin account normally does, so nothing manual is
+ * needed; for a merely {@code ROLE_ADMIN} account a super-admin has to approve the credential once.
  */
 @Service
 public class ArtemisPasskeyService {
@@ -137,8 +138,12 @@ public class ArtemisPasskeyService {
         artemisUser.setPasskeyUserHandle(userHandle);
         artemisUser.setPasskeySignatureCount(0L);
 
+        // Artemis approves the credential automatically when the account holds ROLE_SUPER_ADMIN, which an internal
+        // admin normally does. Say so either way rather than making the reader guess which case they are in.
         log.info(
-            "Registered a passkey for {} on {}. A super admin must still approve it before administrator endpoints accept it.",
+            "Registered a passkey for {} on {}. Administrator endpoints accept it once the credential is super-admin "
+                + "approved, which Artemis grants on registration for a ROLE_SUPER_ADMIN account and otherwise "
+                + "requires a super admin to grant.",
             artemisUser.getUsername(),
             rpId
         );
