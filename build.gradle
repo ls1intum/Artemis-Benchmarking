@@ -227,6 +227,13 @@ dependencies {
     implementation "org.apache.sshd:sshd-osgi:${sshdVersion}"
     implementation "org.apache.sshd:sshd-sftp:${sshdVersion}"
 
+    // Software WebAuthn authenticator, so the simulation can log in with a passkey where Artemis requires
+    // one for administrator features. webauthn4j-test carries the authenticator emulator; -core carries the
+    // CBOR/COSE converters used to persist the credential between runs. Same library and version the Artemis
+    // server validates with, so the bytes we produce are the bytes it expects.
+    implementation "com.webauthn4j:webauthn4j-core:${webauthn4jVersion}"
+    implementation "com.webauthn4j:webauthn4j-test:${webauthn4jVersion}"
+
     implementation "org.bouncycastle:bcpkix-jdk18on:1.84"
     implementation "org.bouncycastle:bcprov-jdk18on:1.84"
 

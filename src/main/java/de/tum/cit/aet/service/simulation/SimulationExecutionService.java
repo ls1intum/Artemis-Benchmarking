@@ -13,6 +13,7 @@ import de.tum.cit.aet.service.CiStatusService;
 import de.tum.cit.aet.service.MailService;
 import de.tum.cit.aet.service.artemis.ArtemisConfiguration;
 import de.tum.cit.aet.service.artemis.ArtemisUserService;
+import de.tum.cit.aet.service.artemis.passkey.ArtemisPasskeyService;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisAdmin;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisStudent;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisUser;
@@ -42,6 +43,7 @@ public class SimulationExecutionService {
 
     private final SimulationWebsocketService simulationWebsocketService;
     private final ArtemisUserService artemisUserService;
+    private final ArtemisPasskeyService artemisPasskeyService;
     private final ArtemisConfiguration artemisConfiguration;
     private final SimulationRunRepository simulationRunRepository;
     private final SimulationResultService simulationResultService;
@@ -58,7 +60,8 @@ public class SimulationExecutionService {
         SimulationResultService simulationResultService,
         LogMessageRepository logMessageRepository,
         MailService mailService,
-        CiStatusService ciStatusService
+        CiStatusService ciStatusService,
+        ArtemisPasskeyService artemisPasskeyService
     ) {
         this.simulationWebsocketService = simulationWebsocketService;
         this.artemisConfiguration = artemisConfiguration;
@@ -68,6 +71,7 @@ public class SimulationExecutionService {
         this.artemisUserService = artemisUserService;
         this.mailService = mailService;
         this.ciStatusService = ciStatusService;
+        this.artemisPasskeyService = artemisPasskeyService;
     }
 
     /**
@@ -362,6 +366,11 @@ public class SimulationExecutionService {
             throw new IllegalStateException("No admin account found for server " + server.name());
         }
         var admin = SimulatedArtemisUser.createArtemisAdminFromUser(artemisConfiguration.getUrl(server), adminAccount, artemisUserService);
+        // Where the account has a registered passkey, authenticate with it: Artemis can require a passkey for
+        // administrator features, and a password login is refused by every admin endpoint on such a server.
+        if (adminAccount.hasPasskey()) {
+            admin.setPasskeyService(artemisPasskeyService);
+        }
         admin.login();
         return admin;
     }

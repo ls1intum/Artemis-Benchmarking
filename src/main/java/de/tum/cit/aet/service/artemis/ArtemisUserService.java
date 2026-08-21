@@ -5,6 +5,7 @@ import com.opencsv.bean.CsvToBeanBuilder;
 import de.tum.cit.aet.domain.ArtemisUser;
 import de.tum.cit.aet.repository.ArtemisUserRepository;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisAdmin;
+import de.tum.cit.aet.service.artemis.passkey.ArtemisPasskeyService;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisUser;
 import de.tum.cit.aet.service.dto.ArtemisUserForCreationDTO;
 import de.tum.cit.aet.service.dto.ArtemisUserPatternDTO;
@@ -32,10 +33,39 @@ public class ArtemisUserService {
     private final Logger log = LoggerFactory.getLogger(ArtemisUserService.class);
     private final ArtemisUserRepository artemisUserRepository;
     private final ArtemisConfiguration artemisConfiguration;
+    private final ArtemisPasskeyService artemisPasskeyService;
 
-    public ArtemisUserService(ArtemisUserRepository artemisUserRepository, ArtemisConfiguration artemisConfiguration) {
+    public ArtemisUserService(
+        ArtemisUserRepository artemisUserRepository,
+        ArtemisConfiguration artemisConfiguration,
+        ArtemisPasskeyService artemisPasskeyService
+    ) {
         this.artemisUserRepository = artemisUserRepository;
         this.artemisConfiguration = artemisConfiguration;
+        this.artemisPasskeyService = artemisPasskeyService;
+    }
+
+    /**
+     * Register a passkey on Artemis for the given user, so it can authenticate where Artemis requires a passkey
+     * for administrator features.
+     * <p>
+     * Only needed once per user. Administrator endpoints check for an approved passkey rather than merely a
+     * passkey, and Artemis grants that approval on registration when the account holds {@code ROLE_SUPER_ADMIN};
+     * a merely {@code ROLE_ADMIN} account needs a super admin to approve the credential once.
+     *
+     * @param id the id of the ArtemisUser to register a passkey for
+     * @return the updated ArtemisUser
+     */
+    public ArtemisUser registerPasskey(Long id) {
+        ArtemisUser artemisUser = artemisUserRepository
+            .findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No Artemis user with id " + id));
+        if (artemisUser.getPassword() == null || artemisUser.getPassword().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot register a passkey without a password to log in with first");
+        }
+        String label = "Artemis Benchmarking - " + artemisUser.getUsername();
+        artemisPasskeyService.registerPasskeyWithPasswordLogin(artemisConfiguration.getUrl(artemisUser.getServer()), artemisUser, label);
+        return artemisUserRepository.save(artemisUser);
     }
 
     /**
@@ -68,11 +98,13 @@ public class ArtemisUserService {
             if (admin == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing admin. No admin user found for server");
             }
-            simulatedArtemisAdmin = SimulatedArtemisUser.createArtemisAdminFromCredentials(
-                artemisConfiguration.getUrl(server),
-                admin.getUsername(),
-                admin.getPassword()
-            );
+            // Build the admin from the stored user rather than from bare credentials, so a registered passkey is
+            // available. Creating users on Artemis is an administrator operation, and a server that requires a
+            // passkey for those refuses a password-authenticated admin outright.
+            simulatedArtemisAdmin = SimulatedArtemisUser.createArtemisAdminFromUser(artemisConfiguration.getUrl(server), admin, this);
+            if (admin.hasPasskey()) {
+                simulatedArtemisAdmin.setPasskeyService(artemisPasskeyService);
+            }
             simulatedArtemisAdmin.login();
         }
         log.info("Generate SSH keys... this might take some time");

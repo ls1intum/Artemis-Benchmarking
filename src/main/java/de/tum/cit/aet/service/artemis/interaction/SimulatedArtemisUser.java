@@ -7,6 +7,7 @@ import de.tum.cit.aet.artemisModel.ArtemisAuthMechanism;
 import de.tum.cit.aet.domain.ArtemisUser;
 import de.tum.cit.aet.domain.RequestStat;
 import de.tum.cit.aet.service.artemis.ArtemisUserService;
+import de.tum.cit.aet.service.artemis.passkey.ArtemisPasskeyService;
 import de.tum.cit.aet.service.artemis.util.AuthToken;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -46,6 +47,13 @@ public abstract class SimulatedArtemisUser {
     protected boolean authenticated = false;
     private ArtemisUser artemisUser;
     private ArtemisUserService artemisUserService;
+
+    /**
+     * Set only for users that should authenticate with a passkey. Artemis gates administrator features behind a
+     * passkey on some deployments, and a password login cannot pass that gate, so an admin or instructor driving
+     * such a server needs one.
+     */
+    private ArtemisPasskeyService passkeyService;
     private final Supplier<WebClient.Builder> webClientBuilderSupplier;
 
     /**
@@ -128,6 +136,10 @@ public abstract class SimulatedArtemisUser {
             // If the cached token is invalid, we will try to log in again...
         }
 
+        if (shouldAuthenticateWithPasskey()) {
+            return loginWithPasskey();
+        }
+
         log.info("Logging in as {{}}", username);
         List<RequestStat> requestStats = new ArrayList<>();
         WebClient webClient = createWebClientBuilder()
@@ -168,6 +180,62 @@ public abstract class SimulatedArtemisUser {
         }
         log.debug("Logged in as {}", username);
         return requestStats;
+    }
+
+    /**
+     * @return true if this user has a registered passkey and a service to use it with
+     */
+    private boolean shouldAuthenticateWithPasskey() {
+        return passkeyService != null && artemisUser != null && artemisUser.hasPasskey();
+    }
+
+    /**
+     * Log in with the user's passkey rather than its password.
+     * <p>
+     * Only the resulting token differs, but it differs in the way that matters: it records the authentication
+     * method as a passkey, which is what Artemis checks before allowing administrator features. The signature
+     * counter advances on every assertion, so the user is persisted here even though the password path already
+     * does that: losing the counter would make the next assertion look like a cloned authenticator.
+     *
+     * @return the request stats for the passkey login
+     */
+    private List<RequestStat> loginWithPasskey() {
+        log.info("Logging in as {} with a passkey", username);
+        List<RequestStat> requestStats = new ArrayList<>();
+        WebClient anonymousClient = createWebClientBuilder()
+            .baseUrl(artemisUrl)
+            .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .build();
+
+        long start = System.nanoTime();
+        authToken = passkeyService.authenticateWithPasskey(anonymousClient, artemisUser, artemisUrl);
+        requestStats.add(new RequestStat(now(), System.nanoTime() - start, AUTHENTICATION));
+
+        artemisUser.setJwtToken(authToken.jwtToken());
+        artemisUser.setTokenExpirationDate(authToken.expireDate());
+        artemisUser = artemisUserService.updateArtemisUser(artemisUser.getId(), artemisUser);
+
+        this.webClient = createWebClientBuilder()
+            .baseUrl(artemisUrl)
+            .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .defaultHeader("Cookie", authToken.jwtToken())
+            .build();
+        checkAccess();
+        if (!authenticated) {
+            log.warn("User {} failed access check after passkey login.", username);
+        }
+        return requestStats;
+    }
+
+    /**
+     * Enable passkey authentication for this user.
+     *
+     * @param passkeyService the service performing the WebAuthn assertion
+     */
+    public void setPasskeyService(ArtemisPasskeyService passkeyService) {
+        this.passkeyService = passkeyService;
     }
 
     protected abstract void checkAccess();
