@@ -97,11 +97,13 @@ public class ArtemisUserService {
             if (admin == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing admin. No admin user found for server");
             }
-            simulatedArtemisAdmin = SimulatedArtemisUser.createArtemisAdminFromCredentials(
-                artemisConfiguration.getUrl(server),
-                admin.getUsername(),
-                admin.getPassword()
-            );
+            // Build the admin from the stored user rather than from bare credentials, so a registered passkey is
+            // available. Creating users on Artemis is an administrator operation, and a server that requires a
+            // passkey for those refuses a password-authenticated admin outright.
+            simulatedArtemisAdmin = SimulatedArtemisUser.createArtemisAdminFromUser(artemisConfiguration.getUrl(server), admin, this);
+            if (admin.hasPasskey()) {
+                simulatedArtemisAdmin.setPasskeyService(artemisPasskeyService);
+            }
             simulatedArtemisAdmin.login();
         }
         log.info("Generate SSH keys... this might take some time");

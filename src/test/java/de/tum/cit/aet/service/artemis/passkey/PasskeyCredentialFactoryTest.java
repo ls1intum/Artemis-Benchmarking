@@ -31,6 +31,8 @@ class PasskeyCredentialFactoryTest {
 
     private static final String CHALLENGE = "FnhYNCj_jsTZOD0SbU6VwxppESxUrHRwBUQI03CnbZ4";
 
+    private static final String ORIGIN = "https://" + RP_ID;
+
     private final PasskeyCredentialFactory factory = new PasskeyCredentialFactory(JsonMapper.builder().build());
 
     private final WebAuthnManager webAuthnManager = WebAuthnManager.createNonStrictWebAuthnManager();
@@ -38,7 +40,7 @@ class PasskeyCredentialFactoryTest {
     @Test
     void registrationIsAcceptedByTheRelyingParty() {
         var credential = factory.createCredential(RP_ID);
-        byte[] clientDataJson = factory.clientDataJson("webauthn.create", CHALLENGE, RP_ID);
+        byte[] clientDataJson = factory.clientDataJson("webauthn.create", CHALLENGE, ORIGIN);
 
         RegistrationData registrationData = verifyRegistration(credential, clientDataJson);
 
@@ -50,12 +52,12 @@ class PasskeyCredentialFactoryTest {
     @Test
     void assertionIsAcceptedByTheRelyingParty() {
         var credential = factory.createCredential(RP_ID);
-        RegistrationData registrationData = verifyRegistration(credential, factory.clientDataJson("webauthn.create", CHALLENGE, RP_ID));
+        RegistrationData registrationData = verifyRegistration(credential, factory.clientDataJson("webauthn.create", CHALLENGE, ORIGIN));
         CredentialRecord credentialRecord = credentialRecord(registrationData);
 
         // A real login: fetch a challenge, sign it, and let the relying party check the result.
         String loginChallenge = "ADtv3n_K1AeaUtT7kRb2a88xHV9MIAnGvcRdxxhNilY";
-        byte[] clientDataJson = factory.clientDataJson("webauthn.get", loginChallenge, RP_ID);
+        byte[] clientDataJson = factory.clientDataJson("webauthn.get", loginChallenge, ORIGIN);
         var assertion = factory.signAssertion(RP_ID, clientDataJson, 1L, credential.encodedCoseKey());
 
         var authenticationData = webAuthnManager.verify(
@@ -79,10 +81,10 @@ class PasskeyCredentialFactoryTest {
     @Test
     void assertionWithAStaleSignatureCounterIsRejected() {
         var credential = factory.createCredential(RP_ID);
-        RegistrationData registrationData = verifyRegistration(credential, factory.clientDataJson("webauthn.create", CHALLENGE, RP_ID));
+        RegistrationData registrationData = verifyRegistration(credential, factory.clientDataJson("webauthn.create", CHALLENGE, ORIGIN));
 
         String loginChallenge = "ADtv3n_K1AeaUtT7kRb2a88xHV9MIAnGvcRdxxhNilY";
-        byte[] clientDataJson = factory.clientDataJson("webauthn.get", loginChallenge, RP_ID);
+        byte[] clientDataJson = factory.clientDataJson("webauthn.get", loginChallenge, ORIGIN);
         var assertion = factory.signAssertion(RP_ID, clientDataJson, 5L, credential.encodedCoseKey());
 
         // The stored record has already seen a higher counter than this assertion carries.
@@ -121,11 +123,11 @@ class PasskeyCredentialFactoryTest {
     @Test
     void assertionForAnotherOriginIsRejected() {
         var credential = factory.createCredential(RP_ID);
-        RegistrationData registrationData = verifyRegistration(credential, factory.clientDataJson("webauthn.create", CHALLENGE, RP_ID));
+        RegistrationData registrationData = verifyRegistration(credential, factory.clientDataJson("webauthn.create", CHALLENGE, ORIGIN));
         CredentialRecord credentialRecord = credentialRecord(registrationData);
 
         String loginChallenge = "ADtv3n_K1AeaUtT7kRb2a88xHV9MIAnGvcRdxxhNilY";
-        byte[] clientDataJson = factory.clientDataJson("webauthn.get", loginChallenge, "attacker.example.com");
+        byte[] clientDataJson = factory.clientDataJson("webauthn.get", loginChallenge, "https://attacker.example.com");
         var assertion = factory.signAssertion("attacker.example.com", clientDataJson, 1L, credential.encodedCoseKey());
 
         assertThatThrownBy(() ->
@@ -145,7 +147,7 @@ class PasskeyCredentialFactoryTest {
     @Test
     void aStoredKeyRoundTripsThroughItsEncodedForm() {
         var credential = factory.createCredential(RP_ID);
-        byte[] clientDataJson = factory.clientDataJson("webauthn.get", CHALLENGE, RP_ID);
+        byte[] clientDataJson = factory.clientDataJson("webauthn.get", CHALLENGE, ORIGIN);
 
         // Signing twice from the same stored form must produce a usable signature both times: the encoded key is
         // what survives a restart, so this is the property the database column relies on.
@@ -157,9 +159,22 @@ class PasskeyCredentialFactoryTest {
         assertThat(first.authenticatorData()).isNotEqualTo(second.authenticatorData());
     }
 
+    /**
+     * The origin has to carry a non-default port, or every local and non-standard deployment fails verification.
+     * Deriving it from the relying party id, which has no port, was the original mistake here.
+     */
+    @Test
+    void originIsDerivedFromTheBaseUrlIncludingNonDefaultPorts() {
+        assertThat(PasskeyCredentialFactory.originOf("https://artemis.example.com/")).isEqualTo("https://artemis.example.com");
+        assertThat(PasskeyCredentialFactory.originOf("https://artemis.example.com:443/")).isEqualTo("https://artemis.example.com");
+        assertThat(PasskeyCredentialFactory.originOf("http://localhost:8080/")).isEqualTo("http://localhost:8080");
+        assertThat(PasskeyCredentialFactory.originOf("https://localhost:54321")).isEqualTo("https://localhost:54321");
+        assertThat(PasskeyCredentialFactory.originOf("http://localhost/")).isEqualTo("http://localhost");
+    }
+
     @Test
     void signingWithoutAStoredKeyFails() {
-        byte[] clientDataJson = factory.clientDataJson("webauthn.get", CHALLENGE, RP_ID);
+        byte[] clientDataJson = factory.clientDataJson("webauthn.get", CHALLENGE, ORIGIN);
         String notAKey = Base64.getEncoder().encodeToString("not a cose key".getBytes());
 
         assertThatThrownBy(() -> factory.signAssertion(RP_ID, clientDataJson, 1L, notAKey)).isInstanceOf(RuntimeException.class);

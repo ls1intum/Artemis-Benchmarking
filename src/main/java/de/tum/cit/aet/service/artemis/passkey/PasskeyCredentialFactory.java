@@ -10,6 +10,7 @@ import com.webauthn4j.data.attestation.authenticator.EC2COSEKey;
 import com.webauthn4j.data.attestation.statement.COSEAlgorithmIdentifier;
 import com.webauthn4j.data.attestation.statement.NoneAttestationStatement;
 import com.webauthn4j.data.extension.authenticator.RegistrationExtensionAuthenticatorOutput;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -78,18 +79,38 @@ public class PasskeyCredentialFactory {
      *
      * @param type      {@code webauthn.create} for registration, {@code webauthn.get} for an assertion
      * @param challenge the base64url challenge from the options response
-     * @param rpId      the relying party id, from which the origin is derived
+     * @param origin    the origin a browser would report, as produced by {@link #originOf}
      * @return the encoded client data
      */
-    public byte[] clientDataJson(String type, String challenge, String rpId) {
+    public byte[] clientDataJson(String type, String challenge, String origin) {
         Map<String, Object> clientData = new LinkedHashMap<>();
         clientData.put("type", type);
         clientData.put("challenge", challenge);
-        // The relying party checks the origin against its allow list, so it has to be the browser-visible URL.
-        // This is also why a simulation must reach Artemis through its load balancer rather than a node address.
-        clientData.put("origin", "https://" + rpId);
+        clientData.put("origin", origin);
         clientData.put("crossOrigin", false);
         return jsonMapper.writeValueAsBytes(clientData);
+    }
+
+    /**
+     * Derive the WebAuthn origin from the Artemis base URL.
+     * <p>
+     * The relying party checks the origin against its allow list, so it has to be exactly what a browser would
+     * report: scheme, host, and the port only when it is not the default for that scheme. Deriving it from the
+     * relying party id instead would be wrong for any deployment not served on the default port, which includes
+     * every local setup.
+     *
+     * @param artemisUrl the configured base URL of the Artemis server
+     * @return the origin to put in the client data
+     */
+    public static String originOf(String artemisUrl) {
+        URI uri = URI.create(artemisUrl);
+        String scheme = uri.getScheme();
+        if (scheme == null || uri.getHost() == null) {
+            throw new IllegalArgumentException("Cannot derive a WebAuthn origin from '" + artemisUrl + "'");
+        }
+        int port = uri.getPort();
+        boolean defaultPort = port == -1 || ("https".equals(scheme) && port == 443) || ("http".equals(scheme) && port == 80);
+        return scheme + "://" + uri.getHost() + (defaultPort ? "" : ":" + port);
     }
 
     /**

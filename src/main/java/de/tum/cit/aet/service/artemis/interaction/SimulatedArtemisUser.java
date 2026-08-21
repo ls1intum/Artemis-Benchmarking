@@ -209,7 +209,7 @@ public abstract class SimulatedArtemisUser {
             .build();
 
         long start = System.nanoTime();
-        authToken = passkeyService.authenticateWithPasskey(anonymousClient, artemisUser);
+        authToken = passkeyService.authenticateWithPasskey(anonymousClient, artemisUser, artemisUrl);
         requestStats.add(new RequestStat(now(), System.nanoTime() - start, AUTHENTICATION));
 
         artemisUser.setJwtToken(authToken.jwtToken());

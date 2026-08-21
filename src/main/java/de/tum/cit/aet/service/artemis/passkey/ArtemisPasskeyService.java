@@ -3,7 +3,10 @@ package de.tum.cit.aet.service.artemis.passkey;
 import de.tum.cit.aet.domain.ArtemisUser;
 import de.tum.cit.aet.service.artemis.util.AuthToken;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -41,6 +44,9 @@ public class ArtemisPasskeyService {
 
     private static final String REGISTRATION_PATH = "webauthn/register";
 
+    /** Artemis names its authentication cookie {@code jwt}. */
+    private static final String JWT_COOKIE_PREFIX = "jwt=";
+
     private final PasskeyCredentialFactory credentialFactory;
 
     public ArtemisPasskeyService(PasskeyCredentialFactory credentialFactory) {
@@ -70,11 +76,11 @@ public class ArtemisPasskeyService {
         if (loginResponse == null) {
             throw new IllegalStateException("Password login for " + artemisUser.getUsername() + " returned no response");
         }
-        var setCookie = loginResponse.getHeaders().get(HttpHeaders.SET_COOKIE);
-        if (setCookie == null || setCookie.isEmpty()) {
+        String loginCookie = jwtCookie(loginResponse.getHeaders().get(HttpHeaders.SET_COOKIE));
+        if (loginCookie == null) {
             throw new IllegalStateException("Password login for " + artemisUser.getUsername() + " returned no JWT cookie");
         }
-        AuthToken token = AuthToken.fromResponseHeaderString(setCookie.getFirst());
+        AuthToken token = AuthToken.fromResponseHeaderString(loginCookie);
 
         WebClient authenticatedClient = WebClient.builder()
             .baseUrl(artemisUrl)
@@ -83,7 +89,7 @@ public class ArtemisPasskeyService {
             .defaultHeader(HttpHeaders.COOKIE, token.jwtToken())
             .build();
 
-        registerPasskey(authenticatedClient, artemisUser, label);
+        registerPasskey(authenticatedClient, artemisUser, label, PasskeyCredentialFactory.originOf(artemisUrl));
     }
 
     /**
@@ -96,14 +102,15 @@ public class ArtemisPasskeyService {
      * @param artemisUser         the user to register a credential for, updated in place
      * @param label               the label shown in the Artemis passkey settings, so a human can find it later
      */
-    public void registerPasskey(WebClient authenticatedClient, ArtemisUser artemisUser, String label) {
-        Map<String, Object> options = postForMap(authenticatedClient, REGISTRATION_OPTIONS_PATH, Map.of());
+    public void registerPasskey(WebClient authenticatedClient, ArtemisUser artemisUser, String label, String origin) {
+        OptionsResponse optionsResponse = postForOptions(authenticatedClient, REGISTRATION_OPTIONS_PATH, Map.of());
+        Map<String, Object> options = optionsResponse.body();
         String rpId = relyingPartyId(options);
         String challenge = stringValue(options, "challenge");
         String userHandle = userHandle(options);
 
         PasskeyCredentialFactory.NewPasskeyCredential credential = credentialFactory.createCredential(rpId);
-        byte[] clientDataJson = credentialFactory.clientDataJson("webauthn.create", challenge, rpId);
+        byte[] clientDataJson = credentialFactory.clientDataJson("webauthn.create", challenge, origin);
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("clientDataJSON", PasskeyCredentialFactory.base64Url(clientDataJson));
@@ -114,7 +121,16 @@ public class ArtemisPasskeyService {
         // also the shape the Artemis client sends.
         Map<String, Object> body = Map.of("publicKey", Map.of("credential", publicKeyCredential(credential.credentialId(), response), "label", label));
 
-        authenticatedClient.post().uri(REGISTRATION_PATH).bodyValue(body).retrieve().toBodilessEntity().block();
+        // Echo the cookies from the options call: Artemis looks the pending challenge up by a cookie value, and a
+        // WebClient keeps no cookie jar of its own, so nothing sends them back automatically.
+        authenticatedClient
+            .post()
+            .uri(REGISTRATION_PATH)
+            .headers(headers -> appendCookies(headers, optionsResponse.cookies()))
+            .bodyValue(body)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
 
         artemisUser.setPasskeyCredentialId(credential.credentialId());
         artemisUser.setPasskeyCoseKey(credential.encodedCoseKey());
@@ -137,19 +153,21 @@ public class ArtemisPasskeyService {
      *
      * @param webClient   an unauthenticated web client pointed at the Artemis server
      * @param artemisUser the user to log in, whose signature counter is advanced
+     * @param artemisUrl  the base URL of that server, from which the origin is derived
      * @return the JWT cookie Artemis issued, carrying the passkey authentication method
      */
-    public AuthToken authenticateWithPasskey(WebClient webClient, ArtemisUser artemisUser) {
+    public AuthToken authenticateWithPasskey(WebClient webClient, ArtemisUser artemisUser, String artemisUrl) {
         if (!artemisUser.hasPasskey()) {
             throw new IllegalStateException("User " + artemisUser.getUsername() + " has no passkey credential to authenticate with");
         }
 
-        Map<String, Object> options = postForMap(webClient, AUTHENTICATION_OPTIONS_PATH, Map.of());
+        OptionsResponse optionsResponse = postForOptions(webClient, AUTHENTICATION_OPTIONS_PATH, Map.of());
+        Map<String, Object> options = optionsResponse.body();
         String rpId = stringValue(options, "rpId");
         String challenge = stringValue(options, "challenge");
 
         long signatureCount = artemisUser.getPasskeySignatureCount() + 1;
-        byte[] clientDataJson = credentialFactory.clientDataJson("webauthn.get", challenge, rpId);
+        byte[] clientDataJson = credentialFactory.clientDataJson("webauthn.get", challenge, PasskeyCredentialFactory.originOf(artemisUrl));
         PasskeyCredentialFactory.SignedAssertion assertion = credentialFactory.signAssertion(rpId, clientDataJson, signatureCount, artemisUser.getPasskeyCoseKey());
 
         Map<String, Object> response = new LinkedHashMap<>();
@@ -161,6 +179,7 @@ public class ArtemisPasskeyService {
         var entity = webClient
             .post()
             .uri(LOGIN_PATH)
+            .headers(headers -> appendCookies(headers, optionsResponse.cookies()))
             .bodyValue(publicKeyCredential(artemisUser.getPasskeyCredentialId(), response))
             .retrieve()
             .toBodilessEntity()
@@ -169,13 +188,27 @@ public class ArtemisPasskeyService {
         if (entity == null) {
             throw new IllegalStateException("Passkey login for " + artemisUser.getUsername() + " returned no response");
         }
-        var setCookie = entity.getHeaders().get(HttpHeaders.SET_COOKIE);
-        if (setCookie == null || setCookie.isEmpty()) {
+        String jwtCookie = jwtCookie(entity.getHeaders().get(HttpHeaders.SET_COOKIE));
+        if (jwtCookie == null) {
             throw new IllegalStateException("Passkey login for " + artemisUser.getUsername() + " returned no JWT cookie");
         }
 
         artemisUser.setPasskeySignatureCount(signatureCount);
-        return AuthToken.fromResponseHeaderString(setCookie.getFirst());
+        return AuthToken.fromResponseHeaderString(jwtCookie);
+    }
+
+    /**
+     * Add cookies to a request without discarding any the web client already carries, such as a JWT.
+     *
+     * @param headers the request headers being built
+     * @param cookies the cookies to add, or null to leave the headers alone
+     */
+    private void appendCookies(HttpHeaders headers, @Nullable String cookies) {
+        if (cookies == null || cookies.isBlank()) {
+            return;
+        }
+        String existing = headers.getFirst(HttpHeaders.COOKIE);
+        headers.set(HttpHeaders.COOKIE, existing == null || existing.isBlank() ? cookies : existing + "; " + cookies);
     }
 
     /**
@@ -193,20 +226,65 @@ public class ArtemisPasskeyService {
         return credential;
     }
 
+    /**
+     * POST for a JSON object, keeping the cookies the server set alongside the body.
+     * <p>
+     * The cookies matter: Artemis hands out the challenge through one, so a caller that only reads the body
+     * cannot complete the ceremony.
+     */
     @SuppressWarnings("unchecked")
-    private Map<String, Object> postForMap(WebClient webClient, String path, Object body) {
-        Map<String, Object> result = webClient
-            .post()
-            .uri(path)
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(body)
-            .retrieve()
-            .bodyToMono(Map.class)
-            .block();
-        if (result == null) {
+    private OptionsResponse postForOptions(WebClient webClient, String path, Object body) {
+        var entity = webClient.post().uri(path).contentType(MediaType.APPLICATION_JSON).bodyValue(body).retrieve().toEntity(Map.class).block();
+        if (entity == null || entity.getBody() == null) {
             throw new IllegalStateException("No response from " + path);
         }
-        return result;
+        List<String> setCookies = entity.getHeaders().get(HttpHeaders.SET_COOKIE);
+        return new OptionsResponse((Map<String, Object>) entity.getBody(), cookieHeader(setCookies));
+    }
+
+    /**
+     * Pick the JWT out of the response cookies.
+     * <p>
+     * A passkey login sets more than one: alongside the token, Artemis expires the challenge cookie now that the
+     * ceremony is over. Taking the first header would therefore hand back the cleared challenge cookie, which
+     * parses into a token that authenticates nobody, and the failure surfaces later as a puzzling access-check
+     * failure rather than as a login error.
+     *
+     * @param setCookies the Set-Cookie headers, possibly null
+     * @return the {@code jwt=...} cookie, or null if the response carried none
+     */
+    @Nullable
+    private String jwtCookie(@Nullable List<String> setCookies) {
+        if (setCookies == null) {
+            return null;
+        }
+        return setCookies.stream().filter(cookie -> cookie.startsWith(JWT_COOKIE_PREFIX)).findFirst().orElse(null);
+    }
+
+    /**
+     * Reduce {@code Set-Cookie} response headers to a {@code Cookie} request header.
+     * <p>
+     * Only the name=value pair is echoed back; attributes such as Path, Max-Age and HttpOnly are instructions to
+     * a browser and are not part of what a client sends.
+     *
+     * @param setCookies the Set-Cookie headers, possibly null
+     * @return a Cookie header value, or null when the server set none
+     */
+    @Nullable
+    private String cookieHeader(@Nullable List<String> setCookies) {
+        if (setCookies == null || setCookies.isEmpty()) {
+            return null;
+        }
+        return setCookies.stream().map(cookie -> cookie.split(";", 2)[0]).filter(pair -> pair.contains("=")).collect(Collectors.joining("; "));
+    }
+
+    /**
+     * A WebAuthn options response: the challenge and its parameters, plus the cookies that identify it.
+     *
+     * @param body    the parsed JSON body
+     * @param cookies a Cookie header to send with the request that completes the ceremony, or null
+     */
+    private record OptionsResponse(Map<String, Object> body, @Nullable String cookies) {
     }
 
     /**
