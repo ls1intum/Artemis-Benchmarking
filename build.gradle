@@ -16,7 +16,7 @@ plugins {
     id "jacoco"
     id "com.diffplug.spotless" version "${spotlessPluginVersion}"
     id "com.github.andygoossens.gradle-modernizer-plugin" version "${modernizerPluginVersion}"
-    id "com.github.ben-manes.versions" version "0.54.0"
+    id "com.github.ben-manes.versions" version "0.61.0"
     id "com.github.node-gradle.node" version "${gradleNodePluginVersion}"
     id "com.google.cloud.tools.jib" version "${jibPluginVersion}"
     id "com.gorylenko.gradle-git-properties" version "${gitPropertiesPluginVersion}"
@@ -170,7 +170,7 @@ dependencies {
     annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
     annotationProcessor "org.glassfish.jaxb:jaxb-runtime:${jaxbRuntimeVersion}"
 
-    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:3.0.3"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-api:3.1.0"
     implementation "org.apache.commons:commons-lang3:${commonsLangVersion}"
     implementation "org.openapitools:jackson-databind-nullable:${jacksonDatabindNullableVersion}"
 
@@ -208,7 +208,7 @@ dependencies {
 
     implementation "io.micrometer:micrometer-registry-prometheus"
     // Prometheus requires the protobuf-java dependency, but we explicitly use the latest version to avoid security vulnerabilities
-    implementation "com.google.protobuf:protobuf-java:4.35.1"
+    implementation "com.google.protobuf:protobuf-java:4.36.0"
 
     implementation "io.dropwizard.metrics:metrics-core:4.2.39"
     implementation "org.springframework.security:spring-security-messaging"
@@ -234,8 +234,8 @@ dependencies {
     implementation "com.webauthn4j:webauthn4j-core:${webauthn4jVersion}"
     implementation "com.webauthn4j:webauthn4j-test:${webauthn4jVersion}"
 
-    implementation "org.bouncycastle:bcpkix-jdk18on:1.84"
-    implementation "org.bouncycastle:bcprov-jdk18on:1.84"
+    implementation "org.bouncycastle:bcpkix-jdk18on:1.85"
+    implementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
 
     implementation "io.projectreactor.netty:reactor-netty-core"
     implementation "io.projectreactor.netty:reactor-netty-http"
@@ -255,7 +255,7 @@ dependencies {
 
     // use newest version of plexus to avoid security issues through outdated dependencies
     checkstyle "org.codehaus.plexus:plexus-container-default:2.1.1"
-    checkstyle "org.codehaus.plexus:plexus-classworlds:2.12.0"
+    checkstyle "org.codehaus.plexus:plexus-classworlds:2.12.1"
     checkstyle "com.puppycrawl.tools:checkstyle:${checkstyleVersion}"
     checkstyle "org.apache.commons:commons-lang3:${commonsLangVersion}"
 
