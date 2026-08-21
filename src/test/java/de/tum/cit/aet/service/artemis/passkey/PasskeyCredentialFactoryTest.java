@@ -45,8 +45,9 @@ class PasskeyCredentialFactoryTest {
         RegistrationData registrationData = verifyRegistration(credential, clientDataJson);
 
         assertThat(registrationData.getAttestationObject()).isNotNull();
-        assertThat(registrationData.getAttestationObject().getAuthenticatorData().getAttestedCredentialData().getCredentialId())
-            .isEqualTo(base64UrlDecode(credential.credentialId()));
+        assertThat(registrationData.getAttestationObject().getAuthenticatorData().getAttestedCredentialData().getCredentialId()).isEqualTo(
+            base64UrlDecode(credential.credentialId())
+        );
     }
 
     @Test
@@ -111,8 +112,7 @@ class PasskeyCredentialFactoryTest {
                 ),
                 new AuthenticationParameters(serverProperty(loginChallenge), recordAtHigherCounter, null, false)
             )
-        )
-            .isInstanceOf(com.webauthn4j.verifier.exception.VerificationException.class);
+        ).isInstanceOf(com.webauthn4j.verifier.exception.VerificationException.class);
     }
 
     /**
@@ -140,8 +140,7 @@ class PasskeyCredentialFactoryTest {
                 ),
                 new AuthenticationParameters(serverProperty(loginChallenge), credentialRecord, null, false)
             )
-        )
-            .isInstanceOf(com.webauthn4j.verifier.exception.VerificationException.class);
+        ).isInstanceOf(com.webauthn4j.verifier.exception.VerificationException.class);
     }
 
     @Test

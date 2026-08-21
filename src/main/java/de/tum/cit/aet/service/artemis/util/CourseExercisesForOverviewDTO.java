@@ -11,6 +11,5 @@ import java.util.Set;
  * @param participationResults the results of the student's participations in this course
  */
 public record CourseExercisesForOverviewDTO(Set<ParticipationResultDTO> participationResults) {
-
     public record ParticipationResultDTO(Double score, Boolean rated, Long participationId) {}
 }

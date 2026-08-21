@@ -31,6 +31,18 @@ public record ArtemisUserDTO(
      * @return the creation payload
      */
     public static ArtemisUserDTO forCreation(String login, String password, String firstName, String lastName, String email) {
-        return new ArtemisUserDTO(true, List.of("ROLE_USER"), List.of(), List.of(), email, firstName, lastName, login, password, true, null);
+        return new ArtemisUserDTO(
+            true,
+            List.of("ROLE_USER"),
+            List.of(),
+            List.of(),
+            email,
+            firstName,
+            lastName,
+            login,
+            password,
+            true,
+            null
+        );
     }
 }

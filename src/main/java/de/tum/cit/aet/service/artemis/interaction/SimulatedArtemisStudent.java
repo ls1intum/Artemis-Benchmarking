@@ -433,9 +433,12 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         try {
             // available-tabs is the single source of truth for tab visibility; fall back to the course's own
             // configuration when an older Artemis version does not serve it yet.
-            boolean communicationEnabled = availableTabs != null ? availableTabs.communication()
-                    : course != null && course.courseInformationSharingConfiguration() != null
-                            && !"DISABLED".equals(course.courseInformationSharingConfiguration());
+            boolean communicationEnabled =
+                availableTabs != null
+                    ? availableTabs.communication()
+                    : course != null &&
+                      course.courseInformationSharingConfiguration() != null &&
+                      !"DISABLED".equals(course.courseInformationSharingConfiguration());
 
             if (communicationEnabled) {
                 getUnreadMessages();
@@ -447,8 +450,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                     getLatestResult(result.participationId());
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error while getting course overview for {{}}: {{}}", username, e.getMessage());
         }
 
