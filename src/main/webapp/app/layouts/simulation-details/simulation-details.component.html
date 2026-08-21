@@ -30,6 +30,10 @@
                 <td>{{ simulation().numberOfCommitsAndPushesFrom }} - {{ simulation().numberOfCommitsAndPushesTo }}</td>
               </tr>
               <tr>
+                <th>Cancel build jobs after run</th>
+                <td>{{ simulation().cancelBuildJobsAfterRun ? 'Yes' : 'No' }}</td>
+              </tr>
+              <tr>
                 <th>Created</th>
                 <td>{{ simulation().creationDate | date: 'dd.MM.yyyy, HH:mm' }}</td>
               </tr>

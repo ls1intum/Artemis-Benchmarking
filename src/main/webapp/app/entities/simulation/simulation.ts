@@ -19,6 +19,7 @@ export class Simulation {
     public passwordPercentage: number,
     public tokenPercentage: number,
     public sshPercentage: number,
+    public cancelBuildJobsAfterRun = false,
     public userRange?: string,
     public instructorUsername?: string,
     public instructorPassword?: string,

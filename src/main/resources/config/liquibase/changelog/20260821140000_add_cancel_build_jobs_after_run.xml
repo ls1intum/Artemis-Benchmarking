@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+      Opt-in flag to cancel the build jobs a run queued once its participation phase is over.
+
+      A few hundred simulated students queue thousands of builds that outlive the measurement, so a series of runs
+      would otherwise measure the previous run's backlog. Defaults to false: cancelling discards the CI throughput
+      figures for that run, which is the right trade only when the run is one rung of a ladder.
+    -->
+    <changeSet id="20260821140000-add-cancel-build-jobs-after-run" author="benchmarking">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="simulation" columnName="cancel_build_jobs_after_run"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="simulation">
+            <column name="cancel_build_jobs_after_run" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>
