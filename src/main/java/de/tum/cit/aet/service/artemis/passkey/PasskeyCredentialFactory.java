@@ -130,14 +130,21 @@ public class PasskeyCredentialFactory {
         secureRandom.nextBytes(credentialId);
 
         EC2COSEKey publicKey = EC2COSEKey.create((java.security.interfaces.ECPublicKey) keyPair.getPublic(), COSEAlgorithmIdentifier.ES256);
-        EC2COSEKey privateKey = EC2COSEKey.create((java.security.interfaces.ECPrivateKey) keyPair.getPrivate(), COSEAlgorithmIdentifier.ES256);
+        EC2COSEKey privateKey = EC2COSEKey.create(
+            (java.security.interfaces.ECPrivateKey) keyPair.getPrivate(),
+            COSEAlgorithmIdentifier.ES256
+        );
 
         // AAGUID zero identifies an authenticator model that declines to identify itself, which is what a
         // software authenticator honestly is, and is accepted under "none" attestation.
         AttestedCredentialData attestedCredentialData = new AttestedCredentialData(AAGUID.ZERO, credentialId, publicKey);
         byte flags = (byte) (FLAG_USER_PRESENT | FLAG_USER_VERIFIED | FLAG_ATTESTED_CREDENTIAL_DATA);
-        AuthenticatorData<RegistrationExtensionAuthenticatorOutput> authenticatorData = new AuthenticatorData<>(sha256(rpId.getBytes()), flags, 0L,
-                attestedCredentialData);
+        AuthenticatorData<RegistrationExtensionAuthenticatorOutput> authenticatorData = new AuthenticatorData<>(
+            sha256(rpId.getBytes()),
+            flags,
+            0L,
+            attestedCredentialData
+        );
 
         AttestationObject attestationObject = new AttestationObject(authenticatorData, new NoneAttestationStatement());
         String attestationObjectBase64Url = new AttestationObjectConverter(objectConverter).convertToBase64urlString(attestationObject);
@@ -159,17 +166,23 @@ public class PasskeyCredentialFactory {
      */
     public SignedAssertion signAssertion(String rpId, byte[] clientDataJson, long signatureCount, String encodedCoseKey) {
         byte flags = (byte) (FLAG_USER_PRESENT | FLAG_USER_VERIFIED);
-        byte[] authenticatorData = ByteBuffer.allocate(SHA256_LENGTH + 1 + 4).put(sha256(rpId.getBytes())).put(flags).putInt((int) signatureCount).array();
+        byte[] authenticatorData = ByteBuffer.allocate(SHA256_LENGTH + 1 + 4)
+            .put(sha256(rpId.getBytes()))
+            .put(flags)
+            .putInt((int) signatureCount)
+            .array();
 
-        byte[] signedData = ByteBuffer.allocate(authenticatorData.length + SHA256_LENGTH).put(authenticatorData).put(sha256(clientDataJson)).array();
+        byte[] signedData = ByteBuffer.allocate(authenticatorData.length + SHA256_LENGTH)
+            .put(authenticatorData)
+            .put(sha256(clientDataJson))
+            .array();
 
         try {
             Signature signature = Signature.getInstance("SHA256withECDSA");
             signature.initSign(decodeCoseKey(encodedCoseKey));
             signature.update(signedData);
             return new SignedAssertion(base64Url(authenticatorData), base64Url(signature.sign()));
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             throw new IllegalStateException("Could not sign the passkey assertion", exception);
         }
     }
@@ -195,8 +208,7 @@ public class PasskeyCredentialFactory {
             KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
             generator.initialize(new ECGenParameterSpec("secp256r1"), secureRandom);
             return generator.generateKeyPair();
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             throw new IllegalStateException("Could not generate an EC P-256 key pair for the passkey", exception);
         }
     }
@@ -204,8 +216,7 @@ public class PasskeyCredentialFactory {
     private byte[] sha256(byte[] input) {
         try {
             return MessageDigest.getInstance("SHA-256").digest(input);
-        }
-        catch (NoSuchAlgorithmException exception) {
+        } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException("SHA-256 is unavailable", exception);
         }
     }
@@ -227,8 +238,7 @@ public class PasskeyCredentialFactory {
      * @param attestationObject base64url attestation object to post to Artemis
      * @param encodedCoseKey    the private key, to persist once registration succeeds
      */
-    public record NewPasskeyCredential(String credentialId, String attestationObject, String encodedCoseKey) {
-    }
+    public record NewPasskeyCredential(String credentialId, String attestationObject, String encodedCoseKey) {}
 
     /**
      * The signed halves of an assertion.
@@ -236,6 +246,5 @@ public class PasskeyCredentialFactory {
      * @param authenticatorData base64url authenticator data
      * @param signature         base64url signature over the authenticator data and client data hash
      */
-    public record SignedAssertion(String authenticatorData, String signature) {
-    }
+    public record SignedAssertion(String authenticatorData, String signature) {}
 }

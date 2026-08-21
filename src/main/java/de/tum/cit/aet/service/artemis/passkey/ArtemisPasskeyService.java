@@ -2,11 +2,11 @@ package de.tum.cit.aet.service.artemis.passkey;
 
 import de.tum.cit.aet.domain.ArtemisUser;
 import de.tum.cit.aet.service.artemis.util.AuthToken;
+import jakarta.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -72,8 +72,21 @@ public class ArtemisPasskeyService {
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .build();
 
-        Map<String, Object> credentials = Map.of("username", artemisUser.getUsername(), "password", artemisUser.getPassword(), "rememberMe", false);
-        var loginResponse = anonymousClient.post().uri("api/core/public/authenticate").bodyValue(credentials).retrieve().toBodilessEntity().block();
+        Map<String, Object> credentials = Map.of(
+            "username",
+            artemisUser.getUsername(),
+            "password",
+            artemisUser.getPassword(),
+            "rememberMe",
+            false
+        );
+        var loginResponse = anonymousClient
+            .post()
+            .uri("api/core/public/authenticate")
+            .bodyValue(credentials)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
         if (loginResponse == null) {
             throw new IllegalStateException("Password login for " + artemisUser.getUsername() + " returned no response");
         }
@@ -120,7 +133,10 @@ public class ArtemisPasskeyService {
 
         // Spring Security's registration filter expects the credential wrapped together with its label, which is
         // also the shape the Artemis client sends.
-        Map<String, Object> body = Map.of("publicKey", Map.of("credential", publicKeyCredential(credential.credentialId(), response), "label", label));
+        Map<String, Object> body = Map.of(
+            "publicKey",
+            Map.of("credential", publicKeyCredential(credential.credentialId(), response), "label", label)
+        );
 
         // Echo the cookies from the options call: Artemis looks the pending challenge up by a cookie value, and a
         // WebClient keeps no cookie jar of its own, so nothing sends them back automatically.
@@ -141,9 +157,9 @@ public class ArtemisPasskeyService {
         // Artemis approves the credential automatically when the account holds ROLE_SUPER_ADMIN, which an internal
         // admin normally does. Say so either way rather than making the reader guess which case they are in.
         log.info(
-            "Registered a passkey for {} on {}. Administrator endpoints accept it once the credential is super-admin "
-                + "approved, which Artemis grants on registration for a ROLE_SUPER_ADMIN account and otherwise "
-                + "requires a super admin to grant.",
+            "Registered a passkey for {} on {}. Administrator endpoints accept it once the credential is super-admin " +
+                "approved, which Artemis grants on registration for a ROLE_SUPER_ADMIN account and otherwise " +
+                "requires a super admin to grant.",
             artemisUser.getUsername(),
             rpId
         );
@@ -173,7 +189,12 @@ public class ArtemisPasskeyService {
 
         long signatureCount = artemisUser.getPasskeySignatureCount() + 1;
         byte[] clientDataJson = credentialFactory.clientDataJson("webauthn.get", challenge, PasskeyCredentialFactory.originOf(artemisUrl));
-        PasskeyCredentialFactory.SignedAssertion assertion = credentialFactory.signAssertion(rpId, clientDataJson, signatureCount, artemisUser.getPasskeyCoseKey());
+        PasskeyCredentialFactory.SignedAssertion assertion = credentialFactory.signAssertion(
+            rpId,
+            clientDataJson,
+            signatureCount,
+            artemisUser.getPasskeyCoseKey()
+        );
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("clientDataJSON", PasskeyCredentialFactory.base64Url(clientDataJson));
@@ -239,7 +260,14 @@ public class ArtemisPasskeyService {
      */
     @SuppressWarnings("unchecked")
     private OptionsResponse postForOptions(WebClient webClient, String path, Object body) {
-        var entity = webClient.post().uri(path).contentType(MediaType.APPLICATION_JSON).bodyValue(body).retrieve().toEntity(Map.class).block();
+        var entity = webClient
+            .post()
+            .uri(path)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .retrieve()
+            .toEntity(Map.class)
+            .block();
         if (entity == null || entity.getBody() == null) {
             throw new IllegalStateException("No response from " + path);
         }
@@ -263,7 +291,11 @@ public class ArtemisPasskeyService {
         if (setCookies == null) {
             return null;
         }
-        return setCookies.stream().filter(cookie -> cookie.startsWith(JWT_COOKIE_PREFIX)).findFirst().orElse(null);
+        return setCookies
+            .stream()
+            .filter(cookie -> cookie.startsWith(JWT_COOKIE_PREFIX))
+            .findFirst()
+            .orElse(null);
     }
 
     /**
@@ -280,7 +312,11 @@ public class ArtemisPasskeyService {
         if (setCookies == null || setCookies.isEmpty()) {
             return null;
         }
-        return setCookies.stream().map(cookie -> cookie.split(";", 2)[0]).filter(pair -> pair.contains("=")).collect(Collectors.joining("; "));
+        return setCookies
+            .stream()
+            .map(cookie -> cookie.split(";", 2)[0])
+            .filter(pair -> pair.contains("="))
+            .collect(Collectors.joining("; "));
     }
 
     /**
@@ -289,8 +325,7 @@ public class ArtemisPasskeyService {
      * @param body    the parsed JSON body
      * @param cookies a Cookie header to send with the request that completes the ceremony, or null
      */
-    private record OptionsResponse(Map<String, Object> body, @Nullable String cookies) {
-    }
+    private record OptionsResponse(Map<String, Object> body, @Nullable String cookies) {}
 
     /**
      * Registration options nest the relying party id under {@code rp}, assertion options carry it flat as
