@@ -262,7 +262,7 @@ public class Simulation {
     }
 
     public boolean participationPercentagesSumUpToHundredPercent() {
-        return (this.onlineIdePercentage + this.passwordPercentage + this.tokenPercentage + this.sshPercentage) == 100.0;
+        return this.onlineIdePercentage + this.passwordPercentage + this.tokenPercentage + this.sshPercentage == 100.0;
     }
 
     public enum Mode {

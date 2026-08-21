@@ -151,9 +151,9 @@ public class SimulationExecutionServiceIT {
         when(simulatedArtemisStudent2.startExamParticipation(1, 1, 0)).thenReturn(List.of());
         when(simulatedArtemisStudent3.startExamParticipation(1, 1, 0)).thenReturn(List.of());
 
-        when((simulatedArtemisStudent1.participateInExam(1, 1))).thenReturn(List.of());
-        when((simulatedArtemisStudent2.participateInExam(1, 1))).thenReturn(List.of());
-        when((simulatedArtemisStudent3.participateInExam(1, 1))).thenReturn(List.of());
+        when(simulatedArtemisStudent1.participateInExam(1, 1)).thenReturn(List.of());
+        when(simulatedArtemisStudent2.participateInExam(1, 1)).thenReturn(List.of());
+        when(simulatedArtemisStudent3.participateInExam(1, 1)).thenReturn(List.of());
 
         when(simulatedArtemisStudent1.startExamParticipation(1, 1, 0)).thenReturn(List.of());
         when(simulatedArtemisStudent2.startExamParticipation(1, 1, 0)).thenReturn(List.of());

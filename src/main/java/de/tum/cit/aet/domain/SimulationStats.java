@@ -93,8 +93,6 @@ public class SimulationStats {
 
     @Override
     public String toString() {
-        return (
-            "Number of Requests: " + numberOfRequests + "\nAverage Response Time: " + TimeLogUtil.formatDuration(avgResponseTime) + "\n"
-        );
+        return "Number of Requests: " + numberOfRequests + "\nAverage Response Time: " + TimeLogUtil.formatDuration(avgResponseTime) + "\n";
     }
 }
