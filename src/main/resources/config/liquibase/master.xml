@@ -6,4 +6,5 @@
     <include file="config/liquibase/changelog/00000000000000_initial_schema.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20260620120000_fix_onlineide_percentage_case.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20260821100000_add_passkey_credential.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260821140000_add_cancel_build_jobs_after_run.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

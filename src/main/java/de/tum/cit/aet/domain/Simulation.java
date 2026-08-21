@@ -69,6 +69,16 @@ public class Simulation {
     @Column(name = "number_of_commits_and_pushes_to")
     private int numberOfCommitsAndPushesTo;
 
+    /**
+     * Cancel the build jobs this run queued once the participation phase is over, instead of letting them drain.
+     * <p>
+     * A run of a few hundred students queues thousands of builds that keep the agents busy long after the measurement
+     * itself has finished, which distorts the next run in a series. Cancelling scopes to the course this run created,
+     * so it never touches build jobs belonging to anything else on the server.
+     */
+    @Column(name = "cancel_build_jobs_after_run", nullable = false)
+    private boolean cancelBuildJobsAfterRun = false;
+
     @OneToMany(mappedBy = "simulation", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JsonIgnore
     private Set<SimulationSchedule> schedules;
@@ -184,6 +194,14 @@ public class Simulation {
 
     public void setNumberOfCommitsAndPushesFrom(int numberOfCommitsAndPushesFrom) {
         this.numberOfCommitsAndPushesFrom = numberOfCommitsAndPushesFrom;
+    }
+
+    public boolean isCancelBuildJobsAfterRun() {
+        return cancelBuildJobsAfterRun;
+    }
+
+    public void setCancelBuildJobsAfterRun(boolean cancelBuildJobsAfterRun) {
+        this.cancelBuildJobsAfterRun = cancelBuildJobsAfterRun;
     }
 
     public int getNumberOfCommitsAndPushesTo() {

@@ -23,6 +23,17 @@ import org.springframework.stereotype.Service;
 public class CiStatusService {
 
     private final Logger log = LoggerFactory.getLogger(CiStatusService.class);
+
+    /** How often the number of outstanding build jobs is re-read from Artemis. */
+    private static final long POLL_INTERVAL_MS = 1000L * 60;
+
+    /**
+     * Polls without the outstanding count decreasing before tracking gives up.
+     * <p>
+     * Generous, because a saturated build queue legitimately makes no progress for minutes at a time when jobs are
+     * slower than the poll interval. It only has to be finite.
+     */
+    private static final int MAX_POLLS_WITHOUT_PROGRESS = 15;
     private final CiStatusRepository ciStatusRepository;
     private final SimulationWebsocketService websocketService;
 
@@ -100,11 +111,18 @@ public class CiStatusService {
             status = ciStatusRepository.save(status);
             websocketService.sendRunCiUpdate(simulationRun.getId(), status);
 
-            do {
+            int previousQueuedJobs = numberOfQueuedJobs;
+            int pollsWithoutProgress = 0;
+
+            while (numberOfQueuedJobs > 0) {
                 try {
-                    Thread.sleep(1000 * 60);
+                    Thread.sleep(POLL_INTERVAL_MS);
                 } catch (InterruptedException e) {
+                    // Leave rather than loop on: an interrupted sleep returns immediately, so continuing here would
+                    // spin at full speed against Artemis.
                     Thread.currentThread().interrupt();
+                    log.warn("Interrupted while tracking CI status for simulation run {}; stopping", simulationRun.getId());
+                    break;
                 }
                 log.info("Updating CI status for simulation run {}", simulationRun.getId());
 
@@ -120,7 +138,25 @@ public class CiStatusService {
                 status.setAvgJobsPerMinute((double) (status.getTotalJobs() - status.getQueuedJobs()) / status.getTimeInMinutes());
                 status = ciStatusRepository.save(status);
                 websocketService.sendRunCiUpdate(simulationRun.getId(), status);
-            } while (numberOfQueuedJobs > 0);
+
+                // A build job that never produces a result leaves the count stuck above zero for good. Cancelled jobs
+                // are the common case, but a dead agent or an exercise whose image cannot be pulled does the same.
+                // Without this the loop never ends, and because the caller blocks on it the whole simulation queue
+                // stops: every later run sits in QUEUED forever.
+                pollsWithoutProgress = numberOfQueuedJobs < previousQueuedJobs ? 0 : pollsWithoutProgress + 1;
+                previousQueuedJobs = numberOfQueuedJobs;
+
+                if (pollsWithoutProgress >= MAX_POLLS_WITHOUT_PROGRESS) {
+                    log.warn(
+                        "CI status for simulation run {} stopped making progress: {} build jobs still without a result after {} minutes without change. " +
+                            "Giving up rather than blocking the simulation queue. Were the build jobs cancelled, or are the build agents unable to run them?",
+                        simulationRun.getId(),
+                        numberOfQueuedJobs,
+                        MAX_POLLS_WITHOUT_PROGRESS
+                    );
+                    break;
+                }
+            }
 
             status.setFinished(true);
             status.setTimeInMinutes(getTimeElapsedInMinutes(status.getStartTimeNanos()));

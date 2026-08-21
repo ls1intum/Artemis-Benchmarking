@@ -214,6 +214,14 @@ public class SimulationExecutionService {
                 }
             }
 
+            if (simulationRun.getSimulation().isCancelBuildJobsAfterRun()) {
+                // Cancelling and tracking are mutually exclusive: a cancelled build job never produces a result, so
+                // tracking would wait for jobs that are never coming. Skip it and say so, rather than reporting CI
+                // figures that would only describe how far the queue happened to get.
+                cancelBuildJobsOfCourse(admin, simulationRun, courseId);
+                return;
+            }
+
             // Subscribe to CI status, as we can only safely delete the course after all CI jobs have finished.
             if (!artemisConfiguration.getCleanup(simulationRun.getSimulation().getServer())) {
                 try {
@@ -222,6 +230,27 @@ public class SimulationExecutionService {
                     logAndSend(true, simulationRun, "Error while subscribing to CI status: %s", e.getMessage());
                 }
             }
+        }
+    }
+
+    /**
+     * Cancel the build jobs this run queued, so the agents are idle again before the next run starts.
+     * <p>
+     * Scoped to the course the run created, so a shared server keeps processing everything else. A failure here is
+     * logged but does not fail the run: the measurement is already complete and saved by this point, and leaving the
+     * queue to drain on its own is a slower outcome rather than a wrong one.
+     *
+     * @param admin         the admin or instructor performing the cancellation
+     * @param simulationRun the run whose build jobs should be cancelled
+     * @param courseId      the course the run created
+     */
+    private void cancelBuildJobsOfCourse(SimulatedArtemisAdmin admin, SimulationRun simulationRun, long courseId) {
+        try {
+            logAndSend(false, simulationRun, "Cancelling the build jobs queued by this run...");
+            admin.cancelBuildJobsOfCourse(courseId);
+            logAndSend(false, simulationRun, "Build jobs cancelled. CI status is not reported for a run that cancels its build jobs.");
+        } catch (Exception e) {
+            logAndSend(true, simulationRun, "Could not cancel the build jobs of this run: %s", e.getMessage());
         }
     }
 
