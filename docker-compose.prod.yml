@@ -1,6 +1,6 @@
 services:
   nginx:
-    image: nginx:1.31.2-alpine-slim
+    image: nginx:1.31.4-alpine-slim
     ports:
       - '80:80'
       - '443:443'
