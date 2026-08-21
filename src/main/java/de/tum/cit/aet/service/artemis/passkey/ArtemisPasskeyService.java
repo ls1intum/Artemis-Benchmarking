@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -96,14 +97,17 @@ public class ArtemisPasskeyService {
         }
         AuthToken token = AuthToken.fromResponseHeaderString(loginCookie);
 
+        // Deliberately no default Cookie header. Spring merges default headers with putIfAbsent, so the moment a
+        // request sets its own Cookie (to return a ceremony cookie) the default would be dropped instead of
+        // combined, and the request would arrive unauthenticated. The cookie is therefore threaded through
+        // explicitly and merged by hand.
         WebClient authenticatedClient = WebClient.builder()
             .baseUrl(artemisUrl)
             .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .defaultHeader(HttpHeaders.COOKIE, token.jwtToken())
             .build();
 
-        registerPasskey(authenticatedClient, artemisUser, label, PasskeyCredentialFactory.originOf(artemisUrl));
+        registerPasskey(authenticatedClient, artemisUser, label, PasskeyCredentialFactory.originOf(artemisUrl), token.jwtToken());
     }
 
     /**
@@ -112,12 +116,14 @@ public class ArtemisPasskeyService {
      * The web client must already be authenticated, normally by an ordinary password login. This does not save
      * the user; the caller decides when to persist.
      *
-     * @param authenticatedClient a web client carrying a valid session for this user
+     * @param authenticatedClient a web client for this server; it carries no session of its own
      * @param artemisUser         the user to register a credential for, updated in place
      * @param label               the label shown in the Artemis passkey settings, so a human can find it later
+     * @param origin              the origin a browser would report for this server
+     * @param authCookie          the session cookie authenticating the caller, merged into every request of the ceremony
      */
-    public void registerPasskey(WebClient authenticatedClient, ArtemisUser artemisUser, String label, String origin) {
-        OptionsResponse optionsResponse = postForOptions(authenticatedClient, REGISTRATION_OPTIONS_PATH, Map.of());
+    public void registerPasskey(WebClient authenticatedClient, ArtemisUser artemisUser, String label, String origin, String authCookie) {
+        OptionsResponse optionsResponse = postForOptions(authenticatedClient, REGISTRATION_OPTIONS_PATH, Map.of(), authCookie);
         Map<String, Object> options = optionsResponse.body();
         String rpId = relyingPartyId(options);
         String challenge = stringValue(options, "challenge");
@@ -138,12 +144,13 @@ public class ArtemisPasskeyService {
             Map.of("credential", publicKeyCredential(credential.credentialId(), response), "label", label)
         );
 
-        // Echo the cookies from the options call: Artemis looks the pending challenge up by a cookie value, and a
-        // WebClient keeps no cookie jar of its own, so nothing sends them back automatically.
+        // Send the session cookie and the ceremony cookies together. Artemis stores the pending registration
+        // challenge against an HTTP session and returns a JSESSIONID from the options call, so the second request
+        // needs both: the JWT to be authenticated at all, and the JSESSIONID to find the challenge.
         authenticatedClient
             .post()
             .uri(REGISTRATION_PATH)
-            .headers(headers -> appendCookies(headers, optionsResponse.cookies()))
+            .header(HttpHeaders.COOKIE, mergeCookies(authCookie, optionsResponse.cookies()))
             .bodyValue(body)
             .retrieve()
             .toBodilessEntity()
@@ -182,7 +189,7 @@ public class ArtemisPasskeyService {
             throw new IllegalStateException("User " + artemisUser.getUsername() + " has no passkey credential to authenticate with");
         }
 
-        OptionsResponse optionsResponse = postForOptions(webClient, AUTHENTICATION_OPTIONS_PATH, Map.of());
+        OptionsResponse optionsResponse = postForOptions(webClient, AUTHENTICATION_OPTIONS_PATH, Map.of(), null);
         Map<String, Object> options = optionsResponse.body();
         String rpId = stringValue(options, "rpId");
         String challenge = stringValue(options, "challenge");
@@ -205,7 +212,7 @@ public class ArtemisPasskeyService {
         var entity = webClient
             .post()
             .uri(LOGIN_PATH)
-            .headers(headers -> appendCookies(headers, optionsResponse.cookies()))
+            .header(HttpHeaders.COOKIE, mergeCookies(null, optionsResponse.cookies()))
             .bodyValue(publicKeyCredential(artemisUser.getPasskeyCredentialId(), response))
             .retrieve()
             .toBodilessEntity()
@@ -224,17 +231,21 @@ public class ArtemisPasskeyService {
     }
 
     /**
-     * Add cookies to a request without discarding any the web client already carries, such as a JWT.
+     * Combine the cookies a request needs into one header value.
+     * <p>
+     * Set explicitly rather than left to a default header: Spring merges default headers with
+     * {@code putIfAbsent}, so a request that sets its own {@code Cookie} loses the default instead of combining
+     * with it. That silently strips the JWT from exactly the requests that also carry a ceremony cookie, and the
+     * server answers 401 with nothing to indicate a cookie went missing.
      *
-     * @param headers the request headers being built
-     * @param cookies the cookies to add, or null to leave the headers alone
+     * @param authCookie      the session cookie, or null when the request is unauthenticated
+     * @param ceremonyCookies cookies returned by the matching options call, or null
+     * @return the combined header value, empty when there is nothing to send
      */
-    private void appendCookies(HttpHeaders headers, @Nullable String cookies) {
-        if (cookies == null || cookies.isBlank()) {
-            return;
-        }
-        String existing = headers.getFirst(HttpHeaders.COOKIE);
-        headers.set(HttpHeaders.COOKIE, existing == null || existing.isBlank() ? cookies : existing + "; " + cookies);
+    private String mergeCookies(@Nullable String authCookie, @Nullable String ceremonyCookies) {
+        return Stream.of(authCookie, ceremonyCookies)
+            .filter(cookie -> cookie != null && !cookie.isBlank())
+            .collect(Collectors.joining("; "));
     }
 
     /**
@@ -259,11 +270,12 @@ public class ArtemisPasskeyService {
      * cannot complete the ceremony.
      */
     @SuppressWarnings("unchecked")
-    private OptionsResponse postForOptions(WebClient webClient, String path, Object body) {
+    private OptionsResponse postForOptions(WebClient webClient, String path, Object body, @Nullable String authCookie) {
         var entity = webClient
             .post()
             .uri(path)
             .contentType(MediaType.APPLICATION_JSON)
+            .header(HttpHeaders.COOKIE, mergeCookies(authCookie, null))
             .bodyValue(body)
             .retrieve()
             .toEntity(Map.class)
