@@ -1,8 +1,8 @@
 nodeLinker: hoisted
 
-# Some transitive deps declare older Angular peer ranges than we ship; we satisfy
-# them via peerDependencyRules + overrides below and don't want install to fail on
-# the mismatch.
+# Transitive deps occasionally declare peer ranges that our versions do not satisfy
+# (for example an Angular range that lags a release behind). Warn instead of failing
+# the install; add an entry to `overrides` below if a mismatch actually breaks something.
 strictPeerDependencies: false
 
 # Packages whose install/postinstall scripts are allowed to run. Without this,
@@ -36,4 +36,3 @@ overrides:
   word-wrap: 1.2.5
   ws: 8.21.3
   yargs-parser: 22.0.0
-
