@@ -13,8 +13,9 @@ import java.util.function.IntConsumer;
  * to, capped a run far below what either machine could sustain: at 1000 students the tool host sat at 26% CPU while its
  * 80 threads were 87% busy, so the measurement described the load generator rather than the server under test.
  * <p>
- * Virtual threads remove that ceiling. A student who is waiting for a response parks their thread and releases the
- * carrier, so a run can hold as many students in flight as it claims to simulate. This needs Java 24 or later to be
+ * Virtual threads decouple that ceiling from the core count. A student who is waiting for a response parks their
+ * thread and releases the carrier, so how many students are in flight becomes a deliberate setting rather than an
+ * accident of the host's hardware. This needs Java 24 or later to be
  * worthwhile, since before <a href="https://openjdk.org/jeps/491">JEP 491</a> a {@code synchronized} block pinned a
  * virtual thread to its carrier, and JGit takes monitors on paths a clone goes through.
  * <p>
@@ -27,12 +28,18 @@ public final class SimulationConcurrency {
     /**
      * Upper bound on students in flight when nothing else is configured.
      * <p>
-     * A limit exists so that pointing the tool at an unfamiliar deployment cannot turn a measurement into a denial of
-     * service, and so that an operator has something to turn down when looking for the point at which a system bends.
-     * It is set well above the largest rung of the documented ladder, so in practice a run is limited by its own
-     * student count rather than by this number.
+     * Deliberately a modest step up from the 80 that the old core-count formula produced on an eight core host, rather
+     * than the thousands virtual threads would technically allow. Two reasons to stay conservative. The tool host was
+     * already working hard at 80: its disk ran 82% busy during a 1000-student run, and disk is the one thing virtual
+     * threads do not help with, because file I/O holds its carrier thread for the duration. And a tool that defaults to
+     * thousands of simultaneous students is a denial of service aimed at whatever it is pointed at.
+     * <p>
+     * So this is a ceiling to raise deliberately, having looked at the tool host's own CPU, memory and disk, rather
+     * than a number to leave alone. Unlike the formula it replaces it is at least visible and adjustable, through
+     * {@code benchmarking.simulation.max-concurrency}. A run with more students than this still simulates every one of
+     * them and queues the excess, exactly as it did before.
      */
-    public static final int DEFAULT_MAX_CONCURRENCY = 2000;
+    public static final int DEFAULT_MAX_CONCURRENCY = 200;
 
     private SimulationConcurrency() {}
 

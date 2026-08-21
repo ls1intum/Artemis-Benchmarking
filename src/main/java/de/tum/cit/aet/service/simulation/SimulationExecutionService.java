@@ -41,8 +41,9 @@ public class SimulationExecutionService {
     /**
      * Ceiling on how many simulated students may be in flight at once, regardless of how many a run asks for.
      * <p>
-     * Raise it to push a deployment harder than the documented ladder goes, lower it to find the point at which a
-     * system starts to bend. See {@link SimulationConcurrency} for why the previous core count based limit was wrong.
+     * The default is deliberately conservative. Raise it once the tool host has been shown to have the CPU, memory and
+     * disk to back it, lower it to find the point at which a system starts to bend. See {@link SimulationConcurrency}
+     * for why the previous core count based limit was wrong and why its replacement is still bounded.
      */
     @Value("${benchmarking.simulation.max-concurrency:" + SimulationConcurrency.DEFAULT_MAX_CONCURRENCY + "}")
     private int maxConcurrency;

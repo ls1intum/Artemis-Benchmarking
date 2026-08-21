@@ -15,18 +15,30 @@ class SimulationConcurrencyTest {
 
     @Test
     void concurrencyForUsesTheStudentCountWhenItFitsUnderTheCeiling() {
-        assertThat(SimulationConcurrency.concurrencyFor(1000, 2000)).isEqualTo(1000);
+        assertThat(SimulationConcurrency.concurrencyFor(150, 200)).isEqualTo(150);
     }
 
     @Test
     void concurrencyForClampsToTheCeiling() {
-        assertThat(SimulationConcurrency.concurrencyFor(5000, 2000)).isEqualTo(2000);
+        assertThat(SimulationConcurrency.concurrencyFor(5000, 200)).isEqualTo(200);
     }
 
     @Test
     void concurrencyForNeverReturnsLessThanOne() {
-        assertThat(SimulationConcurrency.concurrencyFor(0, 2000)).isEqualTo(1);
+        assertThat(SimulationConcurrency.concurrencyFor(0, 200)).isEqualTo(1);
         assertThat(SimulationConcurrency.concurrencyFor(100, 0)).isEqualTo(1);
+    }
+
+    /**
+     * A run larger than the ceiling still simulates every student, queueing the excess rather than dropping it.
+     */
+    @Test
+    void forEachIndexStillCoversEveryStudentWhenTheCeilingBinds() {
+        java.util.Set<Integer> seen = Collections.synchronizedSet(new HashSet<>());
+
+        SimulationConcurrency.forEachIndex(SimulationConcurrency.concurrencyFor(1000), 1000, seen::add);
+
+        assertThat(seen).hasSize(1000);
     }
 
     @Test
