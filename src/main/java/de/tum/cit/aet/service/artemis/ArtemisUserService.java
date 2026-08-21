@@ -5,6 +5,7 @@ import com.opencsv.bean.CsvToBeanBuilder;
 import de.tum.cit.aet.domain.ArtemisUser;
 import de.tum.cit.aet.repository.ArtemisUserRepository;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisAdmin;
+import de.tum.cit.aet.service.artemis.passkey.ArtemisPasskeyService;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisUser;
 import de.tum.cit.aet.service.dto.ArtemisUserForCreationDTO;
 import de.tum.cit.aet.service.dto.ArtemisUserPatternDTO;
@@ -32,10 +33,38 @@ public class ArtemisUserService {
     private final Logger log = LoggerFactory.getLogger(ArtemisUserService.class);
     private final ArtemisUserRepository artemisUserRepository;
     private final ArtemisConfiguration artemisConfiguration;
+    private final ArtemisPasskeyService artemisPasskeyService;
 
-    public ArtemisUserService(ArtemisUserRepository artemisUserRepository, ArtemisConfiguration artemisConfiguration) {
+    public ArtemisUserService(
+        ArtemisUserRepository artemisUserRepository,
+        ArtemisConfiguration artemisConfiguration,
+        ArtemisPasskeyService artemisPasskeyService
+    ) {
         this.artemisUserRepository = artemisUserRepository;
         this.artemisConfiguration = artemisConfiguration;
+        this.artemisPasskeyService = artemisPasskeyService;
+    }
+
+    /**
+     * Register a passkey on Artemis for the given user, so it can authenticate where Artemis requires a passkey
+     * for administrator features.
+     * <p>
+     * Only needed once per user. The credential still has to be approved by a super admin in Artemis afterwards:
+     * administrator endpoints check for an approved passkey, not merely a passkey.
+     *
+     * @param id the id of the ArtemisUser to register a passkey for
+     * @return the updated ArtemisUser
+     */
+    public ArtemisUser registerPasskey(Long id) {
+        ArtemisUser artemisUser = artemisUserRepository
+            .findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No Artemis user with id " + id));
+        if (artemisUser.getPassword() == null || artemisUser.getPassword().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot register a passkey without a password to log in with first");
+        }
+        String label = "Artemis Benchmarking - " + artemisUser.getUsername();
+        artemisPasskeyService.registerPasskeyWithPasswordLogin(artemisConfiguration.getUrl(artemisUser.getServer()), artemisUser, label);
+        return artemisUserRepository.save(artemisUser);
     }
 
     /**

@@ -90,6 +90,21 @@ public class ArtemisUserResource {
     }
 
     /**
+     * Register a passkey on Artemis for an ArtemisUser.
+     * <p>
+     * Needed where Artemis requires a passkey for administrator features: a password login authenticates but is
+     * refused by every admin endpoint. Run this once per admin or instructor user, then have a super admin
+     * approve the credential in Artemis.
+     *
+     * @param id the id of the ArtemisUser to register a passkey for
+     * @return the updated ArtemisUser
+     */
+    @PostMapping("/{id}/passkey")
+    public ResponseEntity<ArtemisUser> registerPasskey(@PathVariable Long id) {
+        return ResponseEntity.ok(artemisUserService.registerPasskey(id));
+    }
+
+    /**
      * Update an ArtemisUser by its id.
      *
      * @param id the id of the ArtemisUser to update
