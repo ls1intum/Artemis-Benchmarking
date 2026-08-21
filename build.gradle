@@ -255,7 +255,7 @@ dependencies {
 
     // use newest version of plexus to avoid security issues through outdated dependencies
     checkstyle "org.codehaus.plexus:plexus-container-default:2.1.1"
-    checkstyle "org.codehaus.plexus:plexus-classworlds:2.12.0"
+    checkstyle "org.codehaus.plexus:plexus-classworlds:2.12.1"
     checkstyle "com.puppycrawl.tools:checkstyle:${checkstyleVersion}"
     checkstyle "org.apache.commons:commons-lang3:${commonsLangVersion}"
 
