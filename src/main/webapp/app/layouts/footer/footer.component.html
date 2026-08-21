@@ -1,6 +1,9 @@
 <div class="footer">
   <p>
-    Made with <fa-icon icon="heart"></fa-icon> by TUM Applied Education Technologies in Munich<br />
-    <b>Branch</b>: {{ gitBranch }}, <b>Commit</b>: {{ gitCommitId }} ({{ gitTimestamp }}) by {{ gitCommitUser }}
+    Made with <fa-icon icon="heart"></fa-icon> by TUM Applied Education Technologies in Munich
+    @if (gitCommitId(); as commitId) {
+      <br />
+      <b>Branch</b>: {{ gitBranch() }}, <b>Commit</b>: {{ commitId }} ({{ gitTimestamp() }}) by {{ gitCommitUser() }}
+    }
   </p>
 </div>
