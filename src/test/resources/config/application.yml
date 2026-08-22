@@ -99,6 +99,14 @@ artemis:
       artemis:
       vcs:
       ci:
+  ts2:
+    url:
+    cleanup-enabled: false
+    is-local: false
+    prometheus-instances:
+      artemis:
+      vcs:
+      ci:
   ts7:
     url:
     cleanup-enabled: false

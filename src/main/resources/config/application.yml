@@ -216,11 +216,19 @@ artemis:
       vcs:
       ci:
   ts1:
-    url: https://artemis-test7.artemis.cit.tum.de/
+    url: https://artemis-test1.artemis.cit.tum.de/
     cleanup-enabled: false
     is-local: false
     prometheus-instances:
       artemis: artemis-test1.artemis.cit.tum.de:9100
+      vcs:
+      ci:
+  ts2:
+    url: https://artemis-test2.artemis.cit.tum.de/
+    cleanup-enabled: false
+    is-local: true
+    prometheus-instances:
+      artemis: artemis-test2.artemis.cit.tum.de:9100
       vcs:
       ci:
   ts7:
