@@ -19,7 +19,7 @@ allowBuilds:
 # motivated them and can block legitimate upstream upgrades.
 overrides:
   braces: 3.0.3
-  cookie: 1.1.1
+  cookie: 2.0.1
   debug: 4.4.3
   esbuild: 0.28.2
   express: 5.2.1
