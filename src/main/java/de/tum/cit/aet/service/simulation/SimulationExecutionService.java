@@ -222,11 +222,23 @@ public class SimulationExecutionService {
             }
 
             if (simulationRun.getSimulation().isCancelBuildJobsAfterRun()) {
-                // Cancelling and tracking are mutually exclusive: a cancelled build job never produces a result, so
-                // tracking would wait for jobs that are never coming. Skip it and say so, rather than reporting CI
-                // figures that would only describe how far the queue happened to get.
-                cancelBuildJobsOfCourse(admin, simulationRun, courseId);
-                return;
+                // Cancelling is scoped to a course, not to this run, so it is only ever safe where the run created the
+                // course and therefore owns everything in it. Against an existing course it would cancel build jobs
+                // belonging to real students, so refuse rather than obey. The client hides the option for those modes,
+                // but the REST API takes the flag directly and a scheduled simulation keeps whatever it was saved with.
+                if (simulationRun.getSimulation().getMode() != Simulation.Mode.CREATE_COURSE_AND_EXAM) {
+                    logAndSend(
+                        true,
+                        simulationRun,
+                        "Not cancelling build jobs: this run used an existing course, and cancelling covers the whole course rather than just this run."
+                    );
+                } else {
+                    // Cancelling and tracking are mutually exclusive: a cancelled build job never produces a result, so
+                    // tracking would wait for jobs that are never coming. Skip it and say so, rather than reporting CI
+                    // figures that would only describe how far the queue happened to get.
+                    cancelBuildJobsOfCourse(admin, simulationRun, courseId);
+                    return;
+                }
             }
 
             // Subscribe to CI status, as we can only safely delete the course after all CI jobs have finished.

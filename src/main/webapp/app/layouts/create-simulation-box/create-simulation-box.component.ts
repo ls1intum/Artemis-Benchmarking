@@ -31,13 +31,27 @@ export class CreateSimulationBoxComponent implements OnInit {
   userRange = '';
   numberOfCommitsAndPushesFrom = 8;
   numberOfCommitsAndPushesTo = 15;
-  cancelBuildJobsAfterRun = false;
+  // On by default, because the default mode creates its own course and a run of a few hundred students queues
+  // thousands of builds that keep the agents busy long after the measurement is over, distorting the next run in a
+  // series. Only offered for CREATE_COURSE_AND_EXAM: cancelling covers a whole course, so against an existing course
+  // it would reach build jobs belonging to real students. See modeAllowsCancellingBuildJobs below.
+  cancelBuildJobsAfterRun = true;
   instructorUsername = '';
   instructorPassword = '';
   passwordPercentage = 100;
   tokenPercentage = 0;
   sshPercentage = 0;
   onlineIdePercentage = 0;
+
+  /**
+   * Whether cancelling this run's build jobs is offered at all.
+   *
+   * Cancellation is scoped to a course rather than to the run, so it is only safe when the run created the course and
+   * therefore owns every build job in it. The server refuses it for the other modes regardless of what is sent.
+   */
+  get modeAllowsCancellingBuildJobs(): boolean {
+    return this.mode === Mode.CREATE_COURSE_AND_EXAM;
+  }
 
   availableServers = Object.values(ArtemisServer);
   availableModes = [
