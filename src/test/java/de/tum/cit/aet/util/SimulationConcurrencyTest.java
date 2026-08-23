@@ -2,8 +2,11 @@ package de.tum.cit.aet.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -116,6 +119,93 @@ class SimulationConcurrencyTest {
 
         release.countDown();
         runner.join();
+    }
+
+    @Test
+    void pauseLetsAnotherUserWorkWhileThisOneThinks() {
+        // With a single permit the other user can only start if the one that goes first hands its permit back while
+        // thinking. Which index wins the permit is up to the scheduler, so the users are named by arrival order.
+        List<String> events = Collections.synchronizedList(new ArrayList<>());
+        AtomicInteger arrivals = new AtomicInteger();
+
+        SimulationConcurrency.forEachIndex(1, 2, 30, 30, (index, thinkTime) -> {
+            String user = arrivals.getAndIncrement() == 0 ? "first" : "second";
+            events.add("start " + user);
+            if ("first".equals(user)) {
+                thinkTime.pause();
+            }
+            events.add("end " + user);
+        });
+
+        assertThat(events).containsExactly("start first", "start second", "end second", "end first");
+    }
+
+    @Test
+    void pausingDoesNotLetMoreUsersWorkAtOnceThanTheLimitAllows() {
+        // The pause releases a permit and takes it again. If that accounting drifted, the limit would creep upwards
+        // over a run and the tool would generate more load than it was asked for.
+        int limit = 3;
+        AtomicInteger working = new AtomicInteger();
+        AtomicInteger highWaterMark = new AtomicInteger();
+
+        SimulationConcurrency.forEachIndex(limit, 40, 1, 3, (index, thinkTime) -> {
+            for (int step = 0; step < 5; step++) {
+                highWaterMark.accumulateAndGet(working.incrementAndGet(), Math::max);
+                working.decrementAndGet();
+                thinkTime.pause();
+            }
+        });
+
+        assertThat(highWaterMark).hasValueLessThanOrEqualTo(limit);
+    }
+
+    @Test
+    void pauseWaitsForAtLeastTheGivenThinkTime() {
+        long start = System.nanoTime();
+
+        SimulationConcurrency.forEachIndex(1, 1, 60, 60, (index, thinkTime) -> thinkTime.pause());
+
+        assertThat(Duration.ofNanos(System.nanoTime() - start)).isGreaterThanOrEqualTo(Duration.ofMillis(60));
+    }
+
+    @Test
+    void everyUserGetsItsOwnThinkTime() {
+        Set<SimulationConcurrency.ThinkTime> seen = Collections.synchronizedSet(Collections.newSetFromMap(new IdentityHashMap<>()));
+
+        SimulationConcurrency.forEachIndex(4, 20, 1, 1, (index, thinkTime) -> seen.add(thinkTime));
+
+        assertThat(seen).hasSize(20);
+    }
+
+    @Test
+    void theThinkTimeOnTheCurrentThreadIsTheOneHandedToTheAction() {
+        // The request code is several call layers below the action, so it reads the pacing off the thread rather than
+        // taking it as a parameter. That lookup has to find the same pause the action was given.
+        List<Boolean> matches = Collections.synchronizedList(new ArrayList<>());
+
+        SimulationConcurrency.forEachIndex(4, 20, 1, 1, (index, thinkTime) ->
+            matches.add(SimulationConcurrency.currentThinkTime() == thinkTime)
+        );
+
+        assertThat(matches).hasSize(20).containsOnly(true);
+    }
+
+    @Test
+    void thinkTimeOutsideASimulationDoesNothing() {
+        long start = System.nanoTime();
+
+        SimulationConcurrency.currentThinkTime().pause();
+
+        assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofSeconds(1));
+    }
+
+    @Test
+    void forEachIndexWithoutAThinkTimeStillCoversEveryIndex() {
+        AtomicInteger completed = new AtomicInteger();
+
+        SimulationConcurrency.forEachIndex(4, 50, index -> completed.incrementAndGet());
+
+        assertThat(completed).hasValue(50);
     }
 
     @Test
