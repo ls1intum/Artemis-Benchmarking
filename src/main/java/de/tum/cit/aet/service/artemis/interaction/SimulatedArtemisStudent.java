@@ -18,6 +18,7 @@ import de.tum.cit.aet.service.artemis.util.CourseForOverviewDTO;
 import de.tum.cit.aet.service.artemis.util.ScienceEventDTO;
 import de.tum.cit.aet.service.artemis.util.UserSshPublicKeyDTO;
 import de.tum.cit.aet.util.FileGeneratorUtil;
+import de.tum.cit.aet.util.SimulationConcurrency;
 import de.tum.cit.aet.util.UMLClassDiagrams;
 import jakarta.annotation.Nullable;
 import java.io.*;
@@ -93,6 +94,20 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         }
     }
 
+    /**
+     * Records an action and then pauses, so the user's next request does not start the instant this one returned.
+     * <p>
+     * Wrapping the result rather than the call keeps the pause after the action, which is where a real user's reading
+     * or typing happens. Outside a simulation the pause does nothing.
+     *
+     * @param stat the statistic of the action that just completed
+     * @return the same statistic
+     */
+    private RequestStat paced(RequestStat stat) {
+        SimulationConcurrency.currentThinkTime().pause();
+        return stat;
+    }
+
     @Override
     protected void checkAccess() {
         var response = webClient.get().uri("api/core/public/account").retrieve().bodyToMono(User.class).block();
@@ -110,14 +125,14 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         }
 
         return List.of(
-            getInfo(),
-            getServerTime(),
-            getSystemNotifications(),
-            getAccount(),
-            getGlobalNotificationSettings(),
-            getCourses(),
-            getCalendarSubscriptionToken(),
-            configureSSH()
+            paced(getInfo()),
+            paced(getServerTime()),
+            paced(getSystemNotifications()),
+            paced(getAccount()),
+            paced(getGlobalNotificationSettings()),
+            paced(getCourses()),
+            paced(getCalendarSubscriptionToken()),
+            paced(configureSSH())
         );
     }
 
@@ -142,8 +157,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             log.warn("Skipping exam participation for {}: student exam not available.", username);
             return requestStats;
         }
-        requestStats.add(getServerTime());
-        requestStats.add(fetchLiveEvents());
+        requestStats.add(paced(getServerTime()));
+        requestStats.add(paced(fetchLiveEvents()));
         requestStats.addAll(handleExercises());
 
         return requestStats;
@@ -166,26 +181,26 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
         List<RequestStat> requestStats = new ArrayList<>();
 
-        requestStats.add(getCourseOverview(courseProgrammingExerciseId));
-        requestStats.add(getServerTime());
-        requestStats.add(getCoursesDropdown());
-        requestStats.add(getScienceSettings());
-        requestStats.add(getNotificationSettings());
-        requestStats.add(getNotificationInfo());
+        requestStats.add(paced(getCourseOverview(courseProgrammingExerciseId)));
+        requestStats.add(paced(getServerTime()));
+        requestStats.add(paced(getCoursesDropdown()));
+        requestStats.add(paced(getScienceSettings()));
+        requestStats.add(paced(getNotificationSettings()));
+        requestStats.add(paced(getNotificationInfo()));
         if (courseProgrammingExerciseId > 0) {
             if (isScienceFeatureEnabled) {
-                requestStats.add(putScienceEvent(courseProgrammingExerciseId));
+                requestStats.add(paced(putScienceEvent(courseProgrammingExerciseId)));
             }
-            requestStats.add(getExerciseDetails(courseProgrammingExerciseId));
-            requestStats.add(getExerciseContributions(courseProgrammingExerciseId));
+            requestStats.add(paced(getExerciseDetails(courseProgrammingExerciseId)));
+            requestStats.add(paced(getExerciseContributions(courseProgrammingExerciseId)));
         }
         if (isIrisEnabled) {
             requestStats.addAll(List.of(getIrisStatus(courseId), getIrisChatHistory(courseId)));
         }
-        requestStats.add(navigateIntoExam());
-        requestStats.add(getTestExams());
-        requestStats.add(getExamSideBarData());
-        requestStats.add(startExam());
+        requestStats.add(paced(navigateIntoExam()));
+        requestStats.add(paced(getTestExams()));
+        requestStats.add(paced(getExamSideBarData()));
+        requestStats.add(paced(startExam()));
 
         if (studentExam == null) {
             log.warn("Student exam not available after start for {}", username);
@@ -193,7 +208,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
         // Mirror the real client: open the exam websocket and subscribe to the exam live-event topics.
         // The connection is kept open across the participation phases and closed in submitAndEndExam.
-        requestStats.add(connectAndSubscribeExamWebsocket(examId));
+        requestStats.add(paced(connectAndSubscribeExamWebsocket(examId)));
 
         return requestStats;
     }
@@ -220,12 +235,12 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             disconnectWebsocket();
             return requestStats;
         }
-        requestStats.add(getServerTime());
+        requestStats.add(paced(getServerTime()));
         RequestStat submitStat = submitStudentExam();
         if (submitStat != null) {
             requestStats.add(submitStat);
         }
-        requestStats.add(loadExamSummary());
+        requestStats.add(paced(loadExamSummary()));
 
         // End of the exam session: close the websocket the same way the real client does on hand-in.
         disconnectWebsocket();
@@ -680,11 +695,11 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         }
         for (var exercise : studentExam.getExercises()) {
             if (exercise instanceof ModelingExercise) {
-                requestStats.add(solveAndSubmitModelingExercise((ModelingExercise) exercise));
+                requestStats.add(paced(solveAndSubmitModelingExercise((ModelingExercise) exercise)));
             } else if (exercise instanceof TextExercise) {
-                requestStats.add(solveAndSubmitTextExercise((TextExercise) exercise));
+                requestStats.add(paced(solveAndSubmitTextExercise((TextExercise) exercise)));
             } else if (exercise instanceof QuizExercise) {
-                requestStats.add(solveAndSubmitQuizExercise((QuizExercise) exercise));
+                requestStats.add(paced(solveAndSubmitQuizExercise((QuizExercise) exercise)));
             } else if (exercise instanceof ProgrammingExercise) {
                 requestStats.addAll(solveAndSubmitProgrammingExercise((ProgrammingExercise) exercise));
             } else if (exercise instanceof FileUploadExercise) {
@@ -783,9 +798,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         List<RequestStat> requestStats = new ArrayList<>();
         var repositoryCloneUrl = programmingParticipation.getRepositoryUri();
         var participationId = programmingParticipation.getId();
-        requestStats.add(fetchParticipationVcsAccessToken(participationId));
-        requestStats.add(fetchProgrammingIdeSettings());
-        requestStats.add(postParticipation(programmingExercise.getId()));
+        requestStats.add(paced(fetchParticipationVcsAccessToken(participationId)));
+        requestStats.add(paced(fetchProgrammingIdeSettings()));
+        requestStats.add(paced(postParticipation(programmingExercise.getId())));
         // Mirror the real client: subscribe to the personal programming submission/result topics so build
         // results are pushed over the open exam websocket instead of being polled.
         subscribeProgrammingWebsocketTopics();
@@ -794,8 +809,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
             switch (authenticationMechanism) {
                 case ONLINE_IDE -> makeInitialProgrammingExerciseOnlineIDECalls(requestStats, participationId);
-                case SSH -> requestStats.add(cloneRepoOverSSH(repositoryCloneUrl));
-                default -> requestStats.add(cloneRepo(repositoryCloneUrl));
+                case SSH -> requestStats.add(paced(cloneRepoOverSSH(repositoryCloneUrl)));
+                default -> requestStats.add(paced(cloneRepo(repositoryCloneUrl)));
             }
 
             int n = new Random().nextInt(numberOfCommitsAndPushesFrom, numberOfCommitsAndPushesTo); // we do a random number of commits and pushes to make some noise
@@ -908,13 +923,13 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         }
         if (studentExamId == null) {
             log.debug("Student exam id missing for {}, fetching own student exam.", username);
-            requestStats.add(navigateIntoExam());
+            requestStats.add(paced(navigateIntoExam()));
         }
         if (studentExamId == null) {
             log.warn("Student exam id still missing for {}", username);
             return requestStats;
         }
-        requestStats.add(startExam());
+        requestStats.add(paced(startExam()));
         if (studentExam == null) {
             log.warn("Student exam conduction returned no data for {} (studentExamId={})", username, studentExamId);
         }
@@ -1051,24 +1066,24 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     }
 
     private void makeInitialProgrammingExerciseOnlineIDECalls(List<RequestStat> requestStats, Long participationId) {
-        requestStats.add(getLatestResultWithFeedback(participationId));
+        requestStats.add(paced(getLatestResultWithFeedback(participationId)));
         if (latestResultId != null) {
-            requestStats.add(getResultDetails(participationId, latestResultId));
+            requestStats.add(paced(getResultDetails(participationId, latestResultId)));
         }
-        requestStats.add(fetchRepository(participationId));
-        requestStats.add(fetchPlantUml());
-        requestStats.add(fetchFiles(participationId));
+        requestStats.add(paced(fetchRepository(participationId)));
+        requestStats.add(paced(fetchPlantUml()));
+        requestStats.add(paced(fetchFiles(participationId)));
     }
 
     private void makeOfflineIDECommitAndPush(List<RequestStat> requestStats) throws IOException, GitAPIException {
-        requestStats.add(commitAndPushRepo());
+        requestStats.add(paced(commitAndPushRepo()));
     }
 
     private void makeOnlineIDECommitAndPush(List<RequestStat> requestStats, Long participationId, String changedFileContent) {
-        requestStats.add(fetchRepository(participationId));
+        requestStats.add(paced(fetchRepository(participationId)));
 
         var fileName = String.join("/", "src", "progforbenchtemp", "BubbleSort.java");
-        requestStats.add(fetchFile(participationId, fileName));
+        requestStats.add(paced(fetchFile(participationId, fileName)));
 
         log.debug("Commit and push to {}", fileName);
         long start = System.nanoTime();
