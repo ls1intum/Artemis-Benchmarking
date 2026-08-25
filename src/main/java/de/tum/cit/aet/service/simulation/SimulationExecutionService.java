@@ -491,11 +491,6 @@ public class SimulationExecutionService {
         }
     }
 
-    private void cancelAllBuildJobs(SimulatedArtemisAdmin admin) {
-        admin.cancelAllQueuedBuildJobs();
-        admin.cancelAllRunningBuildJobs();
-    }
-
     /**
      * Registers the given students for the given course using the given admin and simulation run.
      * Fails the simulation run if an error occurs while registering the students.
@@ -800,8 +795,10 @@ public class SimulationExecutionService {
             return;
         }
 
-        logAndSend(false, simulationRun, "Trying to cancel all build jobs...");
-        cancelAllBuildJobs(admin);
+        // Scoped to this run's own course. Cleanup used to cancel every queued and running build job on the instance,
+        // which is indefensible on a shared server: a benchmark tidying up after itself would throw away work that
+        // belongs to whoever else is using that Artemis.
+        cancelBuildJobsOfCourse(admin, simulationRun, courseId);
         if (!doNotSleep) {
             try {
                 sleep(1_000 * 10);
@@ -809,7 +806,6 @@ public class SimulationExecutionService {
                 throw new RuntimeException(e);
             }
         }
-        logAndSend(false, simulationRun, "Done cancelling all build jobs");
 
         logAndSend(false, simulationRun, "Cleaning up... This may take a while.");
         try {

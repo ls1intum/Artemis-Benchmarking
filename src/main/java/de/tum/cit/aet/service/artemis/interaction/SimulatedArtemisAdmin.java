@@ -255,47 +255,11 @@ public class SimulatedArtemisAdmin extends SimulatedArtemisUser {
     }
 
     /**
-     * Cancel all queued build jobs on Artemis.
-     * <p>
-     * Note: This method is only available for admins.
-     */
-    public void cancelAllQueuedBuildJobs() {
-        if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
-        }
-
-        webClient
-            .delete()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "admin", "cancel-all-queued-jobs").build())
-            .retrieve()
-            .toBodilessEntity()
-            .block();
-    }
-
-    /**
-     * Cancel all running build jobs on Artemis.
-     * <p>
-     * Note: This method is only available for admins.
-     */
-    public void cancelAllRunningBuildJobs() {
-        if (!authenticated) {
-            throw new IllegalStateException("User " + username + " is not logged in or does not have the necessary access rights.");
-        }
-
-        webClient
-            .delete()
-            .uri(uriBuilder -> uriBuilder.pathSegment("api", "admin", "cancel-all-running-jobs").build())
-            .retrieve()
-            .toBodilessEntity()
-            .block();
-    }
-
-    /**
      * Cancel the queued and running build jobs of a single course.
      * <p>
-     * Preferred over the two server-wide variants above for anything a simulation does automatically. It is scoped to
-     * the course the run created, so it cannot disturb other work on a shared server, and it needs only instructor
-     * rights, so it works on a deployment that requires a passkey for administrator features.
+     * The only way a simulation cancels build jobs. It is scoped to the course the run created, so it cannot disturb
+     * other work on a shared server, and it needs only instructor rights, so it works on a deployment that requires a
+     * passkey for administrator features.
      *
      * @param courseId the course whose build jobs should be cancelled
      */
