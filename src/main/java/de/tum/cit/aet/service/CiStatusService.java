@@ -30,10 +30,15 @@ public class CiStatusService {
     /**
      * Polls without the outstanding count decreasing before tracking gives up.
      * <p>
-     * Generous, because a saturated build queue legitimately makes no progress for minutes at a time when jobs are
-     * slower than the poll interval. It only has to be finite.
+     * A saturated queue does stall legitimately, so this cannot be 1, but 15 was far too generous in practice: the
+     * caller blocks on this loop, so every minute spent waiting on a queue that will never drain is a minute the whole
+     * simulation queue is frozen and the next run sits in QUEUED. Fifteen minutes of that is long enough to look like
+     * a hang and provoke a restart, which is how it was actually experienced.
+     * <p>
+     * Five still tolerates a genuinely slow queue: with six concurrent build slots at roughly 13 seconds a job, five
+     * minutes of no completions at all means the agents are not working, not that they are busy.
      */
-    private static final int MAX_POLLS_WITHOUT_PROGRESS = 15;
+    private static final int MAX_POLLS_WITHOUT_PROGRESS = 5;
     private final CiStatusRepository ciStatusRepository;
     private final SimulationWebsocketService websocketService;
 
