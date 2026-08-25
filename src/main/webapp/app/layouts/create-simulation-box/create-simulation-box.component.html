@@ -226,21 +226,23 @@
       For each student, the number of commits and pushes will be chosen randomly in the given range.<br />
       From must be positive and smaller than To.
     </div>
-    <div class="form-check mb-3">
-      <input
-        type="checkbox"
-        class="form-check-input"
-        id="cancel-build-jobs-input"
-        [(ngModel)]="cancelBuildJobsAfterRun"
-        [ngModelOptions]="{ standalone: true }"
-      />
-      <label class="form-check-label" for="cancel-build-jobs-input">Cancel build jobs after the run</label>
-      <div class="form-text">
-        Cancels the build jobs this run queued once the students have finished, instead of letting them drain. Useful when running several
-        simulations in a series, so the next one does not start on top of this one's backlog. Only the build jobs of the course this run
-        creates are cancelled. CI status is not reported for such a run, because a cancelled build job never produces a result.
+    @if (modeAllowsCancellingBuildJobs) {
+      <div class="form-check mb-3">
+        <input
+          type="checkbox"
+          class="form-check-input"
+          id="cancel-build-jobs-input"
+          [(ngModel)]="cancelBuildJobsAfterRun"
+          [ngModelOptions]="{ standalone: true }"
+        />
+        <label class="form-check-label" for="cancel-build-jobs-input">Cancel build jobs after the run</label>
+        <div class="form-text">
+          Cancels the build jobs this run queued once the students have finished, instead of letting them drain. Useful when running several
+          simulations in a series, so the next one does not start on top of this one's backlog. Only the build jobs of the course this run
+          creates are cancelled. CI status is not reported for such a run, because a cancelled build job never produces a result.
+        </div>
       </div>
-    </div>
+    }
     <button type="submit" class="btn btn-primary mt-3" [disabled]="!inputValid()" (click)="createSimulation()">Create Simulation</button>
     <div class="form-text">The simulation will not be executed immediately.</div>
   </form>
