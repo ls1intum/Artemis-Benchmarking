@@ -188,9 +188,12 @@ benchmarking:
       # Parallel downloads per student, mirroring a browser's per-origin connection limit.
       fetch-concurrency: 6
       # Roughly how many files one navigation pulls in. Angular splits a view across several chunks, so opening one view
-      # costs far more than one chunk. Thirty matches the traced browser session; the file names are always discovered
-      # from the running server, so only this ratio may ever need adjusting for a future Artemis.
-      assets-per-navigation: 30
+      # costs far more than one chunk. Two browser traces of the same exam both put a session at 538 distinct static
+      # files and 20.4 MB, measured from the load balancer's access log. The simulated journey navigates eight times and
+      # its shell is 141 files, leaving 397 for those eight; a navigation takes whole bundles and so overshoots its
+      # budget by about a quarter. The file names are always discovered from the running server, so only this ratio may
+      # ever need adjusting for a future Artemis.
+      assets-per-navigation: 39
     # How often the open submission is written back while a student works on an exercise. The Artemis exam client saves
     # every 30 seconds while there are unsaved changes; four saves matches a two-minute stay on one exercise.
     auto-saves-per-exercise: 4

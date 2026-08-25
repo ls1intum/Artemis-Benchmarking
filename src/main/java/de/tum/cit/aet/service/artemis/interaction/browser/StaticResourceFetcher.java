@@ -30,6 +30,10 @@ import reactor.core.publisher.Mono;
  * modeling exercise loads the diagram editor, and so on. Handing out the discovered assets a slice at a time
  * reproduces that spread over the session without needing to know which chunk belongs to which Artemis route — a
  * mapping that only exists inside the compiled bundle and would need re-deriving for every Artemis release.
+ * <p>
+ * The slices are equal, which a browser's are not: traced sessions put most of the lazily loaded files on two of the
+ * eight navigations and nothing at all on the exercise views. The session totals match; the profile within it is
+ * smoother than a real client's.
  */
 public class StaticResourceFetcher {
 

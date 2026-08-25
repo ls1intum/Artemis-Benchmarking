@@ -19,9 +19,25 @@ package de.tum.cit.aet.service.artemis.interaction.browser;
  * @param assetsPerNavigation     roughly how many files one navigation pulls in. Angular splits a view across several
  *                                chunks — a sidebar, its cards, an editor — so opening one view costs far more than one
  *                                chunk, and bundles vary from one file to dozens. Budgeting in files rather than in
- *                                bundles keeps a navigation the same size whatever the bundler emitted. The default is
- *                                the browser trace's 270 lazily loaded files over its nine navigations. The file names
- *                                themselves are always discovered from the running server, never configured.
+ *                                bundles keeps a navigation the same size whatever the bundler emitted.
+ *                                <p>
+ *                                Calibrated against the load balancer's own access log, which is what Artemis actually
+ *                                served, rather than the browser's idea of what it fetched: two independent traces of
+ *                                the same exam both put a session at 538 distinct static files and 20.4 MB. A
+ *                                simulated exam journey navigates eight times — dashboard, course, exam, one per
+ *                                exercise, summary — and its app shell is 141 files, leaving 397 for those eight.
+ *                                Because a navigation takes whole bundles it overshoots its budget by about a quarter,
+ *                                so the two measured points (a budget of 30 produced 419 files per student, 37
+ *                                produced 509) put the value for 538 at 39.
+ *                                <p>
+ *                                The <em>total</em> is what this reproduces. A real client front-loads far more sharply
+ *                                than an even spread: the traces put 203 files on entering the exams tab and 128 on
+ *                                entering the conduction view, with the exercise views costing nothing at all because
+ *                                their editors already arrived. Which chunk belongs to which route cannot be derived
+ *                                without executing the router, so the simulation spreads them evenly and produces a
+ *                                smoother profile over the session than a browser does.
+ *                                <p>
+ *                                The file names themselves are always discovered from the running server.
  */
 public record BrowserSimulationSettings(
     boolean staticResourcesEnabled,
@@ -36,7 +52,7 @@ public record BrowserSimulationSettings(
     public static final int DEFAULT_MAX_ASSETS = 2000;
     public static final int DEFAULT_FETCH_CONCURRENCY = 6;
     public static final int DEFAULT_AUTO_SAVES_PER_EXERCISE = 4;
-    public static final int DEFAULT_ASSETS_PER_NAVIGATION = 30;
+    public static final int DEFAULT_ASSETS_PER_NAVIGATION = 39;
 
     public BrowserSimulationSettings {
         if (coldCachePercentage < 0 || coldCachePercentage > 100) {
