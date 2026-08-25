@@ -56,6 +56,8 @@ class StaticAssetCatalogTest {
                 requested.add("/styles-GUNTQYLE.css");
                 return css("@font-face{src:url(fonts/roboto.woff2)}");
             })
+            .GET("/fonts/roboto.woff2", request -> ServerResponse.ok().bodyValue("font"))
+            .GET("/assets/embedpdf/pdfium.wasm", request -> ServerResponse.ok().bodyValue("wasm"))
             .build();
 
         StaticAssetCatalog catalog = StaticAssetCatalog.forServer("http://localhost", webClient(router), 100);
@@ -124,6 +126,39 @@ class StaticAssetCatalogTest {
         StaticAssetCatalog catalog = StaticAssetCatalog.forServer("http://localhost", webClient(router), 2);
 
         assertEquals(2, catalog.allAssets().size());
+    }
+
+    @Test
+    void leavesOutFilesTheServerDoesNotServe() {
+        // Angular names component stylesheets inside the bundle but compiles them into the JavaScript, so a chunk is
+        // full of ".css" strings that are not files. Asking for them would spend a third of the run on 404s.
+        RouterFunction<ServerResponse> router = RouterFunctions.route()
+            .GET("/", request -> html("<script src=\"main-AAAAAAAA.js\"></script>"))
+            .GET("/main-AAAAAAAA.js", request -> javascript("import\"./chunk-BBBBBBBB.js\";const s=\"widget.component-CCCCCCCC.css\";"))
+            .GET("/chunk-BBBBBBBB.js", request -> javascript("export const x=1;"))
+            .build();
+
+        StaticAssetCatalog catalog = StaticAssetCatalog.forServer("http://partial", webClient(router), 100);
+
+        assertEquals(List.of("main-AAAAAAAA.js", "chunk-BBBBBBBB.js"), catalog.appShell());
+        assertFalse(
+            catalog.allAssets().contains("widget.component-CCCCCCCC.css"),
+            "a stylesheet the server does not serve is not an asset"
+        );
+    }
+
+    @Test
+    void keepsAnAssetTheServerFailsToServeForSomeOtherReason() {
+        // Only an explicit 404 means absent. A transient 500 must not cost the catalog a file that is really there.
+        RouterFunction<ServerResponse> router = RouterFunctions.route()
+            .GET("/", request -> html("<img src=\"logo/favicon.svg\"><script src=\"main-AAAAAAAA.js\"></script>"))
+            .GET("/main-AAAAAAAA.js", request -> javascript("export const x=1;"))
+            .GET("/logo/favicon.svg", request -> ServerResponse.status(500).build())
+            .build();
+
+        StaticAssetCatalog catalog = StaticAssetCatalog.forServer("http://flaky", webClient(router), 100);
+
+        assertTrue(catalog.allAssets().contains("logo/favicon.svg"));
     }
 
     @Test

@@ -110,21 +110,36 @@ class StaticResourceFetcherTest {
     }
 
     @Test
-    void aFailingAssetStillCountsAsARequest() {
-        RouterFunction<ServerResponse> router = RouterFunctions.route()
+    void anAssetThatFailsDuringTheRunStillCountsAsARequest() {
+        // The catalog only contains files the server served at discovery time, so this is the redeploy case: the file
+        // was there when the bundle was read and is gone when the student asks for it. That is still a request Artemis
+        // handled, so it has to be measured rather than quietly dropped.
+        RouterFunction<ServerResponse> serving = RouterFunctions.route()
             .GET("/", request ->
-                record("/", ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue("<script src=\"main-AAAAAAAA.js\"></script>"))
+                ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue("<script src=\"main-AAAAAAAA.js\"></script>")
             )
-            .GET("/main-AAAAAAAA.js", request -> record("/main-AAAAAAAA.js", ServerResponse.notFound().build()))
+            .GET("/main-AAAAAAAA.js", request ->
+                ServerResponse.ok().contentType(MediaType.valueOf("text/javascript")).bodyValue("export const x=1;")
+            )
             .build();
-        WebClient webClient = StaticAssetCatalogTest.webClient(router);
-        StaticAssetCatalog catalog = StaticAssetCatalog.forServer("http://failing", webClient, 100);
-        requested.clear();
-        StaticResourceFetcher fetcher = new StaticResourceFetcher(webClient, catalog, BrowserSimulationSettings.defaults(), true);
+        StaticAssetCatalog catalog = StaticAssetCatalog.forServer("http://redeployed", StaticAssetCatalogTest.webClient(serving), 100);
+        assertEquals(List.of("main-AAAAAAAA.js"), catalog.appShell());
+
+        RouterFunction<ServerResponse> gone = RouterFunctions.route()
+            .GET("/", request ->
+                ServerResponse.ok().contentType(MediaType.TEXT_HTML).bodyValue("<script src=\"main-BBBBBBBB.js\"></script>")
+            )
+            .build();
+        StaticResourceFetcher fetcher = new StaticResourceFetcher(
+            StaticAssetCatalogTest.webClient(gone),
+            catalog,
+            BrowserSimulationSettings.defaults(),
+            true
+        );
 
         List<RequestStat> stats = fetcher.loadAppShell();
 
-        assertEquals(2, stats.size(), "a 404 is still load on the server and must be measured");
+        assertEquals(2, stats.size(), "index.html plus the file that has since disappeared");
     }
 
     @Test

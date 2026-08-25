@@ -17,6 +17,8 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Mono;
 
 /**
  * The list of static files an Artemis client downloads, discovered from the running server.
@@ -186,7 +188,9 @@ public final class StaticAssetCatalog {
          * @return the files to download for these roots, excluding anything an earlier call already claimed
          */
         private List<String> closureOf(List<String> roots) {
-            List<String> closure = new ArrayList<>();
+            // A set, so an asset that turns out not to exist can be dropped again in constant time while the order the
+            // browser would request them in is preserved.
+            Set<String> closure = new LinkedHashSet<>();
             Deque<String> queue = new ArrayDeque<>();
             for (String root : roots) {
                 if (seen.add(root)) {
@@ -197,10 +201,19 @@ public final class StaticAssetCatalog {
             while (!queue.isEmpty() && !exhausted()) {
                 String asset = queue.poll();
                 if (!isCrawlable(asset)) {
+                    // Images, fonts and wasm carry no references worth following, but they still have to exist.
+                    if (!exists(webClient, asset)) {
+                        closure.remove(asset);
+                    }
                     continue;
                 }
                 String content = body(webClient, asset);
                 if (content == null) {
+                    // Angular names its component stylesheets in the bundle but compiles them into the JavaScript, so
+                    // plenty of the ".css" strings in a chunk are not files at all. Asking for them produces 404s, and
+                    // a simulation that spends a third of its requests on 404s measures Artemis' error path rather
+                    // than its asset serving.
+                    closure.remove(asset);
                     continue;
                 }
                 sizes.put(asset, content.length());
@@ -219,7 +232,7 @@ public final class StaticAssetCatalog {
                     }
                 }
             }
-            return closure;
+            return List.copyOf(closure);
         }
 
         /** Routes discovered so far, in the order the bundle mentions them. Grows while the crawl runs. */
@@ -309,6 +322,38 @@ public final class StaticAssetCatalog {
 
     private static boolean isCrawlable(String asset) {
         return CRAWLABLE_SUFFIXES.stream().anyMatch(asset::endsWith);
+    }
+
+    /**
+     * Whether the server actually serves this path.
+     * <p>
+     * A plain GET rather than a HEAD: HEAD support varies between servers and proxies, and a server that answers 404
+     * to a HEAD it does not implement would cost the catalog a file that is really there. Only an explicit 404 counts
+     * as absent; any other failure leaves the file in, because dropping a real asset understates the load while
+     * keeping a phantom one only costs one 404 per student.
+     *
+     * @param webClient the client to ask with
+     * @param path      path relative to the server root
+     * @return false only when the server answered 404
+     */
+    private static boolean exists(WebClient webClient, String path) {
+        try {
+            return Boolean.TRUE.equals(
+                webClient
+                    .get()
+                    .uri(uriBuilder -> uriBuilder.path("/" + path).build())
+                    .headers(BrowserHeaders.forAsset(path))
+                    .retrieve()
+                    .toBodilessEntity()
+                    .map(response -> true)
+                    .onErrorResume(WebClientResponseException.NotFound.class, notFound -> Mono.just(false))
+                    .onErrorReturn(true)
+                    .block(Duration.ofSeconds(30))
+            );
+        } catch (Exception e) {
+            log.debug("Could not check whether {} exists: {}", path, e.getMessage());
+            return true;
+        }
     }
 
     private static String body(WebClient webClient, String path) {
