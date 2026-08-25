@@ -11,6 +11,9 @@ import de.tum.cit.aet.domain.ArtemisUser;
 import de.tum.cit.aet.domain.OnlineIdeFileSubmission;
 import de.tum.cit.aet.domain.RequestStat;
 import de.tum.cit.aet.service.artemis.ArtemisUserService;
+import de.tum.cit.aet.service.artemis.interaction.browser.BrowserSimulationSettings;
+import de.tum.cit.aet.service.artemis.interaction.browser.StaticAssetCatalog;
+import de.tum.cit.aet.service.artemis.interaction.browser.StaticResourceFetcher;
 import de.tum.cit.aet.service.artemis.util.ArtemisServerInfo;
 import de.tum.cit.aet.service.artemis.util.CourseAvailableTabsDTO;
 import de.tum.cit.aet.service.artemis.util.CourseExercisesForOverviewDTO;
@@ -28,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
 import java.util.*;
+import java.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
@@ -46,6 +50,7 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * A simulated Artemis student that can be used to interact with the Artemis server.
@@ -70,6 +75,14 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private boolean isScienceFeatureEnabled = false;
     private boolean isIrisEnabled = false;
 
+    private final BrowserSimulationSettings browserSettings;
+
+    /**
+     * Downloads the client bundle for this student. Created on the first call rather than in the constructor because it
+     * needs the authenticated {@link #webClient}, which only exists after login.
+     */
+    private StaticResourceFetcher staticResources;
+
     public SimulatedArtemisStudent(
         String artemisUrl,
         ArtemisUser artemisUser,
@@ -78,7 +91,28 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         int numberOfCommitsAndPushesTo,
         ArtemisAuthMechanism authMechanism
     ) {
+        this(
+            artemisUrl,
+            artemisUser,
+            artemisUserService,
+            numberOfCommitsAndPushesFrom,
+            numberOfCommitsAndPushesTo,
+            authMechanism,
+            BrowserSimulationSettings.defaults()
+        );
+    }
+
+    public SimulatedArtemisStudent(
+        String artemisUrl,
+        ArtemisUser artemisUser,
+        ArtemisUserService artemisUserService,
+        int numberOfCommitsAndPushesFrom,
+        int numberOfCommitsAndPushesTo,
+        ArtemisAuthMechanism authMechanism,
+        BrowserSimulationSettings browserSettings
+    ) {
         super(artemisUrl, artemisUser, artemisUserService);
+        this.browserSettings = browserSettings;
         log = LoggerFactory.getLogger(SimulatedArtemisStudent.class.getName() + "." + username);
         this.numberOfCommitsAndPushesFrom = numberOfCommitsAndPushesFrom;
         this.numberOfCommitsAndPushesTo = numberOfCommitsAndPushesTo;
@@ -92,6 +126,36 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             this.publicKeyString = artemisUser.getPublicKey();
             this.privateKeyString = artemisUser.getPrivateKey();
         }
+    }
+
+    /**
+     * Creates a student that authenticates with the given credentials and talks through the given client builder,
+     * without the database-backed token caching the production constructors use.
+     * <p>
+     * Exists so tests can point a student at an in-memory server; the production code always has an
+     * {@link ArtemisUser} to cache the token in.
+     *
+     * @param artemisUrl               the URL of the Artemis server
+     * @param username                 the username to log in with
+     * @param password                 the password to log in with
+     * @param authMechanism            the authentication mechanism the student uses for git
+     * @param browserSettings          how much of a real browser's behaviour to reproduce
+     * @param webClientBuilderSupplier supplies the builder every request goes through
+     */
+    SimulatedArtemisStudent(
+        String artemisUrl,
+        String username,
+        String password,
+        ArtemisAuthMechanism authMechanism,
+        BrowserSimulationSettings browserSettings,
+        Supplier<WebClient.Builder> webClientBuilderSupplier
+    ) {
+        super(artemisUrl, username, password, webClientBuilderSupplier);
+        log = LoggerFactory.getLogger(SimulatedArtemisStudent.class.getName() + "." + username);
+        this.numberOfCommitsAndPushesFrom = 1;
+        this.numberOfCommitsAndPushesTo = 2;
+        this.authenticationMechanism = authMechanism;
+        this.browserSettings = browserSettings;
     }
 
     /**
@@ -124,16 +188,57 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
         }
 
-        return List.of(
-            paced(getInfo()),
-            paced(getServerTime()),
-            paced(getSystemNotifications()),
-            paced(getAccount()),
-            paced(getGlobalNotificationSettings()),
-            paced(getCourses()),
-            paced(getCalendarSubscriptionToken()),
-            paced(configureSSH())
+        List<RequestStat> requestStats = new ArrayList<>(loadAppShell());
+        // Landing on the course dashboard after signing in is the first in-app navigation.
+        requestStats.addAll(loadRouteChunks());
+        requestStats.addAll(
+            List.of(
+                paced(getInfo()),
+                paced(getServerTime()),
+                paced(getSystemNotifications()),
+                paced(getAccount()),
+                paced(getGlobalNotificationSettings()),
+                paced(getCourses()),
+                paced(getCalendarSubscriptionToken()),
+                paced(configureSSH())
+            )
         );
+        return requestStats;
+    }
+
+    /**
+     * Downloads the Artemis client the way the student's browser does when they open the site.
+     * <p>
+     * Without this a simulated student produces the REST traffic of an exam but none of its bytes: a traced session
+     * spent 547 of its 632 requests and 20 of its 20.5 MB on the client bundle. Skipped when the run has static
+     * resources switched off, and cheap for a student whose browser cache is warm.
+     *
+     * @return one stat per downloaded file
+     */
+    private List<RequestStat> loadAppShell() {
+        if (!browserSettings.staticResourcesEnabled()) {
+            return List.of();
+        }
+        StaticAssetCatalog catalog = StaticAssetCatalog.forServer(artemisUrl, webClient, browserSettings.maxAssets());
+        if (catalog.isEmpty()) {
+            return List.of();
+        }
+        staticResources = new StaticResourceFetcher(webClient, catalog, browserSettings);
+        log.debug("Browser cache for {} is {}", username, staticResources.isColdCache() ? "cold" : "warm");
+        return staticResources.loadAppShell();
+    }
+
+    /**
+     * Downloads the chunks a navigation pulls in, the way the browser's module loader does when the student opens a
+     * new view.
+     *
+     * @return one stat per downloaded file, empty when static resources are off or the bundle is already downloaded
+     */
+    private List<RequestStat> loadRouteChunks() {
+        if (staticResources == null) {
+            return List.of();
+        }
+        return staticResources.loadRouteChunks();
     }
 
     /**
@@ -181,6 +286,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
         List<RequestStat> requestStats = new ArrayList<>();
 
+        requestStats.addAll(loadRouteChunks());
         requestStats.add(paced(getCourseOverview(courseProgrammingExerciseId)));
         requestStats.add(paced(getServerTime()));
         requestStats.add(paced(getCoursesDropdown()));
@@ -197,6 +303,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         if (isIrisEnabled) {
             requestStats.addAll(List.of(getIrisStatus(courseId), getIrisChatHistory(courseId)));
         }
+        requestStats.addAll(loadRouteChunks());
         requestStats.add(paced(navigateIntoExam()));
         requestStats.add(paced(getTestExams()));
         requestStats.add(paced(getExamSideBarData()));
@@ -240,6 +347,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         if (submitStat != null) {
             requestStats.add(submitStat);
         }
+        requestStats.addAll(loadRouteChunks());
         requestStats.add(paced(loadExamSummary()));
 
         // End of the exam session: close the websocket the same way the real client does on hand-in.
@@ -252,8 +360,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         ArtemisServerInfo response = webClient.get().uri("management/info").retrieve().bodyToMono(ArtemisServerInfo.class).block();
         if (response != null) {
-            isScienceFeatureEnabled = response.features().contains("Science");
-            isIrisEnabled = response.activeProfiles().contains("iris");
+            // An Artemis version that omits either list must not take every student down with a NullPointerException.
+            isScienceFeatureEnabled = response.features() != null && response.features().contains("Science");
+            isIrisEnabled = response.activeProfiles() != null && response.activeProfiles().contains("iris");
         }
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
@@ -694,17 +803,55 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             return requestStats;
         }
         for (var exercise : studentExam.getExercises()) {
-            if (exercise instanceof ModelingExercise) {
-                requestStats.add(paced(solveAndSubmitModelingExercise((ModelingExercise) exercise)));
-            } else if (exercise instanceof TextExercise) {
-                requestStats.add(paced(solveAndSubmitTextExercise((TextExercise) exercise)));
-            } else if (exercise instanceof QuizExercise) {
-                requestStats.add(paced(solveAndSubmitQuizExercise((QuizExercise) exercise)));
-            } else if (exercise instanceof ProgrammingExercise) {
-                requestStats.addAll(solveAndSubmitProgrammingExercise((ProgrammingExercise) exercise));
-            } else if (exercise instanceof FileUploadExercise) {
-                requestStats.addAll(solveAndSubmitFileUploadExercise((FileUploadExercise) exercise));
+            // Opening an exercise is a navigation, and the editor it needs is a chunk the browser has to fetch:
+            // the diagram editor for a modeling exercise, the code editor for a programming one.
+            requestStats.addAll(loadRouteChunks());
+            requestStats.addAll(workOnExercise(exercise));
+        }
+        return requestStats;
+    }
+
+    /**
+     * Works on one exercise the way a student does: writing an answer, then leaving it open while the client saves it
+     * again and again.
+     * <p>
+     * The Artemis exam client writes the open submission back every 30 seconds for as long as it has unsaved changes,
+     * so a student who spends two minutes on an exercise causes four writes, not one. Submitting once per exercise —
+     * what this code used to do — understates submission load by the same factor and hides the write pattern an exam
+     * actually produces, where saves from hundreds of students arrive continuously rather than in one burst at the end.
+     * <p>
+     * Programming and file-upload exercises are left at a single pass: their traffic is a git push or a multipart
+     * upload, which a student performs deliberately rather than on a timer.
+     *
+     * @param exercise the exercise to work on
+     * @return one stat per request made
+     */
+    private List<RequestStat> workOnExercise(Exercise exercise) {
+        List<RequestStat> requestStats = new ArrayList<>();
+        if (exercise instanceof ProgrammingExercise programmingExercise) {
+            requestStats.addAll(solveAndSubmitProgrammingExercise(programmingExercise));
+            return requestStats;
+        }
+        if (exercise instanceof FileUploadExercise fileUploadExercise) {
+            requestStats.addAll(solveAndSubmitFileUploadExercise(fileUploadExercise));
+            return requestStats;
+        }
+        for (int save = 0; save < browserSettings.autoSavesPerExercise(); save++) {
+            RequestStat stat = null;
+            if (exercise instanceof ModelingExercise modelingExercise) {
+                stat = solveAndSubmitModelingExercise(modelingExercise);
+            } else if (exercise instanceof TextExercise textExercise) {
+                stat = solveAndSubmitTextExercise(textExercise);
+            } else if (exercise instanceof QuizExercise quizExercise) {
+                stat = solveAndSubmitQuizExercise(quizExercise);
+            } else {
+                return requestStats;
             }
+            if (stat == null) {
+                // No submission to write for this exercise; repeating would not produce one either.
+                return requestStats;
+            }
+            requestStats.add(paced(stat));
         }
         return requestStats;
     }
@@ -1032,28 +1179,29 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         var bubbleSort = Path.of("repos", username, "src", "progforbenchtemp", "BubbleSort.java");
         log.debug("Change file  {}", bubbleSort);
         var newContent = """
-        package progforbenchtemp;
+                package progforbenchtemp;
 
 
-        import java.util.*;
+                import java.util.*;
+        import java.util.function.Supplier;
 
 
-        public class BubbleSort {
+                public class BubbleSort {
 
-            /**
-             * BubbleSort
-             *
-             * @param BubbleSort
-             */
-            public void performSort(final List<Date> input) {
-
-
-                //TODO: implement BubbleSort NOW $$1
+                    /**
+                     * BubbleSort
+                     *
+                     * @param BubbleSort
+                     */
+                    public void performSort(final List<Date> input) {
 
 
-            }
-        }
-        """;
+                        //TODO: implement BubbleSort NOW $$1
+
+
+                    }
+                }
+                """;
         if (invalidChange) {
             newContent += "}";
         }

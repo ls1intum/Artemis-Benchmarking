@@ -25,6 +25,7 @@ import de.tum.cit.aet.service.artemis.ArtemisUserService;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisAdmin;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisStudent;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisUser;
+import de.tum.cit.aet.service.artemis.interaction.browser.BrowserSimulationSettings;
 import de.tum.cit.aet.service.simulation.SimulationExecutionService;
 import de.tum.cit.aet.service.simulation.SimulationFailedException;
 import de.tum.cit.aet.service.simulation.SimulationResultService;
@@ -129,13 +130,43 @@ public class SimulationExecutionServiceIT {
             .thenReturn(simulatedArtemisAdmin);
         mockedSimulatedArtemisUser.when(() -> createArtemisAdminFromCredentials("", "admin", "admin")).thenReturn(simulatedArtemisAdmin);
         mockedSimulatedArtemisUser
-            .when(() -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE))
+            .when(() ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                )
+            )
             .thenReturn(simulatedArtemisStudent1);
         mockedSimulatedArtemisUser
-            .when(() -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE))
+            .when(() ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                )
+            )
             .thenReturn(simulatedArtemisStudent2);
         mockedSimulatedArtemisUser
-            .when(() -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE))
+            .when(() ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                )
+            )
             .thenReturn(simulatedArtemisStudent3);
 
         when(simulatedArtemisAdmin.login()).thenReturn(List.of());
@@ -248,15 +279,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -319,15 +377,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -386,15 +471,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -453,15 +565,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -521,15 +660,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -591,15 +757,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser(any(), any(), any()), times(0));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -667,15 +860,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromCredentials("", "admin", "admin"), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -790,15 +1010,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser(any(), any(), any()), times(0));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -857,15 +1104,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -928,15 +1202,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -996,15 +1297,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -1064,15 +1392,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -1132,15 +1487,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -1200,15 +1582,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -1268,15 +1677,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -1357,15 +1793,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }
@@ -1425,15 +1888,42 @@ public class SimulationExecutionServiceIT {
         mockedSimulatedArtemisUser.verify(() -> createArtemisAdminFromUser("", adminUser, artemisUserService), times(1));
 
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser1, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser1,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser2, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser2,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
         mockedSimulatedArtemisUser.verify(
-            () -> createArtemisStudent("", studentUser3, artemisUserService, 8, 15, ArtemisAuthMechanism.ONLINE_IDE),
+            () ->
+                createArtemisStudent(
+                    "",
+                    studentUser3,
+                    artemisUserService,
+                    8,
+                    15,
+                    ArtemisAuthMechanism.ONLINE_IDE,
+                    BrowserSimulationSettings.defaults()
+                ),
             times(1)
         );
     }

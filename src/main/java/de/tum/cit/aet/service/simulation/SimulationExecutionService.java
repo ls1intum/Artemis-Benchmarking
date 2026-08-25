@@ -16,6 +16,8 @@ import de.tum.cit.aet.service.artemis.ArtemisUserService;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisAdmin;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisStudent;
 import de.tum.cit.aet.service.artemis.interaction.SimulatedArtemisUser;
+import de.tum.cit.aet.service.artemis.interaction.browser.BrowserSimulationSettings;
+import de.tum.cit.aet.service.artemis.interaction.browser.StaticAssetCatalog;
 import de.tum.cit.aet.service.artemis.passkey.ArtemisPasskeyService;
 import de.tum.cit.aet.util.ArtemisAccountDTO;
 import de.tum.cit.aet.util.ArtemisServer;
@@ -45,6 +47,28 @@ public class SimulationExecutionService {
      * disk to back it, lower it to find the point at which a system starts to bend. See {@link SimulationConcurrency}
      * for why the previous core count based limit was wrong and why its replacement is still bounded.
      */
+    @Value("${benchmarking.simulation.static-resources.enabled:" + BrowserSimulationSettings.DEFAULT_STATIC_RESOURCES_ENABLED + "}")
+    private boolean staticResourcesEnabled;
+
+    @Value(
+        "${benchmarking.simulation.static-resources.cold-cache-percentage:" + BrowserSimulationSettings.DEFAULT_COLD_CACHE_PERCENTAGE + "}"
+    )
+    private int coldCachePercentage;
+
+    @Value("${benchmarking.simulation.static-resources.max-assets:" + BrowserSimulationSettings.DEFAULT_MAX_ASSETS + "}")
+    private int maxAssets;
+
+    @Value("${benchmarking.simulation.static-resources.fetch-concurrency:" + BrowserSimulationSettings.DEFAULT_FETCH_CONCURRENCY + "}")
+    private int fetchConcurrency;
+
+    @Value("${benchmarking.simulation.auto-saves-per-exercise:" + BrowserSimulationSettings.DEFAULT_AUTO_SAVES_PER_EXERCISE + "}")
+    private int autoSavesPerExercise;
+
+    @Value(
+        "${benchmarking.simulation.static-resources.assets-per-navigation:" + BrowserSimulationSettings.DEFAULT_ASSETS_PER_NAVIGATION + "}"
+    )
+    private int assetsPerNavigation;
+
     @Value("${benchmarking.simulation.max-concurrency:" + SimulationConcurrency.DEFAULT_MAX_CONCURRENCY + "}")
     private int maxConcurrency;
 
@@ -623,9 +647,29 @@ public class SimulationExecutionService {
      * @return an array of initialized students
      * @throws SimulationFailedException if an error occurs while initializing the students
      */
+    /**
+     * The browser behaviour students in this run should reproduce, taken from configuration.
+     *
+     * @return the settings to hand to every student of the run
+     */
+    private BrowserSimulationSettings browserSimulationSettings() {
+        return new BrowserSimulationSettings(
+            staticResourcesEnabled,
+            coldCachePercentage,
+            maxAssets,
+            fetchConcurrency,
+            autoSavesPerExercise,
+            assetsPerNavigation
+        );
+    }
+
     private SimulatedArtemisStudent[] initializeStudents(SimulationRun simulationRun) {
         List<ArtemisUser> artemisUsers;
         Simulation simulation = simulationRun.getSimulation();
+
+        // The client bundle carries content-hashed filenames, so the list discovered for a previous run is stale as
+        // soon as Artemis is redeployed. Re-read it for every run rather than serving 404s to every student.
+        StaticAssetCatalog.clear();
 
         try {
             if (simulation.isCustomizeUserRange()) {
@@ -653,7 +697,8 @@ public class SimulationExecutionService {
                     artemisUserService,
                     simulation.getNumberOfCommitsAndPushesFrom(),
                     simulation.getNumberOfCommitsAndPushesTo(),
-                    mechanism
+                    mechanism,
+                    browserSimulationSettings()
                 );
             }
 

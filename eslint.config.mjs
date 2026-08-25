@@ -17,6 +17,8 @@ export default tseslint.config(
   },
   { ignores: ['src/main/docker/'] },
   { ignores: ['build/resources/main/static/', 'build/'] },
+  // Prettier skips git-ignored paths, so linting the scratch directory only ever reports formatting it refuses to fix.
+  { ignores: ['tmp/'] },
   { ignores: ['e2e/**', 'playwright.config.ts', 'playwright-report/', 'test-results/'] },
   eslint.configs.recommended,
   {

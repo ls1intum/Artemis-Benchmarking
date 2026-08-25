@@ -172,6 +172,28 @@ info:
 benchmarking:
   client-app:
     name: 'artemisBenchmarkingApp'
+  simulation:
+    # How closely simulated students imitate a real browser. A traced exam session spent 547 of its 632 requests and
+    # 20 of its 20.5 MB on the client bundle, so leaving these off measures the REST mix but almost none of the load.
+    static-resources:
+      # Note the cost on this side too: every cold student downloads about 20 MB, so a 500-user run pulls roughly 10 GB
+      # through the tool host. That is the load a real exam cohort causes, but the machine running the benchmark has to
+      # be able to sink it.
+      enabled: true
+      # Share of students arriving with an empty browser cache, who therefore download the whole bundle. Artemis serves
+      # content-hashed filenames with a one-year lifetime, so the rest request almost nothing.
+      cold-cache-percentage: 100
+      # Ceiling on how many files one bundle discovery may collect.
+      max-assets: 2000
+      # Parallel downloads per student, mirroring a browser's per-origin connection limit.
+      fetch-concurrency: 6
+      # Roughly how many files one navigation pulls in. Angular splits a view across several chunks, so opening one view
+      # costs far more than one chunk. Thirty matches the traced browser session; the file names are always discovered
+      # from the running server, so only this ratio may ever need adjusting for a future Artemis.
+      assets-per-navigation: 30
+    # How often the open submission is written back while a student works on an exercise. The Artemis exam client saves
+    # every 30 seconds while there are unsaved changes; four saves matches a two-minute stay on one exercise.
+    auto-saves-per-exercise: 4
   # By default CORS is disabled. Uncomment to enable.
   # cors:
   #   allowed-origins: "http://localhost:8100,http://localhost:9000"

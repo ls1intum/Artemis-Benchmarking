@@ -7,6 +7,7 @@ import de.tum.cit.aet.artemisModel.ArtemisAuthMechanism;
 import de.tum.cit.aet.domain.ArtemisUser;
 import de.tum.cit.aet.domain.RequestStat;
 import de.tum.cit.aet.service.artemis.ArtemisUserService;
+import de.tum.cit.aet.service.artemis.interaction.browser.BrowserSimulationSettings;
 import de.tum.cit.aet.service.artemis.passkey.ArtemisPasskeyService;
 import de.tum.cit.aet.service.artemis.util.AuthToken;
 import io.netty.channel.ChannelOption;
@@ -309,13 +310,46 @@ public abstract class SimulatedArtemisUser {
         int numberOfCommitsAndPushesTo,
         ArtemisAuthMechanism authMechanism
     ) {
+        return createArtemisStudent(
+            artemisUrl,
+            artemisUser,
+            artemisUserService,
+            numberOfCommitsAndPushesFrom,
+            numberOfCommitsAndPushesTo,
+            authMechanism,
+            BrowserSimulationSettings.defaults()
+        );
+    }
+
+    /**
+     * Create a new student from a given ArtemisUser, stating how closely it should imitate a browser.
+     *
+     * @param artemisUrl the URL of the Artemis server
+     * @param artemisUser the ArtemisUser entity to cache the JWT token in and to access the user's credentials
+     * @param artemisUserService the ArtemisUserService to use to update the ArtemisUser entity
+     * @param numberOfCommitsAndPushesFrom the lower bound of the number of commits and pushes to perform
+     * @param numberOfCommitsAndPushesTo the upper bound of the number of commits and pushes to perform
+     * @param authMechanism the authentication mechanism the student uses for git
+     * @param browserSettings how much of a real browser's behaviour to reproduce
+     * @return the created student
+     */
+    public static SimulatedArtemisStudent createArtemisStudent(
+        String artemisUrl,
+        ArtemisUser artemisUser,
+        ArtemisUserService artemisUserService,
+        int numberOfCommitsAndPushesFrom,
+        int numberOfCommitsAndPushesTo,
+        ArtemisAuthMechanism authMechanism,
+        BrowserSimulationSettings browserSettings
+    ) {
         return new SimulatedArtemisStudent(
             artemisUrl,
             artemisUser,
             artemisUserService,
             numberOfCommitsAndPushesFrom,
             numberOfCommitsAndPushesTo,
-            authMechanism
+            authMechanism,
+            browserSettings
         );
     }
 
