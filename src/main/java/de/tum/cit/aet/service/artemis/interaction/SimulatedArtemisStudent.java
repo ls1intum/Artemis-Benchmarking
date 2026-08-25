@@ -63,6 +63,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private String courseIdString;
     private String examIdString;
     private Long studentExamId;
+    private Long userId;
     private StudentExam studentExam;
     private String participationVcsAccessToken;
     private Long latestResultId;
@@ -176,6 +177,11 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     protected void checkAccess() {
         var response = webClient.get().uri("api/core/public/account").retrieve().bodyToMono(User.class).block();
         this.authenticated = response != null && response.getAuthorities().contains("ROLE_USER");
+        if (response != null) {
+            // The conversation notification topic is keyed by the user's id, so it has to be remembered here: this is
+            // the only call that returns it.
+            this.userId = response.getId();
+        }
     }
 
     /**
@@ -189,8 +195,12 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         }
 
         List<RequestStat> requestStats = new ArrayList<>(loadAppShell());
+        // The client opens its websocket as soon as it has booted authenticated, not when the exam starts, and keeps
+        // the one connection for the whole session. Connecting here rather than at exam start gives the broker the
+        // session lifetime it really sees.
+        requestStats.add(paced(connectWebsocket()));
         // Landing on the course dashboard after signing in is the first in-app navigation.
-        requestStats.addAll(loadRouteChunks());
+        requestStats.addAll(navigate());
         requestStats.addAll(
             List.of(
                 paced(getInfo()),
@@ -242,6 +252,24 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     }
 
     /**
+     * Opens a view, the way the client does: the chunks it needs, then the clock.
+     * <p>
+     * Several client components ask the server for the time as they initialise, so the calls arrive in a burst per view
+     * rather than on a timer — the traces show four to seven on every page load and none at all while the student sits
+     * still. They are deliberately not paced against each other: a page load is one moment, not a sequence of user
+     * actions.
+     *
+     * @return one stat per request the navigation makes
+     */
+    private List<RequestStat> navigate() {
+        List<RequestStat> requestStats = new ArrayList<>(loadRouteChunks());
+        for (int call = 0; call < browserSettings.serverTimeCallsPerNavigation(); call++) {
+            requestStats.add(getServerTime());
+        }
+        return requestStats;
+    }
+
+    /**
      * Participate in an exam, i.e. solve and submit the exercises and fetch live events.
      *
      * @param courseId the ID of the course
@@ -286,7 +314,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
         List<RequestStat> requestStats = new ArrayList<>();
 
-        requestStats.addAll(loadRouteChunks());
+        requestStats.addAll(navigate());
+        subscribeCourseTopics(courseId);
         requestStats.add(paced(getCourseOverview(courseProgrammingExerciseId)));
         requestStats.add(paced(getServerTime()));
         requestStats.add(paced(getCoursesDropdown()));
@@ -303,7 +332,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         if (isIrisEnabled) {
             requestStats.addAll(List.of(getIrisStatus(courseId), getIrisChatHistory(courseId)));
         }
-        requestStats.addAll(loadRouteChunks());
+        requestStats.addAll(navigate());
         requestStats.add(paced(navigateIntoExam()));
         requestStats.add(paced(getTestExams()));
         requestStats.add(paced(getExamSideBarData()));
@@ -313,9 +342,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             log.warn("Student exam not available after start for {}", username);
         }
 
-        // Mirror the real client: open the exam websocket and subscribe to the exam live-event topics.
-        // The connection is kept open across the participation phases and closed in submitAndEndExam.
-        requestStats.add(paced(connectAndSubscribeExamWebsocket(examId)));
+        // Mirror the real client: the connection opened at login now takes out the exam live-event topics as well.
+        // It stays open across the participation phases and is closed in submitAndEndExam.
+        requestStats.add(paced(subscribeExamTopics(examId)));
 
         return requestStats;
     }
@@ -347,7 +376,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         if (submitStat != null) {
             requestStats.add(submitStat);
         }
-        requestStats.addAll(loadRouteChunks());
+        requestStats.addAll(navigate());
         requestStats.add(paced(loadExamSummary()));
 
         // End of the exam session: close the websocket the same way the real client does on hand-in.
@@ -475,20 +504,73 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
      * @param examId the ID of the exam
      * @return the request stat for the websocket connect
      */
-    private RequestStat connectAndSubscribeExamWebsocket(long examId) {
+    /**
+     * Opens the student's websocket and takes out the subscriptions every Artemis client holds.
+     * <p>
+     * A client subscribes to these the moment it boots, whatever the user is doing: the feature-toggle topic, the
+     * system-notification topic and its own team-assignment topic. They are cheap individually and there is one set per
+     * connected student, which is exactly the sort of per-connection cost an exam multiplies by several hundred.
+     *
+     * @return the stat covering the handshake and the subscriptions
+     */
+    private RequestStat connectWebsocket() {
         long start = System.nanoTime();
         try {
             this.websocket = new SimulatedArtemisWebsocket(artemisUrl, authToken != null ? authToken.jwtToken() : null);
             if (websocket.connect()) {
-                if (studentExamId != null) {
-                    websocket.subscribe("/topic/exam-participation/studentExam/" + studentExamId + "/events");
-                }
-                websocket.subscribe("/topic/exam-participation/exam/" + examId + "/events");
+                websocket.subscribe("/topic/management/feature-toggles");
+                websocket.subscribe("/topic/notification/system-notification");
+                websocket.subscribe("/user/topic/team-assignments");
             } else {
                 log.warn("Websocket did not connect for {}", username);
             }
         } catch (Exception e) {
-            log.warn("Could not establish exam websocket for {}: {}", username, e.getMessage());
+            log.warn("Could not establish the websocket for {}: {}", username, e.getMessage());
+        }
+        return new RequestStat(now(), System.nanoTime() - start, WEBSOCKET);
+    }
+
+    /**
+     * Takes out the subscriptions a client adds once it is inside a course: that course's notifications and the
+     * conversation notifications for this user.
+     *
+     * @param courseId the course the student has entered
+     */
+    private void subscribeCourseTopics(long courseId) {
+        if (websocket == null || !websocket.isConnected()) {
+            return;
+        }
+        websocket.subscribe("/user/topic/notification/" + courseId);
+        if (userId != null) {
+            websocket.subscribe("/topic/user/" + userId + "/notifications/conversations");
+        }
+    }
+
+    /**
+     * Takes out the exam live-event subscriptions, on the connection the student has held since logging in.
+     * <p>
+     * Falls back to opening a connection if there is none, so a student whose websocket failed earlier still exercises
+     * the exam topics rather than silently skipping them.
+     *
+     * @param examId the exam being taken
+     * @return the stat covering the subscriptions, and the handshake if one was needed
+     */
+    private RequestStat subscribeExamTopics(long examId) {
+        long start = System.nanoTime();
+        try {
+            if (websocket == null || !websocket.isConnected()) {
+                this.websocket = new SimulatedArtemisWebsocket(artemisUrl, authToken != null ? authToken.jwtToken() : null);
+                if (!websocket.connect()) {
+                    log.warn("Websocket did not connect for {}", username);
+                    return new RequestStat(now(), System.nanoTime() - start, WEBSOCKET);
+                }
+            }
+            if (studentExamId != null) {
+                websocket.subscribe("/topic/exam-participation/studentExam/" + studentExamId + "/events");
+            }
+            websocket.subscribe("/topic/exam-participation/exam/" + examId + "/events");
+        } catch (Exception e) {
+            log.warn("Could not subscribe to the exam topics for {}: {}", username, e.getMessage());
         }
         return new RequestStat(now(), System.nanoTime() - start, WEBSOCKET);
     }
@@ -805,7 +887,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         for (var exercise : studentExam.getExercises()) {
             // Opening an exercise is a navigation, and the editor it needs is a chunk the browser has to fetch:
             // the diagram editor for a modeling exercise, the code editor for a programming one.
-            requestStats.addAll(loadRouteChunks());
+            requestStats.addAll(navigate());
             requestStats.addAll(workOnExercise(exercise));
         }
         return requestStats;

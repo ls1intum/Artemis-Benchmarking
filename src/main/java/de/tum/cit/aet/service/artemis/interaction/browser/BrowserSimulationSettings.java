@@ -38,6 +38,11 @@ package de.tum.cit.aet.service.artemis.interaction.browser;
  *                                smoother profile over the session than a browser does.
  *                                <p>
  *                                The file names themselves are always discovered from the running server.
+ * @param serverTimeCallsPerNavigation how many times opening a view asks the server for the time. The client has no
+ *                                single clock component: several of them ask on initialisation, so the calls arrive in
+ *                                a burst per view rather than on a timer. The traces show 31 calls per session,
+ *                                clustered on the six page loads at four to seven each and nothing at all while the
+ *                                student sits idle. Three per navigation puts a simulated session at 28.
  */
 public record BrowserSimulationSettings(
     boolean staticResourcesEnabled,
@@ -45,7 +50,8 @@ public record BrowserSimulationSettings(
     int maxAssets,
     int fetchConcurrency,
     int autoSavesPerExercise,
-    int assetsPerNavigation
+    int assetsPerNavigation,
+    int serverTimeCallsPerNavigation
 ) {
     public static final boolean DEFAULT_STATIC_RESOURCES_ENABLED = true;
     public static final int DEFAULT_COLD_CACHE_PERCENTAGE = 100;
@@ -53,6 +59,7 @@ public record BrowserSimulationSettings(
     public static final int DEFAULT_FETCH_CONCURRENCY = 6;
     public static final int DEFAULT_AUTO_SAVES_PER_EXERCISE = 4;
     public static final int DEFAULT_ASSETS_PER_NAVIGATION = 39;
+    public static final int DEFAULT_SERVER_TIME_CALLS_PER_NAVIGATION = 3;
 
     public BrowserSimulationSettings {
         if (coldCachePercentage < 0 || coldCachePercentage > 100) {
@@ -70,6 +77,9 @@ public record BrowserSimulationSettings(
         if (assetsPerNavigation < 1) {
             throw new IllegalArgumentException("assetsPerNavigation must be at least one, was " + assetsPerNavigation);
         }
+        if (serverTimeCallsPerNavigation < 0) {
+            throw new IllegalArgumentException("serverTimeCallsPerNavigation must not be negative, was " + serverTimeCallsPerNavigation);
+        }
     }
 
     /**
@@ -84,7 +94,8 @@ public record BrowserSimulationSettings(
             DEFAULT_MAX_ASSETS,
             DEFAULT_FETCH_CONCURRENCY,
             DEFAULT_AUTO_SAVES_PER_EXERCISE,
-            DEFAULT_ASSETS_PER_NAVIGATION
+            DEFAULT_ASSETS_PER_NAVIGATION,
+            DEFAULT_SERVER_TIME_CALLS_PER_NAVIGATION
         );
     }
 
@@ -100,7 +111,8 @@ public record BrowserSimulationSettings(
             DEFAULT_MAX_ASSETS,
             DEFAULT_FETCH_CONCURRENCY,
             DEFAULT_AUTO_SAVES_PER_EXERCISE,
-            DEFAULT_ASSETS_PER_NAVIGATION
+            DEFAULT_ASSETS_PER_NAVIGATION,
+            DEFAULT_SERVER_TIME_CALLS_PER_NAVIGATION
         );
     }
 }

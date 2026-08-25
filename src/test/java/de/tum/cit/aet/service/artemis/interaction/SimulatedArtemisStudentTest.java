@@ -74,6 +74,38 @@ class SimulatedArtemisStudentTest {
         assertTrue(requested.stream().noneMatch(path -> path.endsWith(".js")));
     }
 
+    @Test
+    void openingAViewAsksTheServerForTheTimeSeveralTimes() {
+        // Several client components ask on initialisation, so a view costs a burst rather than a single call.
+        SimulatedArtemisStudent student = student(BrowserSimulationSettings.defaults());
+        student.login();
+        requested.clear();
+
+        student.performInitialCalls();
+
+        long timeCalls = requested.stream().filter("/api/public/time"::equals).count();
+        assertTrue(
+            timeCalls >= BrowserSimulationSettings.DEFAULT_SERVER_TIME_CALLS_PER_NAVIGATION,
+            "expected a burst of at least " +
+                BrowserSimulationSettings.DEFAULT_SERVER_TIME_CALLS_PER_NAVIGATION +
+                " clock calls, got " +
+                timeCalls
+        );
+    }
+
+    @Test
+    void aViewCostsNoClockCallsWhenTheBurstIsSwitchedOff() {
+        BrowserSimulationSettings noBurst = new BrowserSimulationSettings(false, 100, 2000, 6, 4, 39, 0);
+        SimulatedArtemisStudent student = student(noBurst);
+        student.login();
+        requested.clear();
+
+        student.performInitialCalls();
+
+        // Only the one explicit call performInitialCalls has always made.
+        assertEquals(1, requested.stream().filter("/api/public/time"::equals).count());
+    }
+
     private SimulatedArtemisStudent student(BrowserSimulationSettings settings) {
         return new SimulatedArtemisStudent(
             "http://localhost",

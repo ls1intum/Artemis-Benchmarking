@@ -69,6 +69,13 @@ public class SimulationExecutionService {
     )
     private int assetsPerNavigation;
 
+    @Value(
+        "${benchmarking.simulation.server-time-calls-per-navigation:" +
+            BrowserSimulationSettings.DEFAULT_SERVER_TIME_CALLS_PER_NAVIGATION +
+            "}"
+    )
+    private int serverTimeCallsPerNavigation;
+
     @Value("${benchmarking.simulation.max-concurrency:" + SimulationConcurrency.DEFAULT_MAX_CONCURRENCY + "}")
     private int maxConcurrency;
 
@@ -659,7 +666,8 @@ public class SimulationExecutionService {
             maxAssets,
             fetchConcurrency,
             autoSavesPerExercise,
-            assetsPerNavigation
+            assetsPerNavigation,
+            serverTimeCallsPerNavigation
         );
     }
 

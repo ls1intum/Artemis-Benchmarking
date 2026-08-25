@@ -194,6 +194,10 @@ benchmarking:
       # budget by about a quarter. The file names are always discovered from the running server, so only this ratio may
       # ever need adjusting for a future Artemis.
       assets-per-navigation: 39
+    # How many times opening a view asks the server for the time. Several client components ask on initialisation, so
+    # the calls arrive in a burst per view rather than on a timer: the traces show 31 per session, four to seven on each
+    # page load and none at all while the student sits idle.
+    server-time-calls-per-navigation: 3
     # How often the open submission is written back while a student works on an exercise. The Artemis exam client saves
     # every 30 seconds while there are unsaved changes; four saves matches a two-minute stay on one exercise.
     auto-saves-per-exercise: 4

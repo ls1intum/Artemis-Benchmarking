@@ -87,7 +87,7 @@ class StaticResourceFetcherTest {
     @Test
     void oneNavigationPullsAboutTheConfiguredNumberOfFiles() {
         StaticAssetCatalog catalog = catalog();
-        BrowserSimulationSettings twoFilesPerNavigation = new BrowserSimulationSettings(true, 100, 100, 6, 4, 2);
+        BrowserSimulationSettings twoFilesPerNavigation = new BrowserSimulationSettings(true, 100, 100, 6, 4, 2, 0);
         StaticResourceFetcher fetcher = new StaticResourceFetcher(webClient(), catalog, twoFilesPerNavigation, true);
         fetcher.loadAppShell();
 
