@@ -11,6 +11,9 @@ import de.tum.cit.aet.domain.ArtemisUser;
 import de.tum.cit.aet.domain.OnlineIdeFileSubmission;
 import de.tum.cit.aet.domain.RequestStat;
 import de.tum.cit.aet.service.artemis.ArtemisUserService;
+import de.tum.cit.aet.service.artemis.interaction.browser.BrowserSimulationSettings;
+import de.tum.cit.aet.service.artemis.interaction.browser.StaticAssetCatalog;
+import de.tum.cit.aet.service.artemis.interaction.browser.StaticResourceFetcher;
 import de.tum.cit.aet.service.artemis.util.ArtemisServerInfo;
 import de.tum.cit.aet.service.artemis.util.CourseAvailableTabsDTO;
 import de.tum.cit.aet.service.artemis.util.CourseExercisesForOverviewDTO;
@@ -28,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
 import java.util.*;
+import java.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
@@ -46,6 +50,7 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * A simulated Artemis student that can be used to interact with the Artemis server.
@@ -58,6 +63,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private String courseIdString;
     private String examIdString;
     private Long studentExamId;
+    private Long userId;
     private StudentExam studentExam;
     private String participationVcsAccessToken;
     private Long latestResultId;
@@ -70,6 +76,14 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private boolean isScienceFeatureEnabled = false;
     private boolean isIrisEnabled = false;
 
+    private final BrowserSimulationSettings browserSettings;
+
+    /**
+     * Downloads the client bundle for this student. Created on the first call rather than in the constructor because it
+     * needs the authenticated {@link #webClient}, which only exists after login.
+     */
+    private StaticResourceFetcher staticResources;
+
     public SimulatedArtemisStudent(
         String artemisUrl,
         ArtemisUser artemisUser,
@@ -78,7 +92,28 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         int numberOfCommitsAndPushesTo,
         ArtemisAuthMechanism authMechanism
     ) {
+        this(
+            artemisUrl,
+            artemisUser,
+            artemisUserService,
+            numberOfCommitsAndPushesFrom,
+            numberOfCommitsAndPushesTo,
+            authMechanism,
+            BrowserSimulationSettings.defaults()
+        );
+    }
+
+    public SimulatedArtemisStudent(
+        String artemisUrl,
+        ArtemisUser artemisUser,
+        ArtemisUserService artemisUserService,
+        int numberOfCommitsAndPushesFrom,
+        int numberOfCommitsAndPushesTo,
+        ArtemisAuthMechanism authMechanism,
+        BrowserSimulationSettings browserSettings
+    ) {
         super(artemisUrl, artemisUser, artemisUserService);
+        this.browserSettings = browserSettings;
         log = LoggerFactory.getLogger(SimulatedArtemisStudent.class.getName() + "." + username);
         this.numberOfCommitsAndPushesFrom = numberOfCommitsAndPushesFrom;
         this.numberOfCommitsAndPushesTo = numberOfCommitsAndPushesTo;
@@ -92,6 +127,36 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             this.publicKeyString = artemisUser.getPublicKey();
             this.privateKeyString = artemisUser.getPrivateKey();
         }
+    }
+
+    /**
+     * Creates a student that authenticates with the given credentials and talks through the given client builder,
+     * without the database-backed token caching the production constructors use.
+     * <p>
+     * Exists so tests can point a student at an in-memory server; the production code always has an
+     * {@link ArtemisUser} to cache the token in.
+     *
+     * @param artemisUrl               the URL of the Artemis server
+     * @param username                 the username to log in with
+     * @param password                 the password to log in with
+     * @param authMechanism            the authentication mechanism the student uses for git
+     * @param browserSettings          how much of a real browser's behaviour to reproduce
+     * @param webClientBuilderSupplier supplies the builder every request goes through
+     */
+    SimulatedArtemisStudent(
+        String artemisUrl,
+        String username,
+        String password,
+        ArtemisAuthMechanism authMechanism,
+        BrowserSimulationSettings browserSettings,
+        Supplier<WebClient.Builder> webClientBuilderSupplier
+    ) {
+        super(artemisUrl, username, password, webClientBuilderSupplier);
+        log = LoggerFactory.getLogger(SimulatedArtemisStudent.class.getName() + "." + username);
+        this.numberOfCommitsAndPushesFrom = 1;
+        this.numberOfCommitsAndPushesTo = 2;
+        this.authenticationMechanism = authMechanism;
+        this.browserSettings = browserSettings;
     }
 
     /**
@@ -112,6 +177,11 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     protected void checkAccess() {
         var response = webClient.get().uri("api/core/public/account").retrieve().bodyToMono(User.class).block();
         this.authenticated = response != null && response.getAuthorities().contains("ROLE_USER");
+        if (response != null) {
+            // The conversation notification topic is keyed by the user's id, so it has to be remembered here: this is
+            // the only call that returns it.
+            this.userId = response.getId();
+        }
     }
 
     /**
@@ -124,16 +194,78 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
         }
 
-        return List.of(
-            paced(getInfo()),
-            paced(getServerTime()),
-            paced(getSystemNotifications()),
-            paced(getAccount()),
-            paced(getGlobalNotificationSettings()),
-            paced(getCourses()),
-            paced(getCalendarSubscriptionToken()),
-            paced(configureSSH())
+        List<RequestStat> requestStats = new ArrayList<>(loadAppShell());
+        // The client opens its websocket as soon as it has booted authenticated, not when the exam starts, and keeps
+        // the one connection for the whole session. Connecting here rather than at exam start gives the broker the
+        // session lifetime it really sees.
+        requestStats.add(paced(connectWebsocket()));
+        // Landing on the course dashboard after signing in is the first in-app navigation.
+        requestStats.addAll(navigate());
+        requestStats.addAll(
+            List.of(
+                paced(getInfo()),
+                paced(getServerTime()),
+                paced(getSystemNotifications()),
+                paced(getAccount()),
+                paced(getCourses()),
+                paced(getCourseNotifications()),
+                paced(configureSSH())
+            )
         );
+        return requestStats;
+    }
+
+    /**
+     * Downloads the Artemis client the way the student's browser does when they open the site.
+     * <p>
+     * Without this a simulated student produces the REST traffic of an exam but none of its bytes: a traced session
+     * spent 547 of its 632 requests and 20 of its 20.5 MB on the client bundle. Skipped when the run has static
+     * resources switched off, and cheap for a student whose browser cache is warm.
+     *
+     * @return one stat per downloaded file
+     */
+    private List<RequestStat> loadAppShell() {
+        if (!browserSettings.staticResourcesEnabled()) {
+            return List.of();
+        }
+        StaticAssetCatalog catalog = StaticAssetCatalog.forServer(artemisUrl, webClient, browserSettings.maxAssets());
+        if (catalog.isEmpty()) {
+            return List.of();
+        }
+        staticResources = new StaticResourceFetcher(webClient, catalog, browserSettings);
+        log.debug("Browser cache for {} is {}", username, staticResources.isColdCache() ? "cold" : "warm");
+        return staticResources.loadAppShell();
+    }
+
+    /**
+     * Downloads the chunks a navigation pulls in, the way the browser's module loader does when the student opens a
+     * new view.
+     *
+     * @return one stat per downloaded file, empty when static resources are off or the bundle is already downloaded
+     */
+    private List<RequestStat> loadRouteChunks() {
+        if (staticResources == null) {
+            return List.of();
+        }
+        return staticResources.loadRouteChunks();
+    }
+
+    /**
+     * Opens a view, the way the client does: the chunks it needs, then the clock.
+     * <p>
+     * Several client components ask the server for the time as they initialise, so the calls arrive in a burst per view
+     * rather than on a timer — the traces show four to seven on every page load and none at all while the student sits
+     * still. They are deliberately not paced against each other: a page load is one moment, not a sequence of user
+     * actions.
+     *
+     * @return one stat per request the navigation makes
+     */
+    private List<RequestStat> navigate() {
+        List<RequestStat> requestStats = new ArrayList<>(loadRouteChunks());
+        for (int call = 0; call < browserSettings.serverTimeCallsPerNavigation(); call++) {
+            requestStats.add(getServerTime());
+        }
+        return requestStats;
     }
 
     /**
@@ -181,9 +313,10 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
 
         List<RequestStat> requestStats = new ArrayList<>();
 
+        requestStats.addAll(navigate());
+        subscribeCourseTopics(courseId);
         requestStats.add(paced(getCourseOverview(courseProgrammingExerciseId)));
         requestStats.add(paced(getServerTime()));
-        requestStats.add(paced(getCoursesDropdown()));
         requestStats.add(paced(getScienceSettings()));
         requestStats.add(paced(getNotificationSettings()));
         requestStats.add(paced(getNotificationInfo()));
@@ -197,7 +330,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         if (isIrisEnabled) {
             requestStats.addAll(List.of(getIrisStatus(courseId), getIrisChatHistory(courseId)));
         }
+        requestStats.addAll(navigate());
         requestStats.add(paced(navigateIntoExam()));
+        requestStats.add(paced(getExamsForOverview()));
         requestStats.add(paced(getTestExams()));
         requestStats.add(paced(getExamSideBarData()));
         requestStats.add(paced(startExam()));
@@ -206,9 +341,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             log.warn("Student exam not available after start for {}", username);
         }
 
-        // Mirror the real client: open the exam websocket and subscribe to the exam live-event topics.
-        // The connection is kept open across the participation phases and closed in submitAndEndExam.
-        requestStats.add(paced(connectAndSubscribeExamWebsocket(examId)));
+        // Mirror the real client: the connection opened at login now takes out the exam live-event topics as well.
+        // It stays open across the participation phases and is closed in submitAndEndExam.
+        requestStats.add(paced(subscribeExamTopics(examId)));
 
         return requestStats;
     }
@@ -240,6 +375,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         if (submitStat != null) {
             requestStats.add(submitStat);
         }
+        requestStats.addAll(navigate());
         requestStats.add(paced(loadExamSummary()));
 
         // End of the exam session: close the websocket the same way the real client does on hand-in.
@@ -252,8 +388,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         long start = System.nanoTime();
         ArtemisServerInfo response = webClient.get().uri("management/info").retrieve().bodyToMono(ArtemisServerInfo.class).block();
         if (response != null) {
-            isScienceFeatureEnabled = response.features().contains("Science");
-            isIrisEnabled = response.activeProfiles().contains("iris");
+            // An Artemis version that omits either list must not take every student down with a NullPointerException.
+            isScienceFeatureEnabled = response.features() != null && response.features().contains("Science");
+            isIrisEnabled = response.activeProfiles() != null && response.activeProfiles().contains("iris");
         }
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
@@ -267,12 +404,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private RequestStat getAccount() {
         long start = System.nanoTime();
         webClient.get().uri("api/core/public/account").retrieve().toBodilessEntity().block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
-    }
-
-    private RequestStat getGlobalNotificationSettings() {
-        long start = System.nanoTime();
-        webClient.get().uri("api/notification/global-notification-settings").retrieve().toBodilessEntity().block();
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
@@ -305,6 +436,18 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return new RequestStat(now(), System.nanoTime() - start, SETUP_SSH_KEYS);
     }
 
+    /**
+     * The unread-notification counts the dashboard shows next to each course, which every traced session requests
+     * right after the course list itself.
+     *
+     * @return the request stat
+     */
+    private RequestStat getCourseNotifications() {
+        long start = System.nanoTime();
+        webClient.get().uri("api/course/courses/for-notifications").retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
     private RequestStat getCourses() {
         long start = System.nanoTime();
         webClient.get().uri("api/course/courses/for-dashboard").retrieve().toBodilessEntity().block();
@@ -325,23 +468,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             log.debug("Could not fetch server time for {}: {}", username, e.getMessage());
         }
         return new RequestStat(now(), System.nanoTime() - start, SERVER_TIME);
-    }
-
-    private RequestStat getCalendarSubscriptionToken() {
-        long start = System.nanoTime();
-        try {
-            // This endpoint returns a raw token as text/plain, so we must not request application/json (-> 406).
-            webClient
-                .get()
-                .uri(uriBuilder -> uriBuilder.pathSegment("api", "calendar", "subscription-token").build())
-                .accept(MediaType.TEXT_PLAIN)
-                .retrieve()
-                .toBodilessEntity()
-                .block();
-        } catch (Exception e) {
-            log.debug("Could not fetch calendar subscription token for {}: {}", username, e.getMessage());
-        }
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private RequestStat getExerciseContributions(long exerciseId) {
@@ -366,20 +492,73 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
      * @param examId the ID of the exam
      * @return the request stat for the websocket connect
      */
-    private RequestStat connectAndSubscribeExamWebsocket(long examId) {
+    /**
+     * Opens the student's websocket and takes out the subscriptions every Artemis client holds.
+     * <p>
+     * A client subscribes to these the moment it boots, whatever the user is doing: the feature-toggle topic, the
+     * system-notification topic and its own team-assignment topic. They are cheap individually and there is one set per
+     * connected student, which is exactly the sort of per-connection cost an exam multiplies by several hundred.
+     *
+     * @return the stat covering the handshake and the subscriptions
+     */
+    private RequestStat connectWebsocket() {
         long start = System.nanoTime();
         try {
             this.websocket = new SimulatedArtemisWebsocket(artemisUrl, authToken != null ? authToken.jwtToken() : null);
             if (websocket.connect()) {
-                if (studentExamId != null) {
-                    websocket.subscribe("/topic/exam-participation/studentExam/" + studentExamId + "/events");
-                }
-                websocket.subscribe("/topic/exam-participation/exam/" + examId + "/events");
+                websocket.subscribe("/topic/management/feature-toggles");
+                websocket.subscribe("/topic/notification/system-notification");
+                websocket.subscribe("/user/topic/team-assignments");
             } else {
                 log.warn("Websocket did not connect for {}", username);
             }
         } catch (Exception e) {
-            log.warn("Could not establish exam websocket for {}: {}", username, e.getMessage());
+            log.warn("Could not establish the websocket for {}: {}", username, e.getMessage());
+        }
+        return new RequestStat(now(), System.nanoTime() - start, WEBSOCKET);
+    }
+
+    /**
+     * Takes out the subscriptions a client adds once it is inside a course: that course's notifications and the
+     * conversation notifications for this user.
+     *
+     * @param courseId the course the student has entered
+     */
+    private void subscribeCourseTopics(long courseId) {
+        if (websocket == null || !websocket.isConnected()) {
+            return;
+        }
+        websocket.subscribe("/user/topic/notification/" + courseId);
+        if (userId != null) {
+            websocket.subscribe("/topic/user/" + userId + "/notifications/conversations");
+        }
+    }
+
+    /**
+     * Takes out the exam live-event subscriptions, on the connection the student has held since logging in.
+     * <p>
+     * Falls back to opening a connection if there is none, so a student whose websocket failed earlier still exercises
+     * the exam topics rather than silently skipping them.
+     *
+     * @param examId the exam being taken
+     * @return the stat covering the subscriptions, and the handshake if one was needed
+     */
+    private RequestStat subscribeExamTopics(long examId) {
+        long start = System.nanoTime();
+        try {
+            if (websocket == null || !websocket.isConnected()) {
+                this.websocket = new SimulatedArtemisWebsocket(artemisUrl, authToken != null ? authToken.jwtToken() : null);
+                if (!websocket.connect()) {
+                    log.warn("Websocket did not connect for {}", username);
+                    return new RequestStat(now(), System.nanoTime() - start, WEBSOCKET);
+                }
+            }
+            if (studentExamId != null) {
+                websocket.subscribe("/topic/exam-participation/studentExam/" + studentExamId + "/events");
+            }
+            websocket.subscribe("/topic/exam-participation/exam/" + examId + "/events");
+        } catch (Exception e) {
+            log.warn("Could not subscribe to the exam topics for {}: {}", username, e.getMessage());
         }
         return new RequestStat(now(), System.nanoTime() - start, WEBSOCKET);
     }
@@ -567,12 +746,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .block();
     }
 
-    private RequestStat getCoursesDropdown() {
-        long start = System.nanoTime();
-        webClient.get().uri("api/course/courses/for-dropdown").retrieve().toBodilessEntity().block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
-    }
-
     private RequestStat getScienceSettings() {
         long start = System.nanoTime();
         webClient.get().uri("api/atlas/science-settings").retrieve().toBodilessEntity().block();
@@ -623,6 +796,22 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             studentExamId = studentExam.getId();
         }
         return new RequestStat(now(), duration, GET_STUDENT_EXAM);
+    }
+
+    /**
+     * The exam list behind the course's Exams tab, which is the view a student passes through on the way into an exam.
+     *
+     * @return the request stat
+     */
+    private RequestStat getExamsForOverview() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exam", "courses", courseIdString, "exams-for-overview").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private RequestStat getTestExams() {
@@ -694,17 +883,55 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             return requestStats;
         }
         for (var exercise : studentExam.getExercises()) {
-            if (exercise instanceof ModelingExercise) {
-                requestStats.add(paced(solveAndSubmitModelingExercise((ModelingExercise) exercise)));
-            } else if (exercise instanceof TextExercise) {
-                requestStats.add(paced(solveAndSubmitTextExercise((TextExercise) exercise)));
-            } else if (exercise instanceof QuizExercise) {
-                requestStats.add(paced(solveAndSubmitQuizExercise((QuizExercise) exercise)));
-            } else if (exercise instanceof ProgrammingExercise) {
-                requestStats.addAll(solveAndSubmitProgrammingExercise((ProgrammingExercise) exercise));
-            } else if (exercise instanceof FileUploadExercise) {
-                requestStats.addAll(solveAndSubmitFileUploadExercise((FileUploadExercise) exercise));
+            // Opening an exercise is a navigation, and the editor it needs is a chunk the browser has to fetch:
+            // the diagram editor for a modeling exercise, the code editor for a programming one.
+            requestStats.addAll(navigate());
+            requestStats.addAll(workOnExercise(exercise));
+        }
+        return requestStats;
+    }
+
+    /**
+     * Works on one exercise the way a student does: writing an answer, then leaving it open while the client saves it
+     * again and again.
+     * <p>
+     * The Artemis exam client writes the open submission back every 30 seconds for as long as it has unsaved changes,
+     * so a student who spends two minutes on an exercise causes four writes, not one. Submitting once per exercise —
+     * what this code used to do — understates submission load by the same factor and hides the write pattern an exam
+     * actually produces, where saves from hundreds of students arrive continuously rather than in one burst at the end.
+     * <p>
+     * Programming and file-upload exercises are left at a single pass: their traffic is a git push or a multipart
+     * upload, which a student performs deliberately rather than on a timer.
+     *
+     * @param exercise the exercise to work on
+     * @return one stat per request made
+     */
+    private List<RequestStat> workOnExercise(Exercise exercise) {
+        List<RequestStat> requestStats = new ArrayList<>();
+        if (exercise instanceof ProgrammingExercise programmingExercise) {
+            requestStats.addAll(solveAndSubmitProgrammingExercise(programmingExercise));
+            return requestStats;
+        }
+        if (exercise instanceof FileUploadExercise fileUploadExercise) {
+            requestStats.addAll(solveAndSubmitFileUploadExercise(fileUploadExercise));
+            return requestStats;
+        }
+        for (int save = 0; save < browserSettings.autoSavesPerExercise(); save++) {
+            RequestStat stat = null;
+            if (exercise instanceof ModelingExercise modelingExercise) {
+                stat = solveAndSubmitModelingExercise(modelingExercise);
+            } else if (exercise instanceof TextExercise textExercise) {
+                stat = solveAndSubmitTextExercise(textExercise);
+            } else if (exercise instanceof QuizExercise quizExercise) {
+                stat = solveAndSubmitQuizExercise(quizExercise);
+            } else {
+                return requestStats;
             }
+            if (stat == null) {
+                // No submission to write for this exercise; repeating would not produce one either.
+                return requestStats;
+            }
+            requestStats.add(paced(stat));
         }
         return requestStats;
     }

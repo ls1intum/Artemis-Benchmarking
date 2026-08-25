@@ -50,11 +50,13 @@ export function getOrder(simulationStats: SimulationStats): number {
       return 15;
     case RequestType.REPOSITORY_FILES:
       return 16;
-    case RequestType.MISC:
+    case RequestType.STATIC_RESOURCE:
       return 17;
-    case RequestType.SERVER_TIME:
+    case RequestType.MISC:
       return 18;
-    case RequestType.WEBSOCKET:
+    case RequestType.SERVER_TIME:
       return 19;
+    case RequestType.WEBSOCKET:
+      return 20;
   }
 }

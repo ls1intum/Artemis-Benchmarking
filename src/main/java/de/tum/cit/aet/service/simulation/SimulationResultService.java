@@ -71,10 +71,13 @@ public class SimulationResultService {
 
         SimulationStats websocketStats = calculateStatsForRequestType(requestStats, RequestType.WEBSOCKET, simulationRun);
 
+        SimulationStats staticResourceStats = calculateStatsForRequestType(requestStats, RequestType.STATIC_RESOURCE, simulationRun);
+
         Simulation simulation = simulationRun.getSimulation();
         Set<SimulationStats> stats = Stream.of(
             totalStats,
             authStats,
+            staticResourceStats,
             getStudentExamsStats,
             startStudentExamStats,
             submitExerciseStats,
