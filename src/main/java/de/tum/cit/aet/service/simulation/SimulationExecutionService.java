@@ -141,11 +141,11 @@ public class SimulationExecutionService {
         SimulatedArtemisAdmin admin = null;
         SimulatedArtemisStudent[] students;
 
-        // If no admin account is provided, use the instructor credentials if they are provided
-        if (
-            (accountDTO == null || accountDTO.getUsername().isBlank() || accountDTO.getPassword().isBlank()) &&
-            simulation.instructorCredentialsProvided()
-        ) {
+        // If no admin account is provided, use the instructor credentials if they are provided.
+        // The account may be present but empty: the run form submits a DTO whose fields are null when the user leaves
+        // them blank, and a client that posts `{}` produces the same thing. Reading through those nulls threw a
+        // NullPointerException out of the queue thread, which left the run sitting in RUNNING for ever.
+        if (!hasCredentials(accountDTO) && simulation.instructorCredentialsProvided()) {
             accountDTO = new ArtemisAccountDTO();
             accountDTO.setUsername(simulation.getInstructorUsername());
             accountDTO.setPassword(simulation.getInstructorPassword());
@@ -281,6 +281,22 @@ public class SimulationExecutionService {
                 }
             }
         }
+    }
+
+    /**
+     * Whether an account carries a username and a password that could be used to log in.
+     *
+     * @param accountDTO the account to check, possibly null or possibly present with null fields
+     * @return true only if both are set and non-blank
+     */
+    private static boolean hasCredentials(ArtemisAccountDTO accountDTO) {
+        return (
+            accountDTO != null &&
+            accountDTO.getUsername() != null &&
+            !accountDTO.getUsername().isBlank() &&
+            accountDTO.getPassword() != null &&
+            !accountDTO.getPassword().isBlank()
+        );
     }
 
     /**
@@ -862,6 +878,22 @@ public class SimulationExecutionService {
      *
      * @param simulationRun the simulation run to fail
      */
+    /**
+     * Marks a run as failed after an error that escaped the run's own handling.
+     * <p>
+     * Everything {@link #simulateExam} expects to go wrong is caught and reported inside it. Anything that is not
+     * leaves the status untouched, so the run stays RUNNING and the queue looks busy for ever: exactly the stall that
+     * had to be fixed once already for cancelled build jobs. The queue calls this so an unexpected error ends the run
+     * visibly instead.
+     *
+     * @param simulationRun the run that could not be executed
+     * @param error         the error that ended it
+     */
+    public void failRunAfterUnexpectedError(SimulationRun simulationRun, Throwable error) {
+        logAndSend(true, simulationRun, "Simulation run ended unexpectedly: %s", String.valueOf(error.getMessage()));
+        failSimulationRun(simulationRun);
+    }
+
     private void failSimulationRun(SimulationRun simulationRun) {
         if (Thread.currentThread().isInterrupted()) {
             return;
