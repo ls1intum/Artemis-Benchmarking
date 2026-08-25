@@ -207,9 +207,8 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
                 paced(getServerTime()),
                 paced(getSystemNotifications()),
                 paced(getAccount()),
-                paced(getGlobalNotificationSettings()),
                 paced(getCourses()),
-                paced(getCalendarSubscriptionToken()),
+                paced(getCourseNotifications()),
                 paced(configureSSH())
             )
         );
@@ -318,7 +317,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         subscribeCourseTopics(courseId);
         requestStats.add(paced(getCourseOverview(courseProgrammingExerciseId)));
         requestStats.add(paced(getServerTime()));
-        requestStats.add(paced(getCoursesDropdown()));
         requestStats.add(paced(getScienceSettings()));
         requestStats.add(paced(getNotificationSettings()));
         requestStats.add(paced(getNotificationInfo()));
@@ -334,6 +332,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         }
         requestStats.addAll(navigate());
         requestStats.add(paced(navigateIntoExam()));
+        requestStats.add(paced(getExamsForOverview()));
         requestStats.add(paced(getTestExams()));
         requestStats.add(paced(getExamSideBarData()));
         requestStats.add(paced(startExam()));
@@ -408,12 +407,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
-    private RequestStat getGlobalNotificationSettings() {
-        long start = System.nanoTime();
-        webClient.get().uri("api/notification/global-notification-settings").retrieve().toBodilessEntity().block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
-    }
-
     private RequestStat configureSSH() {
         long start = System.nanoTime();
         List<UserSshPublicKeyDTO> keys = webClient
@@ -443,6 +436,18 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         return new RequestStat(now(), System.nanoTime() - start, SETUP_SSH_KEYS);
     }
 
+    /**
+     * The unread-notification counts the dashboard shows next to each course, which every traced session requests
+     * right after the course list itself.
+     *
+     * @return the request stat
+     */
+    private RequestStat getCourseNotifications() {
+        long start = System.nanoTime();
+        webClient.get().uri("api/course/courses/for-notifications").retrieve().toBodilessEntity().block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
+    }
+
     private RequestStat getCourses() {
         long start = System.nanoTime();
         webClient.get().uri("api/course/courses/for-dashboard").retrieve().toBodilessEntity().block();
@@ -463,23 +468,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             log.debug("Could not fetch server time for {}: {}", username, e.getMessage());
         }
         return new RequestStat(now(), System.nanoTime() - start, SERVER_TIME);
-    }
-
-    private RequestStat getCalendarSubscriptionToken() {
-        long start = System.nanoTime();
-        try {
-            // This endpoint returns a raw token as text/plain, so we must not request application/json (-> 406).
-            webClient
-                .get()
-                .uri(uriBuilder -> uriBuilder.pathSegment("api", "calendar", "subscription-token").build())
-                .accept(MediaType.TEXT_PLAIN)
-                .retrieve()
-                .toBodilessEntity()
-                .block();
-        } catch (Exception e) {
-            log.debug("Could not fetch calendar subscription token for {}: {}", username, e.getMessage());
-        }
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private RequestStat getExerciseContributions(long exerciseId) {
@@ -758,12 +746,6 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             .block();
     }
 
-    private RequestStat getCoursesDropdown() {
-        long start = System.nanoTime();
-        webClient.get().uri("api/course/courses/for-dropdown").retrieve().toBodilessEntity().block();
-        return new RequestStat(now(), System.nanoTime() - start, MISC);
-    }
-
     private RequestStat getScienceSettings() {
         long start = System.nanoTime();
         webClient.get().uri("api/atlas/science-settings").retrieve().toBodilessEntity().block();
@@ -814,6 +796,22 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             studentExamId = studentExam.getId();
         }
         return new RequestStat(now(), duration, GET_STUDENT_EXAM);
+    }
+
+    /**
+     * The exam list behind the course's Exams tab, which is the view a student passes through on the way into an exam.
+     *
+     * @return the request stat
+     */
+    private RequestStat getExamsForOverview() {
+        long start = System.nanoTime();
+        webClient
+            .get()
+            .uri(uriBuilder -> uriBuilder.pathSegment("api", "exam", "courses", courseIdString, "exams-for-overview").build())
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return new RequestStat(now(), System.nanoTime() - start, MISC);
     }
 
     private RequestStat getTestExams() {

@@ -4,6 +4,8 @@
 /node/
 node_tmp/
 node_modules/
+# ... including the symlink the trace scripts want, which is a file rather than a directory
+local-load-test/trace/node_modules
 npm-debug.log.*
 /.awcache/*
 /.cache-loader/*

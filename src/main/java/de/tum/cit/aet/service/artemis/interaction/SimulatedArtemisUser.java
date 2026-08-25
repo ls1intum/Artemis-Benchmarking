@@ -149,6 +149,22 @@ public abstract class SimulatedArtemisUser {
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .build();
 
+        // Artemis asks for the identifier first and only then for a secret, so the client checks which methods the
+        // account may use before it posts a password. A simulation that jumps straight to the password misses one
+        // request per login, and on an exam morning every student logs in within the same few minutes.
+        long optionsStart = System.nanoTime();
+        try {
+            webClient
+                .get()
+                .uri(uriBuilder -> uriBuilder.path("api/core/public/login-options").queryParam("usernameOrEmail", username).build())
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+        } catch (Exception e) {
+            log.debug("Could not fetch the login options for {}: {}", username, e.getMessage());
+        }
+        requestStats.add(new RequestStat(now(), System.nanoTime() - optionsStart, AUTHENTICATION));
+
         long start = System.nanoTime();
         var payload = Map.of("username", username, "password", password, "rememberMe", true);
         var response = webClient.post().uri("api/core/public/authenticate").bodyValue(payload).retrieve().toBodilessEntity().block();
