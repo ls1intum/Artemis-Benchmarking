@@ -270,7 +270,7 @@ artemis:
       ci:
   staging:
     url: https://staging1.artemis.cit.tum.de/
-    cleanup-enabled: false
+    cleanup-enabled: true
     is-local: true
     prometheus-instances:
       artemis:
