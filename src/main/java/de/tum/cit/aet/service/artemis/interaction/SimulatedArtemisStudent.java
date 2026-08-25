@@ -1179,29 +1179,28 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         var bubbleSort = Path.of("repos", username, "src", "progforbenchtemp", "BubbleSort.java");
         log.debug("Change file  {}", bubbleSort);
         var newContent = """
-                package progforbenchtemp;
+        package progforbenchtemp;
 
 
-                import java.util.*;
-        import java.util.function.Supplier;
+        import java.util.*;
 
 
-                public class BubbleSort {
+        public class BubbleSort {
 
-                    /**
-                     * BubbleSort
-                     *
-                     * @param BubbleSort
-                     */
-                    public void performSort(final List<Date> input) {
-
-
-                        //TODO: implement BubbleSort NOW $$1
+            /**
+             * BubbleSort
+             *
+             * @param BubbleSort
+             */
+            public void performSort(final List<Date> input) {
 
 
-                    }
-                }
-                """;
+                //TODO: implement BubbleSort NOW $$1
+
+
+            }
+        }
+        """;
         if (invalidChange) {
             newContent += "}";
         }

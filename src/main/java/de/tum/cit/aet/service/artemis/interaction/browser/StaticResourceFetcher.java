@@ -84,7 +84,7 @@ public class StaticResourceFetcher {
      */
     public List<RequestStat> loadAppShell() {
         List<RequestStat> stats = new ArrayList<>();
-        stats.add(fetch(""));
+        stats.add(fetch("").block(ASSET_TIMEOUT));
         stats.addAll(fetchAll(catalog.appShell()));
         return stats;
     }
@@ -121,7 +121,7 @@ public class StaticResourceFetcher {
         }
         try {
             List<RequestStat> stats = Flux.fromIterable(toFetch)
-                .flatMap(asset -> Mono.fromCallable(() -> fetch(asset)), fetchConcurrency)
+                .flatMap(this::fetch, fetchConcurrency)
                 .collectList()
                 .block(ASSET_TIMEOUT.multipliedBy(2));
             return stats == null ? List.of() : stats;
@@ -134,23 +134,32 @@ public class StaticResourceFetcher {
     /**
      * Requests a single asset and discards the body, which is what matters here: the point is the bytes leaving the
      * server, not what they contain.
+     * <p>
+     * Deferred rather than assembled eagerly, for two reasons. The request must not start until the caller has a free
+     * connection slot, so that {@code fetchConcurrency} really is the number in flight; and the clock has to start
+     * then too, or an asset that waited its turn would be recorded with the wait included and the measurement would
+     * describe the queue instead of the server.
      *
      * @param asset path relative to the server root
      * @return the stat for the request, whether it succeeded or not
      */
-    private RequestStat fetch(String asset) {
-        long start = System.nanoTime();
-        try {
-            webClient
-                .get()
-                .uri(uriBuilder -> uriBuilder.path(asset.isEmpty() ? "/" : "/" + asset).build())
-                .headers(BrowserHeaders.forAsset(asset))
-                .retrieve()
-                .toBodilessEntity()
-                .block(ASSET_TIMEOUT);
-        } catch (Exception e) {
-            log.debug("Could not download {}: {}", asset, e.getMessage());
-        }
-        return new RequestStat(now(), System.nanoTime() - start, STATIC_RESOURCE);
+    private Mono<RequestStat> fetch(String asset) {
+        return Mono.defer(() -> {
+            long start = System.nanoTime();
+            return (
+                webClient
+                    .get()
+                    .uri(uriBuilder -> uriBuilder.path(asset.isEmpty() ? "/" : "/" + asset).build())
+                    .headers(BrowserHeaders.forAsset(asset))
+                    .retrieve()
+                    .toBodilessEntity()
+                    .onErrorResume(error -> {
+                        log.debug("Could not download {}: {}", asset, error.getMessage());
+                        return Mono.empty();
+                    })
+                    // A failed download is still a request the server handled, so it is measured either way.
+                    .then(Mono.fromSupplier(() -> new RequestStat(now(), System.nanoTime() - start, STATIC_RESOURCE)))
+            );
+        });
     }
 }

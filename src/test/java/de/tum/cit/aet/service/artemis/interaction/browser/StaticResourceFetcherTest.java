@@ -127,6 +127,47 @@ class StaticResourceFetcherTest {
         assertEquals(2, stats.size(), "a 404 is still load on the server and must be measured");
     }
 
+    @Test
+    void downloadsAssetsInParallelRatherThanOneAfterTheOther() {
+        // Twelve assets behind a 120 ms server. Six at a time should take about two rounds; one at a time would take
+        // twelve, so a generous ceiling still separates the two conclusively.
+        RouterFunction<ServerResponse> router = RouterFunctions.route()
+            .GET("/", request -> slow("/", MediaType.TEXT_HTML, shellReferencing(12)))
+            .GET("/asset-{name}.js", request ->
+                slow("/asset-" + request.pathVariable("name") + ".js", MediaType.valueOf("text/javascript"), "export const x=1;")
+            )
+            .build();
+        WebClient webClient = StaticAssetCatalogTest.webClient(router);
+        StaticAssetCatalog catalog = StaticAssetCatalog.forServer("http://parallel", webClient, 100);
+        assertEquals(12, catalog.appShell().size());
+        StaticResourceFetcher fetcher = new StaticResourceFetcher(webClient, catalog, BrowserSimulationSettings.defaults(), true);
+
+        long start = System.nanoTime();
+        List<RequestStat> stats = fetcher.loadAppShell();
+        long elapsedMillis = (System.nanoTime() - start) / 1_000_000;
+
+        assertEquals(13, stats.size());
+        assertTrue(elapsedMillis < 900, "twelve assets six at a time should not take " + elapsedMillis + " ms");
+    }
+
+    /** An index.html naming the given number of shell assets. */
+    private static String shellReferencing(int count) {
+        StringBuilder html = new StringBuilder();
+        for (int index = 0; index < count; index++) {
+            html.append("<script src=\"asset-AAAAAA")
+                .append((char) ('a' + index))
+                .append(".js\"></script>");
+        }
+        return html.toString();
+    }
+
+    private reactor.core.publisher.Mono<ServerResponse> slow(String path, MediaType type, String body) {
+        requested.add(path);
+        return reactor.core.publisher.Mono.delay(java.time.Duration.ofMillis(120)).then(
+            ServerResponse.ok().contentType(type).bodyValue(body)
+        );
+    }
+
     /** index.html referencing one shell script, which in turn references four lazily loaded chunks. */
     private StaticAssetCatalog catalog() {
         return StaticAssetCatalog.forServer("http://localhost", webClient(), 100);
