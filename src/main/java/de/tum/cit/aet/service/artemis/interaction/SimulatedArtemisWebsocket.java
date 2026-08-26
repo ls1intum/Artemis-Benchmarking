@@ -36,7 +36,20 @@ public class SimulatedArtemisWebsocket {
 
     private static final long[] HEARTBEAT = { 10_000, 10_000 }; // must match the server (WebsocketConfiguration)
     private static final long CONNECT_TIMEOUT_SECONDS = 20;
-    private static final int MAX_MESSAGE_BUFFER = 512 * 1024;
+    /**
+     * Per-session websocket message buffer.
+     * <p>
+     * This is the single most expensive per-student setting in the whole simulation, because the container allocates
+     * the buffers eagerly and one of them holds characters: at the 512 KB this used to be, Tomcat gave every session a
+     * 1 MB {@code char[]} for text and a ~528 KB {@code byte[]} for binary. That is ~1.5 MB per student before a
+     * single frame arrives, and it is what put a 2000-student run into {@code OutOfMemoryError} — a heap dump from
+     * that run held 1,968 char arrays of exactly 1 MB, one per student, totalling 2 GB.
+     * <p>
+     * Artemis' STOMP traffic is notifications, results and feature toggles, none of it near this size, so 64 KB is
+     * still generous while costing 192 KB per student instead of 1.5 MB. A frame larger than this closes that
+     * student's session with a "message too big"; raise it if that ever shows up in a run's log.
+     */
+    static final int MAX_MESSAGE_BUFFER = 64 * 1024;
 
     private static volatile WebSocketStompClient sharedClient;
 
