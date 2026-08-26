@@ -68,6 +68,26 @@ class StaticResourceFetcherTest {
     }
 
     @Test
+    void loadingTheJourneyUpFrontDoesNotReachPastIt() {
+        // The catalogue holds more views than one journey opens, which is the real case: a traced session touches 538
+        // of the bundle's roughly thousand files. The navigations that follow the preload must revisit what was
+        // downloaded, not carry on into views the student never opens.
+        StaticAssetCatalog catalog = catalog();
+        BrowserSimulationSettings oneFilePerNavigation = new BrowserSimulationSettings(true, 100, 100, 6, 4, 1, 0);
+        StaticResourceFetcher fetcher = new StaticResourceFetcher(webClient(), catalog, oneFilePerNavigation, true);
+        requested.clear();
+
+        assertEquals(4, catalog.routeBundles().size(), "more routes than the two this journey navigates");
+        List<RequestStat> upFront = fetcher.loadWholeJourney(2);
+        int afterPreload = requested.size();
+
+        assertEquals(1 + catalog.appShell().size() + 2, upFront.size(), "the shell plus the two routes the journey opens");
+        assertEquals(List.of(), fetcher.loadRouteChunks(), "the first navigation revisits the first preloaded route");
+        assertEquals(List.of(), fetcher.loadRouteChunks(), "and the second revisits the second");
+        assertEquals(afterPreload, requested.size(), "no file is fetched after the preload");
+    }
+
+    @Test
     void loadingTheJourneyUpFrontStopsAtTheEndOfTheBundle() {
         StaticAssetCatalog catalog = catalog();
         StaticResourceFetcher fetcher = new StaticResourceFetcher(webClient(), catalog, BrowserSimulationSettings.defaults(), true);
