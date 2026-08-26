@@ -94,6 +94,25 @@ public class StaticResourceFetcher {
     }
 
     /**
+     * Loads everything the journey ahead will need, in one go.
+     * <p>
+     * A browser interleaves this with the student's clicks, and the simulation used to do the same. At a few hundred
+     * students that put the bundle downloads on top of the exam's own requests, so the two could not be told apart:
+     * the REST timings carried the queueing of ten gigabytes of JavaScript. Downloading first and measuring afterwards
+     * keeps each phase readable, and the student's cache means the navigations that follow cost nothing extra.
+     *
+     * @param navigations how many views the journey will open, which decides how much of the bundle it would reach
+     * @return one stat per request made
+     */
+    public List<RequestStat> loadWholeJourney(int navigations) {
+        List<RequestStat> stats = new ArrayList<>(loadAppShell());
+        for (int navigation = 0; navigation < navigations; navigation++) {
+            stats.addAll(loadRouteChunks());
+        }
+        return stats;
+    }
+
+    /**
      * Loads one lazily loaded route, as a browser does when the student navigates to a view it has not opened yet.
      * <p>
      * One navigation costs a view's worth of files, not a share of the whole application: a student opens a handful of

@@ -76,6 +76,17 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     private boolean isScienceFeatureEnabled = false;
     private boolean isIrisEnabled = false;
 
+    /**
+     * Views an exam journey opens: the course dashboard, the course, the exam overview and the summary, plus one per
+     * exercise — five in the exam this tool builds, for a total of nine.
+     * <p>
+     * Only used to size the up-front bundle download, so being a little off is harmless in both directions: too few
+     * leaves some route chunks to be fetched during the exam, which is what a browser does anyway, and too many stops
+     * at the end of the bundle rather than running past it. An exam configured with a different number of exercises
+     * therefore needs no change here.
+     */
+    private static final int NAVIGATIONS_PER_JOURNEY = 9;
+
     private final BrowserSimulationSettings browserSettings;
 
     /**
@@ -194,7 +205,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             throw new IllegalStateException("User " + username + " is not logged in or not a student.");
         }
 
-        List<RequestStat> requestStats = new ArrayList<>(loadAppShell());
+        // The client bundle is not downloaded here. loadClientBundle() does it in its own phase before any of this, so
+        // that a cohort's ten gigabytes of JavaScript do not land on top of the exam's own requests.
+        List<RequestStat> requestStats = new ArrayList<>();
         // The client opens its websocket as soon as it has booted authenticated, not when the exam starts, and keeps
         // the one connection for the whole session. Connecting here rather than at exam start gives the broker the
         // session lifetime it really sees.
@@ -216,15 +229,25 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     }
 
     /**
-     * Downloads the Artemis client the way the student's browser does when they open the site.
+     * Downloads the whole client bundle this student will need, as its own phase before the exam begins.
      * <p>
      * Without this a simulated student produces the REST traffic of an exam but none of its bytes: a traced session
-     * spent 547 of its 632 requests and 20 of its 20.5 MB on the client bundle. Skipped when the run has static
-     * resources switched off, and cheap for a student whose browser cache is warm.
+     * spent 547 of its 632 requests and 20 of its 20.5 MB on the client bundle.
+     * <p>
+     * A browser spreads those downloads across the session, and the simulation used to do the same. At cohort scale
+     * that made the two indistinguishable — a few hundred students pulling the bundle while others submitted meant the
+     * REST timings described the queue behind the JavaScript rather than the endpoints themselves. Downloading up
+     * front keeps each phase readable; the student's cache then makes the navigations that follow free, which is what
+     * a browser does anyway once it holds the chunk.
+     * <p>
+     * Skipped when the run has static resources switched off, and cheap for a student whose browser cache is warm.
      *
      * @return one stat per downloaded file
      */
-    private List<RequestStat> loadAppShell() {
+    public List<RequestStat> loadClientBundle() {
+        if (!authenticated) {
+            throw new IllegalStateException("User " + username + " is not logged in or not a student.");
+        }
         if (!browserSettings.staticResourcesEnabled()) {
             return List.of();
         }
@@ -234,7 +257,7 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         }
         staticResources = new StaticResourceFetcher(webClient, catalog, browserSettings);
         log.debug("Browser cache for {} is {}", username, staticResources.isColdCache() ? "cold" : "warm");
-        return staticResources.loadAppShell();
+        return staticResources.loadWholeJourney(NAVIGATIONS_PER_JOURNEY);
     }
 
     /**

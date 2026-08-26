@@ -39,12 +39,12 @@ class SimulatedArtemisStudentTest {
     }
 
     @Test
-    void initialCallsDownloadTheClientBundle() {
+    void loadingTheBundleDownloadsTheClientBundle() {
         SimulatedArtemisStudent student = student(BrowserSimulationSettings.defaults());
         student.login();
         requested.clear();
 
-        List<RequestStat> stats = student.performInitialCalls();
+        List<RequestStat> stats = student.loadClientBundle();
 
         long staticRequests = stats
             .stream()
@@ -57,9 +57,12 @@ class SimulatedArtemisStudentTest {
     }
 
     @Test
-    void initialCallsSkipTheBundleWhenStaticResourcesAreOff() {
-        SimulatedArtemisStudent student = student(BrowserSimulationSettings.withoutStaticResources());
+    void initialCallsMakeNoStaticRequestsOfTheirOwn() {
+        // The bundle is downloaded in its own phase before the exam, so that a cohort's JavaScript does not land on
+        // top of the requests the run is there to measure.
+        SimulatedArtemisStudent student = student(BrowserSimulationSettings.defaults());
         student.login();
+        student.loadClientBundle();
         requested.clear();
 
         List<RequestStat> stats = student.performInitialCalls();
@@ -71,6 +74,16 @@ class SimulatedArtemisStudentTest {
                 .filter(stat -> stat.type() == RequestType.STATIC_RESOURCE)
                 .count()
         );
+        assertTrue(requested.stream().noneMatch(path -> path.endsWith(".js")), "the bundle is already in the student's cache");
+    }
+
+    @Test
+    void loadingTheBundleSkipsItWhenStaticResourcesAreOff() {
+        SimulatedArtemisStudent student = student(BrowserSimulationSettings.withoutStaticResources());
+        student.login();
+        requested.clear();
+
+        assertEquals(List.of(), student.loadClientBundle());
         assertTrue(requested.stream().noneMatch(path -> path.endsWith(".js")));
     }
 
