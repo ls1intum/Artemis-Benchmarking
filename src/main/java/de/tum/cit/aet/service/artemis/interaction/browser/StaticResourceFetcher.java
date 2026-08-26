@@ -109,6 +109,11 @@ public class StaticResourceFetcher {
         for (int navigation = 0; navigation < navigations; navigation++) {
             stats.addAll(loadRouteChunks());
         }
+        // Rewind, so that the student then walks the very views that were just downloaded. Without this the
+        // navigations during the exam carry the cursor onwards into bundles the journey never reaches, and the run
+        // downloads the whole catalogue instead of a session's worth of it: a 500-user run against staging1 fetched
+        // 974 files per student where a traced browser fetches 538.
+        routeCursor = 0;
         return stats;
     }
 
