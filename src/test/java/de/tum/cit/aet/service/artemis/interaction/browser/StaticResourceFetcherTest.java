@@ -54,6 +54,32 @@ class StaticResourceFetcherTest {
     }
 
     @Test
+    void loadingTheJourneyUpFrontCostsTheSameAsLoadingItAsYouGo() {
+        StaticAssetCatalog catalog = catalog();
+        WebClient webClient = webClient();
+        requested.clear();
+        StaticResourceFetcher fetcher = new StaticResourceFetcher(webClient, catalog, BrowserSimulationSettings.defaults(), true);
+
+        List<RequestStat> upFront = fetcher.loadWholeJourney(catalog.routeBundles().size());
+
+        assertEquals(1 + catalog.allAssets().size(), upFront.size(), "the shell and every route bundle the journey reaches");
+        assertEquals(1 + catalog.allAssets().size(), requested.size(), "every file is requested exactly once");
+        assertEquals(List.of(), fetcher.loadRouteChunks(), "navigating afterwards finds everything in the cache");
+    }
+
+    @Test
+    void loadingTheJourneyUpFrontStopsAtTheEndOfTheBundle() {
+        StaticAssetCatalog catalog = catalog();
+        StaticResourceFetcher fetcher = new StaticResourceFetcher(webClient(), catalog, BrowserSimulationSettings.defaults(), true);
+        requested.clear();
+
+        // More navigations than the bundle has routes: the extra ones find nothing rather than wrapping around.
+        List<RequestStat> upFront = fetcher.loadWholeJourney(catalog.routeBundles().size() + 5);
+
+        assertEquals(1 + catalog.allAssets().size(), upFront.size());
+    }
+
+    @Test
     void aWarmBrowserOnlyAsksForIndexHtml() {
         StaticAssetCatalog catalog = catalog();
         WebClient webClient = webClient();

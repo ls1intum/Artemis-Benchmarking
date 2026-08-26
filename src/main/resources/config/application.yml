@@ -198,6 +198,20 @@ benchmarking:
     # the calls arrive in a burst per view rather than on a timer: the traces show 31 per session, four to seven on each
     # page load and none at all while the student sits idle.
     server-time-calls-per-navigation: 3
+    # How long a simulated student pauses between two actions. A student in an exam reads the question, thinks and
+    # types; they do not fire a request every couple of seconds for two hours. The previous 2-4 s made a run heavier
+    # than any real cohort and compressed the exam into a burst. A waiting student gives up its concurrency slot, so
+    # raising this paces the run rather than throttling it.
+    think-time:
+      min-millis: 5000
+      max-millis: 10000
+    # Which HTTP protocol the simulated users speak.
+    #   auto - negotiate HTTP/2 with a HTTP/1.1 fallback over TLS, stay on HTTP/1.1 in plaintext. What a browser does.
+    #   h1   - force HTTP/1.1 everywhere, the behaviour before this setting existed.
+    #   h3   - force HTTP/3 over QUIC, for servers that advertise it (staging1 sends alt-svc: h3=":443"). There is no
+    #          fallback: a server without HTTP/3 will fail the run, and the QUIC natives only ship for linux-x86_64,
+    #          linux-aarch_64 and osx-aarch_64.
+    http-protocol: auto
     # How often the open submission is written back while a student works on an exercise. The Artemis exam client saves
     # every 30 seconds while there are unsaved changes; four saves matches a two-minute stay on one exercise.
     auto-saves-per-exercise: 4

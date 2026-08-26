@@ -42,11 +42,17 @@ public final class SimulationConcurrency {
      */
     public static final int DEFAULT_MAX_CONCURRENCY = 200;
 
-    /** Lower bound of the pause a simulated user takes between two actions. */
-    private static final long MIN_THINK_TIME_MILLIS = 2000;
+    /**
+     * Lower bound of the pause a simulated user takes between two actions.
+     * <p>
+     * Five seconds rather than the two it used to be. A student in an exam reads a question, thinks, and types; they do
+     * not fire a request every couple of seconds for the length of the exam. The shorter pause made a run heavier than
+     * any real cohort and compressed a two-hour exam into a burst.
+     */
+    public static final long DEFAULT_MIN_THINK_TIME_MILLIS = 5000;
 
     /** Upper bound of the pause a simulated user takes between two actions. */
-    private static final long MAX_THINK_TIME_MILLIS = 4000;
+    public static final long DEFAULT_MAX_THINK_TIME_MILLIS = 10_000;
 
     private SimulationConcurrency() {}
 
@@ -121,14 +127,14 @@ public final class SimulationConcurrency {
      * @param action      the work to perform for one index
      */
     public static void forEachIndex(int concurrency, int count, PausableAction action) {
-        forEachIndex(concurrency, count, MIN_THINK_TIME_MILLIS, MAX_THINK_TIME_MILLIS, action);
+        forEachIndex(concurrency, count, DEFAULT_MIN_THINK_TIME_MILLIS, DEFAULT_MAX_THINK_TIME_MILLIS, action);
     }
 
     /**
      * As {@link #forEachIndex(int, int, PausableAction)}, with the think time range stated explicitly.
      * <p>
-     * Package private because the only caller that needs it is the test, which has to pace users in milliseconds to
-     * finish in reasonable time. Production code should use the overload that applies the configured range.
+     * Public so a run can pace its users from configuration, and so tests can pace them in milliseconds and still
+     * finish in reasonable time.
      *
      * @param concurrency         how many actions may run at the same time
      * @param count               the number of indices to cover
@@ -136,7 +142,7 @@ public final class SimulationConcurrency {
      * @param maxThinkTimeMillis  upper bound of the pause between two actions
      * @param action              the work to perform for one index
      */
-    static void forEachIndex(int concurrency, int count, long minThinkTimeMillis, long maxThinkTimeMillis, PausableAction action) {
+    public static void forEachIndex(int concurrency, int count, long minThinkTimeMillis, long maxThinkTimeMillis, PausableAction action) {
         Semaphore permits = new Semaphore(concurrency);
 
         // close() waits for every submitted task to finish, so the method returns only once the whole batch is done.

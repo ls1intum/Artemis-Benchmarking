@@ -26,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpSslContextSpec;
 
@@ -35,6 +36,27 @@ import reactor.netty.tcp.TcpSslContextSpec;
  * and should be extended by classes that represent specific types of Artemis users (e.g. students, instructors, admins).
  */
 public abstract class SimulatedArtemisUser {
+
+    /**
+     * The HTTP protocol simulated users speak, set from {@code benchmarking.simulation.http-protocol}.
+     * <p>
+     * {@code auto} negotiates HTTP/2 with a HTTP/1.1 fallback over TLS and stays on HTTP/1.1 in plaintext, which is
+     * what a browser does. {@code h1} forces the old behaviour, {@code h3} forces HTTP/3.
+     * <p>
+     * Static because it describes the transport of a whole run rather than of one user, and because the users are
+     * constructed directly rather than by Spring. {@link de.tum.cit.aet.config.SimulationHttpProtocolConfiguration}
+     * sets it once at startup.
+     */
+    private static volatile String httpProtocol = "auto";
+
+    /**
+     * Sets the protocol every simulated user's client will use.
+     *
+     * @param protocol one of {@code auto}, {@code h1} or {@code h3}; anything else behaves as {@code auto}
+     */
+    public static void setHttpProtocol(String protocol) {
+        httpProtocol = protocol == null || protocol.isBlank() ? "auto" : protocol;
+    }
 
     protected Logger log;
 
@@ -261,7 +283,7 @@ public abstract class SimulatedArtemisUser {
         WebClient.Builder builder =
             webClientBuilderSupplier != null
                 ? webClientBuilderSupplier.get()
-                : WebClient.builder().clientConnector(new ReactorClientHttpConnector(createHttpClient()));
+                : WebClient.builder().clientConnector(new ReactorClientHttpConnector(createHttpClient(artemisUrl)));
         return builder.filter(logErrorResponses());
     }
 
@@ -397,22 +419,63 @@ public abstract class SimulatedArtemisUser {
         return new SimulatedArtemisAdmin(artemisUrl, username, password);
     }
 
-    private static HttpClient createHttpClient() {
-        return HttpClient.create()
+    /**
+     * The client every simulated user talks through.
+     * <p>
+     * The protocol matters for what a run measures. Artemis is served over TLS behind nginx, which offers h2, so a
+     * browser multiplexes a page's requests over one connection; a client left on HTTP/1.1 opens a separate connection
+     * per parallel request instead and measures a connection pattern no user produces. HTTP/2 is therefore negotiated
+     * where the server offers it, with HTTP/1.1 as the ALPN fallback, so a plaintext or h2-less server still works.
+     * <p>
+     * HTTP/3 is deliberately opt-in. It has no negotiation: reactor-netty either speaks QUIC to the server or fails,
+     * so pointing it at a server without h3 breaks every request rather than falling back. staging1 advertises
+     * {@code alt-svc: h3=":443"} and works; a plaintext server such as a local Artemis cannot work at all.
+     *
+     * @param artemisUrl the server this client will talk to, which decides whether TLS is in play
+     * @return the configured client
+     */
+    private static HttpClient createHttpClient(String artemisUrl) {
+        boolean secure = artemisUrl != null && artemisUrl.startsWith("https");
+        HttpClient client = HttpClient.create()
             .doOnConnected(conn ->
                 conn.addHandlerFirst(new ReadTimeoutHandler(20, TimeUnit.MINUTES)).addHandlerFirst(new WriteTimeoutHandler(30))
             )
             .responseTimeout(Duration.ofMinutes(20))
-            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30 * 1000)
-            .secure(spec -> {
-                try {
-                    spec.sslContext(TcpSslContextSpec.forClient().sslContext())
-                        .handshakeTimeout(Duration.ofSeconds(30))
-                        .closeNotifyFlushTimeout(Duration.ofSeconds(30))
-                        .closeNotifyReadTimeout(Duration.ofSeconds(30));
-                } catch (SSLException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30 * 1000);
+
+        if ("h3".equalsIgnoreCase(httpProtocol) && secure) {
+            // HTTP/3 carries its own TLS inside QUIC, so the TCP-oriented secure() settings below do not apply.
+            //
+            // The flow-control limits are not tuning, they are required. Reactor-netty defaults every QUIC limit to
+            // zero, and a peer may not send a byte of stream data beyond what the limits allow: without these the
+            // handshake completes, a stream opens, and the response never arrives — the request dies on the read
+            // timeout with nothing to say why. Verified against nginx and against Cloudflare's HTTP/3 endpoint.
+            return client.protocol(HttpProtocol.HTTP3).http3Settings(spec ->
+                spec
+                    // Generous, because the students download a 20 MB bundle over these connections.
+                    .maxData(64 * 1024 * 1024)
+                    .maxStreamDataBidirectionalLocal(8 * 1024 * 1024)
+                    .maxStreamDataBidirectionalRemote(8 * 1024 * 1024)
+                    // A browser opens far fewer than this at once; the ceiling only has to not be the bottleneck.
+                    .maxStreamsBidirectional(256)
+                    // QUIC closes an idle connection itself, and a student sits idle for the whole think time.
+                    .idleTimeout(Duration.ofMinutes(5))
+            );
+        }
+
+        if (secure && !"h1".equalsIgnoreCase(httpProtocol)) {
+            client = client.protocol(HttpProtocol.H2, HttpProtocol.HTTP11);
+        }
+
+        return client.secure(spec -> {
+            try {
+                spec.sslContext(TcpSslContextSpec.forClient().sslContext())
+                    .handshakeTimeout(Duration.ofSeconds(30))
+                    .closeNotifyFlushTimeout(Duration.ofSeconds(30))
+                    .closeNotifyReadTimeout(Duration.ofSeconds(30));
+            } catch (SSLException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }

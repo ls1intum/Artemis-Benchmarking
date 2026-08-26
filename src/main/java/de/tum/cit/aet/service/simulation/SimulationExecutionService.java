@@ -76,6 +76,12 @@ public class SimulationExecutionService {
     )
     private int serverTimeCallsPerNavigation;
 
+    @Value("${benchmarking.simulation.think-time.min-millis:" + SimulationConcurrency.DEFAULT_MIN_THINK_TIME_MILLIS + "}")
+    private long minThinkTimeMillis;
+
+    @Value("${benchmarking.simulation.think-time.max-millis:" + SimulationConcurrency.DEFAULT_MAX_THINK_TIME_MILLIS + "}")
+    private long maxThinkTimeMillis;
+
     @Value("${benchmarking.simulation.max-concurrency:" + SimulationConcurrency.DEFAULT_MAX_CONCURRENCY + "}")
     private int maxConcurrency;
 
@@ -339,6 +345,13 @@ public class SimulationExecutionService {
             List<RequestStat> requestStats = new ArrayList<>(
                 performActionWithAll(concurrency, simulation.getNumberOfUsers(), i -> students[i].login())
             );
+
+            // Deliberately its own phase, ahead of every measured request. Students used to pull the client bundle as
+            // they navigated, so at cohort scale the REST timings measured the queue behind ten gigabytes of
+            // JavaScript instead of the endpoints. Downloading first separates the two loads; each student's browser
+            // cache then makes the navigations that follow free, as a real browser's does.
+            logAndSend(false, simulationRun, "Downloading the client bundle...");
+            requestStats.addAll(performActionWithAll(concurrency, simulation.getNumberOfUsers(), i -> students[i].loadClientBundle()));
 
             logAndSend(false, simulationRun, "Performing initial calls...");
             requestStats.addAll(performActionWithAll(concurrency, simulation.getNumberOfUsers(), i -> students[i].performInitialCalls()));
@@ -745,7 +758,7 @@ public class SimulationExecutionService {
     private List<RequestStat> performActionWithAll(int concurrency, int numberOfUsers, Function<Integer, List<RequestStat>> action) {
         List<RequestStat> requestStats = Collections.synchronizedList(new ArrayList<>());
 
-        SimulationConcurrency.forEachIndex(concurrency, numberOfUsers, i -> {
+        SimulationConcurrency.forEachIndex(concurrency, numberOfUsers, minThinkTimeMillis, maxThinkTimeMillis, (i, thinkTime) -> {
             try {
                 requestStats.addAll(action.apply(i));
             } catch (Exception e) {
