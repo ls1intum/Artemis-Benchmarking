@@ -1906,7 +1906,10 @@ public class SimulationExecutionServiceIT {
         assertEquals(FINISHED, statusesOnWebsocketUpdate.get(1));
 
         verify(simulationWebsocketService, times(1)).sendSimulationResult(run);
-        verify(simulationWebsocketService, times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
+        // The only error this run produces comes from the cleanup, which runs asynchronously — the deleteExam
+        // verification above waits for the same reason. Without a timeout this races the cleanup thread and fails
+        // on a loaded runner, having seen zero error messages rather than one.
+        verify(simulationWebsocketService, timeout(1000).times(1)).sendRunLogMessage(eq(run), argThat(LogMessage::isError));
 
         verify(simulationResultService, times(1)).calculateAndSaveResult(eq(run), any());
 
