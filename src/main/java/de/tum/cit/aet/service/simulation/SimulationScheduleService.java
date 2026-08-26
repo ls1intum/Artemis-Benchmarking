@@ -1,13 +1,12 @@
 package de.tum.cit.aet.service.simulation;
 
-import static java.time.ZonedDateTime.now;
-
 import de.tum.cit.aet.domain.ScheduleSubscriber;
 import de.tum.cit.aet.domain.SimulationSchedule;
 import de.tum.cit.aet.repository.ScheduleSubscriberRepository;
 import de.tum.cit.aet.repository.SimulationScheduleRepository;
 import de.tum.cit.aet.service.MailService;
 import de.tum.cit.aet.util.RandomUtil;
+import java.time.Clock;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
@@ -29,16 +28,27 @@ public class SimulationScheduleService {
     private final ScheduleSubscriberRepository scheduleSubscriberRepository;
     private final MailService mailService;
 
+    /**
+     * The clock every scheduling decision is made against.
+     * <p>
+     * Injected rather than read from {@code ZonedDateTime.now()} so the behaviour can be tested at a chosen instant.
+     * Without it the tests had to express "later today" as an offset from the real clock, which stops being later today
+     * once the offset crosses midnight: four of them failed every night between 23:00 and 01:00 UTC.
+     */
+    private final Clock clock;
+
     public SimulationScheduleService(
         SimulationScheduleRepository simulationScheduleRepository,
         SimulationDataService simulationDataService,
         ScheduleSubscriberRepository scheduleSubscriberRepository,
-        MailService mailService
+        MailService mailService,
+        Clock clock
     ) {
         this.simulationScheduleRepository = simulationScheduleRepository;
         this.simulationDataService = simulationDataService;
         this.scheduleSubscriberRepository = scheduleSubscriberRepository;
         this.mailService = mailService;
+        this.clock = clock;
     }
 
     /**
@@ -153,7 +163,7 @@ public class SimulationScheduleService {
         log.info("Executing {} scheduled simulation runs", simulationSchedules.size());
         simulationSchedules
             .stream()
-            .filter(simulationSchedule -> simulationSchedule.getNextRun().isBefore(now()))
+            .filter(simulationSchedule -> simulationSchedule.getNextRun().isBefore(ZonedDateTime.now(clock)))
             .forEach(simulationSchedule -> {
                 log.info("Executing scheduled simulation run for simulation {}", simulationSchedule.getSimulation().getId());
                 var simulation = simulationSchedule.getSimulation();
@@ -186,14 +196,23 @@ public class SimulationScheduleService {
      * @param simulationSchedule the schedule
      * @return the time of the next run
      */
+    /**
+     * The current time in UTC, which is the zone every schedule is reasoned about in.
+     *
+     * @return now, according to the injected clock
+     */
+    private ZonedDateTime nowUtc() {
+        return ZonedDateTime.now(clock).withZoneSameInstant(ZoneId.of("UTC"));
+    }
+
     private ZonedDateTime calculateNextRun(SimulationSchedule simulationSchedule) {
         // If the start date is in the future, we start looking from there
         // Otherwise, we start looking from now
         ZonedDateTime lookFrom;
-        if (simulationSchedule.getStartDateTime().isAfter(now(ZoneId.of("UTC")))) {
+        if (simulationSchedule.getStartDateTime().isAfter(nowUtc())) {
             lookFrom = simulationSchedule.getStartDateTime();
         } else {
-            lookFrom = now(ZoneId.of("UTC"));
+            lookFrom = nowUtc();
         }
 
         // Set the time to the time of day of the schedule
@@ -233,7 +252,7 @@ public class SimulationScheduleService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "End date time must not be before start date time");
         } else if (simulationSchedule.getCycle() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cycle must not be null in simulation schedule");
-        } else if (simulationSchedule.getEndDateTime() != null && simulationSchedule.getEndDateTime().isBefore(now())) {
+        } else if (simulationSchedule.getEndDateTime() != null && simulationSchedule.getEndDateTime().isBefore(ZonedDateTime.now(clock))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "End date time must not be in the past in simulation schedule");
         } else if (simulationSchedule.getTimeOfDay() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Time of day must not be null in simulation schedule");
