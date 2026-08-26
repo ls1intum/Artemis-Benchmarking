@@ -46,6 +46,24 @@ public class ArtemisConfiguration {
     @Value("${artemis.ts1.is-local}")
     private boolean test1IsLocal;
 
+    @Value("${artemis.ts2.url}")
+    private String test2Url;
+
+    @Value("${artemis.ts2.cleanup-enabled}")
+    private boolean test2Cleanup;
+
+    @Value("${artemis.ts2.prometheus-instances.artemis}")
+    private String[] test2PrometheusInstanceArtemis;
+
+    @Value("${artemis.ts2.prometheus-instances.vcs}")
+    private String[] test2PrometheusInstanceVcs;
+
+    @Value("${artemis.ts2.prometheus-instances.ci}")
+    private String[] test2PrometheusInstanceCi;
+
+    @Value("${artemis.ts2.is-local}")
+    private boolean test2IsLocal;
+
     @Value("${artemis.ts3.url}")
     private String test3Url;
 
@@ -182,6 +200,7 @@ public class ArtemisConfiguration {
         return switch (server) {
             case LOCAL -> localUrl;
             case TS1 -> test1Url;
+            case TS2 -> test2Url;
             case TS3 -> test3Url;
             case TS7 -> test7Url;
             case TS8 -> test8Url;
@@ -202,6 +221,7 @@ public class ArtemisConfiguration {
         return switch (server) {
             case LOCAL -> localCleanup;
             case TS1 -> test1Cleanup;
+            case TS2 -> test2Cleanup;
             case TS3 -> test3Cleanup;
             case TS7 -> test7Cleanup;
             case TS8 -> test8Cleanup;
@@ -222,6 +242,7 @@ public class ArtemisConfiguration {
         return switch (server) {
             case LOCAL -> localPrometheusInstanceArtemis;
             case TS1 -> test1PrometheusInstanceArtemis;
+            case TS2 -> test2PrometheusInstanceArtemis;
             case TS3 -> test3PrometheusInstanceArtemis;
             case TS7 -> test7PrometheusInstanceArtemis;
             case TS8 -> test8PrometheusInstanceArtemis;
@@ -242,6 +263,7 @@ public class ArtemisConfiguration {
         return switch (server) {
             case LOCAL -> localPrometheusInstanceVcs;
             case TS1 -> test1PrometheusInstanceVcs;
+            case TS2 -> test2PrometheusInstanceVcs;
             case TS3 -> test3PrometheusInstanceVcs;
             case TS7 -> test7PrometheusInstanceVcs;
             case TS8 -> test8PrometheusInstanceVcs;
@@ -262,6 +284,7 @@ public class ArtemisConfiguration {
         return switch (server) {
             case LOCAL -> localPrometheusInstanceCi;
             case TS1 -> test1PrometheusInstanceCi;
+            case TS2 -> test2PrometheusInstanceCi;
             case TS3 -> test3PrometheusInstanceCi;
             case TS7 -> test7PrometheusInstanceCi;
             case TS8 -> test8PrometheusInstanceCi;
@@ -282,6 +305,7 @@ public class ArtemisConfiguration {
         return switch (server) {
             case LOCAL -> localIsLocal;
             case TS1 -> test1IsLocal;
+            case TS2 -> test2IsLocal;
             case TS3 -> test3IsLocal;
             case TS7 -> test7IsLocal;
             case TS8 -> test8IsLocal;
