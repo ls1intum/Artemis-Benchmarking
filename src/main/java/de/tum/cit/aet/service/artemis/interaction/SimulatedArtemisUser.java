@@ -11,6 +11,7 @@ import de.tum.cit.aet.service.artemis.interaction.browser.BrowserSimulationSetti
 import de.tum.cit.aet.service.artemis.passkey.ArtemisPasskeyService;
 import de.tum.cit.aet.service.artemis.util.AuthToken;
 import io.netty.channel.ChannelOption;
+import io.netty.handler.ssl.SslContext;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import java.time.Duration;
@@ -48,6 +49,9 @@ public abstract class SimulatedArtemisUser {
      * sets it once at startup.
      */
     private static volatile String httpProtocol = "auto";
+
+    /** Built once and shared; see {@link #sharedSslContext()}. */
+    private static volatile SslContext sslContext;
 
     /**
      * Sets the protocol every simulated user's client will use.
@@ -467,15 +471,42 @@ public abstract class SimulatedArtemisUser {
             client = client.protocol(HttpProtocol.H2, HttpProtocol.HTTP11);
         }
 
-        return client.secure(spec -> {
-            try {
-                spec.sslContext(TcpSslContextSpec.forClient().sslContext())
-                    .handshakeTimeout(Duration.ofSeconds(30))
-                    .closeNotifyFlushTimeout(Duration.ofSeconds(30))
-                    .closeNotifyReadTimeout(Duration.ofSeconds(30));
-            } catch (SSLException e) {
-                throw new RuntimeException(e);
+        return client.secure(spec ->
+            spec
+                .sslContext(sharedSslContext())
+                .handshakeTimeout(Duration.ofSeconds(30))
+                .closeNotifyFlushTimeout(Duration.ofSeconds(30))
+                .closeNotifyReadTimeout(Duration.ofSeconds(30))
+        );
+    }
+
+    /**
+     * The one TLS context every simulated user's client uses.
+     * <p>
+     * Building it per user meant parsing the JDK trust store per user: a heap dump from a 2000-student run held
+     * 496,836 {@link java.security.cert.TrustAnchor} instances, roughly 248 certificates times 2000 students, with
+     * every certificate's encoded bytes behind them. A real browser parses its trust store once for the whole
+     * process, and netty's {@code SslContext} is explicitly built to be shared, so this is both cheaper and closer to
+     * what a client does. Each user still gets its own {@code HttpClient}, so per-student connection behaviour is
+     * unchanged.
+     *
+     * @return the shared client TLS context
+     */
+    static SslContext sharedSslContext() {
+        SslContext context = sslContext;
+        if (context == null) {
+            synchronized (SimulatedArtemisUser.class) {
+                context = sslContext;
+                if (context == null) {
+                    try {
+                        context = TcpSslContextSpec.forClient().sslContext();
+                    } catch (SSLException e) {
+                        throw new IllegalStateException("Could not build the TLS context for the simulated users", e);
+                    }
+                    sslContext = context;
+                }
             }
-        });
+        }
+        return context;
     }
 }
