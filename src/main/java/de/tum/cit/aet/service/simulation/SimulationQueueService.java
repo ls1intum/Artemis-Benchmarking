@@ -91,6 +91,12 @@ public class SimulationQueueService {
                     simulationExecutionService.simulateExam(run);
                 } catch (Exception e) {
                     log.error("Error while executing simulation run", e);
+                    // Without this the run keeps its RUNNING status and the UI shows a simulation that never ends.
+                    try {
+                        simulationExecutionService.failRunAfterUnexpectedError(run, e);
+                    } catch (Exception failureToRecord) {
+                        log.error("Could not mark the simulation run as failed", failureToRecord);
+                    }
                 }
             }
         } catch (InterruptedException e) {

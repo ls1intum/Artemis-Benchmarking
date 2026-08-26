@@ -798,6 +798,31 @@ public class SimulationExecutionServiceIT {
     }
 
     @Test
+    public void testCreateCourseAndExam_emptyAdminAccount_doesNotThrow() {
+        // The run form submits an account whose fields are null when the user leaves them blank, and a client posting
+        // `{}` produces the same thing. Reading through those nulls used to throw out of the queue thread, which left
+        // the run sitting in RUNNING for ever.
+        Simulation simulation = new Simulation();
+        simulation.setServer(TS1);
+        simulation.setNumberOfUsers(3);
+        simulation.setMode(Simulation.Mode.CREATE_COURSE_AND_EXAM);
+        simulation.setCustomizeUserRange(false);
+        simulation.setNumberOfCommitsAndPushesFrom(8);
+        simulation.setNumberOfCommitsAndPushesTo(15);
+        simulation.setOnlineIdePercentage(100);
+
+        SimulationRun run = new SimulationRun();
+        run.setSimulation(simulation);
+        run.setAdminAccount(new ArtemisAccountDTO());
+
+        simulationExecutionService.simulateExam(run);
+
+        // The admin comes from user management for a non-production server, so the run proceeds normally.
+        verify(simulatedArtemisAdmin, times(1)).createCourse();
+        verify(simulatedArtemisAdmin, times(1)).createExam(course);
+    }
+
+    @Test
     public void testCreateCourseAndExam_cleanupEnabled_production_success() {
         Simulation simulation = new Simulation();
         simulation.setServer(PRODUCTION);
