@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.openssl.PEMKeyPair;
@@ -251,7 +252,12 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         if (!browserSettings.staticResourcesEnabled()) {
             return List.of();
         }
-        StaticAssetCatalog catalog = StaticAssetCatalog.forServer(artemisUrl, webClient, browserSettings.maxAssets());
+        StaticAssetCatalog catalog = StaticAssetCatalog.forServer(
+            artemisUrl,
+            webClient,
+            browserSettings.maxAssets(),
+            browserSettings.nonStudentRoutes()
+        );
         if (catalog.isEmpty()) {
             return List.of();
         }
@@ -909,6 +915,11 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             // Opening an exercise is a navigation, and the editor it needs is a chunk the browser has to fetch:
             // the diagram editor for a modeling exercise, the code editor for a programming one.
             requestStats.addAll(navigate());
+            if (skipsAnswering(exercise)) {
+                // Opened, read, left unanswered. The navigation above still happened, because that is what the student
+                // did; only the submission is missing.
+                continue;
+            }
             requestStats.addAll(workOnExercise(exercise));
         }
         return requestStats;
@@ -929,6 +940,22 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
      * @param exercise the exercise to work on
      * @return one stat per request made
      */
+    /**
+     * Whether this student opens the exercise but writes no submission.
+     * <p>
+     * Programming exercises are never skipped: the clone and push they cause are the most expensive path in a run, and
+     * dropping them at random would change what the benchmark reports from one run to the next.
+     *
+     * @param exercise the exercise the student has just opened
+     * @return true if the student leaves it unanswered
+     */
+    private boolean skipsAnswering(Exercise exercise) {
+        if (exercise instanceof ProgrammingExercise) {
+            return false;
+        }
+        return ThreadLocalRandom.current().nextInt(100) < browserSettings.exerciseSkipPercentage();
+    }
+
     private List<RequestStat> workOnExercise(Exercise exercise) {
         List<RequestStat> requestStats = new ArrayList<>();
         if (exercise instanceof ProgrammingExercise programmingExercise) {
@@ -939,7 +966,11 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             requestStats.addAll(solveAndSubmitFileUploadExercise(fileUploadExercise));
             return requestStats;
         }
-        for (int save = 0; save < browserSettings.autoSavesPerExercise(); save++) {
+        // Around the configured mean rather than exactly it. A student who types steadily for the whole of an exercise
+        // saves far more often than one who writes two lines and moves on, and a cohort where every student saves the
+        // identical number of times produces a write pattern no exam has.
+        int saves = ThreadLocalRandom.current().nextInt(1, 2 * browserSettings.autoSavesPerExercise());
+        for (int save = 0; save < saves; save++) {
             RequestStat stat = null;
             if (exercise instanceof ModelingExercise modelingExercise) {
                 stat = solveAndSubmitModelingExercise(modelingExercise);

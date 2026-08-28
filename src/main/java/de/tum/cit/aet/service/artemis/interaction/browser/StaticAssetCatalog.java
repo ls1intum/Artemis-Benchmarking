@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -37,6 +36,31 @@ public final class StaticAssetCatalog {
     private static final Logger log = LoggerFactory.getLogger(StaticAssetCatalog.class);
 
     private static final Map<String, StaticAssetCatalog> CATALOGS = new ConcurrentHashMap<>();
+
+    /**
+     * Top-level routes a student never opens, matched on the readable part of the chunk name.
+     * <p>
+     * Angular emits its lazily loaded routes under their source file name — {@code exam-management.route-WDC4T765.js},
+     * {@code admin.routes-444BXGMO.js} — so which view a chunk belongs to is legible even though the hash is not.
+     * Only the name before the hash is matched, and only for the routes the shell references directly, so a new
+     * Artemis build changes nothing here.
+     * <p>
+     * This matters more than it looks. Against staging1 {@code exam-management.route} is the single largest thing
+     * Artemis ships, 296 files and 3.69 MB, and it is an instructor screen. Ordering the routes by weight — which is
+     * what this class used to do — therefore handed every simulated student the instructor's exam management console
+     * before anything a student can actually reach.
+     */
+    static final List<String> DEFAULT_NON_STUDENT_ROUTES = List.of(
+        "exam-management",
+        "course-management",
+        "admin.routes",
+        "lti.",
+        "sharing.",
+        "data-export",
+        "course-request",
+        "feature-overview",
+        "exam-rooms"
+    );
 
     /** {@code src=} / {@code href=} of a resource-carrying tag in index.html, media included. */
     private static final Pattern HTML_REFERENCE = Pattern.compile(
@@ -89,9 +113,22 @@ public final class StaticAssetCatalog {
      * @return the catalog, possibly empty
      */
     public static StaticAssetCatalog forServer(String artemisUrl, WebClient webClient, int maxAssets) {
+        return forServer(artemisUrl, webClient, maxAssets, DEFAULT_NON_STUDENT_ROUTES);
+    }
+
+    /**
+     * As {@link #forServer(String, WebClient, int)}, with the routes to leave out stated explicitly.
+     *
+     * @param artemisUrl       the server whose bundle to describe
+     * @param webClient        the client to discover with
+     * @param maxAssets        ceiling on how many files one discovery may collect
+     * @param nonStudentRoutes name fragments of top-level routes a student never opens; an empty list keeps everything
+     * @return the catalog for that server, discovered once and reused
+     */
+    public static StaticAssetCatalog forServer(String artemisUrl, WebClient webClient, int maxAssets, List<String> nonStudentRoutes) {
         return CATALOGS.computeIfAbsent(artemisUrl, url -> {
             try {
-                StaticAssetCatalog catalog = discover(webClient, maxAssets);
+                StaticAssetCatalog catalog = discover(webClient, maxAssets, nonStudentRoutes);
                 log.info(
                     "Discovered client bundle of {}: {} shell files, {} lazily loaded routes ({} files in total)",
                     url,
@@ -121,7 +158,7 @@ public final class StaticAssetCatalog {
         CATALOGS.clear();
     }
 
-    private static StaticAssetCatalog discover(WebClient client, int maxAssets) {
+    private static StaticAssetCatalog discover(WebClient client, int maxAssets, List<String> nonStudentRoutes) {
         // The student's client is built for JSON responses and buffers at most 256 KB, but Artemis ships single chunks
         // of several megabytes. Reading one with the default limit fails, and a failed read looks exactly like a chunk
         // with no references, which silently shrinks the discovered bundle to almost nothing.
@@ -155,13 +192,42 @@ public final class StaticAssetCatalog {
             log.warn("Stopped discovering the client bundle at the ceiling of {} assets", maxAssets);
         }
 
-        // Heaviest first. A student sitting an exam opens the views that carry the editors — the code editor, the
-        // diagram editor — and those are by far the largest chunks Artemis ships. Discovery order, by contrast, is an
-        // artefact of how the bundler happened to emit the graph, and following it makes the simulated student download
-        // the same number of files as a real one but only half the bytes.
-        routeBundles.sort(Comparator.comparingLong(crawl::weightOf).reversed());
+        // Leave out the views a student cannot reach, and keep the rest in the order the bundle mentions them.
+        //
+        // This used to sort by weight instead, heaviest first, on the theory that a student opens the views carrying
+        // the editors and those are the biggest chunks. Measured against staging1 the theory does not hold: the
+        // heaviest route in Artemis is exam-management, an instructor console of 296 files and 3.69 MB, so weight
+        // ordering gave every student a screen they have no permission to open. Selecting by what the route is beats
+        // guessing from how big it is, and once the instructor and admin views are gone there is nothing left to
+        // order — a journey reaches all of what remains.
+        List<List<String>> studentRoutes = routeBundles
+            .stream()
+            .filter(bundle -> !isNonStudentRoute(bundle, nonStudentRoutes))
+            .toList();
+        long excludedFiles = routeBundles.size() - studentRoutes.size();
+        if (excludedFiles > 0) {
+            log.info("Left out {} of {} lazily loaded routes as not reachable by a student", excludedFiles, routeBundles.size());
+        }
 
-        return new StaticAssetCatalog(shell, routeBundles);
+        return new StaticAssetCatalog(shell, studentRoutes);
+    }
+
+    /**
+     * Whether this route bundle belongs to a view a student cannot open.
+     * <p>
+     * Matched against the bundle's own entry file, which is the route Angular lazily loads; the files it pulls in are
+     * shared with other routes and say nothing about who may reach them.
+     *
+     * @param bundle           the route bundle, its entry file first
+     * @param nonStudentRoutes name fragments to exclude
+     * @return true if the route should be left out of a student's browser
+     */
+    private static boolean isNonStudentRoute(List<String> bundle, List<String> nonStudentRoutes) {
+        if (bundle.isEmpty()) {
+            return false;
+        }
+        String entry = bundle.get(0);
+        return nonStudentRoutes.stream().anyMatch(entry::startsWith);
     }
 
     /**
@@ -385,7 +451,7 @@ public final class StaticAssetCatalog {
      * The lazily loaded routes, each with the files that route pulls in. A student downloads one of these per
      * navigation, not all of them: nobody opens every view Artemis has.
      *
-     * @return the route bundles, in the order the bundle mentions them
+     * @return the route bundles a student can reach, in the order the bundle mentions them
      */
     public List<List<String>> routeBundles() {
         return routeBundles;

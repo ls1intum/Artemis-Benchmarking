@@ -160,12 +160,15 @@ class SimulationConcurrencyTest {
     }
 
     @Test
-    void pauseWaitsForAtLeastTheGivenThinkTime() {
+    void pauseWaitsForAboutTheGivenThinkTime() {
+        // The draw is log-normal around the range's mean, so a single pause may fall below the nominal minimum; what
+        // it may not do is fail to wait at all. The floor is half the minimum, see
+        // SimulationConcurrency#nextThinkTimeMillis.
         long start = System.nanoTime();
 
         SimulationConcurrency.forEachIndex(1, 1, 60, 60, (index, thinkTime) -> thinkTime.pause());
 
-        assertThat(Duration.ofNanos(System.nanoTime() - start)).isGreaterThanOrEqualTo(Duration.ofMillis(60));
+        assertThat(Duration.ofNanos(System.nanoTime() - start)).isGreaterThanOrEqualTo(Duration.ofMillis(30));
     }
 
     @Test

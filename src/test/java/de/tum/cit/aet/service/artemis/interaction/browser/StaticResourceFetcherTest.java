@@ -73,7 +73,7 @@ class StaticResourceFetcherTest {
         // of the bundle's roughly thousand files. The navigations that follow the preload must revisit what was
         // downloaded, not carry on into views the student never opens.
         StaticAssetCatalog catalog = catalog();
-        BrowserSimulationSettings oneFilePerNavigation = new BrowserSimulationSettings(true, 100, 100, 6, 4, 1, 0);
+        BrowserSimulationSettings oneFilePerNavigation = new BrowserSimulationSettings(true, 100, 100, 6, 4, 1, List.of(), 0, 0);
         StaticResourceFetcher fetcher = new StaticResourceFetcher(webClient(), catalog, oneFilePerNavigation, true);
         requested.clear();
 
@@ -133,7 +133,7 @@ class StaticResourceFetcherTest {
     @Test
     void oneNavigationPullsAboutTheConfiguredNumberOfFiles() {
         StaticAssetCatalog catalog = catalog();
-        BrowserSimulationSettings twoFilesPerNavigation = new BrowserSimulationSettings(true, 100, 100, 6, 4, 2, 0);
+        BrowserSimulationSettings twoFilesPerNavigation = new BrowserSimulationSettings(true, 100, 100, 6, 4, 2, List.of(), 0, 0);
         StaticResourceFetcher fetcher = new StaticResourceFetcher(webClient(), catalog, twoFilesPerNavigation, true);
         fetcher.loadAppShell();
 

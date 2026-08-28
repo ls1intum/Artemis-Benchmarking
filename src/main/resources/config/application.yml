@@ -185,6 +185,12 @@ benchmarking:
       cold-cache-percentage: 100
       # Ceiling on how many files one bundle discovery may collect.
       max-assets: 2000
+      # Top-level routes a student cannot open, left out of the bundle a student downloads. Angular names its lazily
+      # loaded routes after their source file, so these survive an Artemis rebuild even though the hashes do not.
+      # Worth stating explicitly: exam-management is the single largest thing Artemis ships (296 files, 3.69 MB on
+      # staging1) and it is an instructor console. Leave this empty to fall back to the built-in list; the code never
+      # treats empty as "exclude nothing".
+      non-student-routes: exam-management,course-management,admin.routes,lti.,sharing.,data-export,course-request,feature-overview,exam-rooms
       # Parallel downloads per student, mirroring a browser's per-origin connection limit.
       fetch-concurrency: 6
       # Roughly how many files one navigation pulls in. Angular splits a view across several chunks, so opening one view
@@ -198,10 +204,19 @@ benchmarking:
     # the calls arrive in a burst per view rather than on a timer: the traces show 31 per session, four to seven on each
     # page load and none at all while the student sits idle.
     server-time-calls-per-navigation: 3
+    # Window across which students enter each phase, instead of all on the same tick. Every phase is a barrier, so
+    # without this each one starts with the cohort in lockstep and its first call arrives as a single spike — a
+    # 2000-user run put exactly 2000 /api/public/time requests into one second. Costs at most this much per phase.
+    arrival-spread-millis: 15000
+    # Share of exercises a student opens but leaves unanswered. Programming exercises are never skipped; their clone
+    # and push are the most expensive path a run measures and dropping them at random would move the numbers.
+    exercise-skip-percentage: 10
     # How long a simulated student pauses between two actions. A student in an exam reads the question, thinks and
     # types; they do not fire a request every couple of seconds for two hours. The previous 2-4 s made a run heavier
     # than any real cohort and compressed the exam into a burst. A waiting student gives up its concurrency slot, so
     # raising this paces the run rather than throttling it.
+    # Drawn log-normally with this range's mean, not uniformly: real dwell times have a long tail, and a uniform draw
+    # barely desynchronises a cohort that was released together.
     think-time:
       min-millis: 5000
       max-millis: 10000

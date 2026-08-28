@@ -108,7 +108,7 @@ class SimulatedArtemisStudentTest {
 
     @Test
     void aViewCostsNoClockCallsWhenTheBurstIsSwitchedOff() {
-        BrowserSimulationSettings noBurst = new BrowserSimulationSettings(false, 100, 2000, 6, 4, 39, 0);
+        BrowserSimulationSettings noBurst = new BrowserSimulationSettings(false, 100, 2000, 6, 4, 39, List.of(), 0, 0);
         SimulatedArtemisStudent student = student(noBurst);
         student.login();
         requested.clear();

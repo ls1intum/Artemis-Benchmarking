@@ -82,6 +82,19 @@ public class SimulationExecutionService {
     @Value("${benchmarking.simulation.think-time.max-millis:" + SimulationConcurrency.DEFAULT_MAX_THINK_TIME_MILLIS + "}")
     private long maxThinkTimeMillis;
 
+    @Value("${benchmarking.simulation.arrival-spread-millis:" + SimulationConcurrency.DEFAULT_ARRIVAL_SPREAD_MILLIS + "}")
+    private long arrivalSpreadMillis;
+
+    @Value("${benchmarking.simulation.exercise-skip-percentage:" + BrowserSimulationSettings.DEFAULT_EXERCISE_SKIP_PERCENTAGE + "}")
+    private int exerciseSkipPercentage;
+
+    /**
+     * Empty means "not configured", and falls back to the built-in list rather than to excluding nothing: a typo in
+     * the property should not silently hand every student the instructor's console again.
+     */
+    @Value("${benchmarking.simulation.static-resources.non-student-routes:}")
+    private List<String> nonStudentRoutes;
+
     @Value("${benchmarking.simulation.max-concurrency:" + SimulationConcurrency.DEFAULT_MAX_CONCURRENCY + "}")
     private int maxConcurrency;
 
@@ -691,6 +704,10 @@ public class SimulationExecutionService {
             fetchConcurrency,
             autoSavesPerExercise,
             assetsPerNavigation,
+            nonStudentRoutes == null || nonStudentRoutes.isEmpty()
+                ? BrowserSimulationSettings.DEFAULT_NON_STUDENT_ROUTES
+                : nonStudentRoutes,
+            exerciseSkipPercentage,
             serverTimeCallsPerNavigation
         );
     }
@@ -774,13 +791,20 @@ public class SimulationExecutionService {
     private List<RequestStat> performActionWithAll(int concurrency, int numberOfUsers, Function<Integer, List<RequestStat>> action) {
         List<RequestStat> requestStats = Collections.synchronizedList(new ArrayList<>());
 
-        SimulationConcurrency.forEachIndex(concurrency, numberOfUsers, minThinkTimeMillis, maxThinkTimeMillis, (i, thinkTime) -> {
-            try {
-                requestStats.addAll(action.apply(i));
-            } catch (Exception e) {
-                log.warn("Error while performing action for user {}: {}", i + 1, e.getMessage());
+        SimulationConcurrency.forEachIndex(
+            concurrency,
+            numberOfUsers,
+            minThinkTimeMillis,
+            maxThinkTimeMillis,
+            arrivalSpreadMillis,
+            (i, thinkTime) -> {
+                try {
+                    requestStats.addAll(action.apply(i));
+                } catch (Exception e) {
+                    log.warn("Error while performing action for user {}: {}", i + 1, e.getMessage());
+                }
             }
-        });
+        );
 
         return requestStats;
     }
