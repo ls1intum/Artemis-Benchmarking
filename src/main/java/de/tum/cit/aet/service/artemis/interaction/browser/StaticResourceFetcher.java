@@ -178,7 +178,7 @@ public class StaticResourceFetcher {
                 webClient
                     .get()
                     .uri(uriBuilder -> uriBuilder.path(asset.isEmpty() ? "/" : "/" + asset).build())
-                    .headers(BrowserHeaders.forAsset(asset))
+                    .headers(BrowserHeaders.forDiscardedAsset(asset))
                     .retrieve()
                     .toBodilessEntity()
                     .onErrorResume(error -> {

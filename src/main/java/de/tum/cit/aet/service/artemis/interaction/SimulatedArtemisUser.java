@@ -287,7 +287,32 @@ public abstract class SimulatedArtemisUser {
         WebClient.Builder builder =
             webClientBuilderSupplier != null
                 ? webClientBuilderSupplier.get()
-                : WebClient.builder().clientConnector(new ReactorClientHttpConnector(createHttpClient(artemisUrl)));
+                : WebClient.builder().clientConnector(new ReactorClientHttpConnector(createHttpClient(artemisUrl, true)));
+        return builder.filter(logErrorResponses());
+    }
+
+    /**
+     * A client for the files a student downloads and never looks at.
+     * <p>
+     * Identical to the ordinary one except that it does not inflate what it receives. A browser has to decompress the
+     * bundle because it runs it; this tool discards it, and inflating megabytes on the way to
+     * {@code toBodilessEntity()} is work with no measurement behind it. The asymmetry matters at cohort scale: two
+     * thousand real browsers decompress on two thousand machines, and the load generator would be doing all of it on
+     * one, turning a network-bound phase into a CPU-bound one and reporting the tool's own limits as the server's.
+     * <p>
+     * The request still looks exactly like a browser's — {@link BrowserHeaders#forDiscardedAsset} sends the same
+     * {@code Accept-Encoding}, so the server compresses and the wire carries the same bytes it would for a real
+     * client. Only the inflating is skipped.
+     * <p>
+     * A test that supplies its own builder gets that builder, unchanged.
+     *
+     * @return a client for downloads whose body is thrown away
+     */
+    protected WebClient.Builder createDiscardingWebClientBuilder() {
+        WebClient.Builder builder =
+            webClientBuilderSupplier != null
+                ? webClientBuilderSupplier.get()
+                : WebClient.builder().clientConnector(new ReactorClientHttpConnector(createHttpClient(artemisUrl, false)));
         return builder.filter(logErrorResponses());
     }
 
@@ -438,20 +463,26 @@ public abstract class SimulatedArtemisUser {
      * @param artemisUrl the server this client will talk to, which decides whether TLS is in play
      * @return the configured client
      */
-    private static HttpClient createHttpClient(String artemisUrl) {
+    private static HttpClient createHttpClient(String artemisUrl, boolean inflateResponses) {
         boolean secure = artemisUrl != null && artemisUrl.startsWith("https");
         HttpClient client = HttpClient.create()
             .doOnConnected(conn ->
                 conn.addHandlerFirst(new ReadTimeoutHandler(20, TimeUnit.MINUTES)).addHandlerFirst(new WriteTimeoutHandler(30))
             )
             .responseTimeout(Duration.ofMinutes(20))
-            // Ask for compressed responses, which every browser does and this client did not. Without it nginx served
-            // the client bundle uncompressed: measured against staging1 the same fourteen bundle files were 2,097,134
-            // bytes plain and 590,017 gzipped, so a run moved 3.55 times the bytes a real cohort moves and spent the
-            // difference saturating its own network. It also measured a code path no real user takes, while missing
-            // the compression cost every real user does cause.
-            .compress(true)
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30 * 1000);
+
+        // Ask for compressed responses, which every browser does and this client did not. Without it nginx served the
+        // client bundle uncompressed: measured against staging1 the same fourteen bundle files were 2,097,134 bytes
+        // plain and 590,017 gzipped, and /api/core/courses/for-dashboard is 431,544 against 21,353. A run moved
+        // several times the bytes a real cohort moves, spent the difference saturating its own network, and measured
+        // a code path no real user takes while missing the compression cost every real user does cause.
+        //
+        // compress(true) both sends the header and inflates what comes back. Callers that discard the body want only
+        // the first half, and set the header themselves — see BrowserHeaders#forDiscardedAsset.
+        if (inflateResponses) {
+            client = client.compress(true);
+        }
 
         if ("h3".equalsIgnoreCase(httpProtocol) && secure) {
             // HTTP/3 carries its own TLS inside QUIC, so the TCP-oriented secure() settings below do not apply.

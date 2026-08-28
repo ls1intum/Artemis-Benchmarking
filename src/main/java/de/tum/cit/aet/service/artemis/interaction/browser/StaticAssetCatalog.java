@@ -180,9 +180,27 @@ public final class StaticAssetCatalog {
         // browser fetches when the student opens the view.
         // Routes reached from a route count too: opening the exam view offers the exercise views, which offer their
         // editors. Walking the list as it grows finds those, where iterating a snapshot would stop after one level.
+        // Views a student cannot reach are skipped here rather than filtered out afterwards, which matters for two
+        // reasons that only show up on a real bundle.
+        //
+        // The crawl gives each file to the first bundle that reaches it, so an excluded route discovered early claims
+        // everything it imports — including chunks a student route needs too. Dropping that bundle afterwards took the
+        // shared chunk with it and left the student unable to load a view they can reach. And the ceiling below bounds
+        // the whole discovery, so spending it on an instructor console — exam-management alone is 296 files on
+        // staging1 — can truncate discovery before the student's own views are reached.
+        //
+        // Skipping an excluded route also skips whatever it alone imports dynamically, which is correct: a route only
+        // reachable from a view the student cannot open is not one they can open either. Anything a student route also
+        // wants is still found, by that route's own crawl.
         List<List<String>> routeBundles = new ArrayList<>();
+        int excludedRoutes = 0;
         for (int index = 0; index < crawl.routes().size() && !crawl.exhausted(); index++) {
-            List<String> bundle = crawl.closureOf(List.of(crawl.routes().get(index)));
+            String route = crawl.routes().get(index);
+            if (isNonStudentRoute(route, nonStudentRoutes)) {
+                excludedRoutes++;
+                continue;
+            }
+            List<String> bundle = crawl.closureOf(List.of(route));
             if (!bundle.isEmpty()) {
                 routeBundles.add(bundle);
             }
@@ -191,8 +209,15 @@ public final class StaticAssetCatalog {
         if (crawl.exhausted()) {
             log.warn("Stopped discovering the client bundle at the ceiling of {} assets", maxAssets);
         }
+        if (excludedRoutes > 0) {
+            log.info(
+                "Left out {} of {} lazily loaded routes as not reachable by a student",
+                excludedRoutes,
+                excludedRoutes + routeBundles.size()
+            );
+        }
 
-        // Leave out the views a student cannot reach, and keep the rest in the order the bundle mentions them.
+        // What remains keeps the order the bundle mentions it in.
         //
         // This used to sort by weight instead, heaviest first, on the theory that a student opens the views carrying
         // the editors and those are the biggest chunks. Measured against staging1 the theory does not hold: the
@@ -200,34 +225,22 @@ public final class StaticAssetCatalog {
         // ordering gave every student a screen they have no permission to open. Selecting by what the route is beats
         // guessing from how big it is, and once the instructor and admin views are gone there is nothing left to
         // order — a journey reaches all of what remains.
-        List<List<String>> studentRoutes = routeBundles
-            .stream()
-            .filter(bundle -> !isNonStudentRoute(bundle, nonStudentRoutes))
-            .toList();
-        long excludedFiles = routeBundles.size() - studentRoutes.size();
-        if (excludedFiles > 0) {
-            log.info("Left out {} of {} lazily loaded routes as not reachable by a student", excludedFiles, routeBundles.size());
-        }
-
-        return new StaticAssetCatalog(shell, studentRoutes);
+        return new StaticAssetCatalog(shell, routeBundles);
     }
 
     /**
-     * Whether this route bundle belongs to a view a student cannot open.
+     * Whether this lazily loaded route is a view a student cannot open.
      * <p>
-     * Matched against the bundle's own entry file, which is the route Angular lazily loads; the files it pulls in are
-     * shared with other routes and say nothing about who may reach them.
+     * Matched against the route's own file, which is what Angular names after the source file it came from. The files
+     * a route pulls in are shared with other routes and say nothing about who may reach them, which is exactly why the
+     * decision is taken here, before the crawl attributes any of them.
      *
-     * @param bundle           the route bundle, its entry file first
+     * @param route            the file Angular lazily loads for this route
      * @param nonStudentRoutes name fragments to exclude
      * @return true if the route should be left out of a student's browser
      */
-    private static boolean isNonStudentRoute(List<String> bundle, List<String> nonStudentRoutes) {
-        if (bundle.isEmpty()) {
-            return false;
-        }
-        String entry = bundle.get(0);
-        return nonStudentRoutes.stream().anyMatch(entry::startsWith);
+    private static boolean isNonStudentRoute(String route, List<String> nonStudentRoutes) {
+        return nonStudentRoutes.stream().anyMatch(route::startsWith);
     }
 
     /**
