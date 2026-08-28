@@ -1,5 +1,7 @@
 package de.tum.cit.aet.service.artemis.interaction.browser;
 
+import java.util.List;
+
 /**
  * How closely a simulated student should imitate a real browser.
  *
@@ -21,14 +23,18 @@ package de.tum.cit.aet.service.artemis.interaction.browser;
  *                                chunk, and bundles vary from one file to dozens. Budgeting in files rather than in
  *                                bundles keeps a navigation the same size whatever the bundler emitted.
  *                                <p>
- *                                Calibrated against the load balancer's own access log, which is what Artemis actually
- *                                served, rather than the browser's idea of what it fetched: two independent traces of
- *                                the same exam both put a session at 538 distinct static files and 20.4 MB. A
- *                                simulated exam journey navigates eight times — dashboard, course, exam, one per
- *                                exercise, summary — and its app shell is 141 files, leaving 397 for those eight.
- *                                Because a navigation takes whole bundles it overshoots its budget by about a quarter,
- *                                so the two measured points (a budget of 30 produced 419 files per student, 37
- *                                produced 509) put the value for 538 at 39.
+                                <p>
+ *                                Derived from two browser traces of one exam, taken against a <em>local</em> Artemis:
+ *                                both put a session at 538 distinct static files and 20.4 MB, measured from the load
+ *                                balancer's access log rather than the browser's idea of what it fetched. Working back
+ *                                from a 141-file shell and eight navigations, and allowing the quarter a navigation
+ *                                overshoots by because it takes whole bundles, put the value at 39.
+ *                                <p>
+ *                                Treat that number as a ceiling rather than a calibration. It came from a different
+ *                                server than the ones this tool points at — staging1 ships 802 files and 11.89 MB
+ *                                gzipped — and since routes a student cannot open are no longer downloaded at all, a
+ *                                journey now reaches every route left in the catalog before the budget binds. Re-derive
+ *                                it from a trace of the server under test before relying on it again.
  *                                <p>
  *                                The <em>total</em> is what this reproduces. A real client front-loads far more sharply
  *                                than an even spread: the traces put 203 files on entering the exams tab and 128 on
@@ -61,7 +67,7 @@ public record BrowserSimulationSettings(
     int fetchConcurrency,
     int autoSavesPerExercise,
     int assetsPerNavigation,
-    java.util.List<String> nonStudentRoutes,
+    List<String> nonStudentRoutes,
     int exerciseSkipPercentage,
     int serverTimeCallsPerNavigation
 ) {
@@ -74,7 +80,7 @@ public record BrowserSimulationSettings(
     public static final int DEFAULT_EXERCISE_SKIP_PERCENTAGE = 10;
 
     /** @see StaticAssetCatalog for why these are excluded and why matching on the name is safe. */
-    public static final java.util.List<String> DEFAULT_NON_STUDENT_ROUTES = StaticAssetCatalog.DEFAULT_NON_STUDENT_ROUTES;
+    public static final List<String> DEFAULT_NON_STUDENT_ROUTES = StaticAssetCatalog.DEFAULT_NON_STUDENT_ROUTES;
     public static final int DEFAULT_SERVER_TIME_CALLS_PER_NAVIGATION = 3;
 
     public BrowserSimulationSettings {

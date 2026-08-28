@@ -104,6 +104,56 @@ class StaticAssetCatalogTest {
     }
 
     @Test
+    void keepsChunksAnExcludedRouteHappensToShareWithAStudentRoute() {
+        // The crawl gives each file to the first bundle that reaches it, so if an excluded route is discovered first it
+        // claims everything it imports — including chunks a student route needs too. Dropping that bundle afterwards
+        // would take the shared chunk with it and leave the student unable to load a view they can reach.
+        RouterFunction<ServerResponse> router = RouterFunctions.route()
+            .GET("/", request -> html("<script src=\"main-AAAAAAAA.js\"></script>"))
+            .GET("/main-AAAAAAAA.js", request ->
+                javascript(
+                    // The instructor route first, so it is the one that reaches the shared chunk first.
+                    "import(\"./exam-management.route-CCCCCCCC.js\");" + "import(\"./courses.route-BBBBBBBB.js\");"
+                )
+            )
+            .GET("/exam-management.route-CCCCCCCC.js", request -> javascript("import\"./shared-EEEEEEEE.js\";"))
+            .GET("/courses.route-BBBBBBBB.js", request -> javascript("import\"./shared-EEEEEEEE.js\";"))
+            .GET("/shared-EEEEEEEE.js", request -> javascript("// used by both"))
+            .build();
+
+        StaticAssetCatalog catalog = StaticAssetCatalog.forServer("http://shared-chunk", webClient(router), 100);
+
+        assertTrue(
+            catalog.allAssets().contains("shared-EEEEEEEE.js"),
+            "the student needs this chunk for their own view, whoever else imports it"
+        );
+        assertFalse(catalog.allAssets().contains("exam-management.route-CCCCCCCC.js"));
+    }
+
+    @Test
+    void doesNotSpendTheAssetCeilingOnRoutesAStudentCannotOpen() {
+        // The ceiling bounds how much one discovery may collect. Spending it on an instructor console — exam-management
+        // alone is 296 files on staging1 — can truncate discovery before the student's own views are reached.
+        RouterFunction<ServerResponse> router = RouterFunctions.route()
+            .GET("/", request -> html("<script src=\"main-AAAAAAAA.js\"></script>"))
+            .GET("/main-AAAAAAAA.js", request ->
+                javascript("import(\"./exam-management.route-CCCCCCCC.js\");" + "import(\"./courses.route-BBBBBBBB.js\");")
+            )
+            .GET("/exam-management.route-CCCCCCCC.js", request -> javascript("import\"./bulky-FFFFFFFF.js\";"))
+            .GET("/bulky-FFFFFFFF.js", request -> javascript("// only the instructor needs this"))
+            .GET("/courses.route-BBBBBBBB.js", request -> javascript("// the student's own course area"))
+            .build();
+
+        // Room for index.html, main, and three more files. The instructor route and its chunk must not consume it.
+        StaticAssetCatalog catalog = StaticAssetCatalog.forServer("http://ceiling", webClient(router), 3);
+
+        assertTrue(
+            catalog.allAssets().contains("courses.route-BBBBBBBB.js"),
+            "the student's own view must survive the ceiling, whatever the instructor's views cost"
+        );
+    }
+
+    @Test
     void keepsEveryRouteWhenNothingIsExcluded() {
         RouterFunction<ServerResponse> router = RouterFunctions.route()
             .GET("/", request -> html("<script src=\"main-AAAAAAAA.js\"></script>"))
