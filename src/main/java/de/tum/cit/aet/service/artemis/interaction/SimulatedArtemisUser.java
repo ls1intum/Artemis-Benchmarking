@@ -62,6 +62,15 @@ public abstract class SimulatedArtemisUser {
         httpProtocol = protocol == null || protocol.isBlank() ? "auto" : protocol;
     }
 
+    /**
+     * The protocol simulated users are currently configured to speak.
+     *
+     * @return {@code auto}, {@code h1} or {@code h3}
+     */
+    public static String httpProtocol() {
+        return httpProtocol;
+    }
+
     protected Logger log;
 
     protected final String username;
