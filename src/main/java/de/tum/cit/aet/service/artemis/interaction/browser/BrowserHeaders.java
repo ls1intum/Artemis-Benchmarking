@@ -19,6 +19,12 @@ final class BrowserHeaders {
     /** What Chrome sends for a script, stylesheet, font or image. */
     private static final String SUBRESOURCE_ACCEPT = "*/*";
 
+    /**
+     * Only gzip, though a browser also offers br and zstd: this is set for requests whose body is discarded, so the
+     * encoding never has to be undone, and gzip is the one every server in front of Artemis supports.
+     */
+    private static final String ACCEPT_ENCODING = "gzip";
+
     private BrowserHeaders() {}
 
     /**
@@ -27,6 +33,25 @@ final class BrowserHeaders {
      * @param path path relative to the server root; the empty string means the document itself
      * @return a customizer that replaces the API defaults with browser ones
      */
+    /**
+     * Headers for an asset whose body will be discarded rather than read.
+     * <p>
+     * Adds the {@code Accept-Encoding} a browser sends, which the client would otherwise only send if it were also
+     * going to inflate the response. Asking for compression without inflating is exactly what a load generator wants:
+     * the server does the same work and the wire carries the same bytes, while the tool skips decompressing megabytes
+     * it is about to throw away.
+     *
+     * @param path path relative to the server root; the empty string means the document itself
+     * @return a customizer that makes the request look like a browser's
+     */
+    static Consumer<HttpHeaders> forDiscardedAsset(String path) {
+        Consumer<HttpHeaders> asset = forAsset(path);
+        return headers -> {
+            asset.accept(headers);
+            headers.set(HttpHeaders.ACCEPT_ENCODING, ACCEPT_ENCODING);
+        };
+    }
+
     static Consumer<HttpHeaders> forAsset(String path) {
         boolean document = path.isEmpty() || path.endsWith(".html");
         return headers -> {

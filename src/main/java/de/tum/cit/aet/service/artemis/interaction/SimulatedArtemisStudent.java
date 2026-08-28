@@ -96,6 +96,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
      */
     private StaticResourceFetcher staticResources;
 
+    /** @see #discardingWebClient() */
+    private WebClient discardingWebClient;
+
     public SimulatedArtemisStudent(
         String artemisUrl,
         ArtemisUser artemisUser,
@@ -230,6 +233,21 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
     }
 
     /**
+     * This student's client for downloads whose body is discarded, built once and kept.
+     *
+     * @return a client that asks for compressed responses without inflating them
+     */
+    private WebClient discardingWebClient() {
+        if (discardingWebClient == null) {
+            discardingWebClient = createDiscardingWebClientBuilder()
+                .baseUrl(artemisUrl)
+                .defaultHeader("Cookie", authToken != null ? authToken.jwtToken() : "")
+                .build();
+        }
+        return discardingWebClient;
+    }
+
+    /**
      * Downloads the whole client bundle this student will need, as its own phase before the exam begins.
      * <p>
      * Without this a simulated student produces the REST traffic of an exam but none of its bytes: a traced session
@@ -261,7 +279,9 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
         if (catalog.isEmpty()) {
             return List.of();
         }
-        staticResources = new StaticResourceFetcher(webClient, catalog, browserSettings);
+        // Discovery above reads the JavaScript to find what it imports, so it needs the ordinary client that inflates
+        // what it receives. The downloads below throw every body away, so they use one that does not.
+        staticResources = new StaticResourceFetcher(discardingWebClient(), catalog, browserSettings);
         log.debug("Browser cache for {} is {}", username, staticResources.isColdCache() ? "cold" : "warm");
         return staticResources.loadWholeJourney(NAVIGATIONS_PER_JOURNEY);
     }
