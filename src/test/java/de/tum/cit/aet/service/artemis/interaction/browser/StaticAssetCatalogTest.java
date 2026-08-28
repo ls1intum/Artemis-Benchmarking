@@ -77,6 +77,46 @@ class StaticAssetCatalogTest {
     }
 
     @Test
+    void leavesOutRoutesAStudentCannotOpen() {
+        // Angular names its lazily loaded routes after their source file, so the readable half of the chunk name says
+        // which view it is. Against staging1 the heaviest route in the whole bundle is exam-management, an instructor
+        // console of 296 files and 3.69 MB, which the old weight ordering handed to every simulated student first.
+        RouterFunction<ServerResponse> router = RouterFunctions.route()
+            .GET("/", request -> html("<script src=\"main-AAAAAAAA.js\"></script>"))
+            .GET("/main-AAAAAAAA.js", request ->
+                javascript(
+                    "import(\"./courses.route-BBBBBBBB.js\");" +
+                        "import(\"./exam-management.route-CCCCCCCC.js\");" +
+                        "import(\"./admin.routes-DDDDDDDD.js\");"
+                )
+            )
+            .GET("/courses.route-BBBBBBBB.js", request -> javascript("// the student's own course area"))
+            .GET("/exam-management.route-CCCCCCCC.js", request -> javascript("// the instructor's console"))
+            .GET("/admin.routes-DDDDDDDD.js", request -> javascript("// the admin area"))
+            .build();
+
+        StaticAssetCatalog catalog = StaticAssetCatalog.forServer("http://student-routes", webClient(router), 100);
+
+        List<String> routes = catalog.routeBundles().stream().flatMap(List::stream).toList();
+        assertEquals(List.of("courses.route-BBBBBBBB.js"), routes, "only the view a student can reach");
+        assertFalse(catalog.allAssets().contains("exam-management.route-CCCCCCCC.js"));
+        assertFalse(catalog.allAssets().contains("admin.routes-DDDDDDDD.js"));
+    }
+
+    @Test
+    void keepsEveryRouteWhenNothingIsExcluded() {
+        RouterFunction<ServerResponse> router = RouterFunctions.route()
+            .GET("/", request -> html("<script src=\"main-AAAAAAAA.js\"></script>"))
+            .GET("/main-AAAAAAAA.js", request -> javascript("import(\"./exam-management.route-CCCCCCCC.js\");"))
+            .GET("/exam-management.route-CCCCCCCC.js", request -> javascript("// the instructor's console"))
+            .build();
+
+        StaticAssetCatalog catalog = StaticAssetCatalog.forServer("http://everything", webClient(router), 100, List.of());
+
+        assertEquals(1, catalog.routeBundles().size(), "an explicit empty exclusion list keeps the instructor views");
+    }
+
+    @Test
     void doesNotDiscoverTheSameAssetTwice() {
         RouterFunction<ServerResponse> router = RouterFunctions.route()
             .GET("/", request -> html("<script src=\"main-AAAAAAAA.js\"></script>"))

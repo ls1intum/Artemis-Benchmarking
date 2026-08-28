@@ -48,6 +48,13 @@ server:
 benchmarking:
   client-app:
     name: 'artemisBenchmarkingApp'
+  simulation:
+    # The tests drive the real pacing code with mocked students, so every millisecond it waits is a millisecond the
+    # suite waits. Production values would take a phase past the test timeout on their own.
+    arrival-spread-millis: 0
+    think-time:
+      min-millis: 1
+      max-millis: 1
   mail:
     from: artemis-benchmarking@localhost.com
     base-url: http://127.0.0.1:8080

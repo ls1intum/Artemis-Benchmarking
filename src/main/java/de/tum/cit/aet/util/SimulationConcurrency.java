@@ -54,6 +54,20 @@ public final class SimulationConcurrency {
     /** Upper bound of the pause a simulated user takes between two actions. */
     public static final long DEFAULT_MAX_THINK_TIME_MILLIS = 10_000;
 
+    /**
+     * Window across which students enter a phase, rather than all on the same tick.
+     * <p>
+     * Every phase is a barrier: nobody starts the exam until everyone has finished the initial calls. That resets any
+     * spread the previous phase built up, so each phase begins with the whole cohort in lockstep and the first thing
+     * it does arrives as one spike. A real cohort is never that aligned — students reach a view seconds apart even
+     * when they started together.
+     * <p>
+     * Costs at most this much wall clock per phase, since the last student to arrive still does the same work.
+     * <p>
+     * Not applied unless a caller passes it: only a simulation run wants its workers to start at different times.
+     */
+    public static final long DEFAULT_ARRIVAL_SPREAD_MILLIS = 15_000;
+
     private SimulationConcurrency() {}
 
     /**
@@ -138,11 +152,35 @@ public final class SimulationConcurrency {
      *
      * @param concurrency         how many actions may run at the same time
      * @param count               the number of indices to cover
-     * @param minThinkTimeMillis  lower bound of the pause between two actions
-     * @param maxThinkTimeMillis  upper bound of the pause between two actions
+     * @param minThinkTimeMillis  lower end of the intended pause; the mean of the two bounds is the mean pause
+     * @param maxThinkTimeMillis  upper end of the intended pause; individual pauses may exceed it, see
+     *                            {@link #nextThinkTimeMillis(long, long)}
      * @param action              the work to perform for one index
      */
     public static void forEachIndex(int concurrency, int count, long minThinkTimeMillis, long maxThinkTimeMillis, PausableAction action) {
+        // No arrival spread unless a caller asks for one. Spreading arrivals is a property of a benchmark run, not of
+        // running work concurrently, and a utility that silently delayed its callers would be a poor one.
+        forEachIndex(concurrency, count, minThinkTimeMillis, maxThinkTimeMillis, 0, action);
+    }
+
+    /**
+     * As {@link #forEachIndex(int, int, long, long, PausableAction)}, with the arrival spread stated explicitly.
+     *
+     * @param concurrency         how many actions may run at the same time
+     * @param count               the number of indices to cover
+     * @param minThinkTimeMillis  lower end of the intended pause
+     * @param maxThinkTimeMillis  upper end of the intended pause
+     * @param arrivalSpreadMillis window across which the users enter this phase; zero starts them all together
+     * @param action              the work to perform for one index
+     */
+    public static void forEachIndex(
+        int concurrency,
+        int count,
+        long minThinkTimeMillis,
+        long maxThinkTimeMillis,
+        long arrivalSpreadMillis,
+        PausableAction action
+    ) {
         Semaphore permits = new Semaphore(concurrency);
 
         // close() waits for every submitted task to finish, so the method returns only once the whole batch is done.
@@ -150,6 +188,12 @@ public final class SimulationConcurrency {
             for (int index = 0; index < count; index++) {
                 int currentIndex = index;
                 executor.submit(() -> {
+                    // Arrive before taking a permit: a student who has not started yet is not one of the students
+                    // talking to the server, and holding a slot while waiting would turn the spread into a throughput
+                    // limit instead of a pacing device.
+                    if (arrivalSpreadMillis > 0) {
+                        Thread.sleep(ThreadLocalRandom.current().nextLong(arrivalSpreadMillis + 1));
+                    }
                     // Acquired outside the try so that an interrupt while waiting does not release a permit we never
                     // took.
                     permits.acquire();
@@ -198,12 +242,30 @@ public final class SimulationConcurrency {
     }
 
     /**
-     * @param minThinkTimeMillis lower bound of the pause, inclusive
-     * @param maxThinkTimeMillis upper bound of the pause, inclusive
-     * @return how long a user waits before its next action, drawn uniformly from the given range
+     * @param minThinkTimeMillis lower end of the intended range
+     * @param maxThinkTimeMillis upper end of the intended range
+     * @return how long a user waits before its next action, drawn log-normally with the range's mean
      */
-    private static long nextThinkTimeMillis(long minThinkTimeMillis, long maxThinkTimeMillis) {
-        return ThreadLocalRandom.current().nextLong(minThinkTimeMillis, maxThinkTimeMillis + 1);
+    static long nextThinkTimeMillis(long minThinkTimeMillis, long maxThinkTimeMillis) {
+        // Log-normal rather than uniform, with the same mean. Two reasons, one of them measured.
+        //
+        // Real reading times are long-tailed: most pauses are short, a few are much longer, and there is no upper
+        // bound a student politely respects. A uniform draw has neither property.
+        //
+        // The measured reason is that a uniform draw barely desynchronises a cohort. Over ten actions the spread of
+        // accumulated uniform 5-10 s pauses is only a few seconds, so 2000 students released together stay together:
+        // in the 2000-user run against staging1 one second carried exactly 2000 /api/public/time requests, every
+        // student having reached the same navigation at the same instant. That spike is an artefact of the draw, not
+        // something an exam does. A long tail spreads the cohort out as the phase goes on, at no cost in mean pace.
+        double mean = (minThinkTimeMillis + maxThinkTimeMillis) / 2.0;
+        // Chosen so a pause is typically a little under the mean and occasionally several times it; sigma near 0.6 is
+        // the usual fit for human dwell times.
+        double sigma = 0.6;
+        double median = mean * Math.exp((-sigma * sigma) / 2);
+        double draw = median * Math.exp(ThreadLocalRandom.current().nextGaussian() * sigma);
+        // Bounded so neither end can distort a run: nobody reacts instantly, and one unlucky draw must not hold a
+        // student past the end of the exam.
+        return Math.round(Math.clamp(draw, minThinkTimeMillis / 2.0, maxThinkTimeMillis * 6.0));
     }
 
     /**

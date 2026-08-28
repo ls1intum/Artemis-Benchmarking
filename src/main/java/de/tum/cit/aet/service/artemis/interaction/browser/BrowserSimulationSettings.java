@@ -38,6 +38,16 @@ package de.tum.cit.aet.service.artemis.interaction.browser;
  *                                smoother profile over the session than a browser does.
  *                                <p>
  *                                The file names themselves are always discovered from the running server.
+ * @param nonStudentRoutes        name fragments of top-level routes a student cannot open, left out of the bundle a
+ *                                student downloads. Angular names its lazy routes after their source file, so these
+ *                                stay valid across Artemis builds even though the hashes do not.
+ * @param exerciseSkipPercentage  the share of exercises a student opens without answering. Every simulated student
+ *                                used to submit to every exercise the same number of times, which no cohort does: some
+ *                                students run out of time, some skip a question, some read one and move on. The
+ *                                student still navigates to the exercise, because looking at it is what they do; only
+ *                                the submission is left unwritten. Programming exercises are never skipped, since the
+ *                                clone and push they cause are the most expensive path a run measures and dropping
+ *                                them at random would quietly change what the benchmark reports.
  * @param serverTimeCallsPerNavigation how many times opening a view asks the server for the time. The client has no
  *                                single clock component: several of them ask on initialisation, so the calls arrive in
  *                                a burst per view rather than on a timer. The traces show 31 calls per session,
@@ -51,6 +61,8 @@ public record BrowserSimulationSettings(
     int fetchConcurrency,
     int autoSavesPerExercise,
     int assetsPerNavigation,
+    java.util.List<String> nonStudentRoutes,
+    int exerciseSkipPercentage,
     int serverTimeCallsPerNavigation
 ) {
     public static final boolean DEFAULT_STATIC_RESOURCES_ENABLED = true;
@@ -59,6 +71,10 @@ public record BrowserSimulationSettings(
     public static final int DEFAULT_FETCH_CONCURRENCY = 6;
     public static final int DEFAULT_AUTO_SAVES_PER_EXERCISE = 4;
     public static final int DEFAULT_ASSETS_PER_NAVIGATION = 39;
+    public static final int DEFAULT_EXERCISE_SKIP_PERCENTAGE = 10;
+
+    /** @see StaticAssetCatalog for why these are excluded and why matching on the name is safe. */
+    public static final java.util.List<String> DEFAULT_NON_STUDENT_ROUTES = StaticAssetCatalog.DEFAULT_NON_STUDENT_ROUTES;
     public static final int DEFAULT_SERVER_TIME_CALLS_PER_NAVIGATION = 3;
 
     public BrowserSimulationSettings {
@@ -76,6 +92,12 @@ public record BrowserSimulationSettings(
         }
         if (assetsPerNavigation < 1) {
             throw new IllegalArgumentException("assetsPerNavigation must be at least one, was " + assetsPerNavigation);
+        }
+        if (nonStudentRoutes == null) {
+            throw new IllegalArgumentException("nonStudentRoutes must not be null");
+        }
+        if (exerciseSkipPercentage < 0 || exerciseSkipPercentage > 100) {
+            throw new IllegalArgumentException("exerciseSkipPercentage must be between 0 and 100, was " + exerciseSkipPercentage);
         }
         if (serverTimeCallsPerNavigation < 0) {
             throw new IllegalArgumentException("serverTimeCallsPerNavigation must not be negative, was " + serverTimeCallsPerNavigation);
@@ -95,6 +117,8 @@ public record BrowserSimulationSettings(
             DEFAULT_FETCH_CONCURRENCY,
             DEFAULT_AUTO_SAVES_PER_EXERCISE,
             DEFAULT_ASSETS_PER_NAVIGATION,
+            DEFAULT_NON_STUDENT_ROUTES,
+            DEFAULT_EXERCISE_SKIP_PERCENTAGE,
             DEFAULT_SERVER_TIME_CALLS_PER_NAVIGATION
         );
     }
@@ -112,6 +136,8 @@ public record BrowserSimulationSettings(
             DEFAULT_FETCH_CONCURRENCY,
             DEFAULT_AUTO_SAVES_PER_EXERCISE,
             DEFAULT_ASSETS_PER_NAVIGATION,
+            DEFAULT_NON_STUDENT_ROUTES,
+            DEFAULT_EXERCISE_SKIP_PERCENTAGE,
             DEFAULT_SERVER_TIME_CALLS_PER_NAVIGATION
         );
     }

@@ -445,6 +445,12 @@ public abstract class SimulatedArtemisUser {
                 conn.addHandlerFirst(new ReadTimeoutHandler(20, TimeUnit.MINUTES)).addHandlerFirst(new WriteTimeoutHandler(30))
             )
             .responseTimeout(Duration.ofMinutes(20))
+            // Ask for compressed responses, which every browser does and this client did not. Without it nginx served
+            // the client bundle uncompressed: measured against staging1 the same fourteen bundle files were 2,097,134
+            // bytes plain and 590,017 gzipped, so a run moved 3.55 times the bytes a real cohort moves and spent the
+            // difference saturating its own network. It also measured a code path no real user takes, while missing
+            // the compression cost every real user does cause.
+            .compress(true)
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30 * 1000);
 
         if ("h3".equalsIgnoreCase(httpProtocol) && secure) {
