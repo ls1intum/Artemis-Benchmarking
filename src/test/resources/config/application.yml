@@ -52,6 +52,8 @@ benchmarking:
     # The tests drive the real pacing code with mocked students, so every millisecond it waits is a millisecond the
     # suite waits. Production values would take a phase past the test timeout on their own.
     arrival-spread-millis: 0
+    connection-pool:
+      max-connections: 16
     think-time:
       min-millis: 1
       max-millis: 1

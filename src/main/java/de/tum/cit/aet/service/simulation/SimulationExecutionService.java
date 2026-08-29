@@ -98,6 +98,10 @@ public class SimulationExecutionService {
     @Value("${benchmarking.simulation.max-concurrency:" + SimulationConcurrency.DEFAULT_MAX_CONCURRENCY + "}")
     private int maxConcurrency;
 
+    /** Zero means the whole cohort; see {@link #bundleDownloadConcurrency(int)}. */
+    @Value("${benchmarking.simulation.static-resources.concurrency:0}")
+    private int staticResourceConcurrency;
+
     private final SimulationWebsocketService simulationWebsocketService;
     private final ArtemisUserService artemisUserService;
     private final ArtemisPasskeyService artemisPasskeyService;
@@ -379,8 +383,19 @@ public class SimulationExecutionService {
             // they navigated, so at cohort scale the REST timings measured the queue behind ten gigabytes of
             // JavaScript instead of the endpoints. Downloading first separates the two loads; each student's browser
             // cache then makes the navigations that follow free, as a real browser's does.
-            logAndSend(false, simulationRun, "Downloading the client bundle...");
-            requestStats.addAll(performActionWithAll(concurrency, simulation.getNumberOfUsers(), i -> students[i].loadClientBundle()));
+            //
+            // This phase gets its own concurrency, usually the whole cohort. The limit that governs the rest of the
+            // run exists to bound how many students are working — making REST calls, cloning and pushing — which is
+            // work the tool host does. Downloading the bundle is not that: it is idle waiting on a socket, and it is
+            // the one moment a real exam genuinely does happen all at once, when a lecture hall opens the page
+            // together. Holding it to the same limit measured the tool rather than the server: at 200 students times
+            // six parallel fetches, a 2000-student run sat at about 1,100 requests in flight and never went higher,
+            // whatever Artemis did.
+            int bundleConcurrency = bundleDownloadConcurrency(staticResourceConcurrency, simulation.getNumberOfUsers());
+            logAndSend(false, simulationRun, "Downloading the client bundle (%d students at a time)...", bundleConcurrency);
+            requestStats.addAll(
+                performActionWithAll(bundleConcurrency, simulation.getNumberOfUsers(), i -> students[i].loadClientBundle())
+            );
 
             logAndSend(false, simulationRun, "Performing initial calls...");
             requestStats.addAll(performActionWithAll(concurrency, simulation.getNumberOfUsers(), i -> students[i].performInitialCalls()));
@@ -774,6 +789,22 @@ public class SimulationExecutionService {
             failSimulationRun(simulationRun);
             throw new SimulationFailedException("Error while initializing students", e);
         }
+    }
+
+    /**
+     * How many students download the bundle at the same time.
+     * <p>
+     * Zero, the default, means the whole cohort: a real exam start is every browser asking at once, and the ceiling
+     * that protects the rest of the run is about work the tool host does rather than sockets it waits on. Set a number
+     * to bound it — worth doing if the tool host cannot sink the bandwidth, which is its own kind of measurement
+     * error.
+     *
+     * @param configured    the configured ceiling, or zero for the whole cohort
+     * @param numberOfUsers the size of the cohort
+     * @return the number of students to download concurrently, at least one
+     */
+    static int bundleDownloadConcurrency(int configured, int numberOfUsers) {
+        return configured > 0 ? Math.min(numberOfUsers, configured) : Math.max(1, numberOfUsers);
     }
 
     /**

@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.net.ssl.SSLException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -29,6 +30,7 @@ import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.HttpProtocol;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.TcpSslContextSpec;
 
 /**
@@ -52,6 +54,75 @@ public abstract class SimulatedArtemisUser {
 
     /** Built once and shared; see {@link #sharedSslContext()}. */
     private static volatile SslContext sslContext;
+
+    /**
+     * How many connections the simulated cohort may hold open at once.
+     * <p>
+     * Reactor-netty's default is {@code max(cores, 8) * 2} — sixteen on the eight-core host this runs on — shared by
+     * every simulated student. That is nothing like a cohort, and it silently caps a run: measured on a 2000-student
+     * run, the bundle phase sat at about 1,100 requests in flight and never went higher, so the phase reported the
+     * load generator's own limits rather than what Artemis can serve.
+     * <p>
+     * Set from {@code benchmarking.simulation.connection-pool.max-connections}.
+     * <p>
+     * Enough for a large cohort to hold a connection each without the pool becoming the thing under test.
+     */
+    private static final Logger sharedLog = LoggerFactory.getLogger(SimulatedArtemisUser.class);
+
+    public static final int DEFAULT_MAX_CONNECTIONS = 2500;
+
+    private static volatile int maxConnections = DEFAULT_MAX_CONNECTIONS;
+
+    /** Built once and shared, like the TLS context: a pool per user would be a pool of one. */
+    private static volatile ConnectionProvider connectionProvider;
+
+    /**
+     * Sets how many connections the simulated cohort may hold open at once. Has no effect once the pool has been
+     * built, which happens when the first user creates its client.
+     *
+     * @param connections the ceiling; values below one are ignored
+     */
+    public static void setMaxConnections(int connections) {
+        if (connections > 0) {
+            maxConnections = connections;
+        }
+    }
+
+    /**
+     * @return the connection ceiling the simulated users are configured with
+     */
+    public static int maxConnections() {
+        return maxConnections;
+    }
+
+    /**
+     * The pool every simulated user's client draws from.
+     * <p>
+     * Deliberately generous and never rejecting: a request that cannot get a connection waits rather than failing, so
+     * a run reports the server slowing down instead of the tool refusing to ask.
+     *
+     * @return the shared connection pool
+     */
+    private static ConnectionProvider sharedConnectionProvider() {
+        ConnectionProvider provider = connectionProvider;
+        if (provider == null) {
+            synchronized (SimulatedArtemisUser.class) {
+                provider = connectionProvider;
+                if (provider == null) {
+                    provider = ConnectionProvider.builder("simulated-students")
+                        .maxConnections(maxConnections)
+                        // Unbounded queue: waiting is a measurement, being refused is not.
+                        .pendingAcquireMaxCount(-1)
+                        .pendingAcquireTimeout(Duration.ofMinutes(5))
+                        .maxIdleTime(Duration.ofMinutes(2))
+                        .build();
+                    connectionProvider = provider;
+                    sharedLog.info("Simulated users share a pool of at most {} connections", maxConnections);
+                }
+            }
+        }
+        return provider;
+    }
 
     /**
      * Sets the protocol every simulated user's client will use.
@@ -474,7 +545,7 @@ public abstract class SimulatedArtemisUser {
      */
     private static HttpClient createHttpClient(String artemisUrl, boolean inflateResponses) {
         boolean secure = artemisUrl != null && artemisUrl.startsWith("https");
-        HttpClient client = HttpClient.create()
+        HttpClient client = HttpClient.create(sharedConnectionProvider())
             .doOnConnected(conn ->
                 conn.addHandlerFirst(new ReadTimeoutHandler(20, TimeUnit.MINUTES)).addHandlerFirst(new WriteTimeoutHandler(30))
             )
