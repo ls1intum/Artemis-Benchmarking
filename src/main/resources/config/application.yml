@@ -193,6 +193,14 @@ benchmarking:
       non-student-routes: exam-management,course-management,admin.routes,lti.,sharing.,data-export,course-request,feature-overview,exam-rooms
       # Parallel downloads per student, mirroring a browser's per-origin connection limit.
       fetch-concurrency: 6
+      # How many students download the bundle at once. Zero means the whole cohort, which is what an exam start is:
+      # every browser asking together. The max-concurrency below governs the rest of the run instead, because that is
+      # about work the tool host does — REST calls, clones, pushes — while this phase only waits on sockets.
+      #
+      # Holding this phase to max-concurrency measured the tool rather than the server: at 200 students times six
+      # parallel fetches a 2000-student run sat at ~1,100 requests in flight and never rose, whatever Artemis did.
+      # Set a number here if the tool host cannot sink the bandwidth, which is its own kind of measurement error.
+      concurrency: 0
       # Roughly how many files one navigation pulls in. Angular splits a view across several chunks, so opening one view
       # costs far more than one chunk. Two browser traces of the same exam both put a session at 538 distinct static
       # files and 20.4 MB, measured from the load balancer's access log. The simulated journey navigates eight times and
@@ -220,6 +228,12 @@ benchmarking:
     think-time:
       min-millis: 5000
       max-millis: 10000
+    # Connections the simulated cohort may hold open at once. Reactor-netty's default is max(cores, 8) * 2 — sixteen
+    # on an eight-core host — shared by every student, which is nothing like a cohort and quietly caps a run before
+    # the server is anywhere near its limit. A request that cannot get a connection waits rather than failing, so the
+    # run reports the server slowing down instead of the tool refusing to ask.
+    connection-pool:
+      max-connections: 2500
     # Which HTTP protocol the simulated users speak.
     #   auto - negotiate HTTP/2 with a HTTP/1.1 fallback over TLS, stay on HTTP/1.1 in plaintext. What a browser does.
     #   h1   - force HTTP/1.1 everywhere, the behaviour before this setting existed.
