@@ -23,6 +23,11 @@ export class Simulation {
     public userRange?: string,
     public instructorUsername?: string,
     public instructorPassword?: string,
+    /**
+     * Share of students who arrive with an empty browser cache and download the whole client bundle.
+     * Undefined leaves the decision to the server's configured default.
+     */
+    public coldCachePercentage?: number,
   ) {}
 }
 

@@ -79,6 +79,19 @@ public class Simulation {
     @Column(name = "cancel_build_jobs_after_run", nullable = false)
     private boolean cancelBuildJobsAfterRun = false;
 
+    /**
+     * The share of students who arrive with an empty browser cache and therefore download the whole client bundle.
+     * <p>
+     * A real exam does not start with a cold cohort: Angular emits content-hashed filenames, so a student who has
+     * used Artemis since the last deployment already holds every chunk and their browser asks for none of them - only
+     * index.html, which is the one file that must not be cached. Leaving this at 100 makes the bundle phase the
+     * largest thing a run measures, and at 1000 students it saturated the proxy rather than Artemis.
+     * <p>
+     * Null means "use the server-configured default", so an existing simulation keeps behaving as it did.
+     */
+    @Column(name = "cold_cache_percentage")
+    private Integer coldCachePercentage;
+
     @OneToMany(mappedBy = "simulation", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JsonIgnore
     private Set<SimulationSchedule> schedules;
@@ -202,6 +215,14 @@ public class Simulation {
 
     public void setCancelBuildJobsAfterRun(boolean cancelBuildJobsAfterRun) {
         this.cancelBuildJobsAfterRun = cancelBuildJobsAfterRun;
+    }
+
+    public Integer getColdCachePercentage() {
+        return coldCachePercentage;
+    }
+
+    public void setColdCachePercentage(Integer coldCachePercentage) {
+        this.coldCachePercentage = coldCachePercentage;
     }
 
     public int getNumberOfCommitsAndPushesTo() {

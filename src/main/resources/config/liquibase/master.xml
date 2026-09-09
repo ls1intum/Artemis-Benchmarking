@@ -7,4 +7,5 @@
     <include file="config/liquibase/changelog/20260620120000_fix_onlineide_percentage_case.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20260821100000_add_passkey_credential.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20260821140000_add_cancel_build_jobs_after_run.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20260909170000_add_cold_cache_percentage.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

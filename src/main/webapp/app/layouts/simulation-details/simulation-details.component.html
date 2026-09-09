@@ -34,6 +34,10 @@
                 <td>{{ simulation().cancelBuildJobsAfterRun ? 'Yes' : 'No' }}</td>
               </tr>
               <tr>
+                <th>Cold browser caches</th>
+                <td>{{ simulation().coldCachePercentage === undefined ? 'Server default' : simulation().coldCachePercentage + '%' }}</td>
+              </tr>
+              <tr>
                 <th>Created</th>
                 <td>{{ simulation().creationDate | date: 'dd.MM.yyyy, HH:mm' }}</td>
               </tr>

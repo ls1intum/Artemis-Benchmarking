@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+      Per-simulation override for the share of students who arrive with a cold browser cache.
+
+      The bundle phase is the largest thing a run measures - 548 files and about 20 MB per cold student - and a real
+      exam does not start with a cold cohort, because Angular's content-hashed filenames survive across sessions. The
+      value was only settable as a server property, so every simulation on a host shared one setting.
+
+      Nullable on purpose: null means "use the server-configured default", so simulations created before this column
+      existed keep behaving exactly as they did.
+    -->
+    <changeSet id="20260909170000-add-cold-cache-percentage" author="benchmarking">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="simulation" columnName="cold_cache_percentage"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="simulation">
+            <column name="cold_cache_percentage" type="int"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

@@ -707,14 +707,21 @@ public class SimulationExecutionService {
      * @throws SimulationFailedException if an error occurs while initializing the students
      */
     /**
-     * The browser behaviour students in this run should reproduce, taken from configuration.
+     * The browser behaviour students in this run should reproduce.
      *
+     * <p>Everything comes from server configuration except the cold-cache share, which a simulation may override:
+     * how much of the client bundle a cohort downloads is a property of the exam being modelled, not of the host the
+     * tool runs on. A simulation that leaves it unset gets the configured default, so existing simulations are
+     * unaffected.
+     *
+     * @param simulation the simulation being run, whose override is applied when it has one
      * @return the settings to hand to every student of the run
      */
-    private BrowserSimulationSettings browserSimulationSettings() {
+    private BrowserSimulationSettings browserSimulationSettings(Simulation simulation) {
+        Integer override = simulation.getColdCachePercentage();
         return new BrowserSimulationSettings(
             staticResourcesEnabled,
-            coldCachePercentage,
+            override != null ? override : coldCachePercentage,
             maxAssets,
             fetchConcurrency,
             autoSavesPerExercise,
@@ -762,7 +769,7 @@ public class SimulationExecutionService {
                     simulation.getNumberOfCommitsAndPushesFrom(),
                     simulation.getNumberOfCommitsAndPushesTo(),
                     mechanism,
-                    browserSimulationSettings()
+                    browserSimulationSettings(simulation)
                 );
             }
 
