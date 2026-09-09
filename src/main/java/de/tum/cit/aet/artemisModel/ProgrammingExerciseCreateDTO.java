@@ -21,7 +21,9 @@ public record ProgrammingExerciseCreateDTO(
     Integer maxStaticCodeAnalysisPenalty,
     ProgrammingExerciseBuildConfigDTO buildConfig,
     CourseRef course,
-    ExerciseGroupRef exerciseGroup
+    ExerciseGroupRef exerciseGroup,
+    Long courseId,
+    Long exerciseGroupId
 ) {
     /**
      * Create a course programming exercise DTO pre-filled with default benchmarking values.
@@ -51,6 +53,8 @@ public record ProgrammingExerciseCreateDTO(
             null,
             ProgrammingExerciseBuildConfigDTO.forBenchmarking(),
             new CourseRef(courseId),
+            null,
+            courseId,
             null
         );
     }
@@ -88,7 +92,9 @@ public record ProgrammingExerciseCreateDTO(
             null,
             ProgrammingExerciseBuildConfigDTO.forBenchmarking(),
             null,
-            new ExerciseGroupRef(exerciseGroupId)
+            new ExerciseGroupRef(exerciseGroupId),
+            null,
+            exerciseGroupId
         );
     }
 }

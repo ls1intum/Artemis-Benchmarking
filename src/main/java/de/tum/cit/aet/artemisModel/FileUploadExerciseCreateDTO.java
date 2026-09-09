@@ -2,10 +2,11 @@ package de.tum.cit.aet.artemisModel;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-// This endpoint still binds the full exercise entity, so the group goes in as a nested object. Only text exercise
-// creation moved to a DTO with a flat `exerciseGroupId`; check the endpoint's parameter type rather than assuming,
-// because sending the wrong shape leaves the group unset server-side and yields "An exercise must have either a
-// course or an exercise group".
+// Sends the exercise group both ways on purpose, because which one Artemis reads depends on its version. Artemis 9
+// bound the full exercise entity here and took the nested object; Artemis 10 binds FileUploadExerciseInputDTO, which
+// declares both but validates the flat `exerciseGroupId`, so the nested one alone fails the run with "An exercise
+// must have either a courseId or an exerciseGroupId". Both are safe to send together: Artemis disables
+// FAIL_ON_UNKNOWN_PROPERTIES, so whichever field its version does not know is ignored rather than rejected.
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public record FileUploadExerciseCreateDTO(
     String type,
@@ -14,6 +15,7 @@ public record FileUploadExerciseCreateDTO(
     ExerciseMode mode,
     IncludedInOverallScore includedInOverallScore,
     ExerciseGroupRef exerciseGroup,
+    Long exerciseGroupId,
     String filePattern
 ) {
     /**
@@ -32,6 +34,7 @@ public record FileUploadExerciseCreateDTO(
             ExerciseMode.INDIVIDUAL,
             IncludedInOverallScore.INCLUDED_COMPLETELY,
             new ExerciseGroupRef(exerciseGroupId),
+            exerciseGroupId,
             filePattern
         );
     }

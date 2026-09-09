@@ -33,6 +33,29 @@ class ExerciseCreateDtoTest {
     }
 
     @Test
+    void aFileUploadExerciseCarriesTheGroupInBothShapes() throws Exception {
+        // Artemis 10's FileUploadExerciseInputDTO declares both fields but validates the flat one, so the nested
+        // object alone is silently not enough.
+        var json = MAPPER.readTree(
+            MAPPER.writeValueAsString(FileUploadExerciseCreateDTO.forBenchmarking("File Upload Exercise", 13L, "pdf"))
+        );
+
+        assertThat(json.path("exerciseGroup").path("id").asLong()).isEqualTo(13L);
+        assertThat(json.path("exerciseGroupId").asLong()).isEqualTo(13L);
+    }
+
+    @Test
+    void aProgrammingExerciseCarriesTheGroupInBothShapes() throws Exception {
+        var json = MAPPER.readTree(
+            MAPPER.writeValueAsString(
+                ProgrammingExerciseCreateDTO.forExamBenchmarking("Programming Exercise", 5L, "SHORT", "de.tum.cit.aet")
+            )
+        );
+
+        assertThat(json.path("exerciseGroupId").asLong()).isEqualTo(5L);
+    }
+
+    @Test
     void theGroupIsNeverSerialisedAsNull() throws Exception {
         // A null here is worse than a missing field: it can overwrite a value Artemis would otherwise infer.
         var json = MAPPER.readTree(MAPPER.writeValueAsString(ModelingExerciseCreateDTO.forBenchmarking("Modeling Exercise", 1L)));
