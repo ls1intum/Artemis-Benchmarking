@@ -42,6 +42,14 @@ export class CreateSimulationBoxComponent implements OnInit {
   tokenPercentage = 0;
   sshPercentage = 0;
   onlineIdePercentage = 0;
+  /**
+   * Share of students who arrive with an empty browser cache and download the whole client bundle.
+   *
+   * Left empty the server decides, which is what every simulation did before this was settable. A real exam is
+   * nowhere near fully cold - Angular's content-hashed filenames survive across sessions, so a student who has used
+   * Artemis since the last deployment requests only index.html - and at 100 the bundle phase dominates the run.
+   */
+  coldCachePercentage: number | null = null;
 
   /**
    * Whether cancelling this run's build jobs is offered at all.
@@ -112,6 +120,7 @@ export class CreateSimulationBoxComponent implements OnInit {
         this.userRange,
         this.instructorUsername.length > 0 ? this.instructorUsername : undefined,
         this.instructorPassword.length > 0 ? this.instructorPassword : undefined,
+        this.coldCachePercentage ?? undefined,
       );
       this.simulationToCreate.emit(simulation);
       this.instructorUsername = '';
@@ -126,7 +135,9 @@ export class CreateSimulationBoxComponent implements OnInit {
       ((!this.customizeUserRange && this.numberOfUsers > 0) || (this.customizeUserRange && this.userRange.length > 0)) &&
       this.numberOfCommitsAndPushesFrom > 0 &&
       this.numberOfCommitsAndPushesTo > this.numberOfCommitsAndPushesFrom &&
-      this.sshPercentage + this.tokenPercentage + this.passwordPercentage + this.onlineIdePercentage === 100;
+      this.sshPercentage + this.tokenPercentage + this.passwordPercentage + this.onlineIdePercentage === 100 &&
+      // Empty is valid and means "let the server decide"; a value outside 0-100 is not a share of anything.
+      (this.coldCachePercentage === null || (this.coldCachePercentage >= 0 && this.coldCachePercentage <= 100));
 
     if (this.mode === Mode.CREATE_COURSE_AND_EXAM) {
       return basicRequirements;

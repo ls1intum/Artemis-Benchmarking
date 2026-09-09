@@ -226,6 +226,25 @@
       For each student, the number of commits and pushes will be chosen randomly in the given range.<br />
       From must be positive and smaller than To.
     </div>
+    <div class="mb-3">
+      <label for="cold-cache-input" class="form-label">Cold browser caches (%)</label>
+      <input
+        type="number"
+        class="form-control"
+        id="cold-cache-input"
+        min="0"
+        max="100"
+        placeholder="server default"
+        [(ngModel)]="coldCachePercentage"
+        [ngModelOptions]="{ standalone: true }"
+      />
+      <div class="form-text">
+        The share of students who arrive with an empty browser cache and download the whole client bundle (about 548 files and 20 MB each).
+        The rest start warm and request only index.html, which is what a real cohort mostly does: Angular's content-hashed filenames survive
+        across sessions, so a student who has used Artemis since the last deployment already holds every chunk.<br />
+        Leave empty to use the server's configured default.
+      </div>
+    </div>
     @if (modeAllowsCancellingBuildJobs) {
       <div class="form-check mb-3">
         <input
