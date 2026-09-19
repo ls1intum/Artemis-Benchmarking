@@ -88,7 +88,7 @@ services:
 
   artemis-activemq-broker:
     hostname: artemis-activemq-broker
-    image: apache/artemis:${ACTIVEMQ_VERSION:-2.54.0}
+    image: apache/artemis:${ACTIVEMQ_VERSION:-2.57.0}
     environment:
       ARTEMIS_USER: guest
       ARTEMIS_PASSWORD: guest

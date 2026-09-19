@@ -1,4 +1,18 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"]
+  "extends": ["config:recommended"],
+  "docker-compose": {
+    "managerFilePatterns": [
+      "/(^|/)src/main/docker/(monitoring|postgresql|sonar)\\.ya?ml$/",
+      "/(^|/)local-load-test/multi-node-artemis\\.ya?ml$/"
+    ]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)local-load-test/multi-node-artemis\\.ya?ml$/"],
+      "matchStrings": ["image:\\s+(?<depName>[^\\s:$]+(?:/[^\\s:$]+)*):\\$\\{[A-Z0-9_]+:-(?<currentValue>v?\\d[^}]*)\\}"],
+      "datasourceTemplate": "docker"
+    }
+  ]
 }
