@@ -16,7 +16,7 @@ plugins {
     id "jacoco"
     id "com.diffplug.spotless" version "${spotlessPluginVersion}"
     id "com.github.andygoossens.gradle-modernizer-plugin" version "${modernizerPluginVersion}"
-    id "com.github.ben-manes.versions" version "0.61.0"
+    id "com.github.ben-manes.versions" version "0.64.0"
     id "com.github.node-gradle.node" version "${gradleNodePluginVersion}"
     id "com.google.cloud.tools.jib" version "${jibPluginVersion}"
     id "com.gorylenko.gradle-git-properties" version "${gitPropertiesPluginVersion}"
