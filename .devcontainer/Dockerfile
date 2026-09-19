@@ -1,8 +1,8 @@
-# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.209.6/containers/java/.devcontainer/base.Dockerfile
+# See here for image contents: https://github.com/devcontainers/images/tree/main/src/java
 
-# [Choice] Java version (use -bullseye variants on local arm64/Apple Silicon): 25, 25-bullseye, 25-buster
+# [Choice] Java version: 25, 25-trixie, 25-bookworm
 ARG VARIANT="25"
-FROM mcr.microsoft.com/vscode/devcontainers/java:0-${VARIANT}
+FROM mcr.microsoft.com/devcontainers/java:3-${VARIANT}
 
 # [Option] Install Gradle
 ARG INSTALL_GRADLE="false"
@@ -12,6 +12,5 @@ RUN if [ "${INSTALL_GRADLE}" = "true" ]; then su vscode -c "umask 0002 && . /usr
 ARG NODE_VERSION="24"
 RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
 
-ARG PNPM_VERSION="11.1.2"
+ARG PNPM_VERSION="12.4.2"
 RUN su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && npm install -g pnpm@${PNPM_VERSION} 2>&1"
-
