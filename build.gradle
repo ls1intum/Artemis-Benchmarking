@@ -203,7 +203,7 @@ dependencies {
     implementation "org.springframework.security:spring-security-data"
 
     // use newest version of nimbus-jose-jwt to avoid security issues through outdated dependencies
-    implementation "com.nimbusds:nimbus-jose-jwt:10.9.1"
+    implementation "com.nimbusds:nimbus-jose-jwt:10.10"
 
 
     implementation "io.micrometer:micrometer-registry-prometheus"
