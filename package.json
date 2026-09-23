@@ -36,7 +36,7 @@
     "default_environment": "prod"
   },
   "dependencies": {
-    "@angular/cdk": "22.1.7",
+    "@angular/cdk": "22.2.0",
     "@angular/common": "22.1.7",
     "@angular/compiler": "22.1.7",
     "@angular/core": "22.1.7",
