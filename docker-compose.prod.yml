@@ -16,8 +16,8 @@ services:
       - ./config/nginx/artemis-performance-test0.artemis.cit.tum.de80:/etc/nginx/sites-enabled/artemis-performance-test0.artemis.cit.tum.de80:ro
       - ./config/nginx/artemis-performance-test0.artemis.cit.tum.de443:/etc/nginx/sites-enabled/artemis-performance-test0.artemis.cit.tum.de443:ro
       - type: bind
-        source: '/var/lib/rbg-cert/live/host:f:artemis-performance-test0.artemis.cit.tum.de.fullchain.pem'
+        source: '/etc/pira-client/live/fullchain.pem'
         target: '/certs/fullchain.pem'
       - type: bind
-        source: '/var/lib/rbg-cert/live/host:f:artemis-performance-test0.artemis.cit.tum.de.privkey.pem'
+        source: '/etc/pira-client/live/privkey.pem'
         target: '/certs/privkey.pem'
