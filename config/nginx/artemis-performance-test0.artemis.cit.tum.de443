@@ -2,7 +2,7 @@ server {
     listen 443 ssl http2 default_server;
     listen       [::]:443 ssl http2 default_server;
 
-    server_name artemis-performance-test0.artemis.cit.tum.de;
+    server_name artemis-performance-test0.artemis.cit.tum.de benchmark.artemis.cit.tum.de;
 
     index index.html index.htm;
 
@@ -26,8 +26,8 @@ server {
       proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    ssl_certificate     /certs/fullchain.pem;
-    ssl_certificate_key /certs/privkey.pem;
+    ssl_certificate     /etc/pira-client/live/host:f:aetvm183.cit.tum.de.fullchain.pem;
+    ssl_certificate_key /etc/pira-client/live/host:f:aetvm183.cit.tum.de.privkey.pem;
 
     proxy_hide_header x-powered-by;
 

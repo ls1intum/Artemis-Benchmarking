@@ -8,16 +8,16 @@ services:
       - '80'
       - '443'
     healthcheck:
-      test: service nginx status || exit 1
+      test: pidof nginx > /dev/null || exit 1
       start_period: 10s
     restart: always
     volumes:
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./config/nginx/artemis-performance-test0.artemis.cit.tum.de80:/etc/nginx/sites-enabled/artemis-performance-test0.artemis.cit.tum.de80:ro
       - ./config/nginx/artemis-performance-test0.artemis.cit.tum.de443:/etc/nginx/sites-enabled/artemis-performance-test0.artemis.cit.tum.de443:ro
+      # Mount the whole client directory (read-only): the live/ entries are symlinks into archive/, and the file
+      # names contain colons, which `source:target` short syntax cannot express.
       - type: bind
-        source: '/etc/pira-client/live/fullchain.pem'
-        target: '/certs/fullchain.pem'
-      - type: bind
-        source: '/etc/pira-client/live/privkey.pem'
-        target: '/certs/privkey.pem'
+        source: /etc/pira-client
+        target: /etc/pira-client
+        read_only: true
