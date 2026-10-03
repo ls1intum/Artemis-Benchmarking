@@ -34,5 +34,5 @@ overrides:
   webpack-dev-middleware: 8.3.0
   webpack-dev-server: 6.0.0
   word-wrap: 1.2.5
-  ws: 8.21.3
+  ws: 8.22.0
   yargs-parser: 22.0.0
