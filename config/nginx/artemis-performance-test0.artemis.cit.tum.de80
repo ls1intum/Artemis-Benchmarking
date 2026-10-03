@@ -2,7 +2,7 @@ server {
     listen 80 default_server;
     listen       [::]:80 default_server;
 
-    server_name artemis-performance-test0.artemis.cit.tum.de;
+    server_name artemis-performance-test0.artemis.cit.tum.de benchmark.artemis.cit.tum.de;
 
     index index.html index.htm;
 
