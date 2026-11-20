@@ -1628,34 +1628,32 @@ public class SimulatedArtemisStudent extends SimulatedArtemisUser {
             throw new RuntimeException("Failed to create temporary directory", e);
         }
 
-        return (
-            new SshdSessionFactoryBuilder()
-                .setPreferredAuthentications("publickey")
-                .setDefaultKeysProvider(ignoredSshDirBecauseWeUseAnInMemorySetOfKeyPairs -> keyPairs)
-                .setHomeDirectory(temporaryDirectory.toFile())
-                .setSshDirectory(temporaryDirectory.toFile())
-                .setServerKeyDatabase((ignoredHomeDir, ignoredSshDir) ->
-                    new ServerKeyDatabase() {
-                        @Override
-                        public List<PublicKey> lookup(String connectAddress, InetSocketAddress remoteAddress, Configuration config) {
-                            return List.of();
-                        }
-
-                        @Override
-                        public boolean accept(
-                            String connectAddress,
-                            InetSocketAddress remoteAddress,
-                            PublicKey serverKey,
-                            Configuration config,
-                            CredentialsProvider provider
-                        ) {
-                            return true;
-                        }
+        return new SshdSessionFactoryBuilder()
+            .setPreferredAuthentications("publickey")
+            .setDefaultKeysProvider(ignoredSshDirBecauseWeUseAnInMemorySetOfKeyPairs -> keyPairs)
+            .setHomeDirectory(temporaryDirectory.toFile())
+            .setSshDirectory(temporaryDirectory.toFile())
+            .setServerKeyDatabase((ignoredHomeDir, ignoredSshDir) ->
+                new ServerKeyDatabase() {
+                    @Override
+                    public List<PublicKey> lookup(String connectAddress, InetSocketAddress remoteAddress, Configuration config) {
+                        return List.of();
                     }
-                )
-                //The JGitKeyCache handles the caching of keys to avoid unnecessary disk I/O and improve performance
-                .build(new JGitKeyCache())
-        );
+
+                    @Override
+                    public boolean accept(
+                        String connectAddress,
+                        InetSocketAddress remoteAddress,
+                        PublicKey serverKey,
+                        Configuration config,
+                        CredentialsProvider provider
+                    ) {
+                        return true;
+                    }
+                }
+            )
+            //The JGitKeyCache handles the caching of keys to avoid unnecessary disk I/O and improve performance
+            .build(new JGitKeyCache());
     }
 
     /**

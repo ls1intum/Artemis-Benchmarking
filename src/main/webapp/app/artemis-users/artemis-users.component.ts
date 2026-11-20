@@ -221,17 +221,19 @@ export default class ArtemisUsersComponent implements OnInit {
       });
     } else if (adminUserEdit) {
       this.actionInProgress = true;
-      this.artemisUsersService.createUser(this.server, adminUserEdit).subscribe({
-        next: (user: ArtemisUser) => {
-          this.adminUser = user;
-          this.adminUserEdit.set(undefined);
-          this.actionInProgress = false;
-        },
-        error: () => {
-          this.showError('Error creating admin user');
-          this.actionInProgress = false;
-        },
-      });
+      this.artemisUsersService
+        .createUser(this.server, new ArtemisUserForCreationDTO(adminUserEdit.username, adminUserEdit.password, adminUserEdit.serverWideId))
+        .subscribe({
+          next: (user: ArtemisUser) => {
+            this.adminUser = user;
+            this.adminUserEdit.set(undefined);
+            this.actionInProgress = false;
+          },
+          error: () => {
+            this.showError('Error creating admin user');
+            this.actionInProgress = false;
+          },
+        });
     }
   }
 

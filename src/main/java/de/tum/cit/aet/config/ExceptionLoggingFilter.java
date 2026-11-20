@@ -18,7 +18,8 @@ public class ExceptionLoggingFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(@Nonnull HttpServletRequest req, @Nonnull HttpServletResponse res, @Nonnull FilterChain chain)
-        throws ServletException, IOException {
+        throws ServletException, IOException
+    {
         try {
             chain.doFilter(req, res);
         } catch (Throwable t) {
