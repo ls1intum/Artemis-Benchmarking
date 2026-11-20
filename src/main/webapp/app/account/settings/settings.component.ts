@@ -5,7 +5,7 @@ import SharedModule from 'app/shared/shared.module';
 import { AccountService } from 'app/core/auth/account.service';
 import { Account } from 'app/core/auth/account.model';
 
-const initialAccount: Account = {} as Account;
+const initialAccount = new Account(false, [], '', '', '');
 
 @Component({
   selector: 'settings',

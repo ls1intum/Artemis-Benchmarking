@@ -174,20 +174,18 @@ public class StaticResourceFetcher {
     private Mono<RequestStat> fetch(String asset) {
         return Mono.defer(() -> {
             long start = System.nanoTime();
-            return (
-                webClient
-                    .get()
-                    .uri(uriBuilder -> uriBuilder.path(asset.isEmpty() ? "/" : "/" + asset).build())
-                    .headers(BrowserHeaders.forDiscardedAsset(asset))
-                    .retrieve()
-                    .toBodilessEntity()
-                    .onErrorResume(error -> {
-                        log.debug("Could not download {}: {}", asset, error.getMessage());
-                        return Mono.empty();
-                    })
-                    // A failed download is still a request the server handled, so it is measured either way.
-                    .then(Mono.fromSupplier(() -> new RequestStat(now(), System.nanoTime() - start, STATIC_RESOURCE)))
-            );
+            return webClient
+                .get()
+                .uri(uriBuilder -> uriBuilder.path(asset.isEmpty() ? "/" : "/" + asset).build())
+                .headers(BrowserHeaders.forDiscardedAsset(asset))
+                .retrieve()
+                .toBodilessEntity()
+                .onErrorResume(error -> {
+                    log.debug("Could not download {}: {}", asset, error.getMessage());
+                    return Mono.empty();
+                })
+                // A failed download is still a request the server handled, so it is measured either way.
+                .then(Mono.fromSupplier(() -> new RequestStat(now(), System.nanoTime() - start, STATIC_RESOURCE)));
         });
     }
 }

@@ -21,12 +21,13 @@ export class ProfileService {
 
     this.profileInfo$ = this.http.get<InfoResponse>(this.infoUrl).pipe(
       map((response: InfoResponse) => {
-        const profileInfo: ProfileInfo = {
-          activeProfiles: response.activeProfiles,
-          inProduction: response.activeProfiles?.includes('prod') ?? false,
-          openAPIEnabled: response.activeProfiles?.includes('api-docs') ?? false,
-          git: response.git,
-        };
+        const profileInfo = new ProfileInfo(
+          response.activeProfiles,
+          undefined,
+          response.activeProfiles?.includes('prod') ?? false,
+          response.activeProfiles?.includes('api-docs') ?? false,
+          response.git,
+        );
         if (response.activeProfiles && response['display-ribbon-on-profiles']) {
           const displayRibbonOnProfiles = response['display-ribbon-on-profiles'].split(',');
           const ribbonProfiles = displayRibbonOnProfiles.filter(profile => response.activeProfiles?.includes(profile));
