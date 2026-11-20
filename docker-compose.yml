@@ -42,7 +42,7 @@ services:
     restart: always
 
   postgres:
-    image: postgres:18.7-alpine
+    image: postgres:19.0-alpine
     volumes:
       - artemis-postgres-data:/var/lib/postgresql
     env_file:
