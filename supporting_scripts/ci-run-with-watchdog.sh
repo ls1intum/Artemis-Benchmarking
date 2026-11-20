@@ -40,6 +40,9 @@ dump_threads() {
             ps -o pid,etime,args -p "$pid" | cut -c1-300
             jcmd "$pid" Thread.print -l 2>&1 || true
         } >> "$DUMP_DIR/$NAME-threads.txt"
+        # Thread.print leaves out virtual threads. A lock owned by a virtual thread therefore looks as if nobody
+        # owned it, so also write the JSON dump, which lists every thread including the virtual ones.
+        jcmd "$pid" Thread.dump_to_file -format=json "$DUMP_DIR/$NAME-$pid-round$round.json" > /dev/null 2>&1 || true
     done
 }
 

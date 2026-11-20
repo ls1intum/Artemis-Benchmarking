@@ -19,6 +19,11 @@
   },
   "packageRules": [
     {
+      "description": "Hold Spring Boot below 4.2 until Spring Framework 7.1.1 fixes the deadlock between the bean-type cache and the singleton lock (spring-projects/spring-framework#37516). Remove this rule once 7.1.1 is released.",
+      "matchPackageNames": ["/^org\\.springframework\\.boot/"],
+      "allowedVersions": "<4.2.0"
+    },
+    {
       "description": "Minor and patch updates are merged by Renovate once CI is green. Note: this only takes effect where the branch protection of develop lets Renovate merge, otherwise the PR just waits for a review.",
       "matchUpdateTypes": ["minor", "patch", "pin", "digest", "lockFileMaintenance"],
       "automerge": true
