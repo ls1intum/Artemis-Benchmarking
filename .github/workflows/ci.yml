@@ -114,3 +114,23 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # The production image is otherwise only built after the merge to main (deploy.yml). A change that breaks it, for
+  # example a Node.js version whose binary needs a system library the build image lacks, would then fail the deployment
+  # instead of the pull request. This builds the same image without pushing it.
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build the production image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: false
+          platforms: linux/amd64
+          tags: artemis-benchmarking:ci
