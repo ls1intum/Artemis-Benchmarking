@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # A hung test step used to run for up to six hours (the GitHub default); the whole job normally takes ~3 minutes.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 
@@ -33,27 +35,41 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      # The watchdog writes a thread dump of every JVM if a step stops printing output, so a hang explains itself
+      # instead of just timing out. The dumps are uploaded below.
       - name: Run Server Tests
-        run: ./gradlew test -x webapp
+        timeout-minutes: 15
+        run: ./supporting_scripts/ci-run-with-watchdog.sh unit-tests ./gradlew test -x webapp
 
       # Integration tests (*IT) boot the full Spring context against a PostgreSQL Testcontainer.
       # They are excluded from the `test` task, so run them explicitly (ubuntu-latest provides Docker).
       - name: Run Integration Tests
-        run: ./gradlew integrationTest -x webapp
+        timeout-minutes: 15
+        run: ./supporting_scripts/ci-run-with-watchdog.sh integration-tests ./gradlew integrationTest -x webapp
 
       - name: Check Client Formatting
         run: pnpm run prettier:check
 
       - name: Lint Client
         run: pnpm run lint
-# Temporarily disabled client tests until we switch to Vitest
-#      - name: Run Client Tests
-#        run: pnpm test
+
+      - name: Run Client Tests
+        run: pnpm run prebuild && pnpm exec ng test --no-watch
+
+      - name: Upload thread dumps and test logs
+        if: ${{ !success() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: thread-dumps
+          path: build/thread-dumps/
+          if-no-files-found: ignore
+          retention-days: 7
 
   e2e:
     runs-on: ubuntu-latest
     # Only run the full-stack e2e suite once the fast checks pass.
     needs: test
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 

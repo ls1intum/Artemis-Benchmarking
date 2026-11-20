@@ -1,0 +1,53 @@
+name: Uptime Check
+
+# Checks the production deployment from outside, so a dead host or an expiring certificate does not go unnoticed.
+# A failed run notifies the people watching this repository, like any other failing workflow.
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  HOST: artemis-performance-test0.artemis.cit.tum.de
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      # The host may reboot at night for security updates and then needs a few minutes to come back, so a single failed
+      # request is not an outage. Only a health endpoint that stays down for the whole retry window fails the run.
+      - name: Health endpoint
+        run: |
+          for attempt in $(seq 1 8); do
+            if body=$(curl -fsS --max-time 20 "https://$HOST/management/health") && echo "$body" | grep -q '"status":"UP"'; then
+              echo "Healthy after $attempt attempt(s): $body"
+              exit 0
+            fi
+            echo "Attempt $attempt failed, retrying in 45s"
+            sleep 45
+          done
+          echo "::error::https://$HOST/management/health did not report UP"
+          exit 1
+
+      - name: Web application is served
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "https://$HOST/")
+          [ "$code" = "200" ] || { echo "::error::https://$HOST/ returned HTTP $code"; exit 1; }
+
+      - name: HTTP redirects to HTTPS
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "http://$HOST/")
+          case "$code" in 301|302|307|308) ;; *) echo "::error::http://$HOST/ returned HTTP $code instead of a redirect"; exit 1;; esac
+
+      - name: Certificate validity
+        run: |
+          end=$(echo | openssl s_client -connect "$HOST:443" -servername "$HOST" 2>/dev/null | openssl x509 -noout -enddate | cut -d= -f2)
+          days=$(( ( $(date -d "$end" +%s) - $(date +%s) ) / 86400 ))
+          echo "Certificate expires $end ($days days)"
+          if [ "$days" -lt 14 ]; then
+            echo "::error::The TLS certificate of $HOST expires in $days days; check the pira-client renewal timer on the host"
+            exit 1
+          fi

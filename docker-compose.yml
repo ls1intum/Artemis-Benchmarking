@@ -1,6 +1,7 @@
 services:
   benchmarking:
-    image: ls1tum/artemis-benchmarking:latest
+    # Pinned to the released version; supporting_scripts/update_version.sh keeps it in sync with build.gradle.
+    image: ls1tum/artemis-benchmarking:0.5.5
     env_file:
       - config/benchmarking.env
     environment:

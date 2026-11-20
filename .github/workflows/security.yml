@@ -1,0 +1,129 @@
+name: Security Scan
+
+# New vulnerabilities are published every day, so this also runs on a schedule: a dependency that was clean when it was
+# merged can turn vulnerable without any change to this repository.
+on:
+  pull_request:
+    paths:
+      - 'build.gradle'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'Dockerfile'
+      - 'docker-compose*.yml'
+      - '.github/workflows/security.yml'
+  push:
+    branches: [develop, main]
+  schedule:
+    - cron: '23 5 * * 1,4'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned: a scanner that changes under us would make the results incomparable between runs.
+  TRIVY_IMAGE: ghcr.io/aquasecurity/trivy:0.76.2
+
+jobs:
+  client:
+    name: Client dependencies (pnpm audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 12.21.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '26.13.1'
+
+      # Fails on moderate and above. Fix by updating the dependency, or by adding an `overrides` entry in
+      # pnpm-workspace.yaml when the vulnerable version is only transitive.
+      - name: Audit
+        run: pnpm audit --audit-level moderate
+
+  server:
+    name: Server dependencies (Trivy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'zulu'
+          java-version: '25'
+          cache: 'gradle'
+
+      # The webapp is irrelevant for the Java dependencies, so it is skipped.
+      - name: Build WAR
+        run: ./gradlew bootWar -x webapp --console=plain
+
+      - name: Cache Trivy database
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/trivy
+          key: trivy-db-${{ github.run_id }}
+          restore-keys: trivy-db-
+
+      # `rootfs`, not `fs`: only rootfs inspects the JARs nested inside a WAR; `fs` silently reports nothing.
+      # Only vulnerabilities that already have a fix are reported, because those are the ones we can act on.
+      - name: Scan WAR
+        run: |
+          mkdir -p "$RUNNER_TEMP/scan" "$HOME/.cache/trivy"
+          cp build/libs/*.war "$RUNNER_TEMP/scan/app.war"
+          docker run --rm -v "$RUNNER_TEMP/scan:/scan:ro" -v "$HOME/.cache/trivy:/root/.cache" "$TRIVY_IMAGE" \
+            rootfs --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 /scan
+
+  images:
+    name: Production container images (Trivy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache Trivy database
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/trivy
+          key: trivy-db-${{ github.run_id }}
+          restore-keys: trivy-db-
+
+      # Scans the images that run in production: the runtime stage of the Dockerfile plus nginx and PostgreSQL from
+      # the compose files. Our own image is skipped, because it consists of exactly the base image and the WAR
+      # scanned above.
+      #
+      # usr/local/bin/gosu is skipped: the official postgres image ships it built with an old Go release. It only
+      # drops privileges while the container starts and does not listen on any port, and we cannot patch it. Remove
+      # the skip once the upstream image is rebuilt with a current Go release.
+      - name: Scan images
+        run: |
+          mkdir -p "$HOME/.cache/trivy"
+          images=$(
+            {
+              grep -E '^FROM ' Dockerfile | tail -n 1 | awk '{print $2}'
+              grep -hoE 'image: *[^ ]+' docker-compose.yml docker-compose.prod.yml | awk '{print $2}' | grep -v '^ls1tum/'
+            } | sort -u
+          )
+          echo "Scanning: $images"
+          status=0
+          for image in $images; do
+            echo "::group::$image"
+            docker run --rm -v "$HOME/.cache/trivy:/root/.cache" -v /var/run/docker.sock:/var/run/docker.sock "$TRIVY_IMAGE" \
+              image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --skip-files usr/local/bin/gosu --exit-code 1 "$image" || status=1
+            echo "::endgroup::"
+          done
+          exit $status

@@ -73,12 +73,15 @@ awk -v old_version="$CURRENT_VERSION" -v new_version="$NEW_VERSION" '
 echo "Updating pnpm-lock.yaml..."
 pnpm install --lockfile-only
 
+# Update the image version pinned in docker-compose.yml (built and pushed by the deploy workflow)
+sed -i '' "s#ls1tum/artemis-benchmarking:$CURRENT_VERSION#ls1tum/artemis-benchmarking:$NEW_VERSION#" docker-compose.yml
+
 # Update README.md
 sed -i '' "s/artemis-benchmarking-$CURRENT_VERSION.war/artemis-benchmarking-$NEW_VERSION.war/" README.md
 
 # Add changes to git and commit
 echo "Staging changes for git..."
-git add build.gradle package.json README.md pnpm-lock.yaml
+git add build.gradle package.json README.md pnpm-lock.yaml docker-compose.yml
 
 echo "Creating git commit..."
 git commit -m "Development: Bump version to $NEW_VERSION ($INCREMENT_TYPE update)"
