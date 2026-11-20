@@ -198,7 +198,7 @@ start_benchmark() {
   docker rm -f "$BENCH_PG" >/dev/null 2>&1 || true
   docker run -d --name "$BENCH_PG" \
     -e POSTGRES_DB=benchmarking -e POSTGRES_USER=benchmarking -e POSTGRES_PASSWORD=benchmarking \
-    -p "${BENCH_DB_PORT}:5432" postgres:18-alpine >/dev/null
+    -p "${BENCH_DB_PORT}:5432" postgres:19-alpine >/dev/null
   local i
   for i in $(seq 1 30); do
     docker exec "$BENCH_PG" pg_isready -U benchmarking -d benchmarking >/dev/null 2>&1 && break

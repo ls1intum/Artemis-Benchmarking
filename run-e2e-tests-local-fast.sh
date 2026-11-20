@@ -125,7 +125,7 @@ else
   docker rm -f "$POSTGRES_CONTAINER" >/dev/null 2>&1 || true
   docker run -d --name "$POSTGRES_CONTAINER" -p 127.0.0.1:5432:5432 \
     -e POSTGRES_DB=benchmarking -e POSTGRES_USER=benchmarking -e POSTGRES_PASSWORD=benchmarking \
-    postgres:18-alpine >/dev/null
+    postgres:19-alpine >/dev/null
   elapsed=0
   until docker exec "$POSTGRES_CONTAINER" pg_isready -U benchmarking -d benchmarking >/dev/null 2>&1; do
     if [ "$elapsed" -ge 120 ]; then err "PostgreSQL not ready after 120s"; exit 1; fi
