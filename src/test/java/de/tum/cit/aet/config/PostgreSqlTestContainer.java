@@ -22,7 +22,7 @@ public class PostgreSqlTestContainer implements SqlTestContainer {
     @Override
     public void afterPropertiesSet() {
         if (null == postgreSQLContainer) {
-            postgreSQLContainer = new PostgreSQLContainer("postgres:18-alpine")
+            postgreSQLContainer = new PostgreSQLContainer("postgres:19-alpine")
                 .withDatabaseName("benchmarking")
                 .withLogConsumer(new Slf4jLogConsumer(log))
                 .withReuse(true);
