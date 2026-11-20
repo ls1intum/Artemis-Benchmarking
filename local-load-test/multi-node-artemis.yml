@@ -57,7 +57,7 @@ services:
       POSTGRES_DB: Artemis
       PGDATA: /var/lib/postgresql/pgdata
     volumes:
-      - artemis-postgres-data:/var/lib/postgresql
+      - artemis-postgres-data-pg19:/var/lib/postgresql
     healthcheck:
       test: pg_isready -U Artemis -d Artemis
       interval: 5s
@@ -158,5 +158,5 @@ networks:
 volumes:
   artemis-data:
     name: artemis-loadtest-data
-  artemis-postgres-data:
+  artemis-postgres-data-pg19:
     name: artemis-loadtest-postgres-data
