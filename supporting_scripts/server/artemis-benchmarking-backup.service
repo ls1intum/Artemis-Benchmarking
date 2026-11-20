@@ -1,0 +1,9 @@
+[Unit]
+Description=Back up the Artemis Benchmarking database
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/artemis-benchmarking/server/pg-backup.sh
+# Fail loudly in the journal (journalctl -u artemis-benchmarking-backup) and in `systemctl --failed`

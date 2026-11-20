@@ -12,3 +12,27 @@ jobs:
     needs: build-prod-container
     uses: ./.github/workflows/deploy-container.yml
     secrets: inherit
+  # Creates the GitHub release for the version that was just deployed, with generated release notes. Skipped when the
+  # release already exists, so deploying the same version twice (for example after a dependency-only merge) is harmless.
+  release:
+    needs: deploy-prod-container
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Create release if the deployed version has none yet
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(grep -m1 -oE '^version = "[0-9]+\.[0-9]+\.[0-9]+"' build.gradle | cut -d'"' -f2)
+          if [ -z "$version" ]; then
+            echo "::error::Could not read the version from build.gradle"
+            exit 1
+          fi
+          if gh release view "$version" >/dev/null 2>&1; then
+            echo "Release $version already exists"
+            exit 0
+          fi
+          gh release create "$version" --target "$GITHUB_SHA" --title "$version" --generate-notes --latest

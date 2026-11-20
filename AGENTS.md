@@ -33,7 +33,7 @@ The client toolchain uses **pnpm** (replaced npm in early 2026). Install it with
 - Server tests use JUnit 5 in `src/test/java`.
 - Unit tests typically end with `*Test.java`; integration tests use `*IT.java` and are excluded by default in `gradle/test.gradle`.
 - Run unit tests with `./gradlew test`; run integration tests via your IDE or by adjusting the exclusion rules as needed.
-- Client tests (when enabled) run with `pnpm run test` (Angular CLI).
+- Client tests (Vitest, via the Angular CLI) run with `pnpm run test`; CI runs them with `pnpm exec ng test --no-watch`.
 - End-to-end (Playwright) tests live in `e2e/`; see [`e2e/README.md`](e2e/README.md). Run them locally with `./run-e2e-tests-local-fast.sh` (fast, host) or `./run-e2e-tests-local.sh` (Docker, realistic).
 
 ## Commit & Pull Request Guidelines

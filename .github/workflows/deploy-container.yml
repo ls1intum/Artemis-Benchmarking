@@ -10,10 +10,10 @@ jobs:
       name: artemis-performance-test0.artemis.cit.tum.de
       url: https://artemis-performance-test0.artemis.cit.tum.de
     steps:
+      # The compose file pins the image version, so it must come from the commit that was just built. Taking it from
+      # develop would reference an image that does not exist yet whenever develop is ahead of main.
       - name: checkout
         uses: actions/checkout@v7
-        with:
-          ref: develop
 
       - name: Copy docker-compose to server
         uses: appleboy/scp-action@v1.0.0

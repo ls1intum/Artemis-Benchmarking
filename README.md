@@ -238,16 +238,35 @@ On the server side, the application uses Gradle for dependency management. Direc
 
 On the client side, the application uses [pnpm] for dependency management. Direct dependencies are declared in `package.json`; resolved versions for the entire tree are locked in `pnpm-lock.yaml`. pnpm settings (linker mode, peer-dependency rules, transitive overrides, allowed install scripts) live in `pnpm-workspace.yaml` — `pnpm` 11+ no longer reads these from the `pnpm` block in `package.json` or from `.npmrc`, so add new overrides there, e.g. to force the Angular peer-dep range of `@swimlane/ngx-charts` up to 21.x.
 
-We use [Renovate](https://docs.renovatebot.com/) to keep the dependencies up to date — it opens pull requests for outdated dependencies on a recurring schedule. The configuration lives in `renovate.json`.
+We use [Renovate](https://docs.renovatebot.com/) to keep the dependencies up to date — it opens pull requests for outdated dependencies on a recurring schedule. The configuration lives in `renovate.json`. Updates are held back for three days after their release (security fixes are not), and Node.js and pnpm are updated together in every place they are pinned: `package.json`, the CI workflows and `gradle.properties`. Minor and patch updates are marked for automerge; that only takes effect where the branch protection of `develop` allows Renovate to merge, otherwise the pull request waits for a review.
 
 ### CI/CD
 
 The application uses GitHub Actions for CI/CD. The workflows are located in the `.github/workflows` directory.
 
-Each pull request to the `main` branch triggers the `ci.yml` workflow. This workflow builds the application and runs the tests. The results are visible in the pull request.
+| Workflow       | Trigger                                      | Purpose                                                                                                                                                                                                                    |
+| -------------- | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`       | pull requests and pushes to `develop`/`main` | Server unit and integration tests, client formatting, lint and unit tests (Vitest), then the end-to-end tests. Every step has a timeout.                                                                                   |
+| `security.yml` | dependency changes, twice a week             | `pnpm audit` for the client, [Trivy](https://trivy.dev) for the Java dependencies of the application and for the production container images (nginx, PostgreSQL, JRE). Fails on fixable HIGH and CRITICAL vulnerabilities. |
+| `uptime.yml`   | every 15 minutes                             | Checks the production health endpoint, the web application, the HTTP→HTTPS redirect and that the TLS certificate is valid for at least 14 more days. A failing run notifies the people watching the repository.            |
+| `deploy.yml`   | push to `main`                               | Builds the Docker image, deploys it to the production server and, after a successful deployment, creates the GitHub release for the version in `build.gradle` (with generated release notes) if it does not exist yet.     |
 
-Each push to the `main` branch triggers the `deploy.yml` workflow. This workflow builds a Docker image of the application and pushes it to the GitHub Container Registry. A container with the new image is deployed to and started on the production server.
-To manually trigger the deployment, simply re-run the workflow `Build and deploy to Prod` in the GitHub Actions tab. To rollback to a previous version, run the workflow for the respective commit.
+If the integration tests stop producing output for five minutes, `ci.yml` writes a thread dump of every JVM and uploads it as the `thread-dumps` artifact of the run (`supporting_scripts/ci-run-with-watchdog.sh`).
+
+#### Releasing and deploying
+
+1. Bump the version with `supporting_scripts/update_version.sh [major|minor|bugfix]` (this also updates the image tag pinned in `docker-compose.yml`) and merge the change to `develop`.
+2. When CI on `develop` is green, run `supporting_scripts/promote-main.sh`. `main` is locked and linear, so the script lifts the lock, fast-forwards `main` to `develop` and restores the branch protection exactly as it was (`--dry-run` shows what would happen).
+3. The push to `main` triggers `deploy.yml`: image build, deployment, GitHub release.
+
+Every build from `main` is tagged `latest` and with the version from `build.gradle` (for example `ls1tum/artemis-benchmarking:0.5.5`), and `docker-compose.yml` pins the version. To roll back, run the workflow for the respective commit, or on the server set the previous version in `docker-compose.yml` and run `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d benchmarking`.
+
+#### Production host
+
+The host-level configuration lives in `supporting_scripts/server` and is installed with `install.sh` (idempotent, run as root on the server):
+
+- **Database backup:** `artemis-benchmarking-backup.timer` dumps the database every night at 02:30 to `/var/backups/artemis-benchmarking` (verified, 14 days retention, readable by root only because the dump contains Artemis credentials). Set `BACKUP_REMOTE` in `/etc/artemis-benchmarking-backup.env` to also copy every dump to another machine; without it the backups exist only on the host itself. Check the last run with `journalctl -u artemis-benchmarking-backup`. Restore with `pg_restore --clean --if-exists -d <database> <dump>` inside the `postgres` container.
+- **Security updates:** Ubuntu security updates and Docker Engine/containerd updates are installed automatically, and the host reboots at 04:30 if an update requires it. The containers restart on their own.
 
 ### Adding new Artemis Servers
 

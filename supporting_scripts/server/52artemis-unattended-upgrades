@@ -1,0 +1,17 @@
+// Security hardening for the Artemis Benchmarking host; installed by supporting_scripts/server/install.sh.
+//
+// Ubuntu security updates were already installed automatically. Two things were missing:
+//  - Docker Engine and containerd come from Docker's own repository, which unattended-upgrades ignores by default,
+//    so they stayed on whatever version was installed until somebody remembered to upgrade them by hand.
+//  - A new kernel only protects the host after a reboot, and nothing rebooted it.
+Unattended-Upgrade::Allowed-Origins:: "Docker:${distro_codename}";
+
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+
+// Reboot only when an installed update needs it, and then in the quiet hours: after the 02:30 database backup, and
+// when no simulation is normally running. The containers have `restart: always` and come back on their own.
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-Time "04:30";
+// Several people have shell accounts on this host. A forgotten SSH session must not block security updates forever.
+Unattended-Upgrade::Automatic-Reboot-WithUsers "true";

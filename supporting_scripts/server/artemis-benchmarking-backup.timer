@@ -1,0 +1,12 @@
+[Unit]
+Description=Nightly Artemis Benchmarking database backup
+
+[Timer]
+# Before the 04:30 maintenance window of unattended-upgrades, so a backup always precedes a possible reboot.
+OnCalendar=*-*-* 02:30:00
+RandomizedDelaySec=10min
+# If the host was down at 02:30, take the backup as soon as it is up again.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

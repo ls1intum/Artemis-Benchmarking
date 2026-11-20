@@ -103,6 +103,15 @@
             }
           },
           "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "tsconfig.spec.json",
+            "buildTarget": "artemis-benchmarking:build:development",
+            "runner": "vitest",
+            "include": ["src/main/webapp/**/*.spec.ts"]
+          }
         }
       }
     }

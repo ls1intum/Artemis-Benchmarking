@@ -1,15 +1,69 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:recommended"],
+  "minimumReleaseAge": "3 days",
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "minimumReleaseAge": null
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
   "docker-compose": {
     "managerFilePatterns": [
       "/(^|/)src/main/docker/(monitoring|postgresql|sonar)\\.ya?ml$/",
       "/(^|/)local-load-test/multi-node-artemis\\.ya?ml$/"
     ]
   },
+  "packageRules": [
+    {
+      "description": "Minor and patch updates are merged by Renovate once CI is green. Note: this only takes effect where the branch protection of develop lets Renovate merge, otherwise the PR just waits for a review.",
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest", "lockFileMaintenance"],
+      "automerge": true
+    },
+    {
+      "description": "Major updates always need a human.",
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "description": "Node.js is pinned in the CI workflow and in gradle.properties (used by the production image build); they must move together, otherwise CI tests on a different Node than the one that builds the production webapp.",
+      "matchDepNames": ["node", "@types/node"],
+      "groupName": "Node.js"
+    },
+    {
+      "description": "pnpm is pinned in package.json, in the CI workflow and in gradle.properties.",
+      "matchDepNames": ["pnpm"],
+      "groupName": "pnpm"
+    },
+    {
+      "description": "Keep the test runner packages together.",
+      "matchDepNames": ["vitest", "jsdom"],
+      "groupName": "Client test tooling"
+    }
+  ],
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Node.js version used by the Gradle node plugin to build the webapp",
+      "managerFilePatterns": ["/(^|/)gradle\\.properties$/"],
+      "matchStrings": ["node_version=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "node",
+      "datasourceTemplate": "node-version"
+    },
+    {
+      "customType": "regex",
+      "description": "pnpm version used by the Gradle node plugin to build the webapp",
+      "managerFilePatterns": ["/(^|/)gradle\\.properties$/"],
+      "matchStrings": ["pnpm_version=(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "pnpm",
+      "datasourceTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "description": "Container images referenced through a shell-style default value, e.g. ${VERSION:-1.2.3}",
       "managerFilePatterns": ["/(^|/)local-load-test/multi-node-artemis\\.ya?ml$/"],
       "matchStrings": ["image:\\s+(?<depName>[^\\s:$]+(?:/[^\\s:$]+)*):\\$\\{[A-Z0-9_]+:-(?<currentValue>v?\\d[^}]*)\\}"],
       "datasourceTemplate": "docker"
