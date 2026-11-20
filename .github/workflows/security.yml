@@ -68,9 +68,10 @@ jobs:
           java-version: '25'
           cache: 'gradle'
 
-      # The webapp is irrelevant for the Java dependencies, so it is skipped.
-      - name: Build WAR
-        run: ./gradlew bootWar -x webapp --console=plain
+      # The executable JAR holds exactly the dependencies of the production WAR. The WAR itself cannot be built here:
+      # it needs -Pwar, which in turn requires the compiled webapp, and the webapp is irrelevant for Java dependencies.
+      - name: Build application JAR
+        run: ./gradlew bootJar -x webapp --console=plain
 
       - name: Cache Trivy database
         uses: actions/cache@v6
@@ -79,12 +80,13 @@ jobs:
           key: trivy-db-${{ github.run_id }}
           restore-keys: trivy-db-
 
-      # `rootfs`, not `fs`: only rootfs inspects the JARs nested inside a WAR; `fs` silently reports nothing.
+      # `rootfs`, not `fs`: only rootfs inspects the JARs nested inside a Spring Boot archive; `fs` silently reports
+      # nothing.
       # Only vulnerabilities that already have a fix are reported, because those are the ones we can act on.
-      - name: Scan WAR
+      - name: Scan application JAR
         run: |
           mkdir -p "$RUNNER_TEMP/scan" "$HOME/.cache/trivy"
-          cp build/libs/*.war "$RUNNER_TEMP/scan/app.war"
+          cp build/libs/*.jar "$RUNNER_TEMP/scan/app.jar"
           docker run --rm -v "$RUNNER_TEMP/scan:/scan:ro" -v "$HOME/.cache/trivy:/root/.cache" "$TRIVY_IMAGE" \
             rootfs --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 /scan
 
