@@ -58,7 +58,7 @@ class UserServiceIT {
     public void init() {
         user = new User();
         user.setLogin(DEFAULT_LOGIN);
-        user.setPassword(RandomStringUtils.secure().next(60));
+        user.setPassword(RandomStringUtils.secure().nextAlphanumeric(60));
         user.setActivated(true);
         user.setEmail(DEFAULT_EMAIL);
         user.setFirstName(DEFAULT_FIRSTNAME);
@@ -150,7 +150,7 @@ class UserServiceIT {
         Instant now = Instant.now();
         when(dateTimeProvider.getNow()).thenReturn(Optional.of(now.minus(4, ChronoUnit.DAYS)));
         user.setActivated(false);
-        user.setActivationKey(RandomStringUtils.secure().next(20));
+        user.setActivationKey(RandomStringUtils.secure().nextAlphanumeric(20));
         User dbUser = userRepository.saveAndFlush(user);
         dbUser.setCreatedDate(now.minus(4, ChronoUnit.DAYS));
         userRepository.saveAndFlush(user);
