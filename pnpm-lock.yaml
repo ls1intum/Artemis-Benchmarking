@@ -241,8 +241,8 @@ importers:
         specifier: 2.4.0
         version: 2.4.0(@stomp/stompjs@7.3.0)(rxjs@7.8.2)(uuid@14.0.2)
       '@swimlane/ngx-charts':
-        specifier: 25.0.3
-        version: 25.0.3(c5e2a5ba01395be4df4307feab9d4e86)
+        specifier: 25.0.4
+        version: 25.0.4(c5e2a5ba01395be4df4307feab9d4e86)
       bootstrap:
         specifier: 5.3.9
         version: 5.3.9(@popperjs/core@2.11.8)
@@ -1740,8 +1740,8 @@ packages:
   '@stomp/stompjs@7.3.0':
     resolution: {integrity: sha512-nKMLoFfJhrQAqkvvKd1vLq/cVBGCMwPRCD0LqW7UT1fecRx9C3GoKEIR2CYwVuErGeZu8w0kFkl2rlhPlqHVgQ==}
 
-  '@swimlane/ngx-charts@25.0.3':
-    resolution: {integrity: sha512-l/xy9aRsxG+7/c/xluW7VZZJ0NW6+Wbu4AvhGul+0zRT0ebwyBagC8RmJsbvjLpzf1MOR4Yp4oXCvntJe9z0Wg==}
+  '@swimlane/ngx-charts@25.0.4':
+    resolution: {integrity: sha512-XUkfTWyyiu1bbjaBkB18xSsI0S4GsEPIxu+uj3PPAX936UQdEr5m+xW8AFKTplyHWkGQcEiph1j+dl8nF5c3Dw==}
     peerDependencies:
       '@angular/animations': ^21.2.0 || ^22.0.0
       '@angular/cdk': ^21.2.0 || ^22.0.0
@@ -4608,7 +4608,7 @@ snapshots:
 
   '@stomp/stompjs@7.3.0': {}
 
-  '@swimlane/ngx-charts@25.0.3(c5e2a5ba01395be4df4307feab9d4e86)':
+  '@swimlane/ngx-charts@25.0.4(c5e2a5ba01395be4df4307feab9d4e86)':
     dependencies:
       '@angular/animations': 22.2.1(@angular/core@22.3.0(@angular/compiler@22.3.0)(rxjs@7.8.2))
       '@angular/cdk': 22.3.0(@angular/common@22.3.0(@angular/core@22.3.0(@angular/compiler@22.3.0)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.3.0(@angular/compiler@22.3.0)(rxjs@7.8.2))(@angular/forms@22.3.0(@angular/common@22.3.0(@angular/core@22.3.0(@angular/compiler@22.3.0)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.3.0(@angular/compiler@22.3.0)(rxjs@7.8.2))(@angular/platform-browser@22.3.0(@angular/animations@22.2.1(@angular/core@22.3.0(@angular/compiler@22.3.0)(rxjs@7.8.2)))(@angular/common@22.3.0(@angular/core@22.3.0(@angular/compiler@22.3.0)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.3.0(@angular/compiler@22.3.0)(rxjs@7.8.2)))(rxjs@7.8.2))(@angular/platform-browser@22.3.0(@angular/animations@22.2.1(@angular/core@22.3.0(@angular/compiler@22.3.0)(rxjs@7.8.2)))(@angular/common@22.3.0(@angular/core@22.3.0(@angular/compiler@22.3.0)(rxjs@7.8.2))(rxjs@7.8.2))(@angular/core@22.3.0(@angular/compiler@22.3.0)(rxjs@7.8.2)))(rxjs@7.8.2)
